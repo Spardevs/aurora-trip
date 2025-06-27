@@ -80,7 +80,7 @@
         android:layout_alignEnd="@id/txt_line1"
         android:textAlignment="viewStart"
         android:textAppearance="@style/TextAppearance.Aurora.Line3"
-        tools:text="br.com.ticpass.store" />
+        tools:text="br.com.ticpass.pos" />
 
     <TextView
         android:id="@+id/txt_line3"

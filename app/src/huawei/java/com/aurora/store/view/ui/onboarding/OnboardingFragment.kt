@@ -17,22 +17,22 @@
  *
  */
 
-package br.com.ticpass.store.view.ui.onboarding
+package br.com.ticpass.pos.view.ui.onboarding
 
 import androidx.fragment.app.Fragment
-import br.com.ticpass.store.util.Preferences.PREFERENCE_AUTO_DELETE
-import br.com.ticpass.store.util.Preferences.PREFERENCE_DEFAULT_SELECTED_TAB
-import br.com.ticpass.store.util.Preferences.PREFERENCE_DISPENSER_URLS
-import br.com.ticpass.store.util.Preferences.PREFERENCE_FILTER_AURORA_ONLY
-import br.com.ticpass.store.util.Preferences.PREFERENCE_FILTER_FDROID
-import br.com.ticpass.store.util.Preferences.PREFERENCE_FOR_YOU
-import br.com.ticpass.store.util.Preferences.PREFERENCE_INSTALLER_ID
-import br.com.ticpass.store.util.Preferences.PREFERENCE_SIMILAR
-import br.com.ticpass.store.util.Preferences.PREFERENCE_THEME_STYLE
-import br.com.ticpass.store.util.Preferences.PREFERENCE_UPDATES_CHECK_INTERVAL
-import br.com.ticpass.store.util.Preferences.PREFERENCE_UPDATES_EXTENDED
-import br.com.ticpass.store.util.Preferences.PREFERENCE_VENDING_VERSION
-import br.com.ticpass.store.util.save
+import br.com.ticpass.pos.util.Preferences.PREFERENCE_AUTO_DELETE
+import br.com.ticpass.pos.util.Preferences.PREFERENCE_DEFAULT_SELECTED_TAB
+import br.com.ticpass.pos.util.Preferences.PREFERENCE_DISPENSER_URLS
+import br.com.ticpass.pos.util.Preferences.PREFERENCE_FILTER_AURORA_ONLY
+import br.com.ticpass.pos.util.Preferences.PREFERENCE_FILTER_FDROID
+import br.com.ticpass.pos.util.Preferences.PREFERENCE_FOR_YOU
+import br.com.ticpass.pos.util.Preferences.PREFERENCE_INSTALLER_ID
+import br.com.ticpass.pos.util.Preferences.PREFERENCE_SIMILAR
+import br.com.ticpass.pos.util.Preferences.PREFERENCE_THEME_STYLE
+import br.com.ticpass.pos.util.Preferences.PREFERENCE_UPDATES_CHECK_INTERVAL
+import br.com.ticpass.pos.util.Preferences.PREFERENCE_UPDATES_EXTENDED
+import br.com.ticpass.pos.util.Preferences.PREFERENCE_VENDING_VERSION
+import br.com.ticpass.pos.util.save
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

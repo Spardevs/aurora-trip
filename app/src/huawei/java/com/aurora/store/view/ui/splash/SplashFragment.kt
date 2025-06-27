@@ -17,7 +17,7 @@
  *
  */
 
-package br.com.ticpass.store.view.ui.splash
+package br.com.ticpass.pos.view.ui.splash
 
 import br.com.ticpass.extensions.hide
 import dagger.hilt.android.AndroidEntryPoint

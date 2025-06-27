@@ -17,7 +17,7 @@
  *
  */
 
-package br.com.ticpass.store
+package br.com.ticpass.pos
 
 import org.junit.Assert.*
 import org.junit.Test

@@ -1,4 +1,4 @@
-package br.com.ticpass.store
+package br.com.ticpass.pos
 
 import android.app.Application
 import android.content.Context

@@ -1,7 +1,7 @@
 package br.com.ticpass.extensions
 
 import android.content.pm.PackageManager
-import br.com.ticpass.store.BuildConfig
+import br.com.ticpass.pos.BuildConfig
 
 /**
  * Gets the name of package responsible for installing/updating given package

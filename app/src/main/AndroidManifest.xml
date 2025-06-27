@@ -65,7 +65,7 @@
         android:required="false" />
 
     <application
-        android:name=".AuroraApp"
+        android:name="br.com.ticpass.pos.AuroraApp"
         android:allowBackup="true"
         android:banner="@drawable/ic_tv_banner"
         android:dataExtractionRules="@xml/backup_rules"

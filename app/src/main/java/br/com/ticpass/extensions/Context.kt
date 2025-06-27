@@ -42,9 +42,9 @@ import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import br.com.ticpass.Constants
 import com.aurora.gplayapi.data.models.App
-import br.com.ticpass.store.ComposeActivity
-import br.com.ticpass.store.R
-import br.com.ticpass.store.compose.navigation.Screen
+import br.com.ticpass.pos.ComposeActivity
+import br.com.ticpass.pos.R
+import br.com.ticpass.pos.compose.navigation.Screen
 
 private const val TAG = "Context"
 

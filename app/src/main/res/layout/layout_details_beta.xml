@@ -30,7 +30,7 @@
     android:visibility="gone"
     tools:visibility="visible">
 
-    <br.com.ticpass.store.view.custom.layouts.ActionHeaderLayout
+    <br.com.ticpass.pos.view.custom.layouts.ActionHeaderLayout
         android:id="@+id/header_rating_reviews"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

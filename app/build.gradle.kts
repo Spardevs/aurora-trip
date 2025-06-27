@@ -43,18 +43,18 @@ kotlin {
 }
 
 android {
-    namespace = "br.com.ticpass.store"
+    namespace = "br.com.ticpass.pos"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "br.com.ticpass.store"
+        applicationId = "br.com.ticpass.pos"
         minSdk = 21
         targetSdk = 36
 
         versionCode = 68
         versionName = "4.7.2"
 
-        testInstrumentationRunner = "br.com.ticpass.store.HiltInstrumentationTestRunner"
+        testInstrumentationRunner = "br.com.ticpass.pos.HiltInstrumentationTestRunner"
         testInstrumentationRunnerArguments["disableAnalytics"] = "true"
 
         buildConfigField("String", "EXODUS_API_KEY", "\"bbe6ebae4ad45a9cbacb17d69739799b8df2c7ae\"")

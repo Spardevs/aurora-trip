@@ -1,6 +1,6 @@
 package br.com.ticpass.extensions
 
-import br.com.ticpass.store.data.model.DownloadInfo
+import br.com.ticpass.pos.data.model.DownloadInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
