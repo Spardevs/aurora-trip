@@ -49,47 +49,47 @@
         app:destination="@id/moreDialogFragment" />
     <fragment
         android:id="@+id/appsContainerFragment"
-        android:name="com.aurora.store.view.ui.apps.AppsContainerFragment"
+        android:name="br.com.ticpass.store.view.ui.apps.AppsContainerFragment"
         android:label="@string/title_apps"
         tools:layout="@layout/fragment_apps_games" />
     <fragment
         android:id="@+id/gamesContainerFragment"
-        android:name="com.aurora.store.view.ui.games.GamesContainerFragment"
+        android:name="br.com.ticpass.store.view.ui.games.GamesContainerFragment"
         android:label="@string/title_games"
         tools:layout="@layout/fragment_apps_games" />
     <fragment
         android:id="@+id/updatesFragment"
-        android:name="com.aurora.store.view.ui.updates.UpdatesFragment"
+        android:name="br.com.ticpass.store.view.ui.updates.UpdatesFragment"
         android:label="@string/title_updates"
         tools:layout="@layout/fragment_updates" />
     <fragment
         android:id="@+id/aboutFragment"
-        android:name="com.aurora.store.view.ui.about.AboutFragment"
+        android:name="br.com.ticpass.store.view.ui.about.AboutFragment"
         android:label="@string/title_about"
         tools:layout="@layout/fragment_about" />
     <fragment
         android:id="@+id/appsGamesFragment"
-        android:name="com.aurora.store.view.ui.all.AppsGamesFragment"
+        android:name="br.com.ticpass.store.view.ui.all.AppsGamesFragment"
         android:label="@string/title_apps_games"
         tools:layout="@layout/fragment_generic_with_search" />
     <fragment
         android:id="@+id/spoofFragment"
-        android:name="com.aurora.store.view.ui.spoof.SpoofFragment"
+        android:name="br.com.ticpass.store.view.ui.spoof.SpoofFragment"
         android:label="@string/title_spoof_manager"
         tools:layout="@layout/fragment_spoof" />
     <fragment
         android:id="@+id/favouriteFragment"
-        android:name="com.aurora.store.view.ui.commons.FavouriteFragment"
+        android:name="br.com.ticpass.store.view.ui.commons.FavouriteFragment"
         android:label="@string/title_favourites_manager"
         tools:layout="@layout/fragment_generic_with_toolbar" />
     <fragment
         android:id="@+id/accountFragment"
-        android:name="com.aurora.store.view.ui.account.AccountFragment"
+        android:name="br.com.ticpass.store.view.ui.account.AccountFragment"
         android:label="@string/title_account_manager"
         tools:layout="@layout/fragment_account" />
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="com.aurora.store.view.ui.preferences.SettingsFragment"
+        android:name="br.com.ticpass.store.view.ui.preferences.SettingsFragment"
         android:label="@string/title_settings"
         tools:layout="@layout/fragment_setting" >
         <action
@@ -98,27 +98,27 @@
     </fragment>
     <fragment
         android:id="@+id/installationPreference"
-        android:name="com.aurora.store.view.ui.preferences.installation.InstallationPreference"
+        android:name="br.com.ticpass.store.view.ui.preferences.installation.InstallationPreference"
         android:label="InstallationPreference"
         tools:layout="@layout/fragment_setting" />
     <fragment
         android:id="@+id/networkPreference"
-        android:name="com.aurora.store.view.ui.preferences.network.NetworkPreference"
+        android:name="br.com.ticpass.store.view.ui.preferences.network.NetworkPreference"
         android:label="NetworkPreference"
         tools:layout="@layout/fragment_setting" />
     <fragment
         android:id="@+id/UIPreference"
-        android:name="com.aurora.store.view.ui.preferences.UIPreference"
+        android:name="br.com.ticpass.store.view.ui.preferences.UIPreference"
         android:label="UIPreference"
         tools:layout="@layout/fragment_setting" />
     <fragment
         android:id="@+id/updatesPreference"
-        android:name="com.aurora.store.view.ui.preferences.updates.UpdatesPreference"
+        android:name="br.com.ticpass.store.view.ui.preferences.updates.UpdatesPreference"
         android:label="UpdatesPreference"
         tools:layout="@layout/fragment_setting" />
     <fragment
         android:id="@+id/searchSuggestionFragment"
-        android:name="com.aurora.store.view.ui.search.SearchSuggestionFragment"
+        android:name="br.com.ticpass.store.view.ui.search.SearchSuggestionFragment"
         android:label="@string/title_search_suggestion"
         tools:layout="@layout/fragment_search_suggestion">
         <action
@@ -127,7 +127,7 @@
     </fragment>
     <fragment
         android:id="@+id/searchResultsFragment"
-        android:name="com.aurora.store.view.ui.search.SearchResultsFragment"
+        android:name="br.com.ticpass.store.view.ui.search.SearchResultsFragment"
         android:label="@string/title_search_results"
         tools:layout="@layout/fragment_search_result">
         <argument
@@ -143,7 +143,7 @@
     </fragment>
     <fragment
         android:id="@+id/downloadFragment"
-        android:name="com.aurora.store.view.ui.downloads.DownloadFragment"
+        android:name="br.com.ticpass.store.view.ui.downloads.DownloadFragment"
         android:label="@string/title_download_manager"
         tools:layout="@layout/fragment_download">
         <action
@@ -152,7 +152,7 @@
     </fragment>
     <fragment
         android:id="@+id/appDetailsFragment"
-        android:name="com.aurora.store.view.ui.details.AppDetailsFragment"
+        android:name="br.com.ticpass.store.view.ui.details.AppDetailsFragment"
         tools:layout="@layout/fragment_details">
         <argument
             android:name="packageName"
@@ -186,7 +186,7 @@
     </fragment>
     <fragment
         android:id="@+id/categoryBrowseFragment"
-        android:name="com.aurora.store.view.ui.commons.CategoryBrowseFragment"
+        android:name="br.com.ticpass.store.view.ui.commons.CategoryBrowseFragment"
         tools:layout="@layout/fragment_generic_with_toolbar">
         <argument
             android:name="title"
@@ -197,7 +197,7 @@
     </fragment>
     <fragment
         android:id="@+id/expandedStreamBrowseFragment"
-        android:name="com.aurora.store.view.ui.commons.ExpandedStreamBrowseFragment"
+        android:name="br.com.ticpass.store.view.ui.commons.ExpandedStreamBrowseFragment"
         tools:layout="@layout/fragment_generic_with_toolbar">
         <argument
             android:name="title"
@@ -208,7 +208,7 @@
     </fragment>
     <fragment
         android:id="@+id/screenshotFragment"
-        android:name="com.aurora.store.view.ui.details.ScreenshotFragment"
+        android:name="br.com.ticpass.store.view.ui.details.ScreenshotFragment"
         tools:layout="@layout/fragment_screenshot">
         <argument
             android:name="position"
@@ -219,7 +219,7 @@
     </fragment>
     <fragment
         android:id="@+id/devProfileFragment"
-        android:name="com.aurora.store.view.ui.details.DevProfileFragment"
+        android:name="br.com.ticpass.store.view.ui.details.DevProfileFragment"
         android:label="fragment_dev_profile"
         tools:layout="@layout/fragment_dev_profile">
         <argument
@@ -236,7 +236,7 @@
     </fragment>
     <fragment
         android:id="@+id/streamBrowseFragment"
-        android:name="com.aurora.store.view.ui.commons.StreamBrowseFragment"
+        android:name="br.com.ticpass.store.view.ui.commons.StreamBrowseFragment"
         tools:layout="@layout/fragment_generic_with_toolbar">
         <argument
             android:name="cluster"
@@ -244,7 +244,7 @@
     </fragment>
     <fragment
         android:id="@+id/devAppsFragment"
-        android:name="com.aurora.store.view.ui.details.DevAppsFragment"
+        android:name="br.com.ticpass.store.view.ui.details.DevAppsFragment"
         tools:layout="@layout/fragment_generic_with_toolbar">
         <argument
             android:name="developerName"
@@ -252,7 +252,7 @@
     </fragment>
     <fragment
         android:id="@+id/detailsMoreFragment"
-        android:name="com.aurora.store.view.ui.details.DetailsMoreFragment"
+        android:name="br.com.ticpass.store.view.ui.details.DetailsMoreFragment"
         tools:layout="@layout/fragment_details_more">
         <argument
             android:name="app"
@@ -260,7 +260,7 @@
     </fragment>
     <fragment
         android:id="@+id/detailsReviewFragment"
-        android:name="com.aurora.store.view.ui.details.DetailsReviewFragment"
+        android:name="br.com.ticpass.store.view.ui.details.DetailsReviewFragment"
         tools:layout="@layout/fragment_details_review">
         <argument
             android:name="displayName"
@@ -271,18 +271,18 @@
     </fragment>
     <fragment
         android:id="@+id/detailsExodusFragment"
-        android:name="com.aurora.store.view.ui.details.DetailsExodusFragment"
+        android:name="br.com.ticpass.store.view.ui.details.DetailsExodusFragment"
         tools:layout="@layout/fragment_generic_with_toolbar">
         <argument
             android:name="displayName"
             app:argType="string" />
         <argument
             android:name="report"
-            app:argType="com.aurora.store.data.model.Report" />
+            app:argType="br.com.ticpass.store.data.model.Report" />
     </fragment>
     <fragment
         android:id="@+id/splashFragment"
-        android:name="com.aurora.store.view.ui.splash.SplashFragment"
+        android:name="br.com.ticpass.store.view.ui.splash.SplashFragment"
         tools:layout="@layout/fragment_splash">
         <argument
             android:name="packageName"
@@ -332,7 +332,7 @@
     </fragment>
     <fragment
         android:id="@+id/googleFragment"
-        android:name="com.aurora.store.view.ui.account.GoogleFragment"
+        android:name="br.com.ticpass.store.view.ui.account.GoogleFragment"
         tools:layout="@layout/fragment_google">
         <action
             android:id="@+id/action_googleFragment_to_splashFragment"
@@ -342,7 +342,7 @@
     </fragment>
     <fragment
         android:id="@+id/onboardingFragment"
-        android:name="com.aurora.store.view.ui.onboarding.OnboardingFragment"
+        android:name="br.com.ticpass.store.view.ui.onboarding.OnboardingFragment"
         tools:layout="@layout/fragment_onboarding">
         <action
             android:id="@+id/action_onboardingFragment_to_splashFragment"
@@ -353,12 +353,12 @@
     </fragment>
     <fragment
         android:id="@+id/installerFragment"
-        android:name="com.aurora.store.view.ui.preferences.installation.InstallerFragment"
+        android:name="br.com.ticpass.store.view.ui.preferences.installation.InstallerFragment"
         android:label="InstallerFragment"
         tools:layout="@layout/fragment_installer" />
     <fragment
         android:id="@+id/dispenserFragment"
-        android:name="com.aurora.store.view.ui.dispenser.DispenserFragment"
+        android:name="br.com.ticpass.store.view.ui.dispenser.DispenserFragment"
         android:label="DispenserFragment"
         tools:layout="@layout/fragment_dispenser">
         <action
@@ -367,7 +367,7 @@
     </fragment>
     <fragment
         android:id="@+id/permissionsFragment"
-        android:name="com.aurora.store.view.ui.onboarding.PermissionsFragment"
+        android:name="br.com.ticpass.store.view.ui.onboarding.PermissionsFragment"
         android:label="PermissionsFragment"
         tools:layout="@layout/fragment_onboarding_permissions">
         <argument
@@ -377,21 +377,21 @@
     </fragment>
     <dialog
         android:id="@+id/appMenuSheet"
-        android:name="com.aurora.store.view.ui.sheets.AppMenuSheet"
+        android:name="br.com.ticpass.store.view.ui.sheets.AppMenuSheet"
         android:label="AppMenuSheet"
         tools:layout="@layout/sheet_app_menu">
         <argument
             android:name="app"
-            app:argType="com.aurora.store.data.model.MinimalApp" />
+            app:argType="br.com.ticpass.store.data.model.MinimalApp" />
     </dialog>
     <dialog
         android:id="@+id/filterSheet"
-        android:name="com.aurora.store.view.ui.sheets.FilterSheet"
+        android:name="br.com.ticpass.store.view.ui.sheets.FilterSheet"
         android:label="FilterSheet"
         tools:layout="@layout/sheet_filter" />
     <dialog
         android:id="@+id/manualDownloadSheet"
-        android:name="com.aurora.store.view.ui.sheets.ManualDownloadSheet"
+        android:name="br.com.ticpass.store.view.ui.sheets.ManualDownloadSheet"
         android:label="ManualDownloadSheet"
         tools:layout="@layout/sheet_manual_download">
         <argument
@@ -400,7 +400,7 @@
     </dialog>
     <dialog
         android:id="@+id/permissionBottomSheet"
-        android:name="com.aurora.store.view.ui.sheets.PermissionBottomSheet"
+        android:name="br.com.ticpass.store.view.ui.sheets.PermissionBottomSheet"
         tools:layout="@layout/sheet_permissions">
         <argument
             android:name="app"
@@ -408,21 +408,21 @@
     </dialog>
     <dialog
         android:id="@+id/downloadMenuSheet"
-        android:name="com.aurora.store.view.ui.sheets.DownloadMenuSheet"
+        android:name="br.com.ticpass.store.view.ui.sheets.DownloadMenuSheet"
         android:label="DownloadMenuSheet"
         tools:layout="@layout/sheet_download_menu">
         <argument
             android:name="download"
-            app:argType="com.aurora.store.data.room.download.Download" />
+            app:argType="br.com.ticpass.store.data.room.download.Download" />
     </dialog>
     <dialog
         android:id="@+id/deviceMiuiSheet"
-        android:name="com.aurora.store.view.ui.sheets.DeviceMiuiSheet"
+        android:name="br.com.ticpass.store.view.ui.sheets.DeviceMiuiSheet"
         android:label="DeviceMiuiSheet"
         tools:layout="@layout/sheet_device_miui" />
     <dialog
         android:id="@+id/installErrorDialogSheet"
-        android:name="com.aurora.store.view.ui.sheets.InstallErrorDialogSheet"
+        android:name="br.com.ticpass.store.view.ui.sheets.InstallErrorDialogSheet"
         android:label="InstallErrorDialogSheet"
         tools:layout="@layout/sheet_install_error">
         <argument
@@ -440,15 +440,15 @@
     </dialog>
     <dialog
         android:id="@+id/moreDialogFragment"
-        android:name="com.aurora.store.view.ui.commons.MoreDialogFragment"
+        android:name="br.com.ticpass.store.view.ui.commons.MoreDialogFragment"
         android:label="MoreDialogFragment" />
     <dialog
         android:id="@+id/inputDispenserDialog"
-        android:name="com.aurora.store.view.ui.dispenser.InputDispenserDialog"
+        android:name="br.com.ticpass.store.view.ui.dispenser.InputDispenserDialog"
         android:label="@string/add_dispenser_title" />
     <dialog
         android:id="@+id/removeDispenserDialog"
-        android:name="com.aurora.store.view.ui.dispenser.RemoveDispenserDialog"
+        android:name="br.com.ticpass.store.view.ui.dispenser.RemoveDispenserDialog"
         android:label="@string/remove_dispenser_title">
         <argument
             android:name="url"
@@ -456,11 +456,11 @@
     </dialog>
     <dialog
         android:id="@+id/aboutDialog"
-        android:name="com.aurora.store.view.ui.about.AboutDialog"
+        android:name="br.com.ticpass.store.view.ui.about.AboutDialog"
         android:label="@string/title_about" />
     <dialog
         android:id="@+id/logoutDialog"
-        android:name="com.aurora.store.view.ui.account.LogoutDialog"
+        android:name="br.com.ticpass.store.view.ui.account.LogoutDialog"
         android:label="@string/action_logout">
         <action
             android:id="@+id/action_logoutDialog_to_splashFragment"
@@ -471,14 +471,14 @@
     </dialog>
     <dialog
         android:id="@+id/proxyURLDialog"
-        android:name="com.aurora.store.view.ui.preferences.network.ProxyURLDialog"
+        android:name="br.com.ticpass.store.view.ui.preferences.network.ProxyURLDialog"
         android:label="@string/pref_network_proxy_url" />
     <dialog
         android:id="@+id/forceRestartDialog"
-        android:name="com.aurora.store.view.ui.commons.ForceRestartDialog"
+        android:name="br.com.ticpass.store.view.ui.commons.ForceRestartDialog"
         android:label="@string/force_restart_title" />
     <dialog
         android:id="@+id/updatesRestrictionsDialog"
-        android:name="com.aurora.store.view.ui.preferences.updates.UpdatesRestrictionsDialog"
+        android:name="br.com.ticpass.store.view.ui.preferences.updates.UpdatesRestrictionsDialog"
         android:label="@string/pref_updates_restrictions_title" />
 </navigation>

@@ -1,4 +1,4 @@
-package com.aurora.store.data.providers
+package br.com.ticpass.store.data.providers
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat

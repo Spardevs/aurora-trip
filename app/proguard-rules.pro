@@ -87,8 +87,8 @@
 -keep class com.google.gson.Gson {*;}
 
 # Keep data classes
--keep class com.aurora.store.data.room.favourite.ImportExport { *; }
--keep class com.aurora.store.data.room.favourite.Favourite { *; }
+-keep class br.com.ticpass.store.data.room.favourite.ImportExport { *; }
+-keep class br.com.ticpass.store.data.room.favourite.Favourite { *; }
 
 # With R8 full mode, it sees no subtypes of Retrofit interfaces since they are created with a Proxy
 # and replaces all potential values with null. Explicitly keeping the interfaces prevents this.
@@ -96,8 +96,8 @@
 -keep,allowobfuscation interface <1>
 
 -keepclassmembers enum * { *; }
--keep class  com.aurora.store.view.ui.preferences.**
--dontwarn  com.aurora.store.view.ui.preferences.**
+-keep class  br.com.ticpass.store.view.ui.preferences.**
+-dontwarn  br.com.ticpass.store.view.ui.preferences.**
 
 -keepclassmembers class * {
     private <fields>;

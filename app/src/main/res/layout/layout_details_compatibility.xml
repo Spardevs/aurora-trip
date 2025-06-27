@@ -10,14 +10,14 @@
     android:paddingEnd="@dimen/padding_small"
     android:showDividers="middle">
 
-    <com.aurora.store.view.custom.layouts.ActionHeaderLayout
+    <br.com.ticpass.store.view.custom.layouts.ActionHeaderLayout
         android:id="@+id/header_compatibility"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:headerSubtitle="@string/plexus_powered"
         app:headerTitle="@string/details_compatibility_title" />
 
-    <com.aurora.store.view.custom.layouts.DevInfoLayout
+    <br.com.ticpass.store.view.custom.layouts.DevInfoLayout
         android:id="@+id/txt_gms_dependency"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -32,7 +32,7 @@
         android:orientation="vertical"
         android:visibility="gone">
 
-        <com.aurora.store.view.custom.layouts.DevInfoLayout
+        <br.com.ticpass.store.view.custom.layouts.DevInfoLayout
             android:id="@+id/txt_status_aosp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -40,7 +40,7 @@
             app:txtSubtitle="@string/plexus_progress"
             app:txtTitle="@string/details_compatibility_no_gms" />
 
-        <com.aurora.store.view.custom.layouts.DevInfoLayout
+        <br.com.ticpass.store.view.custom.layouts.DevInfoLayout
             android:id="@+id/txt_status_microG"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

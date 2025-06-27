@@ -17,7 +17,7 @@
  *
  */
 
-package com.aurora.store
+package br.com.ticpass.store
 
 import org.junit.Assert.*
 import org.junit.Test

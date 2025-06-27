@@ -30,7 +30,7 @@
     android:paddingEnd="@dimen/padding_small"
     android:showDividers="middle">
 
-    <com.aurora.store.view.custom.layouts.ActionHeaderLayout
+    <br.com.ticpass.store.view.custom.layouts.ActionHeaderLayout
         android:id="@+id/header_permission"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

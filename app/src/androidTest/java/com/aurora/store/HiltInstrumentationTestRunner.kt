@@ -1,4 +1,4 @@
-package com.aurora.store
+package br.com.ticpass.store
 
 import android.app.Application
 import android.content.Context

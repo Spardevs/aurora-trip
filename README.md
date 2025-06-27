@@ -11,8 +11,8 @@ Aurora Store works exactly like a door or a browser, allowing you to log in to y
 
 *_Please note that Aurora Store does not have any approval, sponsorship or authorization from Google, Google Play, any apps downloaded through Aurora Store or any app developers; neither does Aurora Store have any affiliation, cooperation or connection with them._*
 
-[<img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" height="90">](https://f-droid.org/packages/com.aurora.store/)
-[<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="90">](https://apt.izzysoft.de/fdroid/index/apk/com.aurora.store)
+[<img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" height="90">](https://f-droid.org/packages/br.com.ticpass.store/)
+[<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="90">](https://apt.izzysoft.de/fdroid/index/apk/br.com.ticpass.store)
 
 ## Features
 
@@ -48,8 +48,8 @@ Please only download the latest stable releases from one of these sources:
 
 - [Official Website](https://auroraoss.com/)
 - [GitLab Releases](https://gitlab.com/AuroraOSS/AuroraStore/-/releases)
-- [IzzyOnDroid](https://apt.izzysoft.de/fdroid/index/apk/com.aurora.store) (Reproducible Build)
-- [F-Droid](https://f-droid.org/packages/com.aurora.store/) (Signed by F-Droid, [more details](https://f-droid.org/docs/Signing_Process/))
+- [IzzyOnDroid](https://apt.izzysoft.de/fdroid/index/apk/br.com.ticpass.store) (Reproducible Build)
+- [F-Droid](https://f-droid.org/packages/br.com.ticpass.store/) (Signed by F-Droid, [more details](https://f-droid.org/docs/Signing_Process/))
 - [App Gallery](https://appgallery.huawei.com/app/C110907863) (Limited to certain countries)
 
 You can also get latest debug builds signed with AOSP test keys for testing latest changes from our [GitLab Package Registry](https://gitlab.com/AuroraOSS/AuroraStore/-/packages/24103616).

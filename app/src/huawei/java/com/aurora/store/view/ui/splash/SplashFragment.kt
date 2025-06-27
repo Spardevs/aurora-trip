@@ -17,9 +17,9 @@
  *
  */
 
-package com.aurora.store.view.ui.splash
+package br.com.ticpass.store.view.ui.splash
 
-import com.aurora.extensions.hide
+import br.com.ticpass.extensions.hide
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
