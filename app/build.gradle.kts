@@ -45,6 +45,7 @@ android {
         applicationId = "br.com.ticpass.pos"
         versionCode = 25
         versionName = "2.23.0"
+        resConfigs("pt", "en") // First language is prioritized
 
 
         testInstrumentationRunner = "br.com.ticpass.pos.HiltInstrumentationTestRunner"
