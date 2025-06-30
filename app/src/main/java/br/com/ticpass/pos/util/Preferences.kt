@@ -66,17 +66,7 @@ object Preferences {
     private var prefs: SharedPreferences? = null
 
     fun getPrefs(context: Context): SharedPreferences {
-        return when (BuildConfig.FLAVOR) {
-            "vanilla" -> {
-                prefs ?: PreferenceManager.getDefaultSharedPreferences(context).also { prefs = it }
-            }
-
-            else -> {
-                val prefName = "${context.packageName}_${BuildConfig.FLAVOR}_preferences"
-                prefs ?: context.getSharedPreferences(prefName, Context.MODE_PRIVATE)
-                    .also { prefs = it }
-            }
-        }
+        return prefs ?: PreferenceManager.getDefaultSharedPreferences(context).also { prefs = it }
     }
 
     fun remove(context: Context, key: String) {

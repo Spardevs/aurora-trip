@@ -69,16 +69,4 @@ class OnboardingFragment : BaseFlavouredOnboardingFragment() {
             PermissionsFragment.newInstance()
         )
     }
-
-    override fun setupAutoUpdates() {
-        super.setupAutoUpdates()
-
-        // Remove super & implement variant logic here
-    }
-
-    override fun finishOnboarding() {
-        super.finishOnboarding()
-
-        // Remove super & implement variant logic here
-    }
 }

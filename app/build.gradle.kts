@@ -110,25 +110,7 @@ android {
         }
     }
 
-    flavorDimensions += "device"
-
-    productFlavors {
-        create("vanilla") {
-            isDefault = true
-            dimension = "device"
-        }
-
-        create("huawei") {
-            dimension = "device"
-            versionNameSuffix = "-hw"
-        }
-
-        // This flavor is only for preloaded devices / users who push the app to system
-        create("preload") {
-            dimension = "device"
-            versionNameSuffix = "-preload"
-        }
-    }
+    // Flavors have been removed - using unified codebase instead
 
     buildFeatures {
         buildConfig = true
@@ -160,14 +142,7 @@ android {
     }
 }
 
-androidComponents {
-    beforeVariants(selector().all()) { variant ->
-        val flavour = variant.flavorName
-        if ((flavour == "huawei" || flavour == "preload") && variant.buildType == "nightly") {
-            variant.enable = false
-        }
-    }
-}
+// androidComponents block removed as flavors are now unified
 
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
