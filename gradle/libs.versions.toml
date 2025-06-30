@@ -52,8 +52,19 @@ pagseguroTargetSdk = "24"
 stoneMinSdk = "22"
 # @keep
 stoneTargetSdk = "34"
+stoneSdkVersion = "4.10.2"
+plugpag = "1.29.5"
 
 [libraries]
+stone-sdk-envconfig = { module = "br.com.stone.sdk.android:envconfig", version.ref = "stoneSdkVersion" }
+stone-sdk = { module = "br.com.stone:stone-sdk", version.ref = "stoneSdkVersion" }
+stone-sdk-posandroid = { module = "br.com.stone:stone-sdk-posandroid", version.ref = "stoneSdkVersion" }
+stone-sdk-sunmi = { module = "br.com.stone:stone-sdk-posandroid-sunmi", version.ref = "stoneSdkVersion" }
+stone-sdk-positivo = { module = "br.com.stone:stone-sdk-posandroid-positivo", version.ref = "stoneSdkVersion" }
+stone-sdk-ingenico = { module = "br.com.stone:stone-sdk-posandroid-ingenico", version.ref = "stoneSdkVersion" }
+stone-sdk-gertec = { module = "br.com.stone:stone-sdk-posandroid-gertec", version.ref = "stoneSdkVersion" }
+plugpagservice-wrapper = { module = "br.com.uol.pagseguro.plugpagservice.wrapper:wrapper", version.ref = "plugpag" }
+
 airbnb-epoxy-android = { module = "com.airbnb.android:epoxy", version.ref = "epoxy" }
 airbnb-epoxy-processor = { module = "com.airbnb.android:epoxy-processor", version.ref = "epoxy" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity" }
