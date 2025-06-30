@@ -37,6 +37,20 @@ truth = "1.4.4"
 viewpager2 = "1.1.0"
 work = "2.10.2"
 
+# @keep
+minSdk = "24"
+# @keep
+#noinspection ExpiredTargetSdkVersion
+targetSdk = "25"
+# @keep
+pagseguroMinSdk = "23"
+# @keep
+pagseguroTargetSdk = "24"
+# @keep
+stoneMinSdk = "22"
+# @keep
+stoneTargetSdk = "34"
+
 [libraries]
 airbnb-epoxy-android = { module = "com.airbnb.android:epoxy", version.ref = "epoxy" }
 airbnb-epoxy-processor = { module = "com.airbnb.android:epoxy-processor", version.ref = "epoxy" }

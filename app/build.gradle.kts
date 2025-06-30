@@ -85,6 +85,25 @@ android {
         }
     }
 
+    flavorDimensions += "acquirers"
+    productFlavors {
+        create("pagseguro") {
+            dimension = "acquirers"
+            applicationIdSuffix = ".amalerinha"
+            versionNameSuffix = "-amalerinha"
+            minSdk = libs.versions.pagseguroMinSdk.get().toInt()
+            targetSdk = libs.versions.pagseguroTargetSdk.get().toInt()
+        }
+
+        create("stone") {
+            dimension = "acquirers"
+            applicationIdSuffix = ".pedra"
+            versionNameSuffix = "-pedra"
+            minSdk = libs.versions.stoneMinSdk.get().toInt()
+            targetSdk = libs.versions.stoneTargetSdk.get().toInt()
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -96,12 +115,6 @@ android {
             if (File("signing.properties").exists()) {
                 signingConfig = signingConfigs.getByName("release")
             }
-        }
-
-        register("nightly") {
-            initWith(getByName("release"))
-            applicationIdSuffix = ".nightly"
-            versionNameSuffix = "-${lastCommitHash.get()}"
         }
 
         debug {
