@@ -46,15 +46,13 @@ kotlin {
 
 android {
     namespace = "br.com.ticpass.pos"
-    compileSdk = 36
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
         applicationId = "br.com.ticpass.pos"
-        minSdk = 21
-        targetSdk = 36
+        versionCode = 25
+        versionName = "2.23.0"
 
-        versionCode = 68
-        versionName = "4.7.2"
 
         testInstrumentationRunner = "br.com.ticpass.pos.HiltInstrumentationTestRunner"
         testInstrumentationRunnerArguments["disableAnalytics"] = "true"
