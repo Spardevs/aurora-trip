@@ -72,10 +72,10 @@ android {
         }
 
         create("gertec") {
-            storeFile = file(AppConfig.positivoStoreFile)
-            storePassword = AppConfig.positivoStorePassword
-            keyAlias = AppConfig.positivoKeyAlias
-            keyPassword = AppConfig.positivoKeyPassword
+            storeFile = file(AppConfig.gertecStoreFile)
+            storePassword = AppConfig.gertecStorePassword
+            keyAlias = AppConfig.gertecKeyAlias
+            keyPassword = AppConfig.gertecKeyPassword
         }
     }
 
