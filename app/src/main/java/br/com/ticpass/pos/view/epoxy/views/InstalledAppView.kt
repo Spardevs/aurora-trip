@@ -1,20 +1,15 @@
 /*
- * Aurora Store
- *  Copyright (C) 2021, Rahul Kumar Patel <whyorean@gmail.com>
+ * Copyright (c) 2025 Ticpass. All rights reserved.
  *
- *  Aurora Store is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 2 of the License, or
- *  (at your option) any later version.
+ * PROPRIETARY AND CONFIDENTIAL
  *
- *  Aurora Store is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * This software is the confidential and proprietary information of Ticpass
+ * ("Confidential Information"). You shall not disclose such Confidential Information
+ * and shall use it only in accordance with the terms of the license agreement you
+ * entered into with Ticpass.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with Aurora Store.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * Unauthorized copying, distribution, or use of this software, via any medium,
+ * is strictly prohibited without the express written permission of Ticpass.
  */
 
 package br.com.ticpass.pos.view.epoxy.views

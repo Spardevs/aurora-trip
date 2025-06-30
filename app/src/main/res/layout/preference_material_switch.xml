@@ -1,4 +1,18 @@
-<?xml version="1.0" encoding="utf-8"?><!-- Derived from https://github.com/androidx/androidx/blob/8cb282cc/preference/preference/res/layout/preference_widget_switch_compat.xml -->
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Copyright (c) 2025 Ticpass. All rights reserved.
+  ~
+  ~ PROPRIETARY AND CONFIDENTIAL
+  ~
+  ~ This software is the confidential and proprietary information of Ticpass
+  ~ ("Confidential Information"). You shall not disclose such Confidential Information
+  ~ and shall use it only in accordance with the terms of the license agreement you
+  ~ entered into with Ticpass.
+  ~
+  ~ Unauthorized copying, distribution, or use of this software, via any medium,
+  ~ is strictly prohibited without the express written permission of Ticpass.
+  -->
+
+<!-- Derived from https://github.com/androidx/androidx/blob/8cb282cc/preference/preference/res/layout/preference_widget_switch_compat.xml -->
 <com.google.android.material.materialswitch.MaterialSwitch xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/switchWidget"

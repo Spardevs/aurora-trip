@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2025 Ticpass. All rights reserved.
+  ~
+  ~ PROPRIETARY AND CONFIDENTIAL
+  ~
+  ~ This software is the confidential and proprietary information of Ticpass
+  ~ ("Confidential Information"). You shall not disclose such Confidential Information
+  ~ and shall use it only in accordance with the terms of the license agreement you
+  ~ entered into with Ticpass.
+  ~
+  ~ Unauthorized copying, distribution, or use of this software, via any medium,
+  ~ is strictly prohibited without the express written permission of Ticpass.
+  -->
+
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="details_dev_profile">Hồ sơ nhà phát triển</string>
     <string name="details_dev_email">Thư điện tử</string>
