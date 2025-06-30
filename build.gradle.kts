@@ -13,6 +13,8 @@
  */
 
 buildscript {
+    // Initialize PropertyDelegates first before any AppConfig usage
+    PropertyDelegates.init(project)
     repositories {
         maven(url = "https://github.com/pagseguro/PlugPagServiceWrapper/raw/master")
         maven(url = "https://packagecloud.io/priv" +
