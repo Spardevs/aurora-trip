@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- does NOT require requesting during execution time -->
+    <uses-permission android:name="br.com.uol.pagseguro.permission.MANAGE_PAYMENTS" />
+
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" tools:node="remove" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" tools:node="remove" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" tools:node="remove" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" tools:node="remove" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" tools:node="remove" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" tools:node="remove" />
+    <uses-permission android:name="android.permission.REBOOT" tools:node="remove" />
+    <uses-permission android:name="android.permission.WRITE_APN_SETTINGS" tools:node="remove" />
+
+    <application
+        android:name="br.com.ticpass.pos.AuroraApp"
+        android:label="@string/app_name"
+        tools:replace="android:label"
+        android:icon="@mipmap/ic_launcher"
+    >
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustPan">
+            <intent-filter>
+                <action android:name="br.com.uol.pagseguro.PAYMENT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+            <nav-graph android:value="@navigation/mobile_navigation" />
+        </activity>
+
+        <provider
+            android:authorities="br.com.ticpass.pos.amalerinha"
+            android:name="br.com.stone.posandroid.datacontainer.data.contentprovider.DataContainerProvider"
+            tools:node="remove"
+        />
+
+        <activity
+            android:name="br.com.stone.posandroid.pal.hal.adapter.pinpad.processor.StonePedActivity"
+            tools:node="remove"
+        />
+
+        <activity
+            android:name="br.com.stone.posandroid.hal.sunmi.pinpad.CustomPed"
+            tools:node="remove"
+        />
+    </application>
+</manifest>

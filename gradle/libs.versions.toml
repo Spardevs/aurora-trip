@@ -38,7 +38,7 @@ viewpager2 = "1.1.0"
 work = "2.10.2"
 
 # @keep
-compileSdk = "33"
+compileSdk = "36"
 # @keep
 minSdk = "24"
 # @keep
