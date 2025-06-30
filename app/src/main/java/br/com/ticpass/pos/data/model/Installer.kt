@@ -15,7 +15,7 @@
 package br.com.ticpass.pos.data.model
 
 /**
- * Supported installers for Aurora Store
+ * Supported installers for Ticpass
  */
 enum class Installer {
     SESSION,

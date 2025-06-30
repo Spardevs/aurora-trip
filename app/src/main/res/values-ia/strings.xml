@@ -20,7 +20,7 @@
     <string name="action_grant">Permitter</string>
     <string name="action_install">Installar</string>
     <string name="action_logout">Clauder session</string>
-    <string name="about_fdroid_summary">Discarga le Aurora Store via F-Droid.</string>
+    <string name="about_fdroid_summary">Discarga le Ticpass via F-Droid.</string>
     <string name="account_login_using">Initiar session con</string>
     <string name="action_close">Clauder</string>
     <string name="action_filter_downloads">Discargas</string>
@@ -129,7 +129,7 @@
     <string name="tab_for_you">Pro te</string>
     <string name="check_connectivity">Verificar connexion a Internet</string>
     <string name="pref_network_proxy_url">URL de proxy</string>
-    <string name="pref_aurora_only">Solmente applicationes de Aurora Store</string>
+    <string name="pref_aurora_only">Solmente applicationes de Ticpass</string>
     <string name="notification_updates_available_desc_1">Un nove version de <xliff:g id="app_one_name">%1$s</xliff:g> es disponibile</string>
     <string name="update_available">actualisation disponibile</string>
     <string name="menu">Menu</string>
@@ -171,11 +171,11 @@
     <string name="details_dev_details">Contacto del disveloppator</string>
     <string name="onboarding_permission_esm">Gestor de immagazinage externe</string>
     <string name="pref_ui_title">Personalisation</string>
-    <string name="onboarding_permission_select">Aurora Store require le sequente permissiones</string>
+    <string name="onboarding_permission_select">Ticpass require le sequente permissiones</string>
     <string name="action_blacklist_add">Adder al lista nigre</string>
     <string name="pref_install_mode_summary">Selige le modo de installation de APK</string>
     <string name="action_blacklist">Lista nigre</string>
-    <string name="onboarding_permission_installer_desc">Permitter le installation de applicationes ab Aurora Store</string>
+    <string name="onboarding_permission_installer_desc">Permitter le installation de applicationes ab Ticpass</string>
     <string name="details_more_about_app">Plus super le application</string>
     <string name="account_anonymous">Anonyme</string>
     <string name="pref_filter_fdroid_summary">Ignorar applicationes de F-Droid ab le Actualisationes e applicationes installate</string>
@@ -199,7 +199,7 @@
     <string name="toast_apk_blacklisted">In le lista nigre</string>
     <string name="session_login_failed_google">Non poteva initiar le session via Google</string>
     <string name="onboarding_permission_doze">Discargamentos in secunde fundo</string>
-    <string name="onboarding_permission_doze_desc">Permitter Aurora Store le discargas e actualisationes in secunde fundo</string>
+    <string name="onboarding_permission_doze_desc">Permitter Ticpass le discargas e actualisationes in secunde fundo</string>
     <string name="verifying_new_session">Verificante le nove session</string>
     <string name="toast_permission_granted">Permission concedite</string>
     <string name="failed_apk_export">Falleva le exportation de APKs</string>

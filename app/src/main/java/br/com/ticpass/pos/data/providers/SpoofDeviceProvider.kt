@@ -114,7 +114,7 @@ open class SpoofDeviceProvider(private val context: Context) {
                     return JarFile(file)
                 }
             } catch (e: IOException) {
-                Log.e(TAG, "Could not open Aurora Store apk as a jar file")
+                Log.e(TAG, "Could not open Ticpass apk as a jar file")
             }
             return null
         }

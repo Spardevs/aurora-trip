@@ -29,7 +29,7 @@ import br.com.ticpass.pos.R
 import br.com.ticpass.pos.util.Preferences
 
 /**
- * App theme for Aurora Store based on [MaterialTheme]
+ * App theme for Ticpass based on [MaterialTheme]
  */
 @Composable
 fun AuroraTheme(content: @Composable () -> Unit) {

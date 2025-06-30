@@ -18,7 +18,7 @@
     <string name="about_bhim">BHIM - UPI</string>
     <string name="about_bitcoin_bch_summary">Ugu deeq - Bitcoin Cash (BCH)</string>
     <string name="about_gitlab">GitLab</string>
-    <string name="about_fdroid_summary">Kasoo dagso Aurora Store F-Droid.</string>
+    <string name="about_fdroid_summary">Kasoo dagso Ticpass F-Droid.</string>
     <string name="about_fdroid">F-Droid</string>
     <string name="about_bitcoin_eth_summary">Ugu deeq - Ethereum (ETH)</string>
     <string name="about_bitcoin_eth">Ethereum</string>
@@ -32,7 +32,7 @@
     <string name="action_installing">Kushubaya</string>
     <string name="action_installations">Kushubida</string>
     <string name="action_install">Kushub</string>
-    <string name="about_gitlab_summary">Ka hel koodhka Aurora Store barta GitLab ee Aurora OSS.</string>
+    <string name="about_gitlab_summary">Ka hel koodhka Ticpass barta GitLab ee Aurora OSS.</string>
     <string name="title_about">Kusaabsan dukaanka</string>
     <string name="toast_developer_setting_failed">Kasoo fur fadhiyada curiyaasha xaga fadhiga aallada si aad ufurto.</string>
     <string name="title_settings">Fadhiga</string>
@@ -235,7 +235,7 @@
     <string name="account_login_using">Gal adoo isticmaalaya</string>
     <string name="account_google">Google</string>
     <string name="account_anonymous">Garanwaa</string>
-    <string name="about_xda_summary">Fiiri Aurora Store qormadooda xaga XDA si aad doodaha ama soojeedinada oga qayb qaadato.</string>
+    <string name="about_xda_summary">Fiiri Ticpass qormadooda xaga XDA si aad doodaha ama soojeedinada oga qayb qaadato.</string>
     <string name="about_xda">Qoraalada Hormariyaha</string>
     <string name="about_telegram_summary">Ku biir qolka Aurora Support si aad oga qayb qaadato doodaha iyo soojeedinada.</string>
     <string name="about_telegram">Telegram</string>

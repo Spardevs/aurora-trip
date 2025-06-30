@@ -17,7 +17,7 @@ package br.com.ticpass.pos.data.model
 import br.com.ticpass.pos.BuildConfig
 
 /**
- * Class representing build types for Aurora Store
+ * Class representing build types for Ticpass
  */
 enum class BuildType(val packageName: String) {
     RELEASE("br.com.ticpass.pos"),

@@ -1,15 +1,15 @@
-# Aurora Store
+# Ticpass
 
-Aurora Store enables you to search and download apps from the official Google Play store. You can check app descriptions, screenshots, updates, reviews, and download the APK directly from Google Play to your device. 
+Ticpass enables you to search and download apps from the official Google Play store. You can check app descriptions, screenshots, updates, reviews, and download the APK directly from Google Play to your device. 
 
-To use Aurora Store, you need to have a Google Play account, and log in to your Google Play account when you first open and configure Aurora Store.
-(Alternatively Aurora Store also allow you to login anonymously)
+To use Ticpass, you need to have a Google Play account, and log in to your Google Play account when you first open and configure Ticpass.
+(Alternatively Ticpass also allow you to login anonymously)
 
-Unlike a traditional app store, Aurora Store does not own, license or distribute any apps. All the apps, app descriptions, screenshots and other content in Aurora Store are directly accessed, downloaded and/or displayed from Google Play. 
+Unlike a traditional app store, Ticpass does not own, license or distribute any apps. All the apps, app descriptions, screenshots and other content in Ticpass are directly accessed, downloaded and/or displayed from Google Play. 
 
-Aurora Store works exactly like a door or a browser, allowing you to log in to your Google Play account and find the apps from Google Play. 
+Ticpass works exactly like a door or a browser, allowing you to log in to your Google Play account and find the apps from Google Play. 
 
-*_Please note that Aurora Store does not have any approval, sponsorship or authorization from Google, Google Play, any apps downloaded through Aurora Store or any app developers; neither does Aurora Store have any affiliation, cooperation or connection with them._*
+*_Please note that Ticpass does not have any approval, sponsorship or authorization from Google, Google Play, any apps downloaded through Ticpass or any app developers; neither does Ticpass have any affiliation, cooperation or connection with them._*
 
 [<img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" height="90">](https://f-droid.org/packages/br.com.ticpass.pos/)
 [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="90">](https://apt.izzysoft.de/fdroid/index/apk/br.com.ticpass.pos)
@@ -61,7 +61,7 @@ You can also get latest debug builds signed with AOSP test keys for testing late
 
 ## Support
 
-Aurora Store v4 is still in on-going development! Bugs are to be expected! Any bug reports are appreciated.
+Ticpass v4 is still in on-going development! Bugs are to be expected! Any bug reports are appreciated.
 Please visit [Aurora Wiki](https://gitlab.com/AuroraOSS/AuroraStore/-/wikis/home) for FAQs.
 
 - [Telegram](https://t.me/AuroraSupport)
@@ -94,7 +94,7 @@ Please visit [Aurora Wiki](https://gitlab.com/AuroraOSS/AuroraStore/-/wikis/home
 
 ## Translations
 
-Don't see your preferred language? Click on the widget below to help translate Aurora Store!
+Don't see your preferred language? Click on the widget below to help translate Ticpass!
 
 <a href="https://hosted.weblate.org/engage/aurora-store/">
   <img src="https://hosted.weblate.org/widgets/aurora-store/-/287x66-grey.png" alt="Translation status" />
@@ -102,7 +102,7 @@ Don't see your preferred language? Click on the widget below to help translate A
 
 ## Donations
 
-You can support Aurora Store's development financially via options below. For more options, checkout the **About** page within the Aurora Store.
+You can support Ticpass's development financially via options below. For more options, checkout the **About** page within the Ticpass.
 
 [![Liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/whyorean)
 <a href="https://www.paypal.com/paypalme/AuroraDev">
@@ -111,7 +111,7 @@ You can support Aurora Store's development financially via options below. For mo
 
 ## Project references
 
-Aurora Store is based on these projects
+Ticpass is based on these projects
 
 - [YalpStore](https://github.com/yeriomin/YalpStore)
 - [AppCrawler](https://github.com/Akdeniz/google-play-crawler)

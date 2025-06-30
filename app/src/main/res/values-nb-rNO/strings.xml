@@ -169,9 +169,9 @@
     <string name="pref_install_mode_title">Installasjonsmetode</string>
     <string name="pref_install_mode_summary">Velg modus for APK-installasjon</string>
     <string name="pref_install_delete_summary">APK-er blir slettet som standard</string>
-    <string name="onboarding_permission_installer_desc">Tillat å installere apper fra Aurora Store</string>
+    <string name="onboarding_permission_installer_desc">Tillat å installere apper fra Ticpass</string>
     <string name="onboarding_welcome_select">Hvordan går det\?</string>
-    <string name="onboarding_permission_select">Aurora Store krever følgende tillatelser</string>
+    <string name="onboarding_permission_select">Ticpass krever følgende tillatelser</string>
     <string name="dialog_title_self_update">Ny oppdatering tilgjengelig</string>
     <string name="device_miui_title">MIUI oppdaget!</string>
     <string name="installer_status_user_action">Venter på brukerbekreftelse</string>
@@ -188,10 +188,10 @@
     <string name="action_filter_gsf_dependent_apps">GSF avhengig</string>
     <string name="action_disable">Deaktiver</string>
     <string name="account_logout">Logg ut fra Aurora</string>
-    <string name="about_xda_summary">Se Aurora Store-tråden på XDA for diskusjoner eller forslag.</string>
+    <string name="about_xda_summary">Se Ticpass-tråden på XDA for diskusjoner eller forslag.</string>
     <string name="about_telegram_summary">Bli med i Aurora Support-gruppen for diskusjoner eller forslag.</string>
-    <string name="about_gitlab_summary">Få kildekoden til Aurora Store fra Aurora OSS på GitLab.</string>
-    <string name="about_fdroid_summary">Få Aurora Store via F-Droid.</string>
+    <string name="about_gitlab_summary">Få kildekoden til Ticpass fra Aurora OSS på GitLab.</string>
+    <string name="about_fdroid_summary">Få Ticpass via F-Droid.</string>
     <string name="details_no_updates">Ingen oppdateringer tilgjengelig</string>
     <string name="details_no_app_match">Ingen app-samsvar funnet</string>
     <string name="details_gsf_dependent">Krever GSF</string>
@@ -250,7 +250,7 @@
     <string name="onboarding_permission_notifications">Merknader</string>
     <string name="toast_import_failed">Kunne ikke importere enhetsoppsett</string>
     <string name="download_eta_sec">%1$ds igjen</string>
-    <string name="app_links_desc">Tillat Aurora Store å åpne støttede lenker</string>
+    <string name="app_links_desc">Tillat Ticpass å åpne støttede lenker</string>
     <string name="requesting_new_session">Forespør ny økt …</string>
     <string name="action_import">Importer</string>
     <string name="title_search_suggestion">Søkeforslag</string>

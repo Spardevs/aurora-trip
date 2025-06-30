@@ -1,4 +1,4 @@
-Avec sa conception élégante, Aurora Store est un client libre non officiel de remplacement de Google Play. Comme le magasin Play Store, Aurora Store permet aux utilisateurs de télécharger, mettre à jour et chercher des applis. Il fonctionne parfaitement avec ou sans les services Google Play ou microG.
+Avec sa conception élégante, Ticpass est un client libre non officiel de remplacement de Google Play. Comme le magasin Play Store, Ticpass permet aux utilisateurs de télécharger, mettre à jour et chercher des applis. Il fonctionne parfaitement avec ou sans les services Google Play ou microG.
 
 <b>Caractéristiques :</b>
 

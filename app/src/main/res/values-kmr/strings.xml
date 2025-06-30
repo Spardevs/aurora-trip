@@ -105,7 +105,7 @@
     <string name="pref_install_delete_summary">APK dê bi standard werin jêbirin</string>
     <string name="pref_filter_fdroid_title">Fîlterkirin sepanên F-Droid</string>
     <string name="pref_filter_fdroid_summary">Sepanên F-Droid-ê ji navnîşên sepanan radike</string>
-    <string name="onboarding_permission_installer_desc">Destûrê bidin sazkirina sepanan ji Aurora Store</string>
+    <string name="onboarding_permission_installer_desc">Destûrê bidin sazkirina sepanan ji Ticpass</string>
     <string name="onboarding_permission_installer">Destûra Sazker</string>
     <string name="onboarding_permission_esm">Gerînendeyê Stoka Derve</string>
     <string name="onboarding_permission_esa_desc">Ji bo barkirina dakêşanan (APK &amp; OBBs), vesazkirin û vesazkirina amûrê li ser depoya derveyî.</string>
@@ -114,7 +114,7 @@
     <string name="onboarding_title_welcome">Bi xêr hatî</string>
     <string name="onboarding_title_permissions">Destûrên</string>
     <string name="onboarding_title_installer">Sazker</string>
-    <string name="onboarding_permission_select">Aurora Store destûrên jêrîn hewce dike</string>
+    <string name="onboarding_permission_select">Ticpass destûrên jêrîn hewce dike</string>
     <string name="dialog_title_self_update">Nûvekirina nû heye</string>
     <string name="device_miui_extra">Bi vebijarkî hûn dikarin sazkarê Niştimanî hilbijêrin, lê hingê hûn nekarin APK-anên (dabeşkirî) saz bikin, ji ber vê yekê hilbijartin ya we ye.</string>
     <string name="device_miui_description">Ji kerema xwe, optimîzasyonên MIUI-yê nehêlin ku destûrê bidin sazkirinê, nexwe hûn dikarin sazkerê Root an Xizmetan hilbijêrin.</string>
@@ -195,7 +195,7 @@
     <string name="account_login_using">Bikaranîna têketinê</string>
     <string name="account_google">Google</string>
     <string name="account_anonymous">Bênav</string>
-    <string name="about_xda_summary">Ji bo nîqaş an pêşniyaran mijara Aurora Store XDA bibînin.</string>
+    <string name="about_xda_summary">Ji bo nîqaş an pêşniyaran mijara Ticpass XDA bibînin.</string>
     <string name="about_xda">Mijara dêw</string>
     <string name="about_telegram_summary">Ji bo nîqaş an pêşniyaran beşdarî koma Piştgiriya Aurora bibin.</string>
     <string name="about_telegram">Telegram</string>
@@ -203,7 +203,7 @@
     <string name="about_paypal">Paypal</string>
     <string name="about_libera_summary">Li Liberapay bibin patron</string>
     <string name="about_libera">Liberapay</string>
-    <string name="about_gitlab_summary">Çavkaniya Aurora Store ji Aurora OSS li GitLab bistînin.</string>
+    <string name="about_gitlab_summary">Çavkaniya Ticpass ji Aurora OSS li GitLab bistînin.</string>
     <string name="about_gitlab">GitLab</string>
     <string name="about_fdroid_summary">Bi rêya F-Droid Firotgeha Aurora bistînin.</string>
     <string name="about_fdroid">F-Droid</string>

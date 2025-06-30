@@ -42,7 +42,7 @@
     <string name="about_bitcoin_bch_summary">Lahjoita Bitcoin Cashia (BCH)</string>
     <string name="about_bitcoin_bch">Bitcoin-valuutta</string>
     <string name="about_gitlab_summary">Hanki lähdekoodi Aurora OSS:ta tai GitLabista.</string>
-    <string name="about_fdroid_summary">Lataa Aurora Store F-Droidista.</string>
+    <string name="about_fdroid_summary">Lataa Ticpass F-Droidista.</string>
     <string name="about_bitcoin_eth_summary">Lahjoita Ethereumia</string>
     <string name="about_bitcoin_btc_summary">Lahjoita Bitcoinia</string>
     <string name="about_bhim_summary">Lahjoita UPI:n kautta</string>
@@ -224,7 +224,7 @@
     <string name="onboarding_welcome_select">Miten menee\?</string>
     <string name="onboarding_title_permissions">Käyttöoikeudet</string>
     <string name="onboarding_title_installer">Asentaja</string>
-    <string name="onboarding_permission_select">Aurora Store vaatii seuraavat käyttöoikeudet</string>
+    <string name="onboarding_permission_select">Ticpass vaatii seuraavat käyttöoikeudet</string>
     <string name="dialog_desc_native_split">Et voi asentaa niputettuja (split) sovelluksia natiiviasentajalla. Vaihda asentajaksi Services-, Root tai sessioasentaja.</string>
     <string name="device_miui_extra">Vaihtoehtoisesti voit valita natiiviasentajan, mutta sillä et voi asentaa niputettuja (split) APK-tiedostoja, joten valinta on sinun.</string>
     <string name="device_miui_description">Ota MIUI-optimoinnit pois käytöstä hyväksyäksesi asennukset tai valitse Root- tai Services-asentaja.</string>
@@ -328,7 +328,7 @@
     <string name="action_uninstall_success">Sovellus poistettu onnistuneesti</string>
     <string name="notification_channel_export">Sovelluksen vienti-ilmoitus</string>
     <string name="action_logout_confirmation_message">Oletko varma, että haluat kirjautua ulos?</string>
-    <string name="force_restart_summary">Aurora Store on käynnistettävä uudelleen juuri muutettujen asetusten käytöön ottamiseksi</string>
+    <string name="force_restart_summary">Ticpass on käynnistettävä uudelleen juuri muutettujen asetusten käytöön ottamiseksi</string>
     <string name="session_login">Kirjaudu Google Play -tilillesi</string>
     <string name="onboarding_permission_installer_legacy_desc">Salli sovellusten lataus tuntemattomista lähteistä</string>
     <string name="about_wiki_summary">Löydä vastauksia usein kysyttyihin kysymyksiin (U.K.K.), vianetsinnän vaiheisiin ja muihin asioihin</string>
@@ -375,7 +375,7 @@
     <string name="export_app_summary">Hetki pieni, tiedostoasi viedään</string>
     <string name="export_app_summary_success">Sovellusnippu viety onnistuneesti</string>
     <string name="action_logout_confirmation_title">Kirjaudutaanko ulos?</string>
-    <string name="force_restart_title">Käynnistä Aurora Store uudelleen</string>
+    <string name="force_restart_title">Käynnistä Ticpass uudelleen</string>
     <string name="made_with_love">Luotu <xliff:g id="heart_emoji">%1$s</xliff:g> käyttäen Intiassa</string>
     <string name="status_verifying">Varmistetaan</string>
     <string name="toast_proxy_invalid">Epäkelpo välityspalvelimen URL-osoite, tarkista muotoilu!</string>
@@ -395,11 +395,11 @@
     <string name="authentication_required_unarchive">Kirjaudu sisään Google Play -tiliisi sovelluksen arkistoinnin poistamiseksi!</string>
     <string name="installed_apps_size"><xliff:g id="installed_apps_size">%1$d</xliff:g> sovellusta asennettu</string>
     <string name="pref_updates_incompatible">Näytä päivitykset jotka saattavat epäonnistua</string>
-    <string name="pref_aurora_only_desc">Älä tarkista päivityksiä Aurora Store:n ulkopuolelta asennetuille sovelluksille</string>
+    <string name="pref_aurora_only_desc">Älä tarkista päivityksiä Ticpass:n ulkopuolelta asennetuille sovelluksille</string>
     <string name="pref_clear_device_owner_title">Tyhjennä laitteen omistaja</string>
     <string name="session_installer_subtitle">Istuntopohjainen asentaja niputetuille/jaetuille APK-paketeille</string>
     <string name="disclaimer_subtitle">Vastuu ja velvollisuus</string>
-    <string name="privacy_policy_subtitle">Selvitä miten Aurora Store käyttää dataasi</string>
+    <string name="privacy_policy_subtitle">Selvitä miten Ticpass käyttää dataasi</string>
     <string name="about_aurora_store_title">Tietoja Aurora Storesta</string>
     <string name="about_aurora_store_subtitle">Opi lisää Aurora Storesta</string>
     <string name="manage_account">Hallitse tiliäsi</string>
@@ -428,7 +428,7 @@
     <string name="pref_network_proxy_url_message">Syötä välityspalvelimen URL-osoite välittääksesi kaiken datan sen kautta.</string>
     <string name="title_more">Lisää</string>
     <string name="remove_dispenser_title">Poista jakelija</string>
-    <string name="about_aurora_store_summary">Aurora Store mahdollistaa sovellusten etsimisen ja lataamisen virallisesta Google Play -kaupasta. Voit tutkia sovellusten kuvaksia, kuvankaappauksia, päivityksiä, muiden käyttäjien kommentteja ja ladata sovelluksia suoraan Google Play:stä laitteellesi. Käyttääksesi Aurora Store:a sinulla on oltava Google Play -tili sekä kirjauduttava sisään Google Play -tilillesi kun avaat ja asetat Aurora Store:n.\n\nToisin kuin perinteiset sovelluskaupat, Aurora Store ei omista, lisensoi tai jakele sovelluksia. Kaikki sovellukset, sovellusten kuvaukset, kuvankaappaukset ja muu sisältö Aurora Storessa ovat suoraan haettu, ladattu ja/tai näytetty Google Play -kaupasta. Aurora Store toimii kuten ovi tai selain, mahdollistaen sisäänkirjautumisen Google Play -tilillesi ja sovellusten hakemiseen Google Play -kaupasta.\n\nHuomaa, että Aurora Store ei ole Googlen tai Google Play:n hyväksymä, sponsoroima tai valtuuttama, eikä myöskään minkään Aurora Storen kautta ladatun sovelluksen tai sovelluksien kehittäjien hyväksymä; Aurora Store:lla ei myöskään ole mitään kytköstä, yhteistyötä tai yhteyttä niihin.</string>
+    <string name="about_aurora_store_summary">Ticpass mahdollistaa sovellusten etsimisen ja lataamisen virallisesta Google Play -kaupasta. Voit tutkia sovellusten kuvaksia, kuvankaappauksia, päivityksiä, muiden käyttäjien kommentteja ja ladata sovelluksia suoraan Google Play:stä laitteellesi. Käyttääksesi Ticpass:a sinulla on oltava Google Play -tili sekä kirjauduttava sisään Google Play -tilillesi kun avaat ja asetat Ticpass:n.\n\nToisin kuin perinteiset sovelluskaupat, Ticpass ei omista, lisensoi tai jakele sovelluksia. Kaikki sovellukset, sovellusten kuvaukset, kuvankaappaukset ja muu sisältö Aurora Storessa ovat suoraan haettu, ladattu ja/tai näytetty Google Play -kaupasta. Ticpass toimii kuten ovi tai selain, mahdollistaen sisäänkirjautumisen Google Play -tilillesi ja sovellusten hakemiseen Google Play -kaupasta.\n\nHuomaa, että Ticpass ei ole Googlen tai Google Play:n hyväksymä, sponsoroima tai valtuuttama, eikä myöskään minkään Aurora Storen kautta ladatun sovelluksen tai sovelluksien kehittäjien hyväksymä; Ticpass:lla ei myöskään ole mitään kytköstä, yhteistyötä tai yhteyttä niihin.</string>
     <string name="no_apps_available">Sovelluksia ei saatavilla</string>
     <string name="pref_network_microg_login_title">Käytä microG:tä tileihin sisäänkirjautumiseen</string>
     <string name="pref_network_microg_login_desc">Todenna käyttäen microG:tä Googlen palveluihin sisäänkirjauduttaessa prosessin yksinkertaistamiseksi.</string>

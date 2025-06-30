@@ -30,7 +30,7 @@
     <string name="about_fdroid">F-Droid</string>
     <string name="about_fdroid_summary">F-Droid를 통해 Aurora Store를 가져옵니다.</string>
     <string name="about_gitlab">GitLab</string>
-    <string name="about_gitlab_summary">GitLab의 Aurora OSS에서 Aurora Store 소스 코드를 가져옵니다.</string>
+    <string name="about_gitlab_summary">GitLab의 Aurora OSS에서 Ticpass 소스 코드를 가져옵니다.</string>
     <string name="about_libera">리베라페이</string>
     <string name="about_libera_summary">리베라페이의 후원자가 되세요</string>
     <string name="about_paypal">페이팔</string>
@@ -47,7 +47,7 @@
     <string name="details_no_dependencies">종속성 없음</string>
     <string name="action_filter_apply">적용</string>
     <string name="about_bitcoin_eth_summary">이더리움(ETH)을 통해서 후원하기</string>
-    <string name="about_xda_summary">토론이나 제안 사항은 Aurora Store XDA 스레드를 참조하세요.</string>
+    <string name="about_xda_summary">토론이나 제안 사항은 Ticpass XDA 스레드를 참조하세요.</string>
     <string name="about_xda">XDA 포럼</string>
     <string name="action_cancel">취소</string>
     <string name="action_copy">복사</string>
@@ -202,7 +202,7 @@
     <string name="title_about">소개</string>
     <string name="pref_ui_no_for_you_desc">홈 화면에 페이지 표시</string>
     <string name="pref_updates_incompatible">호환되지 않는 업데이트</string>
-    <string name="pref_aurora_only">Aurora Store 앱 전용</string>
+    <string name="pref_aurora_only">Ticpass 앱 전용</string>
     <string name="purchase_unsupported">앱 지원되지 않음</string>
     <string name="purchase_not_found">앱을 찾을 수 없음</string>
     <string name="purchase_no_file">파일을 얻을 수 없음</string>
@@ -403,7 +403,7 @@
     <string name="export_app_title">파일 수출</string>
     <string name="remove_dispenser_summary">디스펜서를 제거하려면 \"<xliff:g id="url">%1$s</xliff:g>\"?</string>
     <string name="status_verifying">인증 및 인증</string>
-    <string name="force_restart_title">Aurora Store 다시시작</string>
+    <string name="force_restart_title">Ticpass 다시시작</string>
     <string name="check_updates">업데이트 확인</string>
     <string name="force_restart_summary">아사쿠사 새로 변경된 설정을 적용하기 위해 다시 시작해야 합니다</string>
     <string name="checking_updates">업데이트 확인중</string>
@@ -411,7 +411,7 @@
     <string name="add_dispenser_summary">토큰 분배자를 Aurora Store에 추가하십시오. Token dispensers는 익명으로 로그인하는 Aurora Store에 계정 자격 증명을 제공합니다.</string>
     <string name="export_app_summary">잠시만요, 파일을 내보내세요</string>
     <string name="action_unarchive">언아키브</string>
-    <string name="about_aurora_store_summary">아사쿠사 상점은 공식 Google Play 스토어에서 앱을 검색하고 다운로드 할 수 있습니다. 앱 설명, 스크린 샷, 업데이트, 다른 사용자의 의견 및 장치로 Google Play에서 APK를 직접 확인할 수 있습니다. 오로라 스토어를 사용하려면 Google Play 계정이 있어야 하며, 먼저 오로라 스토어를 열고 구성할 때 Google Play 계정에 로그인하십시오.\n\n전통적인 앱 스토어와 달리, Aurora Store는 자체, 라이센스 또는 모든 앱을 배포하지 않습니다. 모든 앱, 앱 설명, 스크린 샷 및 Aurora Store의 기타 콘텐츠는 Google Play에서 직접 액세스, 다운로드 및 / 또는 표시되어 있습니다. Aurora Store는 문이나 브라우저와 정확히 작동하며 Google Play 계정에 로그인하고 Google Play에서 앱을 찾습니다.\n\n오로라 주의 상점은 Google, Google Play, Aurora Store 또는 모든 앱 개발자를 통해 다운로드 한 모든 응용 프로그램에서 승인, 후원 또는 승인이 없습니다. Aurora Store에는 모든 제휴, 협력 또는 연결이 없습니다.</string>
+    <string name="about_aurora_store_summary">아사쿠사 상점은 공식 Google Play 스토어에서 앱을 검색하고 다운로드 할 수 있습니다. 앱 설명, 스크린 샷, 업데이트, 다른 사용자의 의견 및 장치로 Google Play에서 APK를 직접 확인할 수 있습니다. 오로라 스토어를 사용하려면 Google Play 계정이 있어야 하며, 먼저 오로라 스토어를 열고 구성할 때 Google Play 계정에 로그인하십시오.\n\n전통적인 앱 스토어와 달리, Aurora Store는 자체, 라이센스 또는 모든 앱을 배포하지 않습니다. 모든 앱, 앱 설명, 스크린 샷 및 Aurora Store의 기타 콘텐츠는 Google Play에서 직접 액세스, 다운로드 및 / 또는 표시되어 있습니다. Aurora Store는 문이나 브라우저와 정확히 작동하며 Google Play 계정에 로그인하고 Google Play에서 앱을 찾습니다.\n\n오로라 주의 상점은 Google, Google Play, Ticpass 또는 모든 앱 개발자를 통해 다운로드 한 모든 응용 프로그램에서 승인, 후원 또는 승인이 없습니다. Aurora Store에는 모든 제휴, 협력 또는 연결이 없습니다.</string>
     <string name="export_app_summary_fail">수출된 앱 번들에 실패</string>
     <string name="no_dispensers_available">디스펜서 사용 불가</string>
 </resources>

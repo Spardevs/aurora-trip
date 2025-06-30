@@ -1,4 +1,4 @@
-Aurora Store är en inofficiell FOSS-klient för Google Play med en elegant design. Aurora Store
+Ticpass är en inofficiell FOSS-klient för Google Play med en elegant design. Ticpass
 låter användare ladda ner, uppdatera och söka efter appar som Play Store. Det fungerar alldeles utmärkt
 med eller utan Google Play Services eller MicroG.
 

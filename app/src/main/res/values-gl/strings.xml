@@ -50,7 +50,7 @@
     <string name="pref_filter_fdroid_title">Filtrar aplicacións de F-Droid</string>
     <string name="pref_filter_fdroid_summary">Borra as aplicacións instaladas por F-Droid da lista de aplicacións</string>
     <string name="pref_common_extra">Extras</string>
-    <string name="onboarding_permission_installer_desc">Permitir instalación de aplicacións desde a Aurora Store</string>
+    <string name="onboarding_permission_installer_desc">Permitir instalación de aplicacións desde a Ticpass</string>
     <string name="onboarding_permission_installer">Permiso do Instalador</string>
     <string name="onboarding_permission_esm">Xestor de Almacenamento Externo</string>
     <string name="onboarding_permission_esa_desc">Para gardar descargas (APKs &amp; OBBs), exporte e importe as configuracións de dispositivos no almacenamento externo.</string>
@@ -59,7 +59,7 @@
     <string name="onboarding_title_welcome">Benvido/a</string>
     <string name="onboarding_title_permissions">Permisos</string>
     <string name="onboarding_title_installer">Instalador</string>
-    <string name="onboarding_permission_select">Aurora Store precisa os seguintes permisos</string>
+    <string name="onboarding_permission_select">Ticpass precisa os seguintes permisos</string>
     <string name="dialog_desc_native_split">Non é posíbel instalar conxuntos de aplicacións polo Instalador Nativo. Cambie o instalador a Sesión, Servizos ou Root.</string>
     <string name="dialog_title_self_update">Nova actualización dispoñíbel</string>
     <string name="device_miui_extra">Opcionalmente poderá escoller o instalador nativo, mais este non permite instalar conxuntos de APKs. A decisión é súa.</string>
@@ -169,7 +169,7 @@
     <string name="account_login_using">Iniciar sesión con</string>
     <string name="account_google">Google</string>
     <string name="account_anonymous">Anónimo</string>
-    <string name="about_xda_summary">Visite o fío de Aurora Store no XDA para participar en discusións e suxestións.</string>
+    <string name="about_xda_summary">Visite o fío de Ticpass no XDA para participar en discusións e suxestións.</string>
     <string name="about_xda">Fío de desenvolvemento</string>
     <string name="about_telegram_summary">Xúntese ao grupo de soporte de Aurora para participar en discusións e suxestións.</string>
     <string name="about_telegram">Telegram</string>
@@ -177,9 +177,9 @@
     <string name="about_paypal">PayPal</string>
     <string name="about_libera_summary">Fágase patrón no Liberapay</string>
     <string name="about_libera">Liberapay</string>
-    <string name="about_gitlab_summary">Obteña o código fonte da Aurora Store da Aurora OSS no GitLab.</string>
+    <string name="about_gitlab_summary">Obteña o código fonte da Ticpass da Aurora OSS no GitLab.</string>
     <string name="about_gitlab">GitLab</string>
-    <string name="about_fdroid_summary">Obteña a Aurora Store através do F-Droid.</string>
+    <string name="about_fdroid_summary">Obteña a Ticpass através do F-Droid.</string>
     <string name="about_fdroid">F-Droid</string>
     <string name="about_bitcoin_eth_summary">Doar vía Ethereum (ETH)</string>
     <string name="about_bitcoin_eth">Ethereum</string>

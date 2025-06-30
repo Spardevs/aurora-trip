@@ -186,7 +186,7 @@ class UpdateWorker @AssistedInject constructor(
     }
 
     /**
-     * Checks and returns updates for Aurora Store if available
+     * Checks and returns updates for Ticpass if available
      */
     private suspend fun getSelfUpdate(): App? {
         return withContext(Dispatchers.IO) {
