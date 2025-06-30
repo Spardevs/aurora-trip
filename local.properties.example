@@ -1,0 +1,44 @@
+# SDK location - standard Android properties
+sdk.dir=/path/to/your/android/sdk
+
+# App Configuration Properties
+
+# API Configuration
+API_HOST=https://api.example.com
+API_MAX_RETRIES=3
+API_TIMEOUT_SECONDS=30
+
+# Sync Intervals (in milliseconds)
+API_TELEMETRY_INTERVAL=3600000
+API_EVENT_SYNC_INTERVAL=1800000
+API_CHECK_DUE_PAYMENTS_INTERVAL=86400000
+API_ALERT_DUE_PAYMENTS_INTERVAL=43200000
+API_POS_SYNC_INTERVAL=3600000
+REMOVE_OLD_RECORDS_INTERVAL=604800000
+API_MAX_DUE_PAYMENTS_DAYS=30
+
+# Package Cloud
+PACKAGE_CLOUD_READ_TOKEN=your_package_cloud_token
+
+# QR Code Authentication
+STONE_QRCODE_AUTH=your_qrcode_auth_token
+STONE_QRCODE_PROVIDER_ID=your_provider_id
+PASS_REPRINTING_MAX_RETRIES=3
+
+# Signing Configuration - Release
+RELEASE_STORE_FILE=/path/to/release.keystore
+RELEASE_STORE_PASSWORD=your_store_password
+RELEASE_KEY_ALIAS=your_key_alias
+RELEASE_KEY_PASSWORD=your_key_password
+
+# Signing Configuration - Positivo
+POSITIVO_STORE_FILE=/path/to/positivo.keystore
+POSITIVO_STORE_PASSWORD=your_store_password
+POSITIVO_KEY_ALIAS=your_key_alias
+POSITIVO_KEY_PASSWORD=your_key_password
+
+# Signing Configuration - Gertec
+GERTEC_STORE_FILE=/path/to/gertec.keystore
+GERTEC_STORE_PASSWORD=your_store_password
+GERTEC_KEY_ALIAS=your_key_alias
+GERTEC_KEY_PASSWORD=your_key_password

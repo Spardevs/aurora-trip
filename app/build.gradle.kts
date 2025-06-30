@@ -21,6 +21,8 @@
 
 import java.util.Properties
 
+PropertyDelegates.init(project)
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -63,25 +65,25 @@ android {
     }
 
     signingConfigs {
-        if (File("signing.properties").exists()) {
-            create("release") {
-                val properties = Properties().apply {
-                    File("signing.properties").inputStream().use { load(it) }
-                }
-
-                keyAlias = properties["KEY_ALIAS"] as String
-                keyPassword = properties["KEY_PASSWORD"] as String
-                storeFile = file(properties["STORE_FILE"] as String)
-                storePassword = properties["KEY_PASSWORD"] as String
-            }
+        create("release") {
+            storeFile = file(AppConfig.releaseStoreFile)
+            storePassword = AppConfig.releaseStorePassword
+            keyAlias = AppConfig.releaseKeyAlias
+            keyPassword = AppConfig.releaseKeyPassword
         }
-        create("aosp") {
-            // Generated from the AOSP test key:
-            // https://android.googlesource.com/platform/build/+/refs/tags/android-11.0.0_r29/target/product/security/testkey.pk8
-            keyAlias = "testkey"
-            keyPassword = "testkey"
-            storeFile = file("testkey.jks")
-            storePassword = "testkey"
+
+        create("positivo") {
+            storeFile = file(AppConfig.positivoStoreFile)
+            storePassword = AppConfig.positivoStorePassword
+            keyAlias = AppConfig.positivoKeyAlias
+            keyPassword = AppConfig.positivoKeyPassword
+        }
+
+        create("gertec") {
+            storeFile = file(AppConfig.positivoStoreFile)
+            storePassword = AppConfig.positivoStorePassword
+            keyAlias = AppConfig.positivoKeyAlias
+            keyPassword = AppConfig.positivoKeyPassword
         }
     }
 
@@ -119,7 +121,6 @@ android {
 
         debug {
             applicationIdSuffix = ".debug"
-            signingConfig = signingConfigs.getByName("aosp")
         }
     }
 
