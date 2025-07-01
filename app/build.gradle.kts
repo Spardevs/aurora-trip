@@ -115,6 +115,20 @@ android {
         debug {
             applicationIdSuffix = ".debug"
         }
+
+        create("positivoDebug") {
+            initWith(getByName("positivoDebug"))
+            signingConfig = signingConfigs.getByName("positivo")
+            isDebuggable = true
+            applicationIdSuffix = ".debug"
+        }
+
+        create("gertecDebug") {
+            initWith(getByName("gertecDebug"))
+            signingConfig = signingConfigs.getByName("gertec")
+            isDebuggable = true
+            applicationIdSuffix = ".debug"
+        }
     }
 
     // Flavors have been removed - using unified codebase instead
