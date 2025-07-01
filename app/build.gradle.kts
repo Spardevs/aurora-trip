@@ -117,17 +117,13 @@ android {
         }
 
         create("positivoDebug") {
-            initWith(getByName("positivoDebug"))
+            initWith(getByName("debug"))
             signingConfig = signingConfigs.getByName("positivo")
-            isDebuggable = true
-            applicationIdSuffix = ".debug"
         }
 
         create("gertecDebug") {
-            initWith(getByName("gertecDebug"))
+            initWith(getByName("debug"))
             signingConfig = signingConfigs.getByName("gertec")
-            isDebuggable = true
-            applicationIdSuffix = ".debug"
         }
     }
 
