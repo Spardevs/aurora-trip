@@ -44,7 +44,7 @@ android {
     defaultConfig {
         applicationId = "br.com.ticpass.pos"
         versionCode = 25
-        versionName = "2.23.0"
+        versionName = "3.0.0"
         androidResources.localeFilters += listOf("pt", "en") // First language is prioritized
 
 
@@ -166,9 +166,19 @@ ksp {
 }
 
 dependencies {
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.firebase.crashlytics.buildtools)
+    implementation(libs.androidx.cardview)
+    ksp(libs.androidx.room.compiler)
+    implementation("com.google.code.gson:gson:2.13.1")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation("com.google.zxing:core:3.5.0")
+    implementation(libs.zxing.core)
+    implementation(libs.zxing)
+
 
     //Google's Goodies
-    implementation(libs.google.android.material)
     implementation(libs.google.protobuf.javalite)
 
     //AndroidX
@@ -189,7 +199,6 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
 
-    implementation(libs.androidx.material3)
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
@@ -250,8 +259,28 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.runtime)
 
+
     implementation(libs.process.phoenix)
 
     // LeakCanary
     debugImplementation(libs.squareup.leakcanary.android)
+
+    //Look
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+    annotationProcessor(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.material)
+
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.iconsExtended)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+
+
+//    implementation(libs.androidx.room.rxjava2)
+//    implementation(libs.androidx.room.rxjava3)
+//    implementation(libs.androidx.room.guava)
+//    testImplementation(libs.androidx.room.testing)
+//    implementation(libs.androidx.room.paging)
+
 }

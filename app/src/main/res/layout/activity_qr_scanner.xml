@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".view.ui.login.QrScannerActivity">
+
+    <com.journeyapps.barcodescanner.DecoratedBarcodeView
+        android:id="@+id/zxing_barcode_scanner"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+
+        <!-- Você pode customizar o viewfinder aqui, se quiser -->
+    </com.journeyapps.barcodescanner.DecoratedBarcodeView>
+
+    <!-- Exemplo de Overlay: uma barra de mensagem no topo -->
+    <TextView
+        android:id="@+id/overlayPrompt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:background="#80000000"
+        android:text="Aponte para o QR Code"
+        android:textColor="#FFFFFF"/>
+</FrameLayout>
