@@ -117,9 +117,7 @@ class QrScannerActivity() : AppCompatActivity(), BarcodeCallback {
                 val hash = getHash(text)
                 doLogin(hash) { result ->
                 result.onSuccess { response ->
-                    Log.d("LoginSuccess", "Resposta: $response")
                 }.onFailure { error ->
-                    Log.e("LoginError", "Erro no login: ${error.message}")
                 }
             }
             } else {

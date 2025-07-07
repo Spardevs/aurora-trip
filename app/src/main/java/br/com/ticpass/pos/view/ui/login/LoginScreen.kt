@@ -17,13 +17,14 @@ import br.com.ticpass.pos.databinding.ViewLoginBinding
 class LoginScreen : AppCompatActivity() {
     private lateinit var binding: ViewLoginBinding
     private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: EventScreen
+    private lateinit var adapter: MenuScreen
 
     private val scannerLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
-            val intent = Intent(this, br.com.ticpass.pos.data.activity.EventActivity::class.java)
+            val intent = Intent(this, br.com.ticpass.pos.data.activity.MenuActivity::class.java)
+            Log.d("LoginScreen", "Resposta: ${result.data?.getStringExtra("auth_response")}")
             startActivity(intent)
             finish()
 

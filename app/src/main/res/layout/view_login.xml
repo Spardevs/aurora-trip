@@ -43,7 +43,7 @@
         android:backgroundTint="@color/colorAccent"
         android:onClick="qrCodeLoginButton"
         android:text="@string/qr_code"
-        app:icon="@drawable/baseline_qr_code_24"
+        app:icon="@drawable/qr_code"
         app:iconPadding="3dp"
         app:layout_constraintBottom_toBottomOf="@+id/materialToolbar"
         app:layout_constraintEnd_toEndOf="@+id/materialToolbar" />

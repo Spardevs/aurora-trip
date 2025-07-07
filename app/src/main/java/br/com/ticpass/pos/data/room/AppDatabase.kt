@@ -15,7 +15,6 @@ import androidx.work.workDataOf
 import br.com.ticpass.pos.MainActivity
 import br.com.ticpass.pos.data.acquirers.workers.SeedDatabaseWorker
 import br.com.ticpass.pos.data.acquirers.workers.SeedDatabaseWorker.Companion.KEY_FILENAME
-import br.com.ticpass.pos.data.room.converters.Converters
 import br.com.ticpass.pos.data.room.dao.AcquisitionDao
 import br.com.ticpass.pos.data.room.entity.AcquisitionEntity
 import br.com.ticpass.pos.data.room.dao.CartOrderLineDao
@@ -101,7 +100,7 @@ import java.io.File
         AutoMigration (from = 7, to = 8),
     ]
 )
-@TypeConverters(Converters::class)
+    @TypeConverters()
 abstract class AppDatabase : RoomDatabase() {
     abstract fun cashierDao(): CashierDao
     abstract fun eventDao(): EventDao

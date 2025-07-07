@@ -8,7 +8,7 @@
     card_view:cardElevation="4dp">
 
     <LinearLayout
-        android:id="@+id/card_events"
+        android:id="@+id/card_menus"
         android:layout_width="346dp"
         android:layout_height="83dp"
         android:layout_marginTop="8dp"
@@ -17,7 +17,7 @@
         android:padding="16dp">
 
         <TextView
-            android:id="@+id/eventTitle"
+            android:id="@+id/menuTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Nome do Evento"
@@ -25,7 +25,7 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/eventDescription"
+            android:id="@+id/menuDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="4dp"
