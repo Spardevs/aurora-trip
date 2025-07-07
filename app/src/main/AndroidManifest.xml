@@ -22,6 +22,7 @@
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
@@ -63,7 +64,7 @@
         android:required="false" />
 
     <application
-        android:name="br.com.ticpass.pos.AuroraApp"
+        android:name=".MainApplication"
         android:allowBackup="true"
         android:banner="@drawable/ic_tv_banner"
         android:dataExtractionRules="@xml/backup_rules"
@@ -79,12 +80,16 @@
         android:theme="@style/AppTheme"
         tools:targetApi="tiramisu">
 
-        <activity android:name=".view.ui.login.LoginActivity"/>
+        <activity android:name=".view.ui.login.LoginScreen"/>
         <activity
-            android:name=".view.ui.login.QrScannerActivity"
+            android:name=".data.activity.MenuActivity"
+            android:exported="false" />
+        <activity
+            android:name=".data.activity.QrScannerActivity"
             android:screenOrientation="fullSensor"
             android:theme="@style/Theme.AppCompat.NoActionBar"
-            android:configChanges="orientation|screenSize" />
+            android:configChanges="orientation|screenSize"
+            tools:ignore="DiscouragedApi,Instantiatable" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

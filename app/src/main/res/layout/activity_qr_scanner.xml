@@ -3,25 +3,31 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".view.ui.login.QrScannerActivity">
+    android:layout_height="match_parent">
 
-    <com.journeyapps.barcodescanner.DecoratedBarcodeView
+    <!-- Scanner -->
+    <com.journeyapps.barcodescanner.BarcodeView
         android:id="@+id/zxing_barcode_scanner"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        >
+        android:layout_height="match_parent" />
 
-        <!-- Você pode customizar o viewfinder aqui, se quiser -->
-    </com.journeyapps.barcodescanner.DecoratedBarcodeView>
+    <!-- Overlay de escurecimento com recorte -->
+    <br.com.ticpass.pos.compose.ui.commons.ViewFinderView
+        android:id="@+id/viewfinderOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
-    <!-- Exemplo de Overlay: uma barra de mensagem no topo -->
+    <!-- Texto informativo -->
     <TextView
         android:id="@+id/overlayPrompt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
         android:padding="16dp"
         android:background="#80000000"
-        android:text="Aponte para o QR Code"
-        android:textColor="#FFFFFF"/>
+        android:text="@string/point_to_qr_code"
+        android:textColor="#FFFFFF"
+        android:textAlignment="center"
+        android:textSize="16sp"
+        tools:ignore="RtlCompat" />
 </FrameLayout>

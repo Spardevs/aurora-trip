@@ -29,7 +29,7 @@ processPhoenix = "3.0.0"
 protobufJavalite = "4.31.1"
 rikkaHiddenAPI = "4.3.3"
 rikkaTools = "4.4.0"
-room = "2.6.1" # New versions depends upon KSP2 which conflicts with epoxy
+room = "2.4.3"
 serialization = "1.8.1"
 shimmer = "0.5.0"
 shizuku = "13.1.5"
@@ -53,16 +53,29 @@ pagseguroTargetSdk = "24"
 stoneMinSdk = "22"
 # @keep
 stoneTargetSdk = "34"
-stoneSdkVersion = "4.10.2"
-plugpag = "1.29.5"
+
 firebaseCrashlyticsBuildtools = "3.0.4"
 cardview = "1.0.0"
 zxing = "4.3.0"
 zxingCore = "3.5.3"
 viewModelCompose = "2.9.1"
+retrofit = "3.0.0"
+okhttpLogging = "4.12.0"
+datastore = "1.0.0"
+playServicesMeasurementApi = "22.5.0"
+lottie = "6.6.7"
+composeDestinations = "1.8.42-beta"
+reactivexJava = "2.2.21"
+reactivexAndroid = "2.1.1"
+plugpag = "1.29.5"
+stoneSdkVersion = "4.10.2"
+playServicesGamesV2 = "21.0.0"
 
 
 [libraries]
+destinations-core = { module = "io.github.raamcosta.compose-destinations:animations-core", version.ref = "composeDestinations" }
+destinations-ksp = { module = "io.github.raamcosta.compose-destinations:ksp", version.ref = "composeDestinations" }
+plugpagservice-wrapper = { group = "br.com.uol.pagseguro.plugpagservice.wrapper", name = "wrapper", version.ref = "plugpag" }
 stone-sdk-envconfig = { module = "br.com.stone.sdk.android:envconfig", version.ref = "stoneSdkVersion" }
 stone-sdk = { module = "br.com.stone:stone-sdk", version.ref = "stoneSdkVersion" }
 stone-sdk-posandroid = { module = "br.com.stone:stone-sdk-posandroid", version.ref = "stoneSdkVersion" }
@@ -70,8 +83,8 @@ stone-sdk-sunmi = { module = "br.com.stone:stone-sdk-posandroid-sunmi", version.
 stone-sdk-positivo = { module = "br.com.stone:stone-sdk-posandroid-positivo", version.ref = "stoneSdkVersion" }
 stone-sdk-ingenico = { module = "br.com.stone:stone-sdk-posandroid-ingenico", version.ref = "stoneSdkVersion" }
 stone-sdk-gertec = { module = "br.com.stone:stone-sdk-posandroid-gertec", version.ref = "stoneSdkVersion" }
-plugpagservice-wrapper = { module = "br.com.uol.pagseguro.plugpagservice.wrapper:wrapper", version.ref = "plugpag" }
 
+lottie = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie" }
 airbnb-epoxy-android = { module = "com.airbnb.android:epoxy", version.ref = "epoxy" }
 airbnb-epoxy-processor = { module = "com.airbnb.android:epoxy-processor", version.ref = "epoxy" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity" }
@@ -83,6 +96,7 @@ androidx-hilt-navigation = { module = "androidx.hilt:hilt-navigation-compose", v
 androidx-junit = { module = "androidx.test.ext:junit-ktx", version.ref = "androidx-junit" }
 androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 androidx-navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigation" }
 androidx-navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigation" }
@@ -105,6 +119,7 @@ coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" 
 coil-network = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 facebook-shimmer = { module = "com.facebook.shimmer:shimmer", version.ref = "shimmer" }
 github-topjohnwu-libsu = { module = "com.github.topjohnwu.libsu:core", version.ref = "libsu" }
+google-android-material = { module = "com.google.android.material:material", version.ref = "material" }
 google-protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobufJavalite" }
 google-truth = { module = "com.google.truth:truth", version.ref = "truth" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }
@@ -134,6 +149,15 @@ androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
 androidx-compose-materialWindow = { module = "androidx.compose.material3:material3-window-size-class" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
 accompanist-themeadapter-material = { module = "com.google.accompanist:accompanist-themeadapter-material", version.ref = "accompanist" }
+okhttp3-logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttpLogging" }
+retrofit2 = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+retrofit2-converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
+datastore = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
+androidx-datastore-preferences-rxjava2 = { group = "androidx.datastore", name = "datastore-preferences-rxjava2", version = "1.0.0" }
+play-services-measurement-api = { group = "com.google.android.gms", name = "play-services-measurement-api", version.ref = "playServicesMeasurementApi" }
+reactivex-java = { module = "io.reactivex.rxjava2:rxjava", version.ref = "reactivexJava" }
+reactivex-android = { module = "io.reactivex.rxjava2:rxandroid", version.ref = "reactivexAndroid" }
+play-services-games-v2 = { group = "com.google.android.gms", name = "play-services-games-v2", version.ref = "playServicesGamesV2" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

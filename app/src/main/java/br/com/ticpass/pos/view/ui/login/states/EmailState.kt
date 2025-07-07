@@ -30,9 +30,6 @@ class EmailState(val email: String? = null) :
     }
 }
 
-/**
- * Returns an error to be displayed or null if no error was found
- */
 private fun emailValidationError(email: String): String {
     if(email.isEmpty()) {
         return "email inválido"

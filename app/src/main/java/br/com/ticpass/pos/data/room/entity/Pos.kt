@@ -1,13 +1,20 @@
 package br.com.ticpass.pos.data.room.entity
-import androidx.room.Entity
 
+import androidx.room.ColumnInfo
+import androidx.room.Entity
 import androidx.room.PrimaryKey
-@Entity(tableName = "pos")
+
+@Entity(tableName = "pos" )
 data class PosEntity(
     @PrimaryKey val id: String,
-    val name: String,
-    val cashier: String,
-    val commission: Long,
-    val closedAt: Boolean,
-    val isSelected: Boolean
-)
+    var name: String,
+    var cashier: String,
+    var isClosed: Boolean,
+    var isSelected: Boolean,
+
+    @ColumnInfo(defaultValue = "0")
+    var commission: Long = 0L,
+) {
+
+    override fun toString() = name
+}

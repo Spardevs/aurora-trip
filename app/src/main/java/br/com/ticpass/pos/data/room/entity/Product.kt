@@ -1,30 +1,33 @@
 package br.com.ticpass.pos.data.room.entity
 
+import androidx.room.ColumnInfo
+import androidx.room.Embedded
 import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.ForeignKey.Companion.CASCADE
-import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.Relation
+import br.com.ticpass.pos.data.room.entity.CategoryEntity
 
-@Entity(
-    tableName = "product",
-    foreignKeys = [
-        ForeignKey(
-            entity = CategoryEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["categoryId"],
-            onDelete = CASCADE
-        )
-    ],
-    indices = [Index("categoryId")]
-)
+@Entity(tableName = "products" )
 data class ProductEntity(
     @PrimaryKey val id: String,
-    val categoryId: String,
-    val name: String,
+    var name: String,
     val thumbnail: String,
     val url: String,
+    val category: String,
     val price: Long,
+    @ColumnInfo(defaultValue = "-1")
     val stock: Int,
-    val isEnabled: Boolean
+    var isEnabled: Boolean = true
+) {
+
+    override fun toString() = name
+}
+
+data class CategoryWithProducts(
+    @Embedded val category: CategoryEntity,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "category"
+    )
+    val products: List<ProductEntity>
 )

@@ -1,31 +1,24 @@
 package br.com.ticpass.pos.data.room.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.ForeignKey.Companion.CASCADE
-import androidx.room.Index
 import androidx.room.PrimaryKey
+import br.com.ticpass.pos.compose.utils.getCurrentDateString
+import br.com.ticpass.pos.compose.utils.generateRandomEAN
 
-@Entity(
-    tableName = "payment",
-    foreignKeys = [
-        ForeignKey(
-            entity = OrderEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["orderId"],
-            onDelete = CASCADE
-        )
-    ],
-    indices = [Index("orderId")]
-)
+@Entity(tableName = "payments" )
 data class PaymentEntity(
-    @PrimaryKey val id: String,
-    val orderId: String,
-    val atk: String,
-    val amount: Long,
-    val commission: Long,
-    val createdAt: String,
-    val method: String,
-    val usedAcquirer: Boolean,
-    val synced: Boolean
-)
+    @PrimaryKey val id: String = generateRandomEAN(),
+    var acquirerTransactionKey: String = "",
+    var amount: Long,
+    @ColumnInfo(defaultValue = "0")
+    var commission: Long = 0L,
+    var createdAt: String = getCurrentDateString(),
+    var order: String,
+    var type: String,
+    var usedAcquirer: Boolean = true,
+    var synced: Boolean = false,
+) {
+
+    override fun toString() = id
+}
