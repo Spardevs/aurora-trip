@@ -39,22 +39,42 @@ kotlin {
 
 android {
     namespace = "br.com.ticpass.pos"
-    compileSdk = libs.versions.compileSdk.get().toInt()
+    compileSdkVersion(libs.versions.compileSdk.get().toInt())
 
     defaultConfig {
         applicationId = "br.com.ticpass.pos"
         versionCode = 25
-        versionName = "2.23.0"
+        versionName = "3.0.0"
         androidResources.localeFilters += listOf("pt", "en") // First language is prioritized
-
+        vectorDrawables.useSupportLibrary = true
 
         testInstrumentationRunner = "br.com.ticpass.pos.HiltInstrumentationTestRunner"
         testInstrumentationRunnerArguments["disableAnalytics"] = "true"
 
         buildConfigField("String", "EXODUS_API_KEY", "\"bbe6ebae4ad45a9cbacb17d69739799b8df2c7ae\"")
+        buildConfigField("String", "CHECK_DUE_PAYMENTS_INTERVAL", "\"" + getAPICheckDuePaymentsInterval() + "\"")
+        buildConfigField("String", "ALERT_DUE_PAYMENTS_INTERVAL", "\"" + getAPIAlertDuePaymentsInterval() + "\"")
+        buildConfigField("String", "MAX_DUE_PAYMENTS_DAYS", "\"" + getAPIMaxDuePaymentsDays() + "\"")
+        buildConfigField("String", "EVENT_SYNC_INTERVAL", "\"" + getAPIEventSyncInterval() + "\"")
+        buildConfigField("String", "TELEMETRY_INTERVAL", "\"" + getAPITelemetryInterval() + "\"")
+        buildConfigField("String", "POS_SYNC_INTERVAL", "\"" + getAPIPOSSyncInterval() + "\"")
+        buildConfigField("String", "REMOVE_OLD_RECORDS_INTERVAL", "\"" + getPOSOldRecordsRemovalInterval() + "\"")
+        buildConfigField("String", "API_HOST", "\"" + getApiHost() + "\"")
+        buildConfigField("String", "STONE_QRCODE_AUTH", "\"" + getQRCodeAuthCode() + "\"")
+        buildConfigField("String", "STONE_QRCODE_PROVIDER_ID", "\"" + getQRCodeAuthProviderID() + "\"")
+        buildConfigField("String", "PASS_REPRINTING_MAX_RETRIES", "\"" + getPassReprintingMaxRetries() + "\"")
+        buildConfigField("String", "API_MAX_RETRIES", "\"" + getApiMaxRetries() + "\"")
+        buildConfigField("String", "API_TIMEOUT_SECONDS", "\"" + getApiTimeoutSeconds() + "\"")
 
         missingDimensionStrategy("device", "vanilla")
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments["dagger.hilt.disableModulesHaveInstallInCheck"] = "true"
+                arguments["room.schemaLocation"] = "$projectDir/schemas".toString()
+            }
+        }
     }
+
 
     signingConfigs {
         create("release") {
@@ -134,6 +154,7 @@ android {
         viewBinding = true
         aidl = true
         compose = true
+        dataBinding = true
     }
 
     kotlinOptions {
@@ -166,6 +187,19 @@ ksp {
 }
 
 dependencies {
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.firebase.crashlytics.buildtools)
+    implementation(libs.androidx.cardview)
+    implementation(libs.play.services.measurement.api)
+    implementation(libs.play.services.games.v2)
+    ksp(libs.androidx.room.compiler)
+    implementation("com.google.code.gson:gson:2.13.1")
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation("com.google.zxing:core:3.5.0")
+    implementation(libs.zxing.core)
+    implementation(libs.zxing)
+
 
     //Google's Goodies
     implementation(libs.google.android.material)
@@ -180,12 +214,14 @@ dependencies {
     implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.androidx.viewpager2)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.lottie)
 
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
-
+    implementation(libs.destinations.core)
+    ksp(libs.destinations.ksp)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
 
@@ -250,8 +286,100 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.runtime)
 
+
     implementation(libs.process.phoenix)
 
     // LeakCanary
     debugImplementation(libs.squareup.leakcanary.android)
+
+    //Look
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+    annotationProcessor(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.material)
+    implementation(libs.okhttp3.logging.interceptor)
+    implementation(libs.retrofit2.converter.gson)
+    implementation(libs.retrofit2)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.iconsExtended)
+    implementation(libs.datastore)
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.mockito:mockito-core:5.2.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:4.1.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+
+
+//    // PagSeguro
+//    implementation(libs.plugpagservice.wrapper)
+//    implementation(libs.reactivex.java)
+//    implementation(libs.reactivex.android)
+//    // stone
+//    implementation(libs.stone.sdk.envconfig)
+//    implementation(libs.stone.sdk)
+//    implementation(libs.stone.sdk.posandroid)
+//    implementation(libs.stone.sdk.sunmi)
+//    implementation(libs.stone.sdk.positivo)
+//    implementation(libs.stone.sdk.ingenico)
+//    implementation(libs.stone.sdk.gertec)
+
+
+}
+
+
+fun getPackageCloudReadToken(): String? {
+    return project.findProperty("PACKAGE_CLOUD_READ_TOKEN") as? String
+}
+
+fun getAPITelemetryInterval(): String? {
+    return project.findProperty("API_TELEMETRY_INTERVAL") as? String
+}
+
+fun getAPIEventSyncInterval(): String? {
+    return project.findProperty("API_EVENT_SYNC_INTERVAL") as? String
+}
+
+fun getAPICheckDuePaymentsInterval(): String? {
+    return project.findProperty("API_CHECK_DUE_PAYMENTS_INTERVAL") as? String
+}
+
+fun getAPIAlertDuePaymentsInterval(): String? {
+    return project.findProperty("API_ALERT_DUE_PAYMENTS_INTERVAL") as? String
+}
+
+fun getAPIMaxDuePaymentsDays(): String? {
+    return project.findProperty("API_MAX_DUE_PAYMENTS_DAYS") as? String
+}
+
+fun getAPIPOSSyncInterval(): String? {
+    return project.findProperty("API_POS_SYNC_INTERVAL") as? String
+}
+
+fun getPOSOldRecordsRemovalInterval(): String? {
+    return project.findProperty("REMOVE_OLD_RECORDS_INTERVAL") as? String
+}
+
+fun getApiHost(): String {
+    return project.findProperty("API_HOST") as String
+}
+
+fun getApiMaxRetries(): String {
+    return project.findProperty("API_MAX_RETRIES") as String
+}
+
+fun getApiTimeoutSeconds(): String {
+    return project.findProperty("API_TIMEOUT_SECONDS") as String
+}
+
+fun getQRCodeAuthCode(): String {
+    return project.findProperty("STONE_QRCODE_AUTH") as String
+}
+
+fun getQRCodeAuthProviderID(): String {
+    return project.findProperty("STONE_QRCODE_PROVIDER_ID") as String
+}
+
+fun getPassReprintingMaxRetries(): String {
+    return project.findProperty("PASS_REPRINTING_MAX_RETRIES") as String
 }

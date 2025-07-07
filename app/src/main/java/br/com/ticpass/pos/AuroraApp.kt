@@ -42,7 +42,7 @@ import okhttp3.OkHttpClient
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import javax.inject.Inject
 
-@HiltAndroidApp
+//@HiltAndroidApp
 class AuroraApp : Application(), Configuration.Provider, SingletonImageLoader.Factory {
 
     @Inject

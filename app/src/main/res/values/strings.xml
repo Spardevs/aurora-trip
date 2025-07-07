@@ -12,6 +12,13 @@
   ~ is strictly prohibited without the express written permission of Ticpass.
   -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string name="whats_going_on_today">Whats going on today?</string>
+    <string name="point_to_qr_code">Point to the QR Code</string>
+    <string name="login_text" translatable="false">"Landing here? Log in"</string>
+    <string name='qr_code' translatable="false">"QR Code"</string>
+
+
     <string name="app_name" translatable="false">"Ticpass"</string>
     <string name="download_speed_bytes" translatable="false">%1$d B/s</string>
     <string name="download_speed_kb" translatable="false">%1$s KB/s</string>

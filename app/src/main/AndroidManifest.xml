@@ -22,6 +22,7 @@
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
@@ -34,6 +35,8 @@
 
     <uses-permission android:name="android.permission.ENFORCE_UPDATE_OWNERSHIP" />
     <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
+    <uses-permission android:name="android.permission.CAMERA"/>
+
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
@@ -56,9 +59,12 @@
     <uses-feature
         android:name="android.software.device_admin"
         android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
     <application
-        android:name="br.com.ticpass.pos.AuroraApp"
+        android:name=".MainApplication"
         android:allowBackup="true"
         android:banner="@drawable/ic_tv_banner"
         android:dataExtractionRules="@xml/backup_rules"
@@ -74,108 +80,21 @@
         android:theme="@style/AppTheme"
         tools:targetApi="tiramisu">
 
+        <activity android:name=".view.ui.login.LoginScreen"/>
         <activity
-            android:name=".MainActivity"
-            android:exported="true"
-            android:windowSoftInputMode="adjustPan">
+            android:name=".data.activity.EventActivity"
+            android:exported="false" />
+        <activity
+            android:name=".data.activity.QrScannerActivity"
+            android:screenOrientation="fullSensor"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:configChanges="orientation|screenSize"
+            tools:ignore="DiscouragedApi,Instantiatable" />
+        <activity android:name=".MainActivity">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-
-            <nav-graph android:value="@navigation/mobile_navigation" />
         </activity>
-
-        <!-- Activity to host composable screens -->
-        <activity
-            android:name=".ComposeActivity"
-            android:exported="false" />
-
-        <!-- Notification Action (Download Complete) -->
-        <activity
-            android:name=".data.activity.InstallActivity"
-            android:exported="false"
-            android:theme="@style/AppTheme.Translucent" />
-
-        <!-- DownloadWorker -->
-        <service
-            android:name="androidx.work.impl.foreground.SystemForegroundService"
-            android:foregroundServiceType="dataSync"
-            tools:node="merge" />
-
-        <!-- Third-party installers -->
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileProvider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/paths" />
-        </provider>
-
-        <!-- Shizuku (Installer) -->
-        <provider
-            android:name="rikka.shizuku.ShizukuProvider"
-            android:authorities="${applicationId}.shizuku"
-            android:enabled="true"
-            android:exported="true"
-            android:multiprocess="false"
-            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL"
-            tools:ignore="MissingClass" />
-
-        <!-- Hilt (WorkManager) -->
-        <provider
-            android:name="androidx.startup.InitializationProvider"
-            android:authorities="${applicationId}.androidx-startup"
-            android:exported="false"
-            tools:node="merge">
-            <!-- Lifecycle (isForeground method in CommonUtils) -->
-            <meta-data
-                android:name="androidx.work.WorkManagerInitializer"
-                android:value="androidx.startup"
-                tools:node="remove" />
-        </provider>
-
-        <!-- Installation Status Receiver (Session Installer) -->
-        <receiver
-            android:name=".data.receiver.InstallerStatusReceiver"
-            android:exported="false" />
-
-        <!-- Cancel Download Receiver-->
-        <receiver
-            android:name=".data.receiver.DownloadCancelReceiver"
-            android:exported="false" />
-
-        <!-- SessionInstaller (as device owner) -->
-        <receiver
-            android:name=".data.receiver.DeviceOwnerReceiver"
-            android:exported="true"
-            android:permission="android.permission.BIND_DEVICE_ADMIN">
-            <meta-data
-                android:name="android.app.device_admin"
-                android:resource="@xml/device_owner_receiver" />
-            <intent-filter>
-                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
-            </intent-filter>
-        </receiver>
-
-        <!-- MigrationReceiver (for running migrations) -->
-        <receiver
-            android:name=".data.receiver.MigrationReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
-            </intent-filter>
-        </receiver>
-
-        <!-- Android15+ package unarchive feature -->
-        <receiver
-            android:name=".data.receiver.UnarchivePackageReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.UNARCHIVE_PACKAGE" />
-            </intent-filter>
-        </receiver>
     </application>
 </manifest>
