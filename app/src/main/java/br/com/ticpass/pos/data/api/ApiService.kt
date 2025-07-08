@@ -14,8 +14,10 @@ import br.com.ticpass.pos.util.API_HOST
 import br.com.ticpass.pos.util.API_TIMEOUT_SECONDS
 import com.google.gson.annotations.SerializedName
 import okhttp3.OkHttpClient
+import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.logging.HttpLoggingInterceptor.Level
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -343,6 +345,12 @@ interface APIService {
         @Query("groupBy") groupBy: String = "category",
         @Query("page") page: Int = 1,
     ): GetEventProductsResponse
+
+    @GET("events/{menuId}/product/thumbnail/download/all")
+    suspend fun downloadAllProductThumbnails(
+        @Path("menuId") menuId: String,
+        @Header("Authorization") authorization: String
+    ): Response<ResponseBody>
 
     companion object {
         private var BASE_URL = "$API_HOST/"

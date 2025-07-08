@@ -16,6 +16,8 @@
     <!--Common Colors-->
     <color name="colorAccent">#6C63FF</color>
     <color name="ic_launcher_background">#6C63FF</color>
+    <color name="material_dynamic_neutral_variant95">#F5F5F5</color>
+
 
     <!-- AppDetailsFragment | Dialog -->
     <color name="colorRed">#E4002B</color>

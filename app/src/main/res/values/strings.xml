@@ -13,6 +13,7 @@
   -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
+    <string name="manu_image">Menu logo</string>
     <string name="whats_going_on_today">Whats going on today?</string>
     <string name="point_to_qr_code">Point to the QR Code</string>
     <string name="login_text" translatable="false">"Landing here? Log in"</string>

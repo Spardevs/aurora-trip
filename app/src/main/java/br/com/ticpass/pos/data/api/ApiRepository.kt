@@ -14,6 +14,10 @@ import br.com.ticpass.pos.data.room.entity.VoucherEntity
 import br.com.ticpass.pos.data.room.entity.VoucherRedemptionEntity
 import br.com.ticpass.pos.data.api.LoginQrcodePostData
 import javax.inject.Inject
+import retrofit2.Response
+import okhttp3.ResponseBody
+
+
 
 class APIRepository @Inject constructor(
     private val service: APIService,
@@ -356,6 +360,28 @@ class APIRepository @Inject constructor(
 
         return response
     }
+
+    // Adicione esta função ao seu APIRepository.kt
+
+    suspend fun downloadAllProductThumbnails(
+        menuId: String,
+        jwt: String
+    ): Response<ResponseBody> {
+        var response: Response<ResponseBody> = Response.error(401,
+            ResponseBody.create(null, "unable to reach server"))
+
+        try {
+            response = service.downloadAllProductThumbnails(
+                menuId = menuId,
+                authorization = "Bearer $jwt"
+            )
+        } catch (e: Exception) {
+            Log.e("APIRepository", "Error downloading thumbnails", e)
+        }
+
+        return response
+    }
+
 
     companion object {
         private const val NETWORK_PAGE_SIZE = 25

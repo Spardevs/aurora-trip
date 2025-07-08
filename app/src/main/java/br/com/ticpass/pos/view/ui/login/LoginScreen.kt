@@ -2,6 +2,7 @@ package br.com.ticpass.pos.view.ui.login
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -11,8 +12,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import br.com.ticpass.pos.data.activity.MenuActivity
 import br.com.ticpass.pos.data.activity.QrScannerActivity
 import br.com.ticpass.pos.databinding.ViewLoginBinding
+import org.json.JSONException
+import org.json.JSONObject
 
 class LoginScreen : AppCompatActivity() {
     private lateinit var binding: ViewLoginBinding
@@ -23,16 +27,51 @@ class LoginScreen : AppCompatActivity() {
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
-            val intent = Intent(this, br.com.ticpass.pos.data.activity.MenuActivity::class.java)
-            Log.d("LoginScreen", "Resposta: ${result.data?.getStringExtra("auth_response")}")
-            startActivity(intent)
-            finish()
+            val response = result.data?.getStringExtra("auth_response")
+            Log.d("LoginScreen", "Resposta RAW: $response")
 
+            response?.let {
+                try {
+                    val token = extractValue(it, "token=")
+                    val refreshToken = extractValue(it, "tokenRefresh=")
+                    val userId = extractValue(it, "id=")?.toIntOrNull()
+                    if (token != null && refreshToken != null && userId != null) {
+                        val sharedPref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+                        with(sharedPref.edit()) {
+                            putString("auth_token", token)
+                            putString("refresh_token", refreshToken)
+                            putInt("user_id", userId)
+                            apply()
+                        }
+                        startActivity(Intent(this, MenuActivity::class.java))
+                        finish()
+                    } else {
+                        Log.e("LoginScreen", "Dados essenciais faltando na resposta")
+                        Toast.makeText(this, "Dados incompletos na resposta", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    Log.e("LoginScreen", "Erro ao processar resposta: ${e.message}")
+                    Toast.makeText(this, "Erro ao processar resposta", Toast.LENGTH_SHORT).show()
+                }
+            }
         } else {
             val error = result.data?.getStringExtra("auth_error")
             Log.e("LoginScreen", "Erro no login: $error")
             Toast.makeText(this, "Falha no login: $error", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    // Função auxiliar para extrair valores do formato string do objeto
+    private fun extractValue(source: String, key: String): String? {
+        val startIndex = source.indexOf(key)
+        if (startIndex == -1) return null
+
+        val start = startIndex + key.length
+        var end = source.indexOf(',', start)
+        if (end == -1) end = source.indexOf(')', start)
+        if (end == -1) return null
+
+        return source.substring(start, end).trim().takeIf { it.isNotEmpty() }
     }
 
     @SuppressLint("MissingInflatedId")
