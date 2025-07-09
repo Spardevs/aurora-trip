@@ -79,7 +79,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        tools:targetApi="tiramisu">
+        tools:targetApi="tiramisu"
+        >
 
         <provider
             android:name="androidx.startup.InitializationProvider"
@@ -130,5 +131,9 @@
         <activity
             android:name="br.com.ticpass.pos.nfc.NFCActivity"
             android:exported="true"/>
+        <activity android:name=".view.ui.login.PosScreen" />
+        <activity
+            android:name="br.com.ticpass.pos.view.ui.login.ConfirmScreen"
+            android:exported="false" />
     </application>
 </manifest>

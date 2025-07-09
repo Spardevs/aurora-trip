@@ -63,7 +63,7 @@ class MenuActivity : AppCompatActivity() {
 
                 withContext(Dispatchers.Main) {
                     recyclerView.adapter = MenuScreen(menus = menus) { selectedMenu ->
-                        onMenuClicked(selectedMenu.id)
+                        onMenuClicked(selectedMenu.id, selectedMenu.name)
                     }
                 }
             } catch (e: Exception) {
@@ -79,19 +79,22 @@ class MenuActivity : AppCompatActivity() {
                         )
                     )
                     recyclerView.adapter = MenuScreen(fallbackMenus) { selectedMenu ->
-                        onMenuClicked(selectedMenu.id)
+                        onMenuClicked(selectedMenu.id, selectedMenu.name, selectedMenu.dateStart, selectedMenu.dateEnd)
                     }
                 }
             }
         }
     }
 
-    private fun onMenuClicked(menuId: String) {
+    private fun onMenuClicked(menuId: String, menuName: String? = null, dateStart: String? = null, dateEnd: String? = null) {
         Log.d("MenuActivity", "Iniciando download das imagens para o menu: $menuId")
 
         val sessionPref = getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE)
         with(sessionPref.edit()) {
-            putString("selected_menu", menuId)
+            putString("selected_menu_id", menuId)
+            putString("selected_menu_name", menuName)
+            putString("selected_menu_dateStart", dateStart)
+            putString("selected_menu_dateEnd", dateEnd)
             apply()
         }
 
