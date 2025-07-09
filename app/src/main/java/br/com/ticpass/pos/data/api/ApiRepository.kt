@@ -367,19 +367,21 @@ class APIRepository @Inject constructor(
         menuId: String,
         jwt: String
     ): Response<ResponseBody> {
-        var response: Response<ResponseBody> = Response.error(401,
-            ResponseBody.create(null, "unable to reach server"))
-
-        try {
-            response = service.downloadAllProductThumbnails(
+        return try {
+            val response = service.downloadAllProductThumbnails(
                 menuId = menuId,
                 authorization = "Bearer $jwt"
             )
+
+            if (!response.isSuccessful) {
+                Log.e("APIRepository", "Error downloading thumbnails: ${response.code()}")
+            }
+
+            response
         } catch (e: Exception) {
             Log.e("APIRepository", "Error downloading thumbnails", e)
+            Response.error(500, ResponseBody.create(null, e.message ?: "Unknown error"))
         }
-
-        return response
     }
 
 

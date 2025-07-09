@@ -16,6 +16,8 @@ import br.com.ticpass.pos.data.api.APIRepository
 import br.com.ticpass.pos.data.model.Menu
 import br.com.ticpass.pos.data.work.ImageDownloadWorker
 import br.com.ticpass.pos.view.ui.login.MenuScreen
+import br.com.ticpass.pos.view.ui.login.PosScreen
+import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import javax.inject.Inject
@@ -87,12 +89,17 @@ class MenuActivity : AppCompatActivity() {
     private fun onMenuClicked(menuId: String) {
         Log.d("MenuActivity", "Iniciando download das imagens para o menu: $menuId")
 
+        val sessionPref = getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE)
+        with(sessionPref.edit()) {
+            putString("selected_menu", menuId)
+            apply()
+        }
+
         val productsDir = File(
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-            "products"
-        )
-        if (!productsDir.exists()) {
-            productsDir.mkdirs()
+            "TicPass/products/$menuId"
+        ).apply {
+            if (!exists()) mkdirs()
         }
 
         val inputData = workDataOf(
@@ -100,10 +107,15 @@ class MenuActivity : AppCompatActivity() {
             "destinationDir" to productsDir.absolutePath
         )
 
-        val downloadWorkRequest = OneTimeWorkRequestBuilder<ImageDownloadWorker>()
-            .setInputData(inputData)
-            .build()
+//        val downloadWorkRequest = OneTimeWorkRequestBuilder<ImageDownloadWorker>()
+//            .setInputData(inputData)
+//            .build()
 
-        WorkManager.getInstance(this).enqueue(downloadWorkRequest)
+//        WorkManager.getInstance(this).apply {
+//            cancelAllWorkByTag("thumbnail_download")
+//            enqueue(downloadWorkRequest)
+//        }
+
+        startActivity(PosScreen.newIntent(this, menuId))
     }
 }

@@ -12,7 +12,7 @@
   ~ is strictly prohibited without the express written permission of Ticpass.
   -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-
+    <string name="choose_pos">Choose POS</string>
     <string name="manu_image">Menu logo</string>
     <string name="whats_going_on_today">Whats going on today?</string>
     <string name="point_to_qr_code">Point to the QR Code</string>
