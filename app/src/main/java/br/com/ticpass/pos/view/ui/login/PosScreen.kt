@@ -41,7 +41,7 @@ class PosScreen : AppCompatActivity() {
         val recycler = findViewById<RecyclerView>(R.id.pos_recycler_view)
         recycler.layoutManager = LinearLayoutManager(this)
         val adapter = PosAdapter(onClick = { item ->
-            val sharedPref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+            val sharedPref = getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE)
             with(sharedPref.edit()) {
                 putString("pos_name", item.name)
                 apply()

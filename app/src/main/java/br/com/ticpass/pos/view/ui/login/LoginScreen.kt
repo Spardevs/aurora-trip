@@ -7,21 +7,18 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.RecyclerView
+import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.activity.MenuActivity
 import br.com.ticpass.pos.data.activity.QrScannerActivity
-import br.com.ticpass.pos.databinding.ViewLoginBinding
-import org.json.JSONException
-import org.json.JSONObject
+import br.com.ticpass.pos.databinding.ActivityLoginBinding
 
 class LoginScreen : AppCompatActivity() {
-    private lateinit var binding: ViewLoginBinding
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: MenuScreen
+    private lateinit var binding: ActivityLoginBinding
 
     private val scannerLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
@@ -61,7 +58,6 @@ class LoginScreen : AppCompatActivity() {
         }
     }
 
-    // Função auxiliar para extrair valores do formato string do objeto
     private fun extractValue(source: String, key: String): String? {
         val startIndex = source.indexOf(key)
         if (startIndex == -1) return null
@@ -77,12 +73,8 @@ class LoginScreen : AppCompatActivity() {
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ViewLoginBinding.inflate(layoutInflater)
+        binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        binding.emailLoginButton.setOnClickListener {
-            // performEmailLogin()
-        }
 
         binding.qrCodeLoginButton.setOnClickListener {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -97,6 +89,18 @@ class LoginScreen : AppCompatActivity() {
                 startQrScanner()
             }
         }
+    }
+
+    // Chamado pelo android:onClick="emailLoginButton" no XML
+    fun emailLoginButton(view: View) {
+        binding.choiceContainer.visibility = View.GONE
+        binding.formContainer.visibility   = View.VISIBLE
+    }
+
+    // Chamado pelo android:onClick="onBackFromForm" no XML
+    fun onBackFromForm(view: View) {
+        binding.formContainer.visibility   = View.GONE
+        binding.choiceContainer.visibility = View.VISIBLE
     }
 
     private fun startQrScanner() {
@@ -114,7 +118,6 @@ class LoginScreen : AppCompatActivity() {
         ) {
             startQrScanner()
         } else {
-            Log.w("LoginScreen", "Permissão de câmera negada")
             Toast.makeText(this, "Permissão de câmera é necessária", Toast.LENGTH_SHORT).show()
         }
     }

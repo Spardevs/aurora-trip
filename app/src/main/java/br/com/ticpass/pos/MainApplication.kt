@@ -1,18 +1,19 @@
 package br.com.ticpass.pos
 
 import android.app.Application
+import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
-import br.com.ticpass.pos.BuildConfig
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
 @HiltAndroidApp
 class MainApplication : Application(), Configuration.Provider {
+
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
-            .setMinimumLoggingLevel(
-                if (BuildConfig.DEBUG) android.util.Log.DEBUG
-                else android.util.Log.ERROR
-            )
+            .setWorkerFactory(workerFactory)
             .build()
 }
-

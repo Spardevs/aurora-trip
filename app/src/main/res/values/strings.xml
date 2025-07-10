@@ -12,7 +12,11 @@
   ~ is strictly prohibited without the express written permission of Ticpass.
   -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="attenderant_name">attendant name</string>
+    <string name="login_email_input">Email/User</string>
+    <string name="login_password_input">Password</string>
+    <string name="login_enter_button">enter</string>
+    <string name="attendant_name">enter</string>
+    <string name="attendant_back">back</string>
     <string name="lets_take_off_sales">Lets take off your sales?</string>
     <string name="pos_title">POS</string>
     <string name="date_hour_title">Date and hour</string>

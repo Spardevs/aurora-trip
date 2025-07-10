@@ -117,7 +117,7 @@
 
 
             <EditText
-                android:id="@+id/editTextText3"
+                android:id="@+id/nameText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ems="10"
@@ -126,12 +126,12 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
 
-
             <ImageButton
                 android:id="@+id/imageButton"
                 android:layout_width="33dp"
                 android:layout_height="33dp"
                 android:background="@color/colorRed"
+                android:onClick="loginFinish"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:srcCompat="@drawable/ic_arrow_right"

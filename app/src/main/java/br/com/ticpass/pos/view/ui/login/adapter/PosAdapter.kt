@@ -21,6 +21,7 @@ class PosAdapter(
         fun bind(item: PosItem) {
             tvName.text = item.name
             tvClosing.text = if (item.session?.closing === "") "Fechado" else "Aberto"
+
             tvCommission.text = item.commission
                 ?.toString()
                 ?.plus("%")

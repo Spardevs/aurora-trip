@@ -42,7 +42,6 @@ class MenuScreen(
             menuDateStart.text = "${formatDate(menu.dateStart)}"
             menuDateEnd.text = "${formatDate(menu.dateEnd)}"
 
-            // Carregar imagem usando Glide ou Picasso
             Glide.with(itemView.context)
                 .load(menu.imageUrl)
                 .placeholder(R.drawable.placeholder_image)
