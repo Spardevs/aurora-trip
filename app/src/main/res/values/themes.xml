@@ -16,7 +16,6 @@
 
     <style name="AppTheme" parent="Theme.Material3.DynamicColors.Light.NoActionBar">
         <item name="chipStyle">@style/Chip.Filter</item>
-        <item name="preferenceTheme">@style/AppTheme.PreferenceThemeOverlay</item>
         <item name="bottomSheetStyle">@style/AppTheme.BottomSheetStyle</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
@@ -33,14 +32,6 @@
 
     <style name="AppTheme.BottomSheetStyle" parent="Widget.Material3.BottomSheet" />
 
-    <style name="AppTheme.PreferenceThemeOverlay" parent="@style/PreferenceThemeOverlay">
-        <item name="android:layout">@layout/fragment_setting</item>
-        <item name="switchPreferenceCompatStyle">@style/AppTheme.SwitchPreference</item>
-    </style>
-
-    <style name="AppTheme.SwitchPreference" parent="@style/Preference.SwitchPreferenceCompat.Material">
-        <item name="widgetLayout">@layout/preference_material_switch</item>
-    </style>
 
     <style name="Chip.Filter" parent="@style/Widget.Material3.Chip.Filter" />
 
