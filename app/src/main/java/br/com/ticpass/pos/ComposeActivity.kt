@@ -20,7 +20,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.content.IntentCompat
 import androidx.navigation.compose.rememberNavController
-import br.com.ticpass.pos.compose.navigation.NavGraph
 import br.com.ticpass.pos.compose.navigation.Screen
 import br.com.ticpass.pos.compose.theme.AuroraTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -42,7 +41,6 @@ class ComposeActivity : ComponentActivity() {
         setContent {
             AuroraTheme {
                 val navController = rememberNavController()
-                NavGraph(navHostController = navController, startDestination = startDestination)
             }
         }
     }

@@ -361,8 +361,6 @@ class APIRepository @Inject constructor(
         return response
     }
 
-    // Adicione esta função ao seu APIRepository.kt
-
     suspend fun downloadAllProductThumbnails(
         menuId: String,
         jwt: String

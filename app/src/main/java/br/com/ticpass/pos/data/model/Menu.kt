@@ -8,5 +8,7 @@ data class Menu(
     val imageUrl: String,
     val dateStart: String,
     val dateEnd: String,
-    val details: String = ""
+    val details: String = "",
+    val pin: String,
+    val mode: String
 )

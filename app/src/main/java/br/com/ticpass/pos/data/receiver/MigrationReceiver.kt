@@ -23,9 +23,7 @@ import androidx.core.content.getSystemService
 import androidx.work.WorkManager
 import br.com.ticpass.Constants
 import br.com.ticpass.extensions.isOAndAbove
-import br.com.ticpass.pos.data.helper.UpdateHelper.Companion.getAutoUpdateWork
 import br.com.ticpass.pos.data.model.UpdateMode
-import br.com.ticpass.pos.data.work.CacheWorker
 import br.com.ticpass.pos.util.CertUtil
 import br.com.ticpass.pos.util.Preferences
 import br.com.ticpass.pos.util.Preferences.PREFERENCE_DISPENSER_URLS
@@ -63,15 +61,6 @@ class MigrationReceiver : BroadcastReceiver() {
             // Add new migrations / defaults below this point
             // Always bump currentVersion at the end of migration for next release
 
-            // 58 -> 59
-            if (currentVersion == 0) {
-                CacheWorker.scheduleAutomatedCacheCleanup(context) // !1089
-                context.save(PREFERENCE_DISPENSER_URLS, setOf(Constants.URL_DISPENSER)) // !1117
-                if (Preferences.getInteger(context, PREFERENCE_VENDING_VERSION) == -1) {
-                    context.save(PREFERENCE_VENDING_VERSION, 0) // !1049
-                }
-                currentVersion++
-            }
 
             // 59 -> 60
             if (currentVersion == 1) {
@@ -106,11 +95,7 @@ class MigrationReceiver : BroadcastReceiver() {
                     UpdateMode.DISABLED.ordinal
                 )]
 
-                if (updateMode != UpdateMode.DISABLED) {
-                    runCatching {
-                        WorkManager.getInstance(context).updateWork(getAutoUpdateWork(context))
-                    }.onFailure { Log.e(TAG, "Failed to migrate app updates!", it) }
-                }
+
                 currentVersion++
             }
 

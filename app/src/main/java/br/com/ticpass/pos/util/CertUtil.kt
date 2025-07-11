@@ -22,7 +22,6 @@ import android.util.Log
 import br.com.ticpass.extensions.generateX509Certificate
 import br.com.ticpass.extensions.getUpdateOwnerPackageNameCompat
 import br.com.ticpass.extensions.isPAndAbove
-import br.com.ticpass.pos.data.installer.AppInstaller
 import br.com.ticpass.pos.data.model.Algorithm
 import br.com.ticpass.pos.util.PackageUtil.getPackageInfo
 import java.security.MessageDigest
@@ -47,13 +46,6 @@ object CertUtil {
         return context.packageManager.getUpdateOwnerPackageNameCompat(packageName) == "com.huawei.appmarket"
     }
 
-    fun isAuroraStoreApp(context: Context, packageName: String): Boolean {
-        val installerPackageNames = AppInstaller.getAvailableInstallersInfo(context)
-            .flatMap { it.installerPackageNames }
-            .toSet()
-        val packageInstaller = context.packageManager.getUpdateOwnerPackageNameCompat(packageName)
-        return installerPackageNames.contains(packageInstaller)
-    }
 
     fun getEncodedCertificateHashes(context: Context, packageName: String): List<String> {
         return try {

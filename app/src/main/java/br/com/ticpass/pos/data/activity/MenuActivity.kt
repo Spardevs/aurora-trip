@@ -63,7 +63,10 @@ class MenuActivity : AppCompatActivity() {
                         imageUrl = event.ticket,
                         dateStart = event.dateStart,
                         dateEnd = event.dateEnd,
-                        details = event.details
+                        details = event.details,
+                        mode = event.mode,
+                        pin = event.pin,
+
                     )
                 }
 
@@ -86,11 +89,22 @@ class MenuActivity : AppCompatActivity() {
                             name = "Evento 1",
                             imageUrl = "",
                             dateStart = "2024-01-01T00:00:00.000Z",
-                            dateEnd = "2024-12-31T23:59:59.000Z"
+                            dateEnd = "2024-12-31T23:59:59.000Z",
+                            details = "Detalhes do evento 1",
+                            mode = "1",
+                            pin = "1234",
                         )
                     )
                     recyclerView.adapter = MenuScreen(fallbackMenus) { selectedMenu ->
-                        onMenuClicked(selectedMenu.id, selectedMenu.name, selectedMenu.dateStart, selectedMenu.dateEnd)
+                        onMenuClicked(
+                            selectedMenu.id,
+                            selectedMenu.name,
+                            selectedMenu.dateStart,
+                            selectedMenu.dateEnd,
+                            selectedMenu.pin,
+                            selectedMenu.details,
+                            selectedMenu.mode
+                        )
                     }
                 }
             }
@@ -101,7 +115,11 @@ class MenuActivity : AppCompatActivity() {
         menuId: String,
         menuName: String?    = null,
         dateStart: String?   = null,
-        dateEnd: String?     = null
+        dateEnd: String?     = null,
+        pin: String?     = null,
+        details: String?     = null,
+        mode: String?     = null,
+        logo: String?     = null
     ) {
         Log.d("MenuActivity", "Iniciando download das imagens para o menu: $menuId")
 
@@ -113,6 +131,10 @@ class MenuActivity : AppCompatActivity() {
             putString("selected_menu_name",      menuName)
             putString("selected_menu_dateStart", dateStart)
             putString("selected_menu_dateEnd",   dateEnd)
+            putString("selected_menu_pin",   pin)
+            putString("selected_menu_details",   details)
+            putString("selected_menu_mode",   mode)
+            putString("selected_menu_logo",   logo)
             apply()
         }
 

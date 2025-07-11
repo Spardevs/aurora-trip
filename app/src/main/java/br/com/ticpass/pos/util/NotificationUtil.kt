@@ -32,11 +32,7 @@ import androidx.navigation.NavDeepLinkBuilder
 import br.com.ticpass.Constants
 import br.com.ticpass.pos.MainActivity
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.data.activity.InstallActivity
-import br.com.ticpass.pos.data.helper.DownloadHelper
-import br.com.ticpass.pos.data.installer.AppInstaller
 import br.com.ticpass.pos.data.model.DownloadStatus
-import br.com.ticpass.pos.data.receiver.DownloadCancelReceiver
 import br.com.ticpass.pos.data.room.download.Download
 import br.com.ticpass.pos.data.room.update.Update
 import java.util.UUID
@@ -112,17 +108,6 @@ object NotificationUtil {
         builder.setContentIntent(getContentIntentForDownloads(context))
         builder.setLargeIcon(largeIcon)
 
-        val cancelIntent = Intent(context, DownloadCancelReceiver::class.java).apply {
-            putExtra(DownloadHelper.PACKAGE_NAME, download.packageName)
-        }
-
-        val pendingCancelIntent = PendingIntentCompat.getBroadcast(
-            context,
-            download.packageName.hashCode().absoluteValue,
-            cancelIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT,
-            false
-        )
 
         when (download.downloadStatus) {
             DownloadStatus.CANCELLED -> {
@@ -146,21 +131,6 @@ object NotificationUtil {
                 builder.setCategory(Notification.CATEGORY_STATUS)
                 builder.setContentIntent(getContentIntentForDetails(context, download.packageName))
 
-                // Show install action if app cannot be silently installed
-                if (!AppInstaller.canInstallSilently(
-                        context,
-                        download.packageName,
-                        download.targetSdk
-                    )
-                ) {
-                    builder.addAction(
-                        NotificationCompat.Action.Builder(
-                            R.drawable.ic_install,
-                            context.getString(R.string.action_install),
-                            getInstallIntent(context, download)
-                        ).build()
-                    )
-                }
             }
 
             DownloadStatus.DOWNLOADING, DownloadStatus.QUEUED -> {
@@ -181,13 +151,6 @@ object NotificationUtil {
                 builder.setCategory(Notification.CATEGORY_PROGRESS)
                 builder.setProgress(100, download.progress, download.progress <= 0)
                 builder.foregroundServiceBehavior = NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
-                builder.addAction(
-                    NotificationCompat.Action.Builder(
-                        R.drawable.ic_download_cancel,
-                        context.getString(R.string.action_cancel),
-                        pendingCancelIntent
-                    ).build()
-                )
             }
 
             else -> {}
@@ -401,16 +364,5 @@ object NotificationUtil {
             .createPendingIntent()
     }
 
-    private fun getInstallIntent(context: Context, download: Download): PendingIntent? {
-        val intent = Intent(context, InstallActivity::class.java).apply {
-            putExtra(Constants.PARCEL_DOWNLOAD, download)
-        }
-        return PendingIntentCompat.getActivity(
-            context,
-            download.packageName.hashCode(),
-            intent,
-            PendingIntent.FLAG_CANCEL_CURRENT,
-            false
-        )
-    }
+
 }
