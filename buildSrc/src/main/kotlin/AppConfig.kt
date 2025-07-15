@@ -12,7 +12,6 @@
  * is strictly prohibited without the express written permission of Ticpass.
  */
 
-import PropertyDelegates.optional
 import PropertyDelegates.required
 
 /**

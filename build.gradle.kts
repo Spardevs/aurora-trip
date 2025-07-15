@@ -12,20 +12,6 @@
  * is strictly prohibited without the express written permission of Ticpass.
  */
 
-buildscript {
-    // Initialize PropertyDelegates first before any AppConfig usage
-    PropertyDelegates.init(project)
-    repositories {
-        maven(url = "https://github.com/pagseguro/PlugPagServiceWrapper/raw/master")
-        maven(url = "https://packagecloud.io/priv" +
-                "/${AppConfig.packageCloudReadToken}/stone/pos-android/maven2")
-    }
-
-    dependencies {
-        classpath(libs.plugpagservice.wrapper)
-    }
-}
-
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.jetbrains.kotlin.android) apply false

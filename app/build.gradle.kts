@@ -316,18 +316,20 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.7.1")
 
 
-//    // PagSeguro
-//    implementation(libs.plugpagservice.wrapper)
-//    implementation(libs.reactivex.java)
-//    implementation(libs.reactivex.android)
-//    // stone
-//    implementation(libs.stone.sdk.envconfig)
-//    implementation(libs.stone.sdk)
-//    implementation(libs.stone.sdk.posandroid)
-//    implementation(libs.stone.sdk.sunmi)
-//    implementation(libs.stone.sdk.positivo)
-//    implementation(libs.stone.sdk.ingenico)
-//    implementation(libs.stone.sdk.gertec)
+    // PagSeguro
+    "pagseguroImplementation"(libs.plugpagservice.wrapper)
+    "pagseguroImplementation"(libs.reactivex.java)
+    "pagseguroImplementation"(libs.reactivex.android)
+    "pagseguroImplementation"(libs.android.support.design)
+
+    // Stone
+    "stoneImplementation"(libs.stone.sdk.envconfig)
+    "stoneImplementation"(libs.stone.sdk)
+    "stoneImplementation"(libs.stone.sdk.posandroid)
+    "stoneImplementation"(libs.stone.sdk.sunmi)
+    "stoneImplementation"(libs.stone.sdk.positivo)
+    "stoneImplementation"(libs.stone.sdk.ingenico)
+    "stoneImplementation"(libs.stone.sdk.gertec)
 
 
 }

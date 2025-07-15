@@ -11,6 +11,15 @@
  * Unauthorized copying, distribution, or use of this software, via any medium,
  * is strictly prohibited without the express written permission of Ticpass.
  */
+val localProperties = java.util.Properties().apply {
+    val propertiesFile = File(settings.rootDir, "local.properties")
+    if (propertiesFile.exists()) {
+        propertiesFile.inputStream().use { load(it) }
+    }
+}
+
+val packageCloudReadToken = localProperties.getProperty("PACKAGE_CLOUD_READ_TOKEN")
+    ?: error("Required property PACKAGE_CLOUD_READ_TOKEN not found")
 
 pluginManagement {
     repositories {
@@ -19,8 +28,10 @@ pluginManagement {
         mavenCentral()
     }
 }
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+
     repositories {
         google()
         mavenCentral()
@@ -30,7 +41,11 @@ dependencyResolutionManagement {
                 includeModule("com.github.topjohnwu.libsu", "core")
             }
         }
+
+        maven(url = "https://github.com/pagseguro/PlugPagServiceWrapper/raw/master")
+        maven(url = "https://packagecloud.io/priv" +
+                "/${packageCloudReadToken}/stone/pos-android/maven2")
     }
 }
 include(":app")
-rootProject.name = "AuroraStore4"
+rootProject.name = "Ticpass"
