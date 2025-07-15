@@ -1,3 +1,4 @@
+// ProductsListScreen.kt
 package br.com.ticpass.pos.view.ui.products
 
 import android.content.Context
@@ -79,9 +80,9 @@ class ProductsListScreen : AppCompatActivity() {
                     allProducts = resp.result.flatMap { cat ->
                         cat.products.map { p ->
                             Product(
-                                name = p.title,
-                                photo = p.photo,
-                                value = p.value,
+                                name     = p.title,
+                                photo    = p.photo,
+                                value    = p.value,
                                 category = cat.name
                             )
                         }
@@ -108,7 +109,7 @@ class ProductsListScreen : AppCompatActivity() {
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 val sel = tab.text.toString()
-                val filtered = if (sel == "Todos") allProducts
+                val filtered: List<Product> = if (sel == "Todos") allProducts
                 else allProducts.filter { it.category == sel }
                 adapter.updateList(filtered)
             }

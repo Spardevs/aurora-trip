@@ -34,7 +34,7 @@ class LoginScreen : AppCompatActivity() {
                     val userId = extractValue(it, "id=")?.toIntOrNull()
                     if (token != null && refreshToken != null && userId != null) {
                         val sharedPref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-                        with(sharedPref.edit()) {
+                        with(sharedPref.run { edit() }) {
                             putString("auth_token", token)
                             putString("refresh_token", refreshToken)
                             putInt("user_id", userId)

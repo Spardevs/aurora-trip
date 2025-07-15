@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.view.ui.login
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -32,6 +33,7 @@ class PosScreen : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("UseKtx")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pos)
@@ -43,7 +45,9 @@ class PosScreen : AppCompatActivity() {
         val adapter = PosAdapter(onClick = { item ->
             val sharedPref = getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE)
             with(sharedPref.edit()) {
+                putString("pos_id", item.id)
                 putString("pos_name", item.name)
+                putLong("pos_commission", item.commission?.toLong() ?: 0)
                 apply()
             }
 

@@ -76,7 +76,10 @@ class MenuActivity : AppCompatActivity() {
                             menuId     = selectedMenu.id,
                             menuName   = selectedMenu.name,
                             dateStart  = selectedMenu.dateStart,
-                            dateEnd    = selectedMenu.dateEnd
+                            dateEnd    = selectedMenu.dateEnd,
+                            pin        = selectedMenu.pin,
+                            details    = selectedMenu.details,
+                            mode       = selectedMenu.mode
                         )
                     }
                 }

@@ -25,31 +25,26 @@ class ProductsAdapter(
         fun bind(product: Product) {
             tvName.text  = product.name
             tvValue.text = "R$ %.2f".format(product.value.toDouble())
-            Glide.with(itemView.context)
-                .load(product.photo)
-                .placeholder(R.drawable.bg_placeholder)
-                .into(ivPhoto)
-
+            Glide.with(itemView).load(product.photo).into(ivPhoto)
             itemView.setOnClickListener { onItemClick(product) }
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
-        // Inflate o layout de CADA item, não o layout da Activity
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_products, parent, false)
         return ProductViewHolder(view)
     }
 
-    override fun getItemCount(): Int = products.size
-
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
         holder.bind(products[position])
     }
 
-    fun updateList(newList: List<Product>) {
-        products = newList
+    override fun getItemCount(): Int = products.size
+
+    // <-- Aqui: recebe List<UI.Product>, não List<API.Product>
+    fun updateList(newProducts: List<Product>) {
+        this.products = newProducts
         notifyDataSetChanged()
     }
 }
-

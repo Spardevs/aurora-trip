@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import br.com.ticpass.pos.data.room.entity.EventEntity
+import br.com.ticpass.pos.data.room.entity.PosEntity
 
 @Dao
 interface EventDao {
@@ -16,6 +17,10 @@ interface EventDao {
 
     @Query("SELECT * FROM events WHERE isSelected = 1 LIMIT 1")
     suspend fun getSelectedEvent(): EventEntity
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertEvent(pos: EventEntity)
+
 
     @Query("SELECT * FROM events WHERE id = :eventId")
     suspend fun getEventById(eventId: String): EventEntity?

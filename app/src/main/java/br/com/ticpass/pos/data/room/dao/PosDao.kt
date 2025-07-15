@@ -26,6 +26,9 @@ interface PosDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertPosList(posList: List<PosEntity>)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertPos(pos: PosEntity)
+
     @Delete
     suspend fun removePosItem(posEntity: PosEntity)
 

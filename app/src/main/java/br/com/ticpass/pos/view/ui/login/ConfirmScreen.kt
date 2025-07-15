@@ -7,18 +7,20 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
-import android.widget.ImageButton
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.view.ui.products.ProductsListScreen
-import com.google.android.material.appbar.MaterialToolbar
+import br.com.ticpass.pos.viewmodel.login.LoginConfirmViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.core.content.edit
 
 @AndroidEntryPoint
 class ConfirmScreen : AppCompatActivity() {
+    private val viewModel: LoginConfirmViewModel by viewModels()
 
     companion object {
         private const val EXTRA_POS_NAME = "extra_pos_name"
@@ -28,6 +30,7 @@ class ConfirmScreen : AppCompatActivity() {
         }
     }
     private lateinit var sessionPref: SharedPreferences
+    private lateinit var userPref: SharedPreferences
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,6 +38,7 @@ class ConfirmScreen : AppCompatActivity() {
         setContentView(R.layout.activity_confirm_login)
 
         sessionPref = getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE)
+        userPref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
 
         val menuName      = sessionPref.getString("selected_menu_name", "—")
         val dateStartStr  = sessionPref.getString("selected_menu_dateStart", null)
@@ -55,16 +59,15 @@ class ConfirmScreen : AppCompatActivity() {
 
 
     fun loginFinish(view: View) {
-        val nameText = findViewById<EditText>(R.id.nameText)
-        val name = nameText.text.toString()
+        val name = findViewById<EditText>(R.id.nameText).text.toString()
+        getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+            .edit {
+                putString("user_name", name)
+            }
 
-        val userPref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        with(userPref.edit()) {
-            putString("user_name", name)
-            apply()
-        }
-        // aqui você pode disparar a próxima Activity:
-         startActivity(Intent(this, ProductsListScreen::class.java))
+        viewModel.insertInfo(sessionPref, userPref)
+        startActivity(Intent(this, ProductsListScreen::class.java))
+        finish()
     }
 
     private fun formatDate(dateString: String): String {
@@ -73,7 +76,11 @@ class ConfirmScreen : AppCompatActivity() {
                 SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
             val outputFormat = SimpleDateFormat("dd MMM 'às' HH:mm", Locale.getDefault())
             val date = inputFormat.parse(dateString)
-            outputFormat.format(date)
+            if (date != null) {
+                outputFormat.format(date)
+            } else {
+                dateString
+            }
         } catch (e: Exception) {
             dateString
         }

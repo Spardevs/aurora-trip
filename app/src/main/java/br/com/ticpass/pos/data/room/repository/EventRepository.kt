@@ -2,6 +2,7 @@ package br.com.ticpass.pos.data.room.repository
 
 import br.com.ticpass.pos.data.room.dao.EventDao
 import br.com.ticpass.pos.data.room.entity.EventEntity
+import br.com.ticpass.pos.data.room.entity.PosEntity
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,6 +43,9 @@ class EventRepository @Inject constructor(
             eventDao.updateEvent(event)
         }
     }
+
+    suspend fun upsertEvent(event: EventEntity) =
+        eventDao.upsertEvent(event)
 
     suspend fun unSelectEvent(eventId: String) {
 

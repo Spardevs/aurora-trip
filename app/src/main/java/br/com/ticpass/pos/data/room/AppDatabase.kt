@@ -110,9 +110,9 @@ import java.io.File
 )
     @TypeConverters()
 abstract class AppDatabase : RoomDatabase() {
+    abstract fun posDao(): PosDao
     abstract fun cashierDao(): CashierDao
     abstract fun eventDao(): EventDao
-    abstract fun posDao(): PosDao
     abstract fun productDao(): ProductDao
     abstract fun categoryDao(): CategoryDao
     abstract fun orderDao(): OrderDao

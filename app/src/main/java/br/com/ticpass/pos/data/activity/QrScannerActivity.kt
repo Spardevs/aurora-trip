@@ -181,6 +181,5 @@ class QrScannerActivity() : AppCompatActivity(), BarcodeCallback {
 
 }
 
-private fun BarcodeView.decodeContinuous(callback: QrScannerActivity) {}
 
 

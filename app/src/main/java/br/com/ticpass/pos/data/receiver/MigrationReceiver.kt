@@ -20,7 +20,6 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.content.getSystemService
-import androidx.work.WorkManager
 import br.com.ticpass.Constants
 import br.com.ticpass.extensions.isOAndAbove
 import br.com.ticpass.pos.data.model.UpdateMode

@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.view.ui.login.adapter
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -42,6 +43,7 @@ class PosAdapter(
 
     override fun getItemCount(): Int = items.size
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setItems(newItems: List<PosItem>) {
         items.clear()
         items.addAll(newItems)
