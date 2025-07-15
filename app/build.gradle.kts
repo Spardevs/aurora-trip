@@ -133,6 +133,7 @@ android {
         }
 
         debug {
+            signingConfig = null
             applicationIdSuffix = ".debug"
         }
 
@@ -323,13 +324,14 @@ dependencies {
     "pagseguroImplementation"(libs.android.support.design)
 
     // Stone
-    "stoneImplementation"(libs.stone.sdk.envconfig)
+    "debugImplementation"(libs.stone.sdk.envconfig)
     "stoneImplementation"(libs.stone.sdk)
     "stoneImplementation"(libs.stone.sdk.posandroid)
     "stoneImplementation"(libs.stone.sdk.sunmi)
     "stoneImplementation"(libs.stone.sdk.positivo)
     "stoneImplementation"(libs.stone.sdk.ingenico)
     "stoneImplementation"(libs.stone.sdk.gertec)
+    "stoneImplementation"(libs.stone.sdk.tectoy)
 
 
 }
