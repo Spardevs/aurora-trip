@@ -133,7 +133,6 @@ android {
         }
 
         debug {
-            signingConfig = null
             applicationIdSuffix = ".debug"
         }
 

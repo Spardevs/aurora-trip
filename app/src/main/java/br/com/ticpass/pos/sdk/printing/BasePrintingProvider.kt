@@ -5,11 +5,11 @@ import br.com.ticpass.pos.sdk.AcquirerProvider
 /**
  * Interface for receipt printing providers
  */
-interface BasePrintingProvider : AcquirerProvider {
+interface BasePrintingProvider<T> : AcquirerProvider {
     /**
-     * Initialize the printer with a specific model
-     * 
-     * @param printerModel The printer model identifier
+     * Get the flavor-specific implementation instance
+     *
+     * @return The concrete implementation of type T
      */
-    fun initialize(printerModel: String)
+    fun getInstance(): T
 }

@@ -1,14 +1,14 @@
-package br.com.ticpass.pos.sdk.payment
+package br.com.ticpass.pos.sdk.printing
 
 import android.content.Context
 import br.com.ticpass.pos.sdk.SdkInstance
-import stone.user.UserModel
+import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPag
 
 /**
- * Stone-specific implementation of PaymentProvider
- * This file overrides the base implementation by providing a Stone-specific provider
+ * PagSeguro-specific implementation of PrintingProvider
+ * This file overrides the base implementation by providing a PagSeguro-specific provider
  */
-object PaymentProvider : BasePaymentProvider<UserModel> {
+object PrintingProvider : BasePrintingProvider<PlugPag> {
     private var initialized = false
     
     override fun isInitialized(): Boolean = initialized
@@ -21,9 +21,9 @@ object PaymentProvider : BasePaymentProvider<UserModel> {
         }
     }
     
-    override fun getInstance(): UserModel {
+    override fun getInstance(): PlugPag {
         if (!isInitialized()) {
-            throw IllegalStateException("Payment provider not initialized. Call initialize() first.")
+            throw IllegalStateException("Printing provider not initialized. Call initialize() first.")
         }
         return SdkInstance.getInstance()
     }
