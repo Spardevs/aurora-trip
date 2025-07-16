@@ -15,7 +15,7 @@ import java.util.UUID
 class AcquirerPaymentProcessor : PaymentProcessorBase() {
     
     // Reference to the AcquirerSdk singleton
-    private val acquirerSdk = AcquirerSdk.payment
+    private val acquirerSdk = AcquirerSdk.payment.getInstance()
     
     override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
         // acquirer logic

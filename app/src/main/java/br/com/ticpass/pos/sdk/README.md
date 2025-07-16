@@ -1,6 +1,6 @@
 # Acquirer SDK Architecture
 
-This document describes the architecture of the Acquirer SDK system, which is designed to support multiple acquirer flavors using a source set-based provider pattern.
+This document describes the architecture of the Acquirer SDK system, which is designed to support multiple acquirer flavors using a source set-based provider pattern with flavor-specific type safety and shared SDK instances.
 
 ## Architecture Overview
 
@@ -10,6 +10,8 @@ The Acquirer SDK uses a build flavor-based architecture that allows for differen
 2. **Provider objects** that serve as access points for implementations
 3. **Flavor-specific implementations** in separate source sets
 4. **Build system selection** of the appropriate implementation at build time
+5. **Singleton SDK instances** shared across providers within each flavor
+6. **Flavor-specific type safety** ensuring proper typing and compile-time safety
 
 ## Architecture Diagram
 
@@ -49,21 +51,42 @@ graph LR
         BuildFlavor[Build Flavor Selection]
         
         subgraph "PagSeguro"
+            PlugPag[PlugPag SDK]
+            SdkInstancePag[SdkInstance]
             PaymentProviderPag[PaymentProvider]
             PrintingProviderPag[PrintingProvider]
             NFCProviderPag[NFCProvider]
+            
+            SdkInstancePag -- "Singleton" --> PlugPag
+            PaymentProviderPag -- "uses" --> SdkInstancePag
+            PrintingProviderPag -- "uses" --> SdkInstancePag
+            NFCProviderPag -- "uses" --> SdkInstancePag
         end
         
         subgraph "Stone"
+            UserModel[UserModel SDK]
+            SdkInstanceStn[SdkInstance]
             PaymentProviderStn[PaymentProvider]
             PrintingProviderStn[PrintingProvider]
             NFCProviderStn[NFCProvider]
+            
+            SdkInstanceStn -- "Singleton" --> UserModel
+            PaymentProviderStn -- "uses" --> SdkInstanceStn
+            PrintingProviderStn -- "uses" --> SdkInstanceStn
+            NFCProviderStn -- "uses" --> SdkInstanceStn
         end
         
         subgraph "Acquirer_n"
-            PaymentProviderCie[PaymentProvider]
-            PrintingProviderCie[PrintingProvider]
-            NFCProviderCie[NFCProvider]
+            SDK_n[Custom SDK]
+            SdkInstanceN[SdkInstance]
+            PaymentProviderN[PaymentProvider]
+            PrintingProviderN[PrintingProvider]
+            NFCProviderN[NFCProvider]
+            
+            SdkInstanceN -- "Singleton" --> SDK_n
+            PaymentProviderN -- "uses" --> SdkInstanceN
+            PrintingProviderN -- "uses" --> SdkInstanceN
+            NFCProviderN -- "uses" --> SdkInstanceN
         end
         
         BuildFlavor --> PagSeguro
@@ -80,9 +103,9 @@ graph LR
     PrintingProviderMain -.Override.-> PrintingProviderStn
     NFCProviderMain -.Override.-> NFCProviderStn
     
-    PaymentProviderMain -.Override.-> PaymentProviderCie
-    PrintingProviderMain -.Override.-> PrintingProviderCie
-    NFCProviderMain -.Override.-> NFCProviderCie
+    PaymentProviderMain -.Override.-> PaymentProviderN
+    PrintingProviderMain -.Override.-> PrintingProviderN
+    NFCProviderMain -.Override.-> NFCProviderN
     
     %% App usage
     subgraph "App Usage"
@@ -95,10 +118,12 @@ graph LR
     classDef interface fill:#f9f,stroke:#333,stroke-width:1px;
     classDef main fill:#bbf,stroke:#333,stroke-width:1px;
     classDef usage fill:#ddd,stroke:#333,stroke-width:1px;
+    classDef sdk fill:#ffd,stroke:#333,stroke-width:1px;
     
     class AcquirerProvider,BasePaymentProvider,BasePrintingProvider,BaseNFCProvider interface;
     class AcquirerSdk,PaymentProviderMain,PrintingProviderMain,NFCProviderMain main;
     class AcquirerPaymentProcessor usage;
+    class PlugPag,UserModel,SDK_n sdk;
     
     %% Style the subgraphs
     style Interfaces fill:#fff,stroke:#333,stroke-width:1px;
@@ -114,22 +139,34 @@ graph LR
 
 1. **Interface Layer**:
    - `AcquirerProvider` - Base interface for all provider types
-   - Specific interfaces extend this base: `BasePaymentProvider`, `BasePrintingProvider`, `BaseNFCProvider`
+   - Specific interfaces extend this base: `BasePaymentProvider<T>`, `BasePrintingProvider<T>`, `BaseNFCProvider<T>`
+   - Type parameter `<T>` allows flavor-specific SDK type to be enforced
 
 2. **Access Layer**:
    - `AcquirerSdk` - Central access point for all providers
    - Exposes properties: `payment`, `printing`, `nfc` to access provider instances
+   - Each property returns a flavor-specific typed instance
 
-3. **Provider Objects**:
-   - `PaymentProvider`, `PrintingProvider`, `NFCProvider` - Singleton objects that return instances
-   - Main source set contains default implementations that throw `NotImplementedError`
+3. **SDK Instance Management**:
+   - `SdkInstance` - Singleton object that manages the flavor-specific SDK instance
+   - Ensures only one SDK instance is created and shared across all providers
+   - Each flavor provides its own implementation (e.g., PagSeguro → PlugPag, Stone → UserModel)
 
-4. **Flavor Implementation**:
+4. **Provider Objects**:
+   - `PaymentProvider`, `PrintingProvider`, `NFCProvider` - Singleton objects that provide type-safe access
+   - Each provider maintains its own initialization state
+   - All providers delegate to the shared `SdkInstance` for the actual SDK instance
+
+5. **Flavor Implementation**:
    - Each flavor (PagSeguro, Stone, etc.) provides its own implementations
    - These override the providers from the main source set
    - All use the same class names, allowing seamless replacement
 
-5. **Build System Selection**:
+6. **Type Safety**:
+   - Providers expose flavor-specific types enabling proper type inference
+   - This ensures compile-time safety for flavor-specific features
+
+7. **Build System Selection**:
    - Android Gradle build system selects the appropriate source set based on build flavor
    - No runtime conditionals needed in code
 
@@ -139,12 +176,20 @@ graph LR
 // Initialize all providers with application context
 AcquirerSdk.initialize(applicationContext)
 
-// Access a provider
+// Access a provider - flavor-specific types inferred automatically
 val paymentProvider = AcquirerSdk.payment
 
 // Use the provider (implementation automatically selected based on build flavor)
 if (paymentProvider.isInitialized()) {
-    // Use the provider
+    // Get the flavor-specific SDK instance
+    val sdkInstance = paymentProvider.getInstance()
+    
+    // Use the flavor-specific SDK features with proper typing
+    // Example for PagSeguro:
+    // sdkInstance.doPlugPagSpecificOperation() 
+    // 
+    // Example for Stone:
+    // sdkInstance.doStoneSpecificOperation()
 }
 ```
 
@@ -152,6 +197,24 @@ if (paymentProvider.isInitialized()) {
 
 The architecture is designed to be easily extensible:
 
-1. **Adding new provider types** - Create a new interface extending `AcquirerProvider` and add a corresponding accessor in `AcquirerSdk`
+1. **Adding new provider types** - Create a new interface extending `AcquirerProvider<T>` and add a corresponding accessor in `AcquirerSdk`
 
-2. **Adding new flavors** - Create a new source set for the flavor and implement the provider interfaces
+2. **Adding new flavors** - Create a new source set for the flavor and implement:
+   - `SdkInstance` - Singleton for managing the flavor's SDK instance
+   - Provider implementations that use the shared `SdkInstance`
+
+3. **Enhancing type safety** - Add flavor-specific extension methods or interfaces to the provider objects to expose additional functionality while maintaining type safety
+
+## Benefits of this Architecture
+
+1. **True Singleton SDK** - Only one SDK instance is created and shared across all providers (payment, printing, NFC)
+
+2. **Type Safety** - Proper typing ensures compile-time safety for flavor-specific features
+
+3. **Separation of Concerns** - Each provider is responsible for a specific domain (payment, printing, NFC)
+
+4. **Build-time Selection** - No runtime conditionals or reflection needed
+
+5. **Clean API** - Clients interact with a consistent API regardless of flavor
+
+6. **Testability** - Each component can be easily mocked and tested independently
