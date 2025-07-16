@@ -1,7 +1,9 @@
 package br.com.ticpass.pos.sdk
 
 import android.content.Context
+import stone.application.StoneStart
 import stone.user.UserModel
+
 
 /**
  * Central holder for the Stone SDK instance
@@ -51,13 +53,8 @@ object SdkInstance {
      * @return A new SDK instance
      */
     private fun createInstance(context: Context): UserModel {
-        // Stone-specific SDK initialization that uses the application context
-        // For example: UserModel(context) or something similar
-        // In a real implementation, you'd pass the context to the SDK initialization
-        return UserModel().apply { 
-            // Simulate using the context parameter
-            // In a real implementation, you might do something like:
-            // initialize(context)
-        }
+        val userList: List<UserModel> = StoneStart.init(context)
+            ?: throw IllegalStateException("Failed to initialize Stone SDK: User list is null")
+        return userList.first()
     }
 }
