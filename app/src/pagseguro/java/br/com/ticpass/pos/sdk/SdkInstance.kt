@@ -51,13 +51,6 @@ object SdkInstance {
      * @return A new SDK instance
      */
     private fun createInstance(context: Context): PlugPag {
-        // PagSeguro-specific SDK initialization that uses the application context
-        // For example: PlugPag(context) or something similar
-        // In a real implementation, you'd pass the context to the SDK initialization
-        return PlugPag(context).apply {
-            // Simulate using the context parameter
-            // In a real implementation, you might do something like:
-            // initialize(context)
-        }
+        return PlugPag(context)
     }
 }
