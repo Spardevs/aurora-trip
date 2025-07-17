@@ -136,8 +136,11 @@
             android:name="br.com.ticpass.pos.view.ui.login.ConfirmScreen"
             android:exported="false" />
 
-        <activity
-            android:name="br.com.ticpass.pos.view.ui.products.ProductsListScreen"
-            />
+        <activity android:name=".data.activity.ProductsActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
     </application>
 </manifest>

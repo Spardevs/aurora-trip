@@ -1,9 +1,9 @@
 
 package br.com.ticpass.pos.data.api
 
+import android.content.Context
 import android.util.Log
 import br.com.ticpass.Constants.API_HOST
-import br.com.ticpass.Constants.API_TIMEOUT_SECONDS
 import com.google.gson.annotations.SerializedName
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
@@ -347,18 +347,26 @@ interface APIService {
     companion object {
         private var BASE_URL = "$API_HOST/"
 
-        fun create(): APIService {
+        @JvmStatic
+        fun create(context: Context): APIService {
+            // logger de requisições
             val logger = HttpLoggingInterceptor().apply { level = Level.BASIC }
 
             val client = OkHttpClient.Builder()
-                .connectTimeout(API_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .readTimeout(API_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .connectTimeout(Constants.API_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .readTimeout(Constants.API_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .retryOnConnectionFailure(true)
+                // opcional: insere o nome do app nos headers
+                .addInterceptor { chain ->
+                    val req = chain.request().newBuilder()
+//                        .header("X-App-Name", Constants.getAppName(context))
+                        .build()
+                    chain.proceed(req)
+                }
                 .addInterceptor(logger)
                 .build()
 
-            Log.d("req:params", client.toString())
-            Log.d("req:params", client.toString())
+            Log.d("APIService","Creating Retrofit @ $BASE_URL")
 
             return Retrofit.Builder()
                 .baseUrl(BASE_URL)

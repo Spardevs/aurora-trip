@@ -14,11 +14,13 @@
 
 package br.com.ticpass.pos
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.datastore.preferences.preferencesDataStore
@@ -26,9 +28,8 @@ import br.com.ticpass.pos.view.ui.login.LoginScreen
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import com.google.firebase.analytics.FirebaseAnalytics
+import br.com.ticpass.pos.data.activity.ProductsActivity
 
-//import stone.utils.Stone
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user")
 
 @AndroidEntryPoint
@@ -37,74 +38,24 @@ class MainActivity : AppCompatActivity() {
     companion object {
         lateinit  var location: Location
         lateinit  var appContext: Context
+        @SuppressLint("StaticFieldLeak")
         lateinit  var activity: Activity
-        lateinit var firebaseAnalytics: FirebaseAnalytics
-
-        fun logCustomEventMessage(eventName: String, source: String, message: String) {
-            val bundle = Bundle().apply {
-                putString("source", source)
-                putString("message", message)
-            }
-            firebaseAnalytics.logEvent(eventName, bundle)
-        }
-
-        fun logErrorMessage(source: String, message: String) {
-            val bundle = Bundle().apply {
-                putString("error_source", source)
-                putString("error_message", message)
-            }
-            firebaseAnalytics.logEvent("app_crash_reported", bundle)
-        }
-
-        fun logCrashException(exception: Exception) {
-            val bundle = Bundle().apply {
-                putString("error_message", exception.message ?: "Unknown error")
-                putString("error_type", exception.javaClass.simpleName)
-            }
-            firebaseAnalytics.logEvent("app_crash_reported", bundle)
-        }
     }
-
-    private val _activity: Activity
-        get() {
-            return this
-        }
-
-    override fun onStart() {
-        super.onStart()
-
-//        when (BuildConfig.FLAVOR) {
-//            "stone" -> {
-//                Stone.setAppName(APP_NAME)
-//            }
-//
-//            else -> {}
-//        }
-    }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-//        firebaseAnalytics = Firebase.analytics
-
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        val currentActivity = this@MainActivity
-        location = Location("")
-        appContext = applicationContext
-        activity = _activity
-
-        if (!isUserLoggedIn()) {
-            startActivity(Intent(this, LoginScreen::class.java))
-            finish()
-            return
+        val prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        val hasToken = prefs.contains("auth_token")
+        Log.d("DEBUG", "MainActivity: hasToken=$hasToken")
+        var intent: Intent
+        if (!hasToken) {
+            intent = Intent(this, LoginScreen::class.java)
+        } else {
+            intent = Intent(this, ProductsActivity::class.java)
         }
 
+        startActivity(intent)
+        finish()
     }
 
-    private fun isUserLoggedIn(): Boolean {
-        return false
-//        return Preferences.getBoolean(this, Preferences.PREFERENCE_IS_LOGGED_IN)
-    }
 }

@@ -30,19 +30,15 @@
             android:layout_marginTop="8dp"
             android:textSize="13sp"
             android:textStyle="bold"
-            android:singleLine="false"
             android:ellipsize="end"
-            android:maxLines="2"
-            />
+            android:maxLines="2"/>
 
         <TextView
             android:id="@+id/productPrice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textSize="11sp"
-            android:textStyle="normal" />
-
+            android:textSize="11sp"/>
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

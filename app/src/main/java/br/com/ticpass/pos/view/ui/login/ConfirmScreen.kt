@@ -11,12 +11,12 @@ import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.view.ui.products.ProductsListScreen
 import br.com.ticpass.pos.viewmodel.login.LoginConfirmViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.edit
+import br.com.ticpass.pos.data.activity.ProductsActivity
 
 @AndroidEntryPoint
 class ConfirmScreen : AppCompatActivity() {
@@ -60,13 +60,14 @@ class ConfirmScreen : AppCompatActivity() {
 
     fun loginFinish(view: View) {
         val name = findViewById<EditText>(R.id.nameText).text.toString()
-        getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-            .edit {
-                putString("user_name", name)
-            }
+        userPref.edit {
+            putString("user_name", name)
+        }
 
         viewModel.insertInfo(sessionPref, userPref)
-        startActivity(Intent(this, ProductsListScreen::class.java))
+
+        val intent = Intent(this, ProductsActivity::class.java)
+        startActivity(intent)
         finish()
     }
 

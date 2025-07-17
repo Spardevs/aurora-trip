@@ -1,129 +1,69 @@
-// ProductsListScreen.kt
 package br.com.ticpass.pos.view.ui.products
 
-import android.content.Context
 import android.os.Bundle
-import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
+import android.view.View
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.data.api.APIRepository
+import br.com.ticpass.pos.databinding.FragmentProductsBinding
 import br.com.ticpass.pos.view.ui.products.adapter.ProductsAdapter
-import com.google.android.material.snackbar.Snackbar
+import br.com.ticpass.pos.viewmodel.products.ProductsViewModel
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
-import java.math.BigInteger
-import javax.inject.Inject
-
-// Data class para a UI
-data class Product(
-    val name: String,
-    val value: BigInteger,
-    val photo: String,
-    val category: String
-)
 
 @AndroidEntryPoint
-class ProductsListScreen : AppCompatActivity() {
+class ProductsListScreen : Fragment(R.layout.fragment_products) {
 
-    @Inject lateinit var apiRepository: APIRepository
-
-    private var categories: List<String> = emptyList()
-    private var allProducts: List<Product> = emptyList()
+    private var _binding: FragmentProductsBinding? = null
+    private val binding get() = _binding!!
+    private val viewModel: ProductsViewModel by viewModels()
     private lateinit var adapter: ProductsAdapter
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.view_products)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentProductsBinding.bind(view)
 
-        val recyclerView = findViewById<RecyclerView>(R.id.rvProducts)
-            ?: return showErrorAndFinish("RecyclerView não encontrada")
-        recyclerView.layoutManager = GridLayoutManager(this, 3)
+        binding.rvProducts.layoutManager = GridLayoutManager(requireContext(), 3)
         adapter = ProductsAdapter(emptyList()) { product ->
-            Snackbar.make(
-                findViewById(android.R.id.content),
-                "Clicked: ${product.name}",
-                Snackbar.LENGTH_SHORT
-            ).show()
+            Toast.makeText(requireContext(), "Clicado: ${product.title}", Toast.LENGTH_SHORT).show()
         }
-        recyclerView.adapter = adapter
+        binding.rvProducts.adapter = adapter
 
-        val tabLayout = findViewById<TabLayout>(R.id.tabCategories)
-            ?: return showErrorAndFinish("TabLayout não encontrado")
-
-        fetchProducts(tabLayout)
-    }
-
-    private fun fetchProducts(tabLayout: TabLayout) {
-        val sharedPref = getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE)
-        val userPref   = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        val menuId = sharedPref.getString("selected_menu_id", null)
-        val jwt     = userPref.getString("auth_token", null)
-        Log.d("ProductsListScreen", "Credenciais: $menuId / $jwt")
-
-        if (menuId.isNullOrBlank() || jwt.isNullOrBlank()) {
-            showError("Credenciais inválidas")
-            return
-        }
-
-        lifecycleScope.launch {
-            try {
-                val resp = apiRepository.getEventProducts(event = menuId, jwt = jwt)
-                if (resp.status == 200) {
-
-                    val categoryNames = resp.result.map { it.name }
-                    categories = listOf("Todos") + categoryNames
-
-                    allProducts = resp.result.flatMap { cat ->
-                        cat.products.map { p ->
-                            Product(
-                                name     = p.title,
-                                photo    = p.photo,
-                                value    = p.value,
-                                category = cat.name
-                            )
-                        }
-                    }
-
-                    populateTabs(tabLayout)
-                    adapter.updateList(allProducts)
-
-                } else {
-                    showError("Erro ${resp.status}: ${resp.message}")
-                }
-            } catch (e: Exception) {
-                Log.e("ProductsListScreen", "API error", e)
-                showError("Falha na requisição")
+        viewModel.categories.observe(viewLifecycleOwner) { cats ->
+            binding.tabCategories.removeAllTabs()
+            cats.forEach { name ->
+                binding.tabCategories.addTab(binding.tabCategories.newTab().setText(name))
             }
+            cats.firstOrNull()?.let(::updateProductList)
         }
-    }
 
-    private fun populateTabs(tabLayout: TabLayout) {
-        tabLayout.removeAllTabs()
-        categories.forEach { name ->
-            tabLayout.addTab(tabLayout.newTab().setText(name))
+        viewModel.productsByCategory.observe(viewLifecycleOwner) {
+            val pos = binding.tabCategories.selectedTabPosition
+            viewModel.categories.value
+                ?.getOrNull(pos)
+                ?.let(::updateProductList)
         }
-        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+
+        binding.tabCategories.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
-                val sel = tab.text.toString()
-                val filtered: List<Product> = if (sel == "Todos") allProducts
-                else allProducts.filter { it.category == sel }
-                adapter.updateList(filtered)
+                tab.text?.toString()?.let(::updateProductList)
             }
-            override fun onTabUnselected(tab: TabLayout.Tab) {}
-            override fun onTabReselected(tab: TabLayout.Tab) {}
+            override fun onTabUnselected(tab: TabLayout.Tab) = Unit
+            override fun onTabReselected(tab: TabLayout.Tab) = Unit
         })
+
+        viewModel.loadCategoriesWithProducts()
     }
 
-    private fun showError(msg: String) {
-        Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_LONG).show()
+    private fun updateProductList(category: String) {
+        val list = viewModel.productsByCategory.value?.get(category) ?: emptyList()
+        adapter.updateList(list)
     }
 
-    private fun showErrorAndFinish(msg: String) {
-        showError(msg)
-        finish()
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
