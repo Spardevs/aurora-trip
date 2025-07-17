@@ -1,47 +1,49 @@
 package br.com.ticpass.pos.viewmodel.products
 
 import android.util.Log
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import br.com.ticpass.pos.data.api.Product
-import br.com.ticpass.pos.data.room.repository.ProductRepository
-import br.com.ticpass.pos.data.room.entity.CategoryWithProducts
+import br.com.ticpass.pos.data.room.repository.CategoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ProductsViewModel @Inject constructor(
-    private val repository: ProductRepository
+    private val categoryRepo: CategoryRepository
 ) : ViewModel() {
+
     private val _categories = MutableLiveData<List<String>>()
     val categories: LiveData<List<String>> = _categories
+
     private val _productsByCategory = MutableLiveData<Map<String, List<Product>>>()
     val productsByCategory: LiveData<Map<String, List<Product>>> = _productsByCategory
 
     fun loadCategoriesWithProducts() {
-
         viewModelScope.launch {
-            val data: List<CategoryWithProducts> = repository.getCategoryWithProducts()
-            val map = data.associate { catWith ->
-                val uiList = catWith.products.map { entity ->
+            val catsWithProds = categoryRepo.getCategoriesWithProducts()
+            _categories.value = catsWithProds.map { it.category.name }
+            _productsByCategory.value = catsWithProds.associate { catWith ->
+                val listaUI = catWith.products.map { entity ->
                     Product(
-                        title = entity.name,
-                        value = entity.price.toBigInteger(),
-                        photo = entity.thumbnail,
-                        fkCategory = catWith.category.name,
-                        id = entity.id,
-                        stock = entity.stock.toBigInteger(),
+                        id        = entity.id,
+                        title     = entity.name,
+                        value     = entity.price.toBigInteger(),
+                        photo     = entity.thumbnail,
+                        stock     = entity.stock.toBigInteger(),
                         createdAt = "",
                         updatedAt = "",
                         deletedAt = "",
-                        fkEvent = 0,
+                        fkCategory= entity.categoryId,
+                        fkEvent   = 0
                     )
                 }
-                catWith.category.name to uiList
+                catWith.category.name to listaUI
             }
-
-            _categories.postValue(map.keys.toList())
-            _productsByCategory.postValue(map)
         }
     }
 }
+

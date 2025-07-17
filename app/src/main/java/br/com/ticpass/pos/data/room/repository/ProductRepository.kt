@@ -16,7 +16,7 @@ class ProductRepository @Inject constructor(
 
         val populated = categoryWithProducts.map { cat ->
             val newProds = cat.products.map{
-                it.copy(category = cat.category.name)
+                it.copy(categoryId = cat.category.name)
             }
 
             cat.copy(products = newProds)
@@ -26,7 +26,7 @@ class ProductRepository @Inject constructor(
         return populated
     }
 
-    suspend fun getAllProducts() = productDao.getAll()
+    suspend fun getAllProducts() = productDao.getAllProducts()
 
     suspend fun insertMany(events: List<ProductEntity>) {
         return productDao.insertMany(events)

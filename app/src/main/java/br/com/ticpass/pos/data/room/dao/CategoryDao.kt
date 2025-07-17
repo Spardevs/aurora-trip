@@ -6,13 +6,19 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import br.com.ticpass.pos.data.room.entity.CategoryEntity
+import br.com.ticpass.pos.data.room.entity.CategoryWithProducts
 
 @Dao
 interface CategoryDao {
 
     @Query("SELECT * FROM categories")
-    suspend fun getAll(): List<CategoryEntity>
+    suspend fun getAllCategories(): List<CategoryEntity>
+
+    @Transaction
+    @Query("SELECT * FROM categories")
+    suspend fun getCategoriesWithProducts(): List<CategoryWithProducts>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertMany(events: List<CategoryEntity>)

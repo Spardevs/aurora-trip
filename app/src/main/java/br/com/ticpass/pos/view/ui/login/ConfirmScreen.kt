@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.TextView
@@ -16,7 +17,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.edit
+import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.data.activity.ProductsActivity
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ConfirmScreen : AppCompatActivity() {
@@ -55,20 +58,18 @@ class ConfirmScreen : AppCompatActivity() {
 
         menuValueTv.text = menuName
         posValueTv.text = posName
-    }
 
+    }
 
     fun loginFinish(view: View) {
         val name = findViewById<EditText>(R.id.nameText).text.toString()
-        userPref.edit {
-            putString("user_name", name)
+        userPref.edit { putString("user_name", name) }
+
+        lifecycleScope.launch {
+            viewModel.insertInfo(sessionPref, userPref)
+            startActivity(Intent(this@ConfirmScreen, ProductsActivity::class.java))
+            finish()
         }
-
-        viewModel.insertInfo(sessionPref, userPref)
-
-        val intent = Intent(this, ProductsActivity::class.java)
-        startActivity(intent)
-        finish()
     }
 
     private fun formatDate(dateString: String): String {

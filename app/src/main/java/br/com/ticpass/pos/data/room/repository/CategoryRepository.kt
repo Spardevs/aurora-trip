@@ -4,13 +4,17 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import br.com.ticpass.pos.data.room.dao.CategoryDao
 import br.com.ticpass.pos.data.room.entity.CategoryEntity
+import br.com.ticpass.pos.data.room.entity.CategoryWithProducts
 
 @Singleton
 class CategoryRepository @Inject constructor(
     private val categoryDao: CategoryDao
 ) {
 
-    suspend fun getAll() = categoryDao.getAll()
+    suspend fun getAll() = categoryDao.getAllCategories()
+
+    suspend fun getCategoriesWithProducts(): List<CategoryWithProducts> =
+        categoryDao.getCategoriesWithProducts()
 
     suspend fun insertMany(categories: List<CategoryEntity>) {
         return categoryDao.insertMany(categories)

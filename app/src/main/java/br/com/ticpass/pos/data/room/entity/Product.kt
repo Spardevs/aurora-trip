@@ -7,13 +7,14 @@ import androidx.room.PrimaryKey
 import androidx.room.Relation
 import br.com.ticpass.pos.data.room.entity.CategoryEntity
 
-@Entity(tableName = "products" )
+@Entity(tableName = "products")
 data class ProductEntity(
     @PrimaryKey val id: String,
     var name: String,
     val thumbnail: String,
     val url: String,
-    val category: String,
+    @ColumnInfo(name = "categoryId")
+    val categoryId: String,
     val price: Long,
     @ColumnInfo(defaultValue = "-1")
     val stock: Int,
@@ -24,10 +25,11 @@ data class ProductEntity(
 }
 
 data class CategoryWithProducts(
-    @Embedded val category: CategoryEntity,
+    @Embedded
+    val category: CategoryEntity,
     @Relation(
-        parentColumn = "id",
-        entityColumn = "category"
+        parentColumn  = "id",
+        entityColumn  = "categoryId"
     )
     val products: List<ProductEntity>
 )

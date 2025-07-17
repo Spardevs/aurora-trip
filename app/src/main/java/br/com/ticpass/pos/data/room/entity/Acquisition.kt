@@ -72,18 +72,12 @@ data class AcquisitionEntity(
             val dir = MainActivity.appContext.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
             val imagesDir = File(dir, "products")
             imagesDir.mkdirs()
-
             val file = File(imagesDir, logo.substringAfterLast('/'))
-
-            Log.d("getLogoPath", "imagesDir: $logo")
-            Log.d("getLogoPath", "imagesDir: ${file.absolutePath}")
-
             return file
         }
 
     val logoRemoteURL: String
         get() {
-            Log.d("getLogoPath", "imagesDir: $logo")
             return "https://ticpass-storage.s3.sa-east-1.amazonaws.com/product/thumbnail/$logo"
         }
 }

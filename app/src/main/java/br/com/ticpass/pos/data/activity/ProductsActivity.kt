@@ -1,25 +1,22 @@
 package br.com.ticpass.pos.data.activity
 
 import android.os.Bundle
-import dagger.hilt.android.AndroidEntryPoint
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import br.com.ticpass.pos.databinding.ActivityProductsBinding
+import br.com.ticpass.pos.R
 import br.com.ticpass.pos.view.ui.products.ProductsListScreen
+import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class ProductsActivity : AppCompatActivity() {
-    private lateinit var binding: ActivityProductsBinding
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityProductsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_products)
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-                .replace(binding.fragmentContainer.id, ProductsListScreen())
+                .replace(R.id.fragmentContainer, ProductsListScreen())
                 .commit()
         }
     }
 }
-

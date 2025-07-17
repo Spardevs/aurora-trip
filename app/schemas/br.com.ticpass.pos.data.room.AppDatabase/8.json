@@ -226,7 +226,7 @@
       },
       {
         "tableName": "products",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `thumbnail` TEXT NOT NULL, `url` TEXT NOT NULL, `category` TEXT NOT NULL, `price` INTEGER NOT NULL, `stock` INTEGER NOT NULL DEFAULT -1, `isEnabled` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `thumbnail` TEXT NOT NULL, `url` TEXT NOT NULL, `categoryId` TEXT NOT NULL, `price` INTEGER NOT NULL, `stock` INTEGER NOT NULL DEFAULT -1, `isEnabled` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -253,8 +253,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "category",
-            "columnName": "category",
+            "fieldPath": "categoryId",
+            "columnName": "categoryId",
             "affinity": "TEXT",
             "notNull": true
           },
