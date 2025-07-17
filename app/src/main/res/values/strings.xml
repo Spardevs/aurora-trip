@@ -12,6 +12,10 @@
   ~ is strictly prohibited without the express written permission of Ticpass.
   -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="navigation_drawer_open">Open menu</string>
+    <string name="navigation_drawer_close">Close menu</string>
+    <string name="menu_home">Home</string>
+    <string name="menu_profile">Perfil</string>
     <string name="login_email_input">Email/User</string>
     <string name="login_password_input">Password</string>
     <string name="login_enter_button">enter</string>
@@ -32,6 +36,7 @@
     <string name="qrcode_scan_message">Please scan the QR code below to complete the payment</string>
     <string name="qrcode_scan_description">QR Code for payment scanning</string>
     <string name="is_qrcode_transaction">Is QR Code transaction</string>
+    <string name='email_login' translatable="false">"Email"</string>
 
 
     <string name="app_name" translatable="false">"Ticpass"</string>
@@ -569,4 +574,5 @@
     <string name="nfc_pin_memorization_warning">⚠️ This card is for individual use only and should not be shared with others.</string>
     <string name="nfc_pin_memorization_pin_label">Your PIN:</string>
     <string name="nfc_pin_memorization_button">I did memorize it!</string>
+    <string name="menu_logout">logout</string>
 </resources>

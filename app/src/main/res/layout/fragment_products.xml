@@ -5,11 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- AppBar com abas de categoria -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
+        android:layout_height="wrap_content">
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabCategories"
@@ -19,7 +17,6 @@
             app:tabIndicatorFullWidth="false"/>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Conteúdo rolável que respeita a AppBar -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvProducts"
         android:layout_width="match_parent"

@@ -37,7 +37,7 @@
     <uses-permission android:name="android.permission.ENFORCE_UPDATE_OWNERSHIP" />
     <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
     <uses-permission android:name="android.permission.CAMERA"/>
-
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
@@ -96,6 +96,10 @@
         </provider>
 
         <activity android:name=".view.ui.login.LoginScreen"/>
+        <activity
+            android:name=".view.ui.permissions.PermissionsActivity"
+            android:exported="false"/>
+
         <activity
             android:name=".data.activity.MenuActivity"
             android:exported="false"

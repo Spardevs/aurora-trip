@@ -26,7 +26,7 @@
         android:layout_marginBottom="28dp"
         android:backgroundTint="@color/colorAccent"
         android:onClick="emailLoginButton"
-        android:text="@string/details_dev_email"
+        android:text="@string/email_login"
         app:cornerRadius="20dp"
         app:icon="@android:drawable/ic_dialog_email"
         app:layout_constraintBottom_toBottomOf="parent"

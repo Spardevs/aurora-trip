@@ -28,6 +28,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import br.com.ticpass.pos.data.activity.ProductsActivity
+import br.com.ticpass.pos.view.ui.permissions.PermissionsActivity
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user")
 
@@ -44,8 +45,16 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        val isFirstRun = prefs.getBoolean("isFirstRun", true)
+
+        if (isFirstRun) {
+            prefs.edit().putBoolean("isFirstRun", false).apply()
+            startActivity(Intent(this, PermissionsActivity::class.java))
+            finish()
+            return
+        }
+
         val hasToken = prefs.contains("auth_token")
-        Log.d("DEBUG", "MainActivity: hasToken=$hasToken")
         var intent: Intent
         if (!hasToken) {
             intent = Intent(this, LoginScreen::class.java)
