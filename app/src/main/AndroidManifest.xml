@@ -103,7 +103,6 @@
         <activity
             android:name=".data.activity.MenuActivity"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
         />
         <activity android:name=".view.ui.login.LoginScreen"/>
         <activity

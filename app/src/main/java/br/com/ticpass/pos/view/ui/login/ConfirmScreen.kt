@@ -63,7 +63,8 @@ class ConfirmScreen : AppCompatActivity() {
 
     fun loginFinish(view: View) {
         val name = findViewById<EditText>(R.id.nameText).text.toString()
-        userPref.edit { putString("user_name", name) }
+        userPref.edit { putString("operator_name", name)  }
+        userPref.edit { putBoolean("user_logged", true)  }
 
         lifecycleScope.launch {
             viewModel.insertInfo(sessionPref, userPref)

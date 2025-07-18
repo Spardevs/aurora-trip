@@ -1,11 +1,12 @@
 package br.com.ticpass.pos.view.ui.products
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import br.com.ticpass.pos.R
@@ -18,7 +19,14 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
     private val viewModel: ProductsViewModel by viewModels()
     private lateinit var tabLayout: TabLayout
     private lateinit var recycler: RecyclerView
-    private val adapter = ProductsAdapter()
+    private val adapter = ProductsAdapter { product ->
+        Log.d("ProductsListScreen", "Produto clicado: $product")
+        Toast.makeText(
+            requireContext(),
+            "${product.title} adicionado ao carrinho",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -27,8 +35,6 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         recycler    = view.findViewById(R.id.rvProducts)
         recycler.layoutManager = GridLayoutManager(requireContext(), 3)
         recycler.adapter       = adapter
-
-
         viewModel.categories.observe(viewLifecycleOwner) { cats ->
             tabLayout.removeAllTabs()
             cats.forEach { tabLayout.addTab(tabLayout.newTab().setText(it)) }

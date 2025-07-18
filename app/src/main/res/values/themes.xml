@@ -17,6 +17,8 @@
     <style name="AppTheme" parent="Theme.Material3.DynamicColors.Light.NoActionBar">
         <item name="chipStyle">@style/Chip.Filter</item>
         <item name="bottomSheetStyle">@style/AppTheme.BottomSheetStyle</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
 

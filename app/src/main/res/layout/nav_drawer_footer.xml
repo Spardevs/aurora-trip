@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:padding="16dp"
-    android:gravity="center_vertical">
+    android:gravity="center_vertical"
+    tools:ignore="UseCompoundDrawables">
 
     <ImageView
         android:id="@+id/footer_logout_icon"
@@ -13,13 +16,13 @@
         android:layout_height="24dp"
         android:contentDescription="@string/menu_logout"
         android:src="@drawable/ic_logout"
-        android:tint="@color/colorRed" />
+        app:tint="@color/colorRed" />
 
     <TextView
         android:id="@+id/footer_logout_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
+        android:layout_marginStart="5dp"
         android:text="@string/menu_logout"
         android:textAppearance="?attr/textAppearanceListItem"
         android:textColor="@color/colorRed" />

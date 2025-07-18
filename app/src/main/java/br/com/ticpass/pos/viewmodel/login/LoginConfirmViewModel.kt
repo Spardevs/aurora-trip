@@ -97,6 +97,11 @@ class LoginConfirmViewModel @Inject constructor(
             }
             sessionPref.edit { clear() }
         }
+
+        insertPosInfo(sessionPref)
+        insertMenuInfo(sessionPref)
+        insertProductsInfo(sessionPref, userPref)
+        cleanSessionPrefs(sessionPref)
     }
 
     fun insertPosInfo(sessionPref: SharedPreferences) {
