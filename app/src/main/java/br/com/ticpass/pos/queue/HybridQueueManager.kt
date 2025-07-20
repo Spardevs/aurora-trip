@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.queue
 
+import android.util.Log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -45,7 +46,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                 _queueState.value = inMemoryQueue.toList()
                 
                 if (inMemoryQueue.isNotEmpty()) {
-                    startProcessing()
+//                    startProcessing()
                 }
             }
         }
@@ -76,9 +77,9 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
         }
         
         // Start processing if not already running
-        if (!isProcessing) {
-            startProcessing()
-        }
+//        if (!isProcessing) {
+//            startProcessing()
+//        }
     }
     
     // Persist all pending items (call when app goes to background)
@@ -124,7 +125,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
     val isEmpty: Boolean get() = inMemoryQueue.isEmpty()
     
     // Start processing queue
-    private fun startProcessing() {
+    fun startProcessing() {
         if (isProcessing) return
         
         scope.launch {
@@ -139,7 +140,8 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                     
                     // Update item status
                     val processingItem = updateItemStatus(nextItem, "processing")
-                    
+
+                    Log.d("HybridQueueManager", "$processingItem")
                     // Process the item
                     val result = processor.process(processingItem)
                     
@@ -177,7 +179,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                                 }
                             }
                             
-                            _processingState.value = ProcessingState.Failed(processingItem, result.message)
+                            _processingState.value = ProcessingState.Failed(processingItem, result.event)
                         }
                         
                         is ProcessingResult.Retry -> {
@@ -195,11 +197,9 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                             _processingState.value = ProcessingState.Retrying(processingItem)
                         }
                     }
-                    
-                    // Small delay to show processing state
-                    delay(500)
-                    
+
                 } catch (e: Exception) {
+                    Log.e("HybridQueueManager", "Error processing item ${nextItem.id}: ${e.message}")
                     // Handle unexpected errors
                     inMemoryQueue.removeAt(0)
                     _queueState.value = inMemoryQueue.toList()
@@ -207,7 +207,10 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                     // Remove from pending persistence
                     pendingPersistence.removeAll { it.id == nextItem.id }
                     
-                    _processingState.value = ProcessingState.Failed(nextItem, e.message ?: "Unknown error")
+                    _processingState.value = ProcessingState.Failed(
+                        nextItem,
+                        ProcessingErrorEvent.GENERIC
+                    )
                     
                     // Update storage if using persistence
                     if (persistenceStrategy != PersistenceStrategy.NEVER) {

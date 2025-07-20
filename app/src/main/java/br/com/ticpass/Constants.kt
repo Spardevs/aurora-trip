@@ -16,6 +16,7 @@ package br.com.ticpass
 
 object Constants {
 
+    const val CONVERSION_FACTOR = 100L // 1 million
     const val PARCEL_DOWNLOAD = "PARCEL_DOWNLOAD"
 
     const val URL_TOS = "https://play.google.com/about/play-terms/"

@@ -5,7 +5,14 @@ package br.com.ticpass.pos.queue
  * Represents the possible outcomes when processing a queue item
  */
 sealed class ProcessingResult {
-    object Success : ProcessingResult()
-    data class Error(val message: String) : ProcessingResult()
     object Retry : ProcessingResult()
+
+    class Success(
+        val atk: String,
+        val txId: String,
+    ) : ProcessingResult()
+
+    data class Error(
+        val event: ProcessingErrorEvent
+    ) : ProcessingResult()
 }

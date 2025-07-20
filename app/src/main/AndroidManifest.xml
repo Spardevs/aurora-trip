@@ -90,7 +90,7 @@
             android:theme="@style/Theme.AppCompat.NoActionBar"
             android:configChanges="orientation|screenSize"
             tools:ignore="DiscouragedApi,Instantiatable" />
-        <activity android:name=".MainActivity">
+        <activity android:name="br.com.ticpass.pos.payment.PaymentProcessingActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

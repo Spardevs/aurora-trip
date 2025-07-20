@@ -6,7 +6,6 @@ package br.com.ticpass.pos.queue
  */
 interface QueueItem {
     val id: String
-    val timestamp: Long
     val priority: Int
     val status: QueueItemStatus
 }

@@ -11,11 +11,9 @@ import androidx.room.PrimaryKey
 data class ProcessingPaymentEntity(
     @PrimaryKey
     val id: String,
-    val timestamp: Long,
     val priority: Int,
     val status: String,
-    val amount: Double,
-    val currency: String,
-    val recipientId: String,
-    val description: String
+    val amount: Int,
+    val commission: Int,
+    val method: String,
 )

@@ -28,22 +28,15 @@ abstract class PaymentProcessorBase : QueueProcessor<ProcessingPaymentQueueItem,
     
     // For receiving input responses
     private val _inputResponses = MutableSharedFlow<InputResponse>(replay = 0, extraBufferCapacity = 3)
-    
+
     /**
      * Public processing method - delegates to protected template method
      */
     override suspend fun process(item: ProcessingPaymentQueueItem): ProcessingResult {
-        return try {
-            // Emit start event
-            _events.emit(ProcessingPaymentEvent.Started(item.id, item.amount))
-            
-            // Call implementation-specific processing
-            processPayment(item)
-        } catch (e: Exception) {
-            // Handle exceptions and emit failure event
-            _events.emit(ProcessingPaymentEvent.Failed(item.id, e.message ?: "Unknown error"))
-            ProcessingResult.Error(e.message ?: "Unknown error")
-        }
+        _events.emit(ProcessingPaymentEvent.START)
+
+        // Call implementation-specific processing
+        return processPayment(item)
     }
     
     /**
@@ -66,13 +59,13 @@ abstract class PaymentProcessorBase : QueueProcessor<ProcessingPaymentQueueItem,
      * @param request The input request
      * @return The response or null if timed out or canceled
      */
-    protected suspend fun requestInput(request: InputRequest): InputResponse? {
+    protected suspend fun requestInput(request: InputRequest): InputResponse {
         // Emit request to UI
         _inputRequests.emit(request)
         
         // Wait for response with optional timeout
         return withTimeoutOrNull(request.timeoutMs ?: Long.MAX_VALUE) {
             _inputResponses.first { it.requestId == request.id }
-        } ?: InputResponse.timeout(request.id, request.id)
+        } ?: InputResponse.timeout(request.id)
     }
 }

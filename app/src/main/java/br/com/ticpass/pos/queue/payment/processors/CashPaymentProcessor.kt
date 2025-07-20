@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.queue.payment.processors
 
+import br.com.ticpass.pos.queue.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.ProcessingResult
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
@@ -16,7 +17,7 @@ class CashPaymentProcessor : PaymentProcessorBase() {
         // Simulate cash payment flow
         
         // Cash amount entry
-        _events.emit(ProcessingPaymentEvent.Started(item.id, item.amount))
+        _events.emit(ProcessingPaymentEvent.START)
         delay(1000)
         
         // Calculate change if needed (simulated)
@@ -37,15 +38,13 @@ class CashPaymentProcessor : PaymentProcessorBase() {
         if (item.amount > 0) {
             // Complete the transaction
             val transactionId = "CASH-${UUID.randomUUID().toString().substring(0, 8)}"
-            _events.emit(ProcessingPaymentEvent.Completed(
-                item.id, 
-                item.amount,
-                transactionId
-            ))
-            return ProcessingResult.Success
+            _events.emit(ProcessingPaymentEvent.TRANSACTION_DONE)
+            return ProcessingResult.Success(
+                atk = "",
+                txId = ""
+            )
         } else {
-            _events.emit(ProcessingPaymentEvent.Failed(item.id, "Invalid amount for cash payment"))
-            return ProcessingResult.Error("Invalid amount")
+            return ProcessingResult.Error(ProcessingErrorEvent.INVALID_TRANSACTION_AMOUNT)
         }
     }
 }

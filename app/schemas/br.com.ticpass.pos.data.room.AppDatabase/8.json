@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 8,
-    "identityHash": "f0a0f9684bcc3a8fb0e6984bdb67aea4",
+    "identityHash": "2ee548a204242e4d4cd3c30ff3cb1018",
     "entities": [
       {
         "tableName": "cashiers",
@@ -954,12 +954,62 @@
         },
         "indices": [],
         "foreignKeys": []
+      },
+      {
+        "tableName": "payment_queue",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `priority` INTEGER NOT NULL, `status` TEXT NOT NULL, `amount` INTEGER NOT NULL, `commission` INTEGER NOT NULL, `method` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "priority",
+            "columnName": "priority",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "amount",
+            "columnName": "amount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "commission",
+            "columnName": "commission",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "method",
+            "columnName": "method",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f0a0f9684bcc3a8fb0e6984bdb67aea4')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2ee548a204242e4d4cd3c30ff3cb1018')"
     ]
   }
 }

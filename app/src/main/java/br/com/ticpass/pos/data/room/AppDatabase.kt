@@ -47,6 +47,8 @@ import br.com.ticpass.pos.data.room.dao.VoucherExchangeProductDao
 import br.com.ticpass.pos.data.room.entity.VoucherExchangeProductEntity
 import br.com.ticpass.pos.data.room.dao.VoucherRedemptionDao
 import br.com.ticpass.pos.data.room.entity.VoucherRedemptionEntity
+import br.com.ticpass.pos.queue.payment.ProcessingPaymentEntity
+import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueDao
 import br.com.ticpass.pos.util.API_HOST
 import br.com.ticpass.pos.util.DATABASE_NAME
 import br.com.ticpass.pos.util.SEED_DATA_FILENAME
@@ -87,6 +89,7 @@ import java.io.File
         ConsumptionEntity::class,
         PassEntity::class,
         _CartOrderLineEntity::class,
+        ProcessingPaymentEntity::class,
     ],
     version = 8,
     exportSchema = true,
@@ -118,6 +121,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun consumptionDao(): ConsumptionDao
     abstract fun passDao(): PassDao
     abstract fun cartOrderLineDao(): CartOrderLineDao
+    abstract fun processingPaymentQueueDao(): ProcessingPaymentQueueDao
 
     override fun clearAllTables() {
         val database = Room.databaseBuilder(MainActivity.appContext, AppDatabase::class.java, DATABASE_NAME)

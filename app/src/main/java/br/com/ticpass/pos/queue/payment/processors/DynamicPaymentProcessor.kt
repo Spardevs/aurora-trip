@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.queue.payment.processors
 
+import br.com.ticpass.pos.queue.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.ProcessingResult
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
@@ -37,10 +38,10 @@ class DynamicPaymentProcessor(
         // Get the processor based on the item's processor type
         val processor = processorMap[item.processorType.lowercase()] ?: 
                         processorMap["acquirer"] ?: // Fallback to acquirer
-                        return ProcessingResult.Error("No suitable processor found for type: ${item.processorType}")
+                        return ProcessingResult.Error(ProcessingErrorEvent.PROCESSOR_NOT_FOUND)
         
         // Forward the start event from the base processor
-        _events.emit(ProcessingPaymentEvent.Started(item.id, item.amount))
+        _events.emit(ProcessingPaymentEvent.START)
         
         // Collect events from the delegate processor and re-emit them
         val processorEvents = processor.events
@@ -58,15 +59,15 @@ class DynamicPaymentProcessor(
     
     /**
      * Launch a coroutine that forwards events from the delegate processor to this processor's event flow
-     * This prevents event duplication (Started event)
+     * This prevents event duplication (START event)
      */
     private fun launchEventForwarding(sourceEvents: SharedFlow<ProcessingPaymentEvent>): Job {
         // Use a safe scope rather than GlobalScope
         val scope = CoroutineScope(Dispatchers.Default)
         return scope.launch {
             sourceEvents.collect { event ->
-                // Avoid duplicating the Started event that we already emitted
-                if (event !is ProcessingPaymentEvent.Started) {
+                // Avoid duplicating the START event that we already emitted
+                if (event !is ProcessingPaymentEvent.START) {
                     _events.emit(event)
                 }
             }

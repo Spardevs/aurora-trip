@@ -12,13 +12,11 @@ import br.com.ticpass.pos.queue.QueueItemStatus
 fun ProcessingPaymentQueueItem.toEntity(): ProcessingPaymentEntity {
     return ProcessingPaymentEntity(
         id = id,
-        timestamp = timestamp,
         priority = priority,
         status = status.toString(),
         amount = amount,
-        currency = currency,
-        recipientId = recipientId,
-        description = description
+        commission = commission,
+        method = method.value,
     )
 }
 
@@ -28,12 +26,10 @@ fun ProcessingPaymentQueueItem.toEntity(): ProcessingPaymentEntity {
 fun ProcessingPaymentEntity.toQueueItem(): ProcessingPaymentQueueItem {
     return ProcessingPaymentQueueItem(
         id = id,
-        timestamp = timestamp,
         priority = priority,
         status = QueueItemStatus.valueOf(status.uppercase()),
         amount = amount,
-        currency = currency,
-        recipientId = recipientId,
-        description = description
+        commission = commission,
+        method = SystemPaymentMethod.fromValue(method),
     )
 }

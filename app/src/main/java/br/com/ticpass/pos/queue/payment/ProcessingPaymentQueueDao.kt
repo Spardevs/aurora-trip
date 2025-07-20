@@ -12,7 +12,7 @@ interface ProcessingPaymentQueueDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(payment: ProcessingPaymentEntity)
 
-    @Query("SELECT * FROM payment_queue WHERE status = 'pending' ORDER BY priority DESC, timestamp ASC LIMIT 1")
+    @Query("SELECT * FROM payment_queue WHERE status = 'pending' ORDER BY priority DESC")
     suspend fun getNextPending(): ProcessingPaymentEntity?
 
     @Query("UPDATE payment_queue SET status = :status WHERE id = :id")
@@ -21,9 +21,9 @@ interface ProcessingPaymentQueueDao {
     @Query("DELETE FROM payment_queue WHERE id = :id")
     suspend fun delete(id: String)
 
-    @Query("SELECT * FROM payment_queue WHERE status = :status ORDER BY priority DESC, timestamp ASC")
+    @Query("SELECT * FROM payment_queue WHERE status = :status ORDER BY priority DESC")
     suspend fun getAllByStatus(status: String): List<ProcessingPaymentEntity>
 
-    @Query("SELECT * FROM payment_queue WHERE status = :status ORDER BY priority DESC, timestamp ASC")
+    @Query("SELECT * FROM payment_queue WHERE status = :status ORDER BY priority DESC")
     fun observeByStatus(status: String): Flow<List<ProcessingPaymentEntity>>
 }

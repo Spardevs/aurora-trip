@@ -10,12 +10,11 @@ import java.util.UUID
  */
 data class ProcessingPaymentQueueItem(
     override val id: String = UUID.randomUUID().toString(),
-    override val timestamp: Long = System.currentTimeMillis(),
     override val priority: Int = 0,
     override val status: QueueItemStatus = QueueItemStatus.PENDING,
-    val amount: Double,
-    val currency: String,
-    val recipientId: String,
-    val description: String,
-    val processorType: String = "acquirer" // Defaults to acquirer processor
+    val customerReceiptPrinting: SystemCustomerReceiptPrinting = SystemCustomerReceiptPrinting.CONFIRMATION,
+    val processorType: String = "acquirer",
+    val amount: Int,
+    val commission: Int,
+    val method: SystemPaymentMethod,
 ) : QueueItem

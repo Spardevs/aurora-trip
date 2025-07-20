@@ -17,6 +17,7 @@ import br.com.ticpass.pos.data.room.dao.RefundDao
 import br.com.ticpass.pos.data.room.dao.CashierDao
 import br.com.ticpass.pos.data.room.dao.VoucherDao
 import br.com.ticpass.pos.data.room.dao.VoucherRedemptionDao
+import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -108,6 +109,11 @@ class DatabaseModule {
     @Provides
     fun provideCartOrderLineDao(appDatabase: AppDatabase): CartOrderLineDao {
         return appDatabase.cartOrderLineDao()
+    }
+
+    @Provides
+    fun provideProcessingPaymentQueueDao(appDatabase: AppDatabase): ProcessingPaymentQueueDao {
+        return appDatabase.processingPaymentQueueDao()
     }
 }
 

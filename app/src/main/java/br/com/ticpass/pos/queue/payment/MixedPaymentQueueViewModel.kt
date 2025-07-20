@@ -29,24 +29,22 @@ class MixedPaymentQueueViewModel(
     val queueState = paymentQueue.queueState
     val processingState = paymentQueue.processingState
     val processingPaymentEvents: SharedFlow<ProcessingPaymentEvent> = paymentQueue.processorEvents
-    
+
     /**
      * Process a acquirer card payment (using acquirer SDK)
      */
     fun processCardPayment(
-        amount: Double,
-        currency: String = "BRL",
-        recipientId: String,
-        description: String
+        amount: Int,
+        commission: Int,
+        method: SystemPaymentMethod,
     ) {
         viewModelScope.launch {
             val paymentItem = ProcessingPaymentQueueItem(
                 id = UUID.randomUUID().toString(),
                 amount = amount,
-                currency = currency,
-                recipientId = recipientId,
-                description = description,
-                priority = 10, // High priority
+                commission = commission,
+                priority = 10, // High priority,
+                method = method,
                 processorType = "acquirer" // Uses acquirer processor
             )
             paymentQueue.enqueue(paymentItem)
@@ -57,18 +55,16 @@ class MixedPaymentQueueViewModel(
      * Process a cash payment (no acquirer SDK)
      */
     fun processCashPayment(
-        amount: Double,
-        currency: String = "BRL",
-        recipientId: String,
-        description: String
+        amount: Int,
+        commission: Int,
+        method: SystemPaymentMethod,
     ) {
         viewModelScope.launch {
             val paymentItem = ProcessingPaymentQueueItem(
                 id = UUID.randomUUID().toString(),
                 amount = amount,
-                currency = currency,
-                recipientId = recipientId,
-                description = description,
+                commission = commission,
+                method = method,
                 priority = 5, // Medium priority
                 processorType = "cash" // Uses cash processor
             )
@@ -80,18 +76,16 @@ class MixedPaymentQueueViewModel(
      * Process a demo payment (always succeeds, for testing)
      */
     fun processDemoPayment(
-        amount: Double,
-        currency: String = "BRL",
-        recipientId: String,
-        description: String
+        amount: Int,
+        commission: Int,
+        method: SystemPaymentMethod,
     ) {
         viewModelScope.launch {
             val paymentItem = ProcessingPaymentQueueItem(
                 id = UUID.randomUUID().toString(),
                 amount = amount,
-                currency = currency,
-                recipientId = recipientId,
-                description = description,
+                commission = commission,
+                method = method,
                 priority = 1, // Low priority
                 processorType = "transactionless" // Uses transactionless processor
             )
@@ -107,29 +101,26 @@ class MixedPaymentQueueViewModel(
         viewModelScope.launch {
             // Enqueue two acquirer card payments
             paymentQueue.enqueue(ProcessingPaymentQueueItem(
-                amount = 75.0,
-                currency = "BRL",
-                recipientId = "store123",
-                description = "First card payment",
+                amount = 75,
+                commission = 0,
+                method = SystemPaymentMethod.CREDIT,
                 processorType = "acquirer",
                 priority = 10 // High priority
             ))
             
             paymentQueue.enqueue(ProcessingPaymentQueueItem(
-                amount = 120.0,
-                currency = "BRL",
-                recipientId = "store123",
-                description = "Second card payment",
+                amount = 120,
+                commission = 10,
+                method = SystemPaymentMethod.DEBIT,
                 processorType = "acquirer",
                 priority = 5 // Medium priority
             ))
             
             // Enqueue a cash payment - will be processed based on priority
             paymentQueue.enqueue(ProcessingPaymentQueueItem(
-                amount = 50.0,
-                currency = "BRL",
-                recipientId = "store123",
-                description = "Cash payment",
+                amount = 50,
+                commission = 0,
+                method = SystemPaymentMethod.CASH,
                 processorType = "cash",
                 priority = 8 // Medium-high priority - will be processed after the first card payment
             ))

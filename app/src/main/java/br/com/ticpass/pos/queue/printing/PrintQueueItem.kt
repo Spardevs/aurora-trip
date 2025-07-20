@@ -10,7 +10,6 @@ import java.util.UUID
  */
 data class PrintQueueItem(
     override val id: String = UUID.randomUUID().toString(),
-    override val timestamp: Long = System.currentTimeMillis(),
     override val priority: Int = 1,
     val content: String,
     val copies: Int = 1,

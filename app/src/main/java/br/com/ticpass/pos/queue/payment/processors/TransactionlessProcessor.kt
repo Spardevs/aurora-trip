@@ -20,16 +20,14 @@ class TransactionlessProcessor : PaymentProcessorBase() {
         delay(500)
         
         // Always succeeds regardless of amount or payment method
-        val transactionId = "SIMULATED-${UUID.randomUUID().toString().substring(0, 8)}"
         _events.emit(
-            ProcessingPaymentEvent.Completed(
-                item.id,
-                item.amount,
-                transactionId
-            )
+            ProcessingPaymentEvent.TRANSACTION_DONE
         )
         
         // Always return success
-        return ProcessingResult.Success
+        return ProcessingResult.Success(
+            atk = "",
+            txId = "",
+        )
     }
 }

@@ -9,43 +9,12 @@ import java.util.UUID
 sealed class InputRequest {
     abstract val id: String
     abstract val timeoutMs: Long?
-    
+
     /**
-     * Request for PIN entry
+     * Request for customer receipt printing confirmation
      */
-    data class PinInput(
+    data class CONFIRM_CUSTOMER_RECEIPT_PRINTING(
         override val id: String = UUID.randomUUID().toString(),
-        val paymentId: String,
-        override val timeoutMs: Long? = 60_000L // 1 minute timeout
-    ) : InputRequest()
-    
-    /**
-     * Request for signature capture
-     */
-    data class SignatureInput(
-        override val id: String = UUID.randomUUID().toString(),
-        val paymentId: String,
-        override val timeoutMs: Long? = 120_000L // 2 minute timeout
-    ) : InputRequest()
-    
-    /**
-     * Request for confirmation (e.g. confirm amount)
-     */
-    data class ConfirmationInput(
-        override val id: String = UUID.randomUUID().toString(),
-        val paymentId: String,
-        val message: String,
-        override val timeoutMs: Long? = 30_000L // 30 second timeout
-    ) : InputRequest()
-    
-    /**
-     * Request for selection from options
-     */
-    data class SelectionInput(
-        override val id: String = UUID.randomUUID().toString(),
-        val paymentId: String,
-        val prompt: String,
-        val options: List<String>,
-        override val timeoutMs: Long? = 30_000L // 30 second timeout
+        override val timeoutMs: Long? = 60_000L, // 60 seconds default timeout
     ) : InputRequest()
 }

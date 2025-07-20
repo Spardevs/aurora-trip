@@ -71,18 +71,16 @@ class MultiPaymentQueueViewModel(
      * Process a payment with the current active queue
      */
     fun processPayment(
-        amount: Double,
-        currency: String = "BRL",
-        recipientId: String,
-        description: String
+        amount: Int,
+        commission: Int,
+        method: SystemPaymentMethod,
     ) {
         viewModelScope.launch {
             val paymentItem = ProcessingPaymentQueueItem(
                 id = UUID.randomUUID().toString(),
                 amount = amount,
-                currency = currency,
-                recipientId = recipientId,
-                description = description,
+                commission = commission,
+                method = method,
                 priority = 10 // High priority for payments
             )
             activeQueue.enqueue(paymentItem)

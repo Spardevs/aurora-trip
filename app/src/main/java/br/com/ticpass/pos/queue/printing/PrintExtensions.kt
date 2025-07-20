@@ -13,7 +13,6 @@ import org.json.JSONObject
 fun PrintQueueItem.toEntity(status: String = "pending"): PrintEntity {
     return PrintEntity(
         id = this.id,
-        timestamp = this.timestamp,
         priority = this.priority,
         content = this.content,
         copies = this.copies,
@@ -30,7 +29,6 @@ fun PrintQueueItem.toEntity(status: String = "pending"): PrintEntity {
 fun PrintEntity.toQueueItem(): PrintQueueItem {
     return PrintQueueItem(
         id = this.id,
-        timestamp = this.timestamp,
         priority = this.priority,
         content = this.content,
         copies = this.copies,

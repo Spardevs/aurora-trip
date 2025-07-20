@@ -5,11 +5,11 @@ import br.com.ticpass.pos.queue.BaseProcessingEvent
 /**
  * Print-specific events emitted during print processing
  */
-sealed class PrintingEvent(override val itemId: String) : BaseProcessingEvent {
+sealed class PrintingEvent : BaseProcessingEvent {
     /**
      * Emitted when print job starts
      */
-    data class Started(val printId: String) : PrintingEvent(printId)
+    data class Started(val printId: String) : PrintingEvent()
     
     /**
      * Emitted when printer is connecting
@@ -17,7 +17,7 @@ sealed class PrintingEvent(override val itemId: String) : BaseProcessingEvent {
     data class ConnectingToPrinter(
         val printId: String,
         val printerId: String?
-    ) : PrintingEvent(printId)
+    ) : PrintingEvent()
     
     /**
      * Emitted when printer is connected
@@ -26,7 +26,7 @@ sealed class PrintingEvent(override val itemId: String) : BaseProcessingEvent {
         val printId: String,
         val printerName: String,
         val printerModel: String
-    ) : PrintingEvent(printId)
+    ) : PrintingEvent()
     
     /**
      * Emitted when print job is sent to printer
@@ -35,7 +35,7 @@ sealed class PrintingEvent(override val itemId: String) : BaseProcessingEvent {
         val printId: String,
         val pages: Int,
         val copies: Int
-    ) : PrintingEvent(printId)
+    ) : PrintingEvent()
     
     /**
      * Emitted with print progress updates
@@ -45,12 +45,12 @@ sealed class PrintingEvent(override val itemId: String) : BaseProcessingEvent {
         val percentComplete: Int,
         val pagesCompleted: Int,
         val totalPages: Int
-    ) : PrintingEvent(printId)
+    ) : PrintingEvent()
     
     /**
      * Emitted when out of paper
      */
-    data class OutOfPaper(val printId: String) : PrintingEvent(printId)
+    data class OutOfPaper(val printId: String) : PrintingEvent()
     
     /**
      * Emitted when print job is completed successfully
@@ -59,7 +59,7 @@ sealed class PrintingEvent(override val itemId: String) : BaseProcessingEvent {
         val printId: String,
         val printJobId: String,
         val timeElapsed: Long
-    ) : PrintingEvent(printId)
+    ) : PrintingEvent()
     
     /**
      * Emitted when print job fails
@@ -67,5 +67,5 @@ sealed class PrintingEvent(override val itemId: String) : BaseProcessingEvent {
     data class Failed(
         val printId: String,
         val error: String
-    ) : PrintingEvent(printId)
+    ) : PrintingEvent()
 }

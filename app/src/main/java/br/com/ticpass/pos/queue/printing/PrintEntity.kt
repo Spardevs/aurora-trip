@@ -12,7 +12,6 @@ import androidx.room.TypeConverters
 data class PrintEntity(
     @PrimaryKey
     val id: String,
-    val timestamp: Long,
     val priority: Int,
     val content: String,
     val copies: Int,

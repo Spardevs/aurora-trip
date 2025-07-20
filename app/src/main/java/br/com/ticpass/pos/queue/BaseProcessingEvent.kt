@@ -5,5 +5,5 @@ package br.com.ticpass.pos.queue
  * Defines the core properties that any queue item must have
  */
 interface BaseProcessingEvent {
-    val itemId: String
+//    val itemId: String
 }

@@ -8,6 +8,6 @@ sealed class ProcessingState<T : QueueItem> {
     data class Idle<T : QueueItem>(val item: T) : ProcessingState<T>()
     data class Processing<T : QueueItem>(val item: T) : ProcessingState<T>()
     data class Completed<T : QueueItem>(val item: T) : ProcessingState<T>()
-    data class Failed<T : QueueItem>(val item: T, val error: String) : ProcessingState<T>()
+    data class Failed<T : QueueItem>(val item: T, val error: ProcessingErrorEvent) : ProcessingState<T>()
     data class Retrying<T : QueueItem>(val item: T) : ProcessingState<T>()
 }

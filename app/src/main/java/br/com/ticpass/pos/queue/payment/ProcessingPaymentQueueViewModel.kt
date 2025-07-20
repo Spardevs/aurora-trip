@@ -34,13 +34,16 @@ class ProcessingPaymentQueueViewModel(
     /**
      * Add a payment to the queue
      */
-    fun addPayment(amount: Double, currency: String, recipientId: String, description: String) {
+    fun addPayment(
+        amount: Int,
+        commission: Int,
+        method: SystemPaymentMethod,
+    ) {
         viewModelScope.launch {
             val payment = ProcessingPaymentQueueItem(
                 amount = amount,
-                currency = currency,
-                recipientId = recipientId,
-                description = description,
+                commission = commission,
+                method = method,
                 priority = 1
             )
             paymentQueue.enqueue(payment)
