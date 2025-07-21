@@ -16,6 +16,7 @@ import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.activity.MenuActivity
 import br.com.ticpass.pos.data.activity.QrScannerActivity
 import br.com.ticpass.pos.databinding.ActivityLoginBinding
+import com.auth0.android.jwt.JWT
 
 class LoginScreen : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
@@ -32,12 +33,16 @@ class LoginScreen : AppCompatActivity() {
                     val token = extractValue(it, "token=")
                     val refreshToken = extractValue(it, "tokenRefresh=")
                     val userId = extractValue(it, "id=")?.toIntOrNull()
+                    val userName = extractValue(it, "name=")
+                    val tokenExpiration = JWT(token.toString()).getClaim("exp").asDate()
                     if (token != null && refreshToken != null && userId != null) {
                         val sharedPref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
                         with(sharedPref.run { edit() }) {
                             putString("auth_token", token)
                             putString("refresh_token", refreshToken)
+                            putString("token_expiration", tokenExpiration.toString())
                             putInt("user_id", userId)
+                            putString("user_name", userName)
                             apply()
                         }
                         startActivity(Intent(this, MenuActivity::class.java))

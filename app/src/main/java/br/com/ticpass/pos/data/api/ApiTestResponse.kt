@@ -35,7 +35,11 @@ data class User(
     @SerializedName("createdAt") val createdAt: String,
     @SerializedName("updatedAt") val updatedAt: String,
     @SerializedName("deletedAt") val deletedAt: String?,
-    @SerializedName("operator") val operator: Any?
+    @SerializedName("operator") val operator: Any?,
+    @SerializedName("blockedAt")       val blockedAt: String?,
+    @SerializedName("membershipExpAt") val membershipExpAt: String?,
+    @SerializedName("permission")      val permission: Permission
+
 )
 
 data class GetEventsResponse(
@@ -151,4 +155,29 @@ data class PatchPosResponse(
 data class PatchPingDeviceResponse(
     @SerializedName("status") val status: Int,
     @SerializedName("message") val message: String,
+)
+
+data class RefreshTokenRequest(
+    @SerializedName("refresh") val refresh: String
+)
+
+data class Permission(
+    @SerializedName("id")          val id: Int,
+    @SerializedName("name")        val name: String,
+    @SerializedName("number")      val number: Int,
+    @SerializedName("createdAt")   val createdAt: String,
+    @SerializedName("updatedAt")   val updatedAt: String,
+    @SerializedName("deletedAt")   val deletedAt: String?
+)
+
+data class RefreshTokenResult(
+    @SerializedName("token")        val token: String,
+    @SerializedName("tokenRefresh") val tokenRefresh: String,
+    @SerializedName("user")         val user: User
+)
+
+data class RefreshTokenResponse(
+    @SerializedName("status")  val status: Int,
+    @SerializedName("message") val message: String,
+    @SerializedName("result")  val result: RefreshTokenResult
 )

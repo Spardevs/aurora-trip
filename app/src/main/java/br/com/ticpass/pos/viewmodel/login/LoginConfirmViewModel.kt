@@ -24,6 +24,9 @@ import br.com.ticpass.pos.data.room.entity.ProductEntity
 import br.com.ticpass.pos.data.room.repository.CategoryRepository
 import br.com.ticpass.pos.data.room.repository.ProductRepository
 import androidx.core.content.edit
+import br.com.ticpass.pos.data.room.dao.CashierDao
+import br.com.ticpass.pos.data.room.entity.CashierEntity
+import br.com.ticpass.pos.data.room.repository.CashierRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -34,6 +37,7 @@ class LoginConfirmViewModel @Inject constructor(
     private val eventDao: EventDao,
     private val productDao: ProductDao,
     private val categoryDao: CategoryDao,
+    private val cashierDao: CashierDao
 ) : ViewModel() {
     @Inject lateinit var apiRepository: APIRepository
 
@@ -101,6 +105,7 @@ class LoginConfirmViewModel @Inject constructor(
         insertPosInfo(sessionPref)
         insertMenuInfo(sessionPref)
         insertProductsInfo(sessionPref, userPref)
+        insertCashierInfo(userPref)
         cleanSessionPrefs(sessionPref)
     }
 
@@ -122,6 +127,31 @@ class LoginConfirmViewModel @Inject constructor(
                 posRepo.upsertPos(posEntity)
             } catch (e: Exception) {
                 Log.e("LoginConfirmVM", "Erro ao atualizar POS", e)
+            }
+        }
+    }
+
+    fun insertCashierInfo(userPref: SharedPreferences) {
+        val cashierRepo = CashierRepository(cashierDao)
+
+        val userId = when (val value = userPref.all["user_id"]) {
+            is String -> value
+            is Int -> value.toString()
+            else -> ""
+        }
+
+        val userName = userPref.getString("user_name", "") ?: ""
+
+        val cashierEntity = CashierEntity(
+            id = userId,
+            name = userName
+        )
+
+        viewModelScope.launch {
+            try {
+                cashierRepo.insertUser(cashierEntity)
+            } catch (e: Exception) {
+                Log.e("LoginConfirmVM", "Erro ao atualizar Cashier", e)
             }
         }
     }
@@ -203,6 +233,7 @@ class LoginConfirmViewModel @Inject constructor(
 
     private suspend fun fetchProducts(menuId: String, jwt: String): GetEventProductsResponse {
         val resp =  apiRepository.getEventProducts(event = menuId, jwt = jwt)
+        Log.d("LoginConfirmVM", "fetchProducts: $resp")
         return resp
     }
 

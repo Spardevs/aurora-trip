@@ -15,6 +15,7 @@ hiddenapibypass = "6.1"
 hilt = "2.56.2"
 hiltWork = "1.2.0"
 junit = "4.13.2"
+jwtdecode = "2.0.2"
 kotlin = "2.1.20"
 ksp = "2.1.20-1.0.32" # New versions depends upon KSP2 which conflicts with epoxy
 ktlint = "12.1.2"
@@ -73,13 +74,14 @@ stoneSdkVersion = "4.11.6"
 playServicesGamesV2 = "21.0.0"
 androidSupportDesign = "28.0.0"
 
-
 [libraries]
+
 destinations-core = { module = "io.github.raamcosta.compose-destinations:animations-core", version.ref = "composeDestinations" }
 emv-qrcode = { module = "com.github.mvallim:emv-qrcode", version.ref = "emv" }
 destinations-ksp = { module = "io.github.raamcosta.compose-destinations:ksp", version.ref = "composeDestinations" }
 plugpagservice-wrapper = { module = "br.com.uol.pagseguro.plugpagservice.wrapper:wrapper", version.ref = "plugpag" }
 
+jwtdecode = { module = "com.auth0.android:jwtdecode", version.ref = "jwtdecode" }
 stone-sdk-envconfig = { module = "br.com.stone.sdk.android:envconfig", version.ref = "stoneSdkVersion" }
 stone-sdk = { module = "br.com.stone:stone-sdk", version.ref = "stoneSdkVersion" }
 stone-sdk-posandroid = { module = "br.com.stone:stone-sdk-posandroid", version.ref = "stoneSdkVersion" }
@@ -164,6 +166,7 @@ play-services-measurement-api = { group = "com.google.android.gms", name = "play
 reactivex-java = { module = "io.reactivex.rxjava2:rxjava", version.ref = "reactivexJava" }
 reactivex-android = { module = "io.reactivex.rxjava2:rxandroid", version.ref = "reactivexAndroid" }
 play-services-games-v2 = { group = "com.google.android.gms", name = "play-services-games-v2", version.ref = "playServicesGamesV2" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

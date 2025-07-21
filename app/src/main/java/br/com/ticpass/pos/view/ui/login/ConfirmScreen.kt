@@ -63,12 +63,16 @@ class ConfirmScreen : AppCompatActivity() {
 
     fun loginFinish(view: View) {
         val name = findViewById<EditText>(R.id.nameText).text.toString()
-        userPref.edit { putString("operator_name", name)  }
-        userPref.edit { putBoolean("user_logged", true)  }
-
+        userPref.edit {
+            putString("operator_name", name)
+            putBoolean("user_logged", true)
+        }
         lifecycleScope.launch {
             viewModel.insertInfo(sessionPref, userPref)
-            startActivity(Intent(this@ConfirmScreen, ProductsActivity::class.java))
+            val intent = Intent(this@ConfirmScreen, ProductsActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            startActivity(intent)
             finish()
         }
     }

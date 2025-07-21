@@ -15,6 +15,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Headers
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -343,6 +344,15 @@ interface APIService {
         @Path("menuId") menuId: String,
         @Header("Authorization") authorization: String
     ): Response<ResponseBody>
+
+    @POST("users/refreshToken")
+    @Headers(
+        "Accept: */*",
+        "Content-Type: application/json"
+    )
+    suspend fun refreshToken(
+        @Body body: RefreshTokenRequest
+    ): RefreshTokenResponse
 
     companion object {
         private var BASE_URL = "$API_HOST/"
