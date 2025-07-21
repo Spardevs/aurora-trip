@@ -45,6 +45,12 @@ class PaymentProcessingActivity : AppCompatActivity() {
     private lateinit var queueRecyclerView: RecyclerView
     private lateinit var queueAdapter: PaymentQueueAdapter
     
+    // Progress Dialog
+    private var progressDialog: AlertDialog? = null
+    private lateinit var dialogProgressTextView: TextView
+    private lateinit var dialogProgressBar: android.widget.ProgressBar
+    private lateinit var dialogEventTextView: TextView
+    
     // Tracking current processing
     private var totalPayments = 0
     private var currentProcessingIndex = 0
@@ -75,6 +81,29 @@ class PaymentProcessingActivity : AppCompatActivity() {
             viewModel.cancelPayment(paymentId)
         }
         queueRecyclerView.adapter = queueAdapter
+        
+        // Create progress dialog
+        createProgressDialog()
+    }
+    
+    private fun createProgressDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_payment_progress, null)
+        
+        // Get dialog views
+        dialogProgressTextView = dialogView.findViewById(R.id.text_dialog_progress)
+        dialogProgressBar = dialogView.findViewById(R.id.progress_bar_dialog)
+        dialogEventTextView = dialogView.findViewById(R.id.text_dialog_event)
+        
+        // Setup cancel button
+        dialogView.findViewById<View>(R.id.btn_dialog_cancel).setOnClickListener {
+            viewModel.cancelAllPayments()
+        }
+        
+        // Create dialog
+        progressDialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
     }
     
     private fun setupButtons() {
@@ -94,6 +123,8 @@ class PaymentProcessingActivity : AppCompatActivity() {
         // Start processing button
         findViewById<View>(R.id.btn_start_processing).setOnClickListener {
             viewModel.startProcessing()
+            // Explicitly show the dialog when starting processing
+            showProgressDialog()
         }
         
         // Cancel all payments button
@@ -114,6 +145,13 @@ class PaymentProcessingActivity : AppCompatActivity() {
         lifecycleScope.launch {
             viewModel.processingState.collectLatest { state ->
                 Log.d("PaymentProcessingActivity", "Processing state: $state")
+                
+                // Show dialog for active processing states
+                if (state is ProcessingState.ItemProcessing || 
+                    state is ProcessingState.ItemRetrying) {
+                    showProgressDialog()
+                }
+                
                 when (state) {
                     is ProcessingState.ItemProcessing -> {
                         val currentIndex = viewModel.queueState.value.indexOfFirst { it.id == state.item.id }
@@ -207,6 +245,30 @@ class PaymentProcessingActivity : AppCompatActivity() {
         // Reset text color to default when showing normal progress
         processingProgressTextView.setTextColor(getColor(android.R.color.black))
         progressBar.progress = current
+        
+        // Update dialog progress
+        dialogProgressTextView.text = getString(R.string.payment_progress, current, total)
+        dialogProgressBar.progress = current
+        dialogProgressBar.max = total
+        
+        // Show dialog if processing is happening, hide otherwise
+        if (total > 0) { // Changed condition to show dialog whenever there are items in the queue
+            showProgressDialog()
+        } else {
+            hideProgressDialog()
+        }
+    }
+    
+    private fun showProgressDialog() {
+        if (progressDialog?.isShowing != true) {
+            progressDialog?.show()
+        }
+    }
+    
+    private fun hideProgressDialog() {
+        if (progressDialog?.isShowing == true) {
+            progressDialog?.dismiss()
+        }
     }
     
     private fun handlePaymentEvent(event: ProcessingPaymentEvent) {
@@ -245,7 +307,9 @@ class PaymentProcessingActivity : AppCompatActivity() {
             ProcessingPaymentEvent.CANCELLED -> getString(R.string.event_cancelled)
         }
         
+        // Update both the main UI and dialog with the event message
         currentEventTextView.text = eventMessage
+        dialogEventTextView.text = eventMessage
         addEventLogMessage(eventMessage)
     }
     
@@ -303,6 +367,12 @@ class PaymentProcessingActivity : AppCompatActivity() {
 
         // Update current event text as well
         currentEventTextView.text = errorMessage
+        
+        // Update dialog with error message
+        dialogEventTextView.text = errorMessage
+        
+        // Make sure dialog is showing for errors
+        showProgressDialog()
         currentEventTextView.setTextColor(getColor(android.R.color.holo_red_dark))
     }
     
