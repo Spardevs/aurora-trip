@@ -12,6 +12,59 @@ The queue management system is built with these design goals:
 4. **Observability** - Provide reactive state updates with Kotlin Flows
 5. **User Interaction** - Support interactive workflows that require user input
 
+## Execution Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant VM as ViewModel
+    participant HQM as HybridQueueManager
+    participant QP as QueueProcessor
+    participant QS as QueueStorage
+    
+    VM->>HQM: enqueue(item)
+    HQM->>QS: save(item) [if persistent]
+    VM->>HQM: startProcessing()
+    
+    loop For each item in queue
+        HQM->>QP: process(item)
+        
+        alt Processor needs user input
+            QP-->>HQM: InputRequest
+            HQM-->>VM: queueInputRequests.emit(request)
+            VM-->>HQM: respondToInput(response)
+            HQM-->>QP: inputResponses.emit(response)
+        end
+        
+        QP-->>HQM: Events during processing
+        HQM-->>VM: processorEvents.collect(event)
+        
+        QP->>HQM: ProcessingResult
+        
+        alt Success
+            HQM->>QS: updateStatus(item, "completed")
+            HQM-->>VM: processingState.emit(ItemCompleted)
+        else Error
+            HQM-->>VM: queueInputRequests.emit(ErrorHandlingRequest)
+            VM-->>HQM: respondToInput(ErrorHandlingAction)
+            
+            alt RETRY_IMMEDIATELY
+                HQM->>QP: process(item) [retry]
+            else RETRY_LATER
+                HQM->>HQM: Move item to end of queue
+            else ABORT_CURRENT
+                HQM->>QP: abort(item)
+                HQM->>QS: updateStatus(item, "aborted")
+            else ABORT_ALL
+                HQM->>QP: abort(null)
+                HQM->>HQM: removeAll()
+                HQM-->>VM: processingState.emit(QueueCanceled)
+            end
+        end
+    end
+    
+    HQM-->>VM: processingState.emit(QueueCompleted)
+```
+
 ## Architecture Diagram
 
 ```mermaid
