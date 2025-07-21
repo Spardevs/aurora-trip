@@ -7,8 +7,15 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.Spinner
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -116,7 +123,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         }
         
         findViewById<View>(R.id.btn_add_debit).setOnClickListener {
-            enqueuePayment(SystemPaymentMethod.DEBIT) 
+            enqueuePayment(SystemPaymentMethod.DEBIT)
         }
         
         findViewById<View>(R.id.btn_add_voucher).setOnClickListener {
@@ -126,8 +133,9 @@ class PaymentProcessingActivity : AppCompatActivity() {
         // Start processing button
         findViewById<View>(R.id.btn_start_processing).setOnClickListener {
             viewModel.startProcessing()
-            // Explicitly show the dialog when starting processing
-            showProgressDialog()
+            // The confirmation dialog will be shown automatically via UI state observation
+            // and the progress dialog will be shown when processing actually starts
+            Log.d("PaymentProcessingActivity", "Waiting for confirmation dialog")
         }
         
         // Cancel all payments button
@@ -218,17 +226,29 @@ class PaymentProcessingActivity : AppCompatActivity() {
                         showCustomerReceiptDialog(uiState.requestId)
                     }
                     is InteractivePaymentViewModel.UiState.Error -> {
-                        // Display error message in the progress area using the ProcessingErrorEvent
                         displayErrorMessage(uiState.event)
                     }
                     is InteractivePaymentViewModel.UiState.ConfirmNextProcessor -> {
-                        showConfirmNextProcessorDialog(uiState.requestId, uiState.currentItemIndex, uiState.totalItems)
+                        showConfirmNextProcessorDialog(
+                            requestId = uiState.requestId,
+                            currentIndex = uiState.currentItemIndex,
+                            totalItems = uiState.totalItems
+                        )
+                    }
+                    is InteractivePaymentViewModel.UiState.ConfirmNextPaymentProcessor -> {
+                        showConfirmNextPaymentProcessorDialog(
+                            requestId = uiState.requestId,
+                            currentIndex = uiState.currentItemIndex,
+                            totalItems = uiState.totalItems
+                            // The payment details are accessed directly from the state in the dialog method
+                        )
                     }
                     is InteractivePaymentViewModel.UiState.ErrorRetryOrSkip -> {
                         showErrorRetryOptionsDialog(uiState.requestId, uiState.error)
                     }
                     else -> {
                         // Other UI states don't need dialogs
+                        Log.d("PaymentProcessingActivity", "No dialog needed for state: $uiState")
                     }
                 }
             }
@@ -433,7 +453,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
     }
     
     /**
-     * Show a dialog to confirm proceeding to the next processor
+     * Show a dialog to confirm proceeding to the next processor (generic version)
      */
     private fun showConfirmNextProcessorDialog(requestId: String, currentIndex: Int, totalItems: Int) {
         AlertDialog.Builder(this)
@@ -441,6 +461,79 @@ class PaymentProcessingActivity : AppCompatActivity() {
             .setMessage(getString(R.string.confirm_next_processor_message, currentIndex + 1, totalItems))
             .setPositiveButton(R.string.proceed) { _, _ ->
                 viewModel.confirmNextProcessor(requestId)
+            }
+            .setNegativeButton(R.string.skip) { _, _ ->
+                viewModel.skipProcessor(requestId)
+            }
+            .setCancelable(false)
+            .show()
+    }
+    
+    /**
+     * Show a dialog to confirm proceeding to the next payment processor
+     * Allows editing payment method and amount before proceeding
+     */
+    private fun showConfirmNextPaymentProcessorDialog(requestId: String, currentIndex: Int, totalItems: Int) {
+        // Get the current UI state to access payment details
+        val state = viewModel.uiState.value as? InteractivePaymentViewModel.UiState.ConfirmNextPaymentProcessor ?: return
+        
+        // Create a custom dialog view with editable fields
+        val dialogView = layoutInflater.inflate(R.layout.dialog_payment_confirmation, null)
+        
+        // Get references to the editable fields
+        val amountEditText = dialogView.findViewById<EditText>(R.id.edit_payment_amount)
+        val methodSpinner = dialogView.findViewById<Spinner>(R.id.spinner_payment_method)
+        val processorTypeSpinner = dialogView.findViewById<Spinner>(R.id.spinner_processor_type)
+        
+        // Set initial values
+        amountEditText.setText((state.currentAmount / 100.0).toString())
+        
+        // Setup payment method spinner
+        val paymentMethods = SystemPaymentMethod.values()
+        val methodAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, paymentMethods)
+        methodAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        methodSpinner.adapter = methodAdapter
+        methodSpinner.setSelection(paymentMethods.indexOf(state.currentMethod))
+        
+        // Setup processor type spinner
+        val processorTypes = arrayOf("acquirer", "cash", "transactionless")
+        val processorAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, processorTypes)
+        processorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        processorTypeSpinner.adapter = processorAdapter
+        processorTypeSpinner.setSelection(processorTypes.indexOf(state.currentProcessorType))
+        
+        // Create and show the dialog
+        AlertDialog.Builder(this)
+            .setTitle(R.string.confirm_next_processor_title)
+            .setView(dialogView)
+            .setPositiveButton(R.string.proceed) { _, _ ->
+                try {
+                    // Get the modified values
+                    val modifiedAmount = (amountEditText.text.toString().toDouble() * 100).toInt()
+                    val modifiedMethod = paymentMethods[methodSpinner.selectedItemPosition]
+                    val modifiedProcessorType = processorTypes[processorTypeSpinner.selectedItemPosition]
+                    
+                    // Check if any values were modified
+                    if (modifiedAmount != state.currentAmount || 
+                        modifiedMethod != state.currentMethod || 
+                        modifiedProcessorType != state.currentProcessorType) {
+                        // Use the modified payment details
+                        viewModel.confirmNextProcessorWithModifiedPayment(
+                            requestId = requestId,
+                            modifiedAmount = modifiedAmount,
+                            modifiedMethod = modifiedMethod,
+                            modifiedProcessorType = modifiedProcessorType
+                        )
+                    } else {
+                        // Use the original payment details
+                        viewModel.confirmNextProcessor(requestId)
+                    }
+                } catch (e: Exception) {
+                    // Handle parsing errors
+                    Toast.makeText(this, "Invalid amount format", Toast.LENGTH_SHORT).show()
+                    // Use the original payment details
+                    viewModel.confirmNextProcessor(requestId)
+                }
             }
             .setNegativeButton(R.string.skip) { _, _ ->
                 viewModel.skipProcessor(requestId)

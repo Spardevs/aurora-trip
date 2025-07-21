@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.queue.payment
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -54,8 +55,23 @@ class InteractivePaymentViewModel @Inject constructor(
         // Processor-level input requests
         data class confirmCustomerReceiptPrinting(val requestId: String, val doPrint: Boolean) : UiState()
         
-        // Queue-level input requests
-        data class ConfirmNextProcessor(val requestId: String, val currentItemIndex: Int, val totalItems: Int) : UiState()
+        // Generic processor confirmation (no payment details)
+        data class ConfirmNextProcessor(
+            val requestId: String, 
+            val currentItemIndex: Int, 
+            val totalItems: Int
+        ) : UiState()
+        
+        // Payment-specific processor confirmation with payment details
+        data class ConfirmNextPaymentProcessor(
+            val requestId: String, 
+            val currentItemIndex: Int, 
+            val totalItems: Int,
+            val currentAmount: Int,
+            val currentMethod: SystemPaymentMethod,
+            val currentProcessorType: String
+        ) : UiState()
+        
         data class ErrorRetryOrSkip(val requestId: String, val error: ProcessingErrorEvent) : UiState()
     }
     
@@ -100,6 +116,16 @@ class InteractivePaymentViewModel @Inject constructor(
                             requestId = request.id,
                             currentItemIndex = request.currentItemIndex,
                             totalItems = request.totalItems
+                        )
+                    }
+                    is QueueInputRequest.CONFIRM_NEXT_PAYMENT_PROCESSOR -> {
+                        _uiState.value = UiState.ConfirmNextPaymentProcessor(
+                            requestId = request.id,
+                            currentItemIndex = request.currentItemIndex,
+                            totalItems = request.totalItems,
+                            currentAmount = request.currentAmount,
+                            currentMethod = request.currentMethod,
+                            currentProcessorType = request.currentProcessorType
                         )
                     }
                     is QueueInputRequest.ERROR_RETRY_OR_SKIP -> {
@@ -171,9 +197,30 @@ class InteractivePaymentViewModel @Inject constructor(
      */
     fun confirmNextProcessor(requestId: String) {
         viewModelScope.launch {
-            paymentQueue.provideQueueInput(
-                QueueInputResponse.proceed(requestId)
+            val response = QueueInputResponse.proceed(requestId)
+            paymentQueue.provideQueueInput(response)
+        }
+        // Reset UI state
+        _uiState.value = UiState.Processing
+    }
+    
+    /**
+     * Confirm proceeding to the next processor with modified payment details
+     */
+    fun confirmNextProcessorWithModifiedPayment(
+        requestId: String,
+        modifiedAmount: Int,
+        modifiedMethod: SystemPaymentMethod,
+        modifiedProcessorType: String
+    ) {
+        viewModelScope.launch {
+            val response = QueueInputResponse.proceedWithModifiedPayment(
+                requestId = requestId,
+                modifiedAmount = modifiedAmount,
+                modifiedMethod = modifiedMethod,
+                modifiedProcessorType = modifiedProcessorType
             )
+            paymentQueue.provideQueueInput(response)
         }
         // Reset UI state
         _uiState.value = UiState.Processing
@@ -184,9 +231,8 @@ class InteractivePaymentViewModel @Inject constructor(
      */
     fun skipProcessor(requestId: String) {
         viewModelScope.launch {
-            paymentQueue.provideQueueInput(
-                QueueInputResponse.skip(requestId)
-            )
+            val response = QueueInputResponse.skip(requestId)
+            paymentQueue.provideQueueInput(response)
         }
         // UI will be updated via the queue input request flow
     }

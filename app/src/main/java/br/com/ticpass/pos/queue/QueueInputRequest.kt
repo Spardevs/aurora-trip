@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.queue
 
+import br.com.ticpass.pos.queue.payment.SystemPaymentMethod
 import java.util.UUID
 
 /**
@@ -13,6 +14,7 @@ sealed class QueueInputRequest {
 
     /**
      * Request for confirmation before proceeding to the next processor
+     * Generic version without payment-specific details
      */
     data class CONFIRM_NEXT_PROCESSOR(
         override val id: String = UUID.randomUUID().toString(),
@@ -21,6 +23,22 @@ sealed class QueueInputRequest {
         val totalItems: Int,
         val currentItemId: String,
         val nextItemId: String?
+    ) : QueueInputRequest()
+    
+    /**
+     * Request for confirmation before proceeding to the next payment processor
+     * Payment-specific version with payment details
+     */
+    data class CONFIRM_NEXT_PAYMENT_PROCESSOR(
+        override val id: String = UUID.randomUUID().toString(),
+        override val timeoutMs: Long? = 60_000L, // 60 seconds default timeout
+        val currentItemIndex: Int,
+        val totalItems: Int,
+        val currentItemId: String,
+        val nextItemId: String?,
+        val currentAmount: Int,
+        val currentMethod: SystemPaymentMethod,
+        val currentProcessorType: String
     ) : QueueInputRequest()
 
     /**

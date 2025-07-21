@@ -21,7 +21,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
     private val storage: QueueStorage<T>,
     internal val processor: QueueProcessor<T, E>,
     private val persistenceStrategy: PersistenceStrategy = PersistenceStrategy.IMMEDIATE,
-    private val queueConfirmationMode: QueueConfirmationMode = QueueConfirmationMode.AUTO,
+    val queueConfirmationMode: QueueConfirmationMode = QueueConfirmationMode.AUTO,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 ) {
     // In-memory queue for fast access
@@ -139,23 +139,43 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
     
     // Start processing queue
     fun startProcessing() {
-        if (isProcessing) return
+        if (isProcessing)             return
+
         
         scope.launch {
             isProcessing = true
             
             while (inMemoryQueue.isNotEmpty()) {
-                val nextItem = inMemoryQueue.first()
+                var nextItem = inMemoryQueue.first()
                 
                 // Check if we need to confirm before processing the next item
-                if (inMemoryQueue.size > 1 && queueConfirmationMode == QueueConfirmationMode.CONFIRMATION) {
+                if (queueConfirmationMode == QueueConfirmationMode.CONFIRMATION) {
+                    Log.d("HybridQueueManager", "Confirmation mode enabled, showing confirmation dialog")
                     val nextItemIndex = inMemoryQueue.indexOf(nextItem)
-                    val confirmRequest = QueueInputRequest.CONFIRM_NEXT_PROCESSOR(
-                        currentItemIndex = nextItemIndex,
-                        totalItems = inMemoryQueue.size,
-                        currentItemId = nextItem.id,
-                        nextItemId = if (nextItemIndex < inMemoryQueue.size - 1) inMemoryQueue[nextItemIndex + 1].id else null
-                    )
+                    
+                    // Cast to ProcessingPaymentQueueItem to access payment-specific properties
+                    val paymentItem = nextItem as? br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
+                    
+                    val confirmRequest = if (paymentItem != null) {
+                        // Use payment-specific confirmation request with payment details
+                        QueueInputRequest.CONFIRM_NEXT_PAYMENT_PROCESSOR(
+                            currentItemIndex = nextItemIndex,
+                            totalItems = inMemoryQueue.size,
+                            currentItemId = nextItem.id,
+                            nextItemId = if (nextItemIndex < inMemoryQueue.size - 1) inMemoryQueue[nextItemIndex + 1].id else null,
+                            currentAmount = paymentItem.amount,
+                            currentMethod = paymentItem.method,
+                            currentProcessorType = paymentItem.processorType
+                        )
+                    } else {
+                        // Generic confirmation request for non-payment items
+                        QueueInputRequest.CONFIRM_NEXT_PROCESSOR(
+                            currentItemIndex = nextItemIndex,
+                            totalItems = inMemoryQueue.size,
+                            currentItemId = nextItem.id,
+                            nextItemId = if (nextItemIndex < inMemoryQueue.size - 1) inMemoryQueue[nextItemIndex + 1].id else null
+                        )
+                    }
                     
                     // Emit the confirmation request
                     _queueInputRequests.emit(confirmRequest)
@@ -166,12 +186,35 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                         pendingQueueInputContinuations[confirmRequest.id] = continuation
                     }
                     
+                    
                     // If the user chose to skip, remove the item and continue
                     if (response.isCanceled || response.value == false) {
                         // Skip this item
                         inMemoryQueue.removeAt(0)
                         _queueState.value = inMemoryQueue.toList()
                         continue
+                    }
+                    
+                    // Check if the payment details were modified
+                    if (response.modifiedAmount != null || response.modifiedMethod != null || response.modifiedProcessorType != null) {
+                        // Cast to ProcessingPaymentQueueItem to modify payment-specific properties
+                        val paymentItem = nextItem as? br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
+                        
+                        if (paymentItem != null) {
+                            // Create a new item with the modified properties
+                            val modifiedItem = paymentItem.copy(
+                                amount = response.modifiedAmount ?: paymentItem.amount,
+                                method = response.modifiedMethod ?: paymentItem.method,
+                                processorType = response.modifiedProcessorType ?: paymentItem.processorType
+                            )
+                            
+                            // Replace the item in the queue
+                            inMemoryQueue[0] = modifiedItem as T
+                            _queueState.value = inMemoryQueue.toList()
+                            
+                            // Update the nextItem reference to the modified item
+                            nextItem = modifiedItem as T
+                        }
                     }
                 }
                 
@@ -417,6 +460,10 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
      */
     suspend fun provideQueueInput(response: QueueInputResponse) {
         val continuation = pendingQueueInputContinuations.remove(response.requestId)
-        continuation?.resume(response) ?: Log.w("HybridQueueManager", "No pending input request found for ID: ${response.requestId}")
+        if (continuation != null) {
+            continuation.resume(response)
+        } else {
+            Log.w("HybridQueueManager", "No pending input request found for ID: ${response.requestId}")
+        }
     }
 }
