@@ -201,6 +201,33 @@ sealed class ProcessingResult {
 }
 ```
 
+#### Understanding Retry Mechanisms
+
+**ProcessingResult.Retry vs ErrorHandlingAction**
+
+The queue system has two distinct retry mechanisms that serve different purposes:
+
+1. **ProcessingResult.Retry**:
+   - Returned by the processor itself during processing
+   - Indicates an automatic retry should be attempted without user intervention
+   - Used for transient issues that the processor believes can resolve automatically
+   - Examples: temporary network issues, hardware resets, or situations where the processor wants to try again with different parameters
+   - This is a processor-initiated decision
+
+2. **ErrorHandlingAction (RETRY_IMMEDIATELY, RETRY_LATER)**:
+   - User-initiated actions in response to an error that the processor couldn't handle
+   - Comes into play after a processor has already failed (returned `ProcessingResult.Error`)
+   - Requires user interaction through the UI to decide how to proceed
+   - Provides more options: retry now, retry later, abort current processor, or abort all processors
+   - This is a user-initiated decision
+
+In summary:
+- `ProcessingResult.Retry`: "I (the processor) need to try again automatically"
+- `ErrorHandlingAction.RETRY_IMMEDIATELY`: "The user wants to retry the failed processor right now"
+- `ErrorHandlingAction.RETRY_LATER`: "The user wants to move this item to the end of the queue and try again later"
+
+This separation allows for both automatic retries by the processor and user-directed retries after failures, providing flexibility in handling different error scenarios.
+
 ### BaseProcessingEvent
 Base interface for processor-specific events.
 
@@ -290,6 +317,266 @@ paymentQueue.processor.inputRequests.collect { request ->
         }
         // Other input request types...
     }
+}
+```
+
+## Notification Channels (Flows)
+
+The queue system uses Kotlin Flows as notification channels for reactive communication between components. Here are the main flows available:
+
+### 1. Queue State Flow (`queueState`)
+
+**Purpose**: Emits the current state of the queue (list of items).
+
+**Type**: `StateFlow<List<QueueItem>>`
+
+**Example Values**:
+```kotlin
+[
+  ProcessingPaymentQueueItem(id="payment1", status="pending", amount=100.0),
+  ProcessingPaymentQueueItem(id="payment2", status="pending", amount=50.0)
+]
+```
+
+**How to React**:
+```kotlin
+paymentQueue.queueState.collect { items ->
+  // Update UI with queue items
+  recyclerAdapter.submitList(items)
+  
+  // Show/hide empty state
+  emptyStateView.isVisible = items.isEmpty()
+  
+  // Update queue count
+  queueCountTextView.text = "${items.size} items in queue"
+}
+```
+
+### 2. Processing State Flow (`processingState`)
+
+**Purpose**: Emits the current processing state of the queue.
+
+**Type**: `StateFlow<ProcessingState<QueueItem>>`
+
+**Example Values**:
+```kotlin
+ProcessingState.QueueIdle(item) // Queue is idle with next item ready
+ProcessingState.ItemProcessing(item) // Item is being processed
+ProcessingState.ItemDone(item) // Item was successfully processed
+ProcessingState.ItemFailed(item, error) // Processing failed with error
+ProcessingState.ItemRetrying(item) // Item is being retried
+ProcessingState.ItemSkipped(item) // Item was skipped but remains in queue
+ProcessingState.QueueCanceled // All processing was canceled
+ProcessingState.QueueDone // All items in queue have been processed
+```
+
+**How to React**:
+```kotlin
+paymentQueue.processingState.collect { state ->
+  when (state) {
+    is ProcessingState.Idle -> {
+      statusTextView.text = "Ready to process"
+      progressBar.isVisible = false
+    }
+    is ProcessingState.Processing -> {
+      val item = state.item
+      statusTextView.text = "Processing payment ${item.id}"
+      progressBar.isVisible = true
+    }
+    is ProcessingState.Completed -> {
+      val item = state.item
+      statusTextView.text = "Completed payment ${item.id}"
+      progressBar.isVisible = false
+      showSuccessAnimation()
+    }
+    is ProcessingState.Failed -> {
+      val item = state.item
+      val error = state.error
+      statusTextView.text = "Failed: ${error.message}"
+      progressBar.isVisible = false
+      showErrorDialog(error)
+    }
+    is ProcessingState.Retrying -> {
+      val item = state.item
+      statusTextView.text = "Retrying payment ${item.id}"
+      progressBar.isVisible = true
+    }
+    is ProcessingState.Skipped -> {
+      val item = state.item
+      statusTextView.text = "Skipped payment ${item.id}"
+      progressBar.isVisible = false
+    }
+    is ProcessingState.Canceled -> {
+      statusTextView.text = "Processing canceled"
+      progressBar.isVisible = false
+      showCanceledMessage()
+    }
+  }
+}
+```
+
+### 3. Processor Events Flow (`processorEvents`)
+
+**Purpose**: Emits processor-specific events during processing.
+
+**Type**: `SharedFlow<ProcessorEvent>` (e.g., `ProcessingPaymentEvent`)
+
+**Example Values**:
+```kotlin
+ProcessingPaymentEvent.CardDetected(cardType="MASTERCARD")
+ProcessingPaymentEvent.AmountConfirmed(amount=100.0)
+ProcessingPaymentEvent.ProcessingStarted(paymentId="payment1")
+ProcessingPaymentEvent.TransactionApproved(authCode="123456")
+ProcessingPaymentEvent.PrintingReceipt()
+```
+
+**How to React**:
+```kotlin
+paymentQueue.processorEvents.collect { event ->
+  when (event) {
+    is ProcessingPaymentEvent.CardDetected -> {
+      cardTypeTextView.text = "Card: ${event.cardType}"
+      showCardAnimation(event.cardType)
+    }
+    is ProcessingPaymentEvent.AmountConfirmed -> {
+      amountTextView.text = "Amount: $${event.amount}"
+    }
+    is ProcessingPaymentEvent.TransactionApproved -> {
+      authCodeTextView.text = "Auth: ${event.authCode}"
+      showApprovedAnimation()
+    }
+    is ProcessingPaymentEvent.PrintingReceipt -> {
+      statusTextView.text = "Printing receipt..."
+      showPrintingAnimation()
+    }
+    // Handle other event types...
+  }
+}
+```
+
+### 4. Queue Input Requests Flow (`queueInputRequests`)
+
+**Purpose**: Emits requests for user input at the queue level (e.g., confirmation, error handling).
+
+**Type**: `SharedFlow<QueueInputRequest>`
+
+**Example Values**:
+```kotlin
+QueueInputRequest.Confirmation(
+  id="req1",
+  title="Confirm Next Processor",
+  message="Ready to process payment. Continue?"
+)
+
+QueueInputRequest.ErrorRetryOrSkip(
+  id="req2",
+  title="Payment Failed",
+  message="Card declined. What would you like to do?",
+  error=ProcessingPaymentErrorEvent.CARD_DECLINED
+)
+```
+
+**How to React**:
+```kotlin
+paymentQueue.queueInputRequests.collect { request ->
+  when (request) {
+    is QueueInputRequest.Confirmation -> {
+      showConfirmationDialog(
+        title = request.title,
+        message = request.message,
+        onConfirm = {
+          viewModel.confirmNextProcessor(request.id)
+        },
+        onCancel = {
+          viewModel.cancelNextProcessor(request.id)
+        }
+      )
+    }
+    is QueueInputRequest.ErrorRetryOrSkip -> {
+      showErrorOptionsDialog(
+        title = request.title,
+        message = request.message,
+        onRetryImmediately = {
+          viewModel.retryFailedPaymentImmediately(request.id)
+        },
+        onRetryLater = {
+          viewModel.retryFailedPaymentLater(request.id)
+        },
+        onAbortCurrent = {
+          viewModel.abortCurrentProcessor(request.id)
+        },
+        onAbortAll = {
+          viewModel.abortAllProcessors(request.id)
+        }
+      )
+    }
+  }
+}
+```
+
+### 5. Input Requests Flow (`inputRequests`)
+
+**Purpose**: Emits requests for user input at the processor level (e.g., PIN entry, signature).
+
+**Type**: `SharedFlow<InputRequest>`
+
+**Example Values**:
+```kotlin
+InputRequest.PIN(
+  id="pin1",
+  message="Please enter PIN"
+)
+
+InputRequest.Signature(
+  id="sig1",
+  message="Please sign",
+  amount=100.0
+)
+
+InputRequest.Confirmation(
+  id="conf1",
+  message="Confirm amount $100.00?"
+)
+```
+
+**How to React**:
+```kotlin
+paymentQueue.processor.inputRequests.collect { request ->
+  when (request) {
+    is InputRequest.PIN -> {
+      showPinEntryDialog(
+        message = request.message,
+        onPinEntered = { pin ->
+          viewModel.providePinInput(request.id, pin)
+        },
+        onCancel = {
+          viewModel.cancelInput(request.id)
+        }
+      )
+    }
+    is InputRequest.Signature -> {
+      showSignatureScreen(
+        amount = request.amount,
+        onSignatureCapture = { signatureData ->
+          viewModel.provideSignatureInput(request.id, signatureData)
+        },
+        onCancel = {
+          viewModel.cancelInput(request.id)
+        }
+      )
+    }
+    is InputRequest.Confirmation -> {
+      showConfirmDialog(
+        message = request.message,
+        onConfirm = {
+          viewModel.provideConfirmationInput(request.id, true)
+        },
+        onReject = {
+          viewModel.provideConfirmationInput(request.id, false)
+        }
+      )
+    }
+  }
 }
 ```
 

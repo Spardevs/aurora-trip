@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/text_error_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="@string/error_retry_description"
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/btn_retry_immediately"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="@string/retry_immediately"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/btn_retry_later"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="@string/retry_later"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/btn_abort_current"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="@string/abort_current"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/btn_abort_all"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/abort_all"
+        android:textAllCaps="false" />
+
+</LinearLayout>

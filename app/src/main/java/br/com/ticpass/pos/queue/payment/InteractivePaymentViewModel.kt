@@ -4,11 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import br.com.ticpass.pos.queue.ErrorHandlingAction
 import br.com.ticpass.pos.queue.InputRequest
 import br.com.ticpass.pos.queue.InputResponse
 import br.com.ticpass.pos.queue.PersistenceStrategy
 import br.com.ticpass.pos.queue.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.ProcessingState
+import br.com.ticpass.pos.queue.QueueConfirmationMode
+import br.com.ticpass.pos.queue.QueueInputRequest
+import br.com.ticpass.pos.queue.QueueInputResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,6 +36,7 @@ class InteractivePaymentViewModel @Inject constructor(
     private val paymentQueue = queueFactory.createDynamicPaymentQueue(
         storage = processingPaymentStorage,
         persistenceStrategy = PersistenceStrategy.IMMEDIATE,
+        queueConfirmationMode = QueueConfirmationMode.CONFIRMATION, // Enable confirmation between processors
         scope = viewModelScope
     )
     
@@ -45,7 +50,13 @@ class InteractivePaymentViewModel @Inject constructor(
         object Idle : UiState()
         object Processing : UiState()
         data class Error(val event: ProcessingErrorEvent) : UiState()
+        
+        // Processor-level input requests
         data class confirmCustomerReceiptPrinting(val requestId: String, val doPrint: Boolean) : UiState()
+        
+        // Queue-level input requests
+        data class ConfirmNextProcessor(val requestId: String, val currentItemIndex: Int, val totalItems: Int) : UiState()
+        data class ErrorRetryOrSkip(val requestId: String, val error: ProcessingErrorEvent) : UiState()
     }
     
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
@@ -56,9 +67,9 @@ class InteractivePaymentViewModel @Inject constructor(
         viewModelScope.launch {
             processingState.collectLatest { state ->
                 when (state) {
-                    is ProcessingState.Processing -> _uiState.value = UiState.Processing
-                    is ProcessingState.Idle -> _uiState.value = UiState.Idle
-                    is ProcessingState.Failed -> {
+                    is ProcessingState.ItemProcessing -> _uiState.value = UiState.Processing
+                    is ProcessingState.QueueIdle -> _uiState.value = UiState.Idle
+                    is ProcessingState.ItemFailed -> {
                         _uiState.value = UiState.Error(state.error)
                     }
                     else -> { /* No UI state change for other processing states */ }
@@ -74,6 +85,27 @@ class InteractivePaymentViewModel @Inject constructor(
                         _uiState.value = UiState.confirmCustomerReceiptPrinting(
                             requestId = request.id,
                             doPrint = false // Default value, user can change via UI
+                        )
+                    }
+                }
+            }
+        }
+        
+        // Listen for queue-level input requests
+        viewModelScope.launch {
+            paymentQueue.queueInputRequests.collectLatest { request ->
+                when (request) {
+                    is QueueInputRequest.CONFIRM_NEXT_PROCESSOR -> {
+                        _uiState.value = UiState.ConfirmNextProcessor(
+                            requestId = request.id,
+                            currentItemIndex = request.currentItemIndex,
+                            totalItems = request.totalItems
+                        )
+                    }
+                    is QueueInputRequest.ERROR_RETRY_OR_SKIP -> {
+                        _uiState.value = UiState.ErrorRetryOrSkip(
+                            requestId = request.id,
+                            error = request.error
                         )
                     }
                 }
@@ -110,7 +142,7 @@ class InteractivePaymentViewModel @Inject constructor(
     }
 
     /**
-     * Cancel the current input request
+     * Confirm customer receipt printing (processor-level input request)
      */
     fun confirmCustomerReceiptPrinting(requestId: String, doPrint: Boolean) {
         viewModelScope.launch {
@@ -123,7 +155,7 @@ class InteractivePaymentViewModel @Inject constructor(
     }
 
     /**
-     * Cancel the current input request
+     * Cancel the current processor-level input request
      */
     fun cancelInput(requestId: String) {
         viewModelScope.launch {
@@ -132,6 +164,101 @@ class InteractivePaymentViewModel @Inject constructor(
             )
             // UI will be updated via the input request flow
         }
+    }
+    
+    /**
+     * Confirm proceeding to the next processor (queue-level input request)
+     */
+    fun confirmNextProcessor(requestId: String) {
+        viewModelScope.launch {
+            paymentQueue.provideQueueInput(
+                QueueInputResponse.proceed(requestId)
+            )
+        }
+        // Reset UI state
+        _uiState.value = UiState.Processing
+    }
+    
+    /**
+     * Skip the current processor and move to the next one (queue-level input request)
+     */
+    fun skipProcessor(requestId: String) {
+        viewModelScope.launch {
+            paymentQueue.provideQueueInput(
+                QueueInputResponse.skip(requestId)
+            )
+        }
+        // UI will be updated via the queue input request flow
+    }
+    
+    /**
+     * Handle a failed payment with the specified action (queue-level input request)
+     * 
+     * @param requestId The ID of the input request
+     * @param action The error handling action to take
+     */
+    fun handleFailedPayment(requestId: String, action: ErrorHandlingAction) {
+        viewModelScope.launch {
+            val response = when (action) {
+                ErrorHandlingAction.RETRY_IMMEDIATELY -> QueueInputResponse.retryImmediately(requestId)
+                ErrorHandlingAction.RETRY_LATER -> QueueInputResponse.retryLater(requestId)
+                ErrorHandlingAction.ABORT_CURRENT -> QueueInputResponse.abortCurrentProcessor(requestId)
+                ErrorHandlingAction.ABORT_ALL -> QueueInputResponse.abortAllProcessors(requestId)
+            }
+            paymentQueue.provideQueueInput(response)
+        }
+        
+        // Reset UI state for actions that continue processing
+        if (action == ErrorHandlingAction.RETRY_IMMEDIATELY || action == ErrorHandlingAction.RETRY_LATER) {
+            _uiState.value = UiState.Processing
+        }
+        // For other actions, UI will be updated via the queue input request flow
+    }
+    
+    /**
+     * Retry a failed payment immediately (queue-level input request)
+     * This will retry the same processor without moving the item
+     */
+    fun retryFailedPaymentImmediately(requestId: String) {
+        handleFailedPayment(requestId, ErrorHandlingAction.RETRY_IMMEDIATELY)
+    }
+    
+    /**
+     * Retry a failed payment later (queue-level input request)
+     * This will move the item to the end of the queue for later retry
+     */
+    fun retryFailedPaymentLater(requestId: String) {
+        handleFailedPayment(requestId, ErrorHandlingAction.RETRY_LATER)
+    }
+    
+    /**
+     * Abort the current processor but keep the item in queue (queue-level input request)
+     */
+    fun abortCurrentProcessor(requestId: String) {
+        handleFailedPayment(requestId, ErrorHandlingAction.ABORT_CURRENT)
+    }
+    
+    /**
+     * Abort all processors and cancel queue processing (queue-level input request)
+     */
+    fun abortAllProcessors(requestId: String) {
+        handleFailedPayment(requestId, ErrorHandlingAction.ABORT_ALL)
+    }
+    
+    /**
+     * @deprecated Use retryFailedPaymentLater instead
+     */
+    @Deprecated("Use retryFailedPaymentLater instead", ReplaceWith("retryFailedPaymentLater(requestId)"))
+    fun retryFailedPayment(requestId: String) {
+        retryFailedPaymentLater(requestId)
+    }
+    
+    /**
+     * @deprecated Use abortCurrentProcessor instead
+     */
+    @Deprecated("Use abortCurrentProcessor instead", ReplaceWith("abortCurrentProcessor(requestId)"))
+    fun skipFailedPayment(requestId: String) {
+        abortCurrentProcessor(requestId)
     }
     
     /**

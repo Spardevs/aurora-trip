@@ -115,15 +115,15 @@ class PaymentProcessingActivity : AppCompatActivity() {
             viewModel.processingState.collectLatest { state ->
                 Log.d("PaymentProcessingActivity", "Processing state: $state")
                 when (state) {
-                    is ProcessingState.Processing -> {
+                    is ProcessingState.ItemProcessing -> {
                         val currentIndex = viewModel.queueState.value.indexOfFirst { it.id == state.item.id }
                         val total = viewModel.queueState.value.size
                         updateProcessingProgress(currentIndex, total)
                     }
-                    is ProcessingState.Completed -> {
+                    is ProcessingState.ItemDone -> {
                         addEventLogMessage("All payments completed")
                     }
-                    is ProcessingState.Failed -> {
+                    is ProcessingState.ItemFailed -> {
                         // Handle error state
                         Log.e("PaymentProcessingActivity", "Processing failed: ${state.error}")
                         val resourceId = ProcessingErrorEventResourceMapper.getErrorResourceKey(state.error)
@@ -133,6 +133,26 @@ class PaymentProcessingActivity : AppCompatActivity() {
                         
                         // Also display the error in the progress area
                         displayErrorMessage(state.error)
+                    }
+                    is ProcessingState.ItemRetrying -> {
+                        // Update progress for retrying state
+                        val currentIndex = viewModel.queueState.value.indexOfFirst { it.id == state.item.id }
+                        updateProcessingProgress(currentIndex, totalPayments)
+                    }
+                    is ProcessingState.ItemSkipped -> {
+                        // Update progress for skipped state
+                        val currentIndex = viewModel.queueState.value.indexOfFirst { it.id == state.item.id }
+                        updateProcessingProgress(currentIndex, totalPayments)
+                    }
+                    is ProcessingState.QueueCanceled -> {
+                        // Reset progress when queue is canceled
+                        updateProcessingProgress(0, 0)
+                        addEventLogMessage("All payments canceled")
+                    }
+                    is ProcessingState.QueueDone -> {
+                        // Reset progress when queue processing is done
+                        updateProcessingProgress(0, 0)
+                        addEventLogMessage("All payments processed successfully")
                     }
                     else -> { 
                         // Reset progress for other states
@@ -159,6 +179,12 @@ class PaymentProcessingActivity : AppCompatActivity() {
                     is InteractivePaymentViewModel.UiState.Error -> {
                         // Display error message in the progress area using the ProcessingErrorEvent
                         displayErrorMessage(uiState.event)
+                    }
+                    is InteractivePaymentViewModel.UiState.ConfirmNextProcessor -> {
+                        showConfirmNextProcessorDialog(uiState.requestId, uiState.currentItemIndex, uiState.totalItems)
+                    }
+                    is InteractivePaymentViewModel.UiState.ErrorRetryOrSkip -> {
+                        showErrorRetryOptionsDialog(uiState.requestId, uiState.error)
                     }
                     else -> {
                         // Other UI states don't need dialogs
@@ -277,6 +303,65 @@ class PaymentProcessingActivity : AppCompatActivity() {
         // Update current event text as well
         currentEventTextView.text = errorMessage
         currentEventTextView.setTextColor(getColor(android.R.color.holo_red_dark))
+    }
+    
+    /**
+     * Show a dialog to confirm proceeding to the next processor
+     */
+    private fun showConfirmNextProcessorDialog(requestId: String, currentIndex: Int, totalItems: Int) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.confirm_next_processor_title)
+            .setMessage(getString(R.string.confirm_next_processor_message, currentIndex + 1, totalItems))
+            .setPositiveButton(R.string.proceed) { _, _ ->
+                viewModel.confirmNextProcessor(requestId)
+            }
+            .setNegativeButton(R.string.skip) { _, _ ->
+                viewModel.skipProcessor(requestId)
+            }
+            .setCancelable(false)
+            .show()
+    }
+    
+    /**
+     * Show a dialog with error retry options
+     */
+    private fun showErrorRetryOptionsDialog(requestId: String, error: ProcessingErrorEvent) {
+        val resourceId = ProcessingErrorEventResourceMapper.getErrorResourceKey(error)
+        val errorMessage = getString(resourceId)
+        
+        // Create a custom dialog with multiple buttons
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(R.string.error_retry_title)
+            .setMessage(errorMessage)
+            .setCancelable(false)
+            .create()
+            
+        // Use a custom layout with multiple buttons
+        val view = layoutInflater.inflate(R.layout.dialog_error_retry_options, null)
+        dialog.setView(view)
+        
+        // Set up button click listeners
+        view.findViewById<View>(R.id.btn_retry_immediately).setOnClickListener {
+            viewModel.retryFailedPaymentImmediately(requestId)
+            dialog.dismiss()
+        }
+        
+        view.findViewById<View>(R.id.btn_retry_later).setOnClickListener {
+            viewModel.retryFailedPaymentLater(requestId)
+            dialog.dismiss()
+        }
+        
+        view.findViewById<View>(R.id.btn_abort_current).setOnClickListener {
+            viewModel.abortCurrentProcessor(requestId)
+            dialog.dismiss()
+        }
+        
+        view.findViewById<View>(R.id.btn_abort_all).setOnClickListener {
+            viewModel.abortAllProcessors(requestId)
+            dialog.dismiss()
+        }
+        
+        dialog.show()
     }
 }
 

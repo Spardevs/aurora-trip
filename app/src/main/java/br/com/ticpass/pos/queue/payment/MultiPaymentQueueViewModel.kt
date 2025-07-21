@@ -106,8 +106,8 @@ class MultiPaymentQueueViewModel(
     fun getCurrentPayment(): ProcessingPaymentQueueItem? {
         val state = processingState.value
         return when (state) {
-            is ProcessingState.Processing -> state.item
-            is ProcessingState.Retrying -> state.item
+            is ProcessingState.ItemProcessing -> state.item
+            is ProcessingState.ItemRetrying -> state.item
             else -> null
         }
     }

@@ -48,4 +48,17 @@
     <string name="print_customer_receipt_message">Would you like to print a receipt for the customer?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    
+    <!-- Payment Processing Dialog Strings -->
+    <string name="confirm_next_processor_title">Confirm Next Payment</string>
+    <string name="confirm_next_processor_message">Ready to process payment %1$d of %2$d?</string>
+    <string name="proceed">Proceed</string>
+    <string name="skip">Skip</string>
+
+    <string name="error_retry_title">Payment Error</string>
+    <string name="error_retry_description">Choose how to handle this payment error:</string>
+    <string name="retry_immediately">Retry Immediately</string>
+    <string name="retry_later">Retry Later</string>
+    <string name="abort_current">Skip This Payment</string>
+    <string name="abort_all">Cancel All Payments</string>
 </resources>

@@ -95,8 +95,8 @@ class PrintQueueViewModel(
     fun getCurrentPrintJob(): PrintQueueItem? {
         val state = printProcessingState.value
         return when (state) {
-            is ProcessingState.Processing -> state.item
-            is ProcessingState.Retrying -> state.item
+            is ProcessingState.ItemProcessing -> state.item
+            is ProcessingState.ItemRetrying -> state.item
             else -> null
         }
     }
