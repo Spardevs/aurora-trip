@@ -196,7 +196,7 @@ object ProcessingErrorEventResourceMapper {
             is ProcessingErrorEvent.INTERNET_CONNECTION_ERROR -> R.string.error_connection_error_no_internet
             is ProcessingErrorEvent.INVALID_MENU_OPTION -> R.string.error_invalid_selected_option
             is ProcessingErrorEvent.COMMUNICATION_ERROR -> R.string.error_communication_interrupted
-            is ProcessingErrorEvent.CANCELED_BY_USER -> R.string.error_operation_canceled_by_user
+            is ProcessingErrorEvent.CANCELLED_BY_USER -> R.string.error_operation_canceled_by_user
             is ProcessingErrorEvent.PRINT_ERROR_LOW_BATTERY -> R.string.error_low_battery
             is ProcessingErrorEvent.INVALID_INSTALLMENTS_COUNT -> R.string.error_invalid_count_for_installment
             is ProcessingErrorEvent.INVALID_INSTALLMENT_AMOUNT -> R.string.error_minimum_installment_amount

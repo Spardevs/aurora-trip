@@ -831,7 +831,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Operation canceled by user.
      * User canceled the operation.
      */
-    OPERATION_CANCELED_BY_USER_A242("A242", ProcessingErrorEvent.CANCELED_BY_USER),
+    OPERATION_CANCELED_BY_USER_A242("A242", ProcessingErrorEvent.CANCELLED_BY_USER),
     
     /**
      * File operation failure.
@@ -986,7 +986,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Operation canceled by user.
      * User pressed cancel button.
      */
-    OPERATION_CANCELED_BY_USER_A202("A202", ProcessingErrorEvent.CANCELED_BY_USER),
+    OPERATION_CANCELED_BY_USER_A202("A202", ProcessingErrorEvent.CANCELLED_BY_USER),
     
     /**
      * Initialization error.
@@ -1787,7 +1787,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      */
     USER_CANCELED_OPERATION(
         "A202",
-        ProcessingErrorEvent.CANCELED_BY_USER
+        ProcessingErrorEvent.CANCELLED_BY_USER
     ),
 
     /**
@@ -2588,7 +2588,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      */
     USER_CANCELED_OPERATION_A242(
         "A242",
-        ProcessingErrorEvent.CANCELED_BY_USER
+        ProcessingErrorEvent.CANCELLED_BY_USER
     ),
 
     /**

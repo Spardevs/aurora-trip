@@ -25,6 +25,10 @@ class PrintProcessor : QueueProcessor<PrintQueueItem, PrintingEvent> {
         TODO("Not yet implemented")
     }
 
+    override suspend fun abort(item: PrintQueueItem?): Boolean {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun process(item: PrintQueueItem): ProcessingResult {
         return ProcessingResult.Retry
     }

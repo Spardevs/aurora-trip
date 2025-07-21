@@ -252,6 +252,11 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                                     inMemoryQueue[0] = skippedItem
                                     _queueState.value = inMemoryQueue.toList()
                                     
+                                    // Call the processor's abort method with the current item
+                                    scope.launch {
+                                        processor.abort(processingItem)
+                                    }
+                                    
                                     // Update storage if using persistence
                                     if (persistenceStrategy != PersistenceStrategy.NEVER) {
                                         scope.launch {
@@ -264,6 +269,15 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                                 ErrorHandlingAction.ABORT_ALL -> {
                                     // Cancel the entire queue processing
                                     isProcessing = false
+                                    
+                                    // Call the processor's abort method to perform graceful cleanup
+                                    scope.launch {
+                                        processor.abort(null)
+                                    }
+                                    
+                                    // Remove all items from the queue
+                                    val removedItems = removeAll()
+                                    
                                     _processingState.value = ProcessingState.QueueCanceled(null)
                                     break
                                 }

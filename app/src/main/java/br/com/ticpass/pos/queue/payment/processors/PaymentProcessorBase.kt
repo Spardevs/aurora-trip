@@ -54,6 +54,38 @@ abstract class PaymentProcessorBase : QueueProcessor<ProcessingPaymentQueueItem,
     }
     
     /**
+     * Abort the current processing operation
+     * Base implementation that can be overridden by concrete processors for specific abort logic
+     * 
+     * @param item The item being processed that should be aborted, or null to abort any current operation
+     * @return True if the processor was successfully aborted, false otherwise
+     */
+    override suspend fun abort(item: ProcessingPaymentQueueItem?): Boolean {
+        // Emit a cancellation event
+        _events.emit(ProcessingPaymentEvent.CANCELLED)
+        
+        // Cancel any pending input requests by emitting a cancellation response
+        // This will unblock any processor waiting for input
+        _inputRequests.replayCache.forEach { request ->
+            _inputResponses.emit(InputResponse.canceled(request.id))
+        }
+        
+        // Allow subclasses to perform additional cleanup
+        return onAbort(item)
+    }
+    
+    /**
+     * Hook method for subclasses to implement processor-specific abort logic
+     * 
+     * @param item The item being processed that should be aborted, or null to abort any current operation
+     * @return True if the processor was successfully aborted, false otherwise
+     */
+    protected open suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean {
+        // Default implementation just returns success
+        return true
+    }
+    
+    /**
      * Request input from the user and wait for response
      * 
      * @param request The input request

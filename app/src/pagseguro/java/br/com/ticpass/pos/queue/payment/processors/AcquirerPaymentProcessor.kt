@@ -76,12 +76,36 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
             return ProcessingResult.Error(ProcessingErrorEvent.GENERIC)
         }
         finally {
+            clearPaymentListener()
             cleanupCoroutineScopes()
         }
     }
 
     private fun cleanupCoroutineScopes() {
         scope.cancel()
+    }
+    
+    /**
+     * PagSeguro-specific abort logic
+     * Cancels any ongoing payment transaction and cleans up resources
+     */
+    override suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean {
+        try {
+            // Attempt to abort any ongoing transaction
+            val abortResult = kotlinx.coroutines.withContext(Dispatchers.IO) {
+                plugpag.abort()
+            }
+
+            val hasAborted = abortResult.result == PlugPag.RET_OK
+
+            clearPaymentListener()
+            cleanupCoroutineScopes()
+
+            return hasAborted
+        } catch (e: Exception) {
+            Log.e(tag, "Error aborting transaction: ${e.message}")
+            return false
+        }
     }
 
     private fun setPaymentListener() {
@@ -97,6 +121,15 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
             }
         }
 
+        plugpag.setEventListener(eventListener)
+    }
+
+    private fun clearPaymentListener() {
+        val eventListener = object : PlugPagEventListener {
+            override fun onEvent(data: PlugPagEventData) {
+                // No-op, just to clear the listener
+            }
+        }
         plugpag.setEventListener(eventListener)
     }
 

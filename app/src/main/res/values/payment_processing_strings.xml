@@ -42,6 +42,7 @@
     <string name="event_generic_success">Operation successful</string>
     <string name="event_generic_error">Error occurred</string>
     <string name="event_fail">Payment failed: %1$s</string>
+    <string name="event_cancelled">Processing Cancelled</string>
     
     <!-- Customer Receipt Dialog -->
     <string name="print_customer_receipt_title">Print Customer Receipt?</string>

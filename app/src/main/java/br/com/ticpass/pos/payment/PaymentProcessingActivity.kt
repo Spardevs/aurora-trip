@@ -242,6 +242,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
             is ProcessingPaymentEvent.PIN_OK -> getString(R.string.event_pin_ok)
             is ProcessingPaymentEvent.GENERIC_SUCCESS -> getString(R.string.event_generic_success)
             is ProcessingPaymentEvent.GENERIC_ERROR -> getString(R.string.event_generic_error)
+            ProcessingPaymentEvent.CANCELLED -> getString(R.string.event_cancelled)
         }
         
         currentEventTextView.text = eventMessage

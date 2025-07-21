@@ -337,7 +337,7 @@ sealed class ProcessingErrorEvent : BaseProcessingEvent {
      * User canceled operation.
      * User pressed cancel button.
      */
-    object CANCELED_BY_USER : ProcessingErrorEvent()
+    object CANCELLED_BY_USER : ProcessingErrorEvent()
 
     /**
      * Invalid menu option.

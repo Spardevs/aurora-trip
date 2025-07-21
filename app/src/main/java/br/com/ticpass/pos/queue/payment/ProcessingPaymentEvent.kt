@@ -160,4 +160,9 @@ sealed class ProcessingPaymentEvent : BaseProcessingEvent {
      * Generic error event.
      */
     object GENERIC_ERROR : ProcessingPaymentEvent()
+    
+    /**
+     * Payment process was canceled by user or system.
+     */
+    object CANCELLED : ProcessingPaymentEvent()
 }
