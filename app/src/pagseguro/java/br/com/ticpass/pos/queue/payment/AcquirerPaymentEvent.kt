@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.queue.payment
 
+import android.util.Log
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagEventData
 
 enum class AcquirerPaymentEvent(val code: Int, val event: ProcessingPaymentEvent) {

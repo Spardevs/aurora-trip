@@ -51,6 +51,9 @@ class PaymentProcessingActivity : AppCompatActivity() {
     private lateinit var dialogProgressBar: android.widget.ProgressBar
     private lateinit var dialogEventTextView: TextView
     
+    // PIN entry tracking
+    private val pinDigits = mutableListOf<Int>()
+    
     // Tracking current processing
     private var totalPayments = 0
     private var currentProcessingIndex = 0
@@ -271,7 +274,46 @@ class PaymentProcessingActivity : AppCompatActivity() {
         }
     }
     
+    /**
+     * Updates the PIN display in the UI with asterisks based on the current pinDigits list
+     */
+    private fun updatePinDisplay() {
+        val pinDisplay = "*".repeat(pinDigits.size)
+        val pinMessage = if (pinDigits.isEmpty()) {
+            getString(R.string.event_pin_requested)
+        } else {
+            getString(R.string.pin_entry_display, pinDisplay)
+        }
+        
+        // Update the dialog with the PIN display
+        dialogEventTextView.text = pinMessage
+    }
+    
     private fun handlePaymentEvent(event: ProcessingPaymentEvent) {
+        // Handle PIN digit tracking
+        when (event) {
+            is ProcessingPaymentEvent.PIN_DIGIT_INPUT -> {
+                pinDigits.add(1) // Add a digit placeholder
+                updatePinDisplay()
+            }
+            is ProcessingPaymentEvent.PIN_DIGIT_REMOVED -> {
+                if (pinDigits.isNotEmpty()) {
+                    pinDigits.removeAt(pinDigits.lastIndex) // Remove last digit
+                    updatePinDisplay()
+                }
+            }
+            is ProcessingPaymentEvent.PIN_REQUESTED -> {
+                // Reset PIN digits when a new PIN is requested
+                pinDigits.clear()
+                updatePinDisplay()
+            }
+            is ProcessingPaymentEvent.PIN_OK -> {
+                // Clear PIN digits when PIN is confirmed
+                pinDigits.clear()
+            }
+            else -> { /* Other events don't affect PIN display */ }
+        }
+        
         val eventMessage = when (event) {
             is ProcessingPaymentEvent.START -> getString(R.string.event_start)
             is ProcessingPaymentEvent.CARD_REACH_OR_INSERT -> getString(R.string.event_card_reach_or_insert)
@@ -292,15 +334,29 @@ class PaymentProcessingActivity : AppCompatActivity() {
             is ProcessingPaymentEvent.SAVING_TABLES -> getString(R.string.event_saving_tables)
             is ProcessingPaymentEvent.USE_CHIP -> getString(R.string.event_use_chip)
             is ProcessingPaymentEvent.USE_MAGNETIC_STRIPE -> getString(R.string.event_use_magnetic_stripe)
-            is ProcessingPaymentEvent.CARD_INSERTED -> getString(R.string.event_card_inserted)
             is ProcessingPaymentEvent.CARD_REMOVAL_REQUESTING -> getString(R.string.event_card_removal_requesting)
-            is ProcessingPaymentEvent.CARD_REMOVAL_SUCCEEDED -> getString(R.string.event_card_removal_succeeded)
             is ProcessingPaymentEvent.KEY_INSERTED -> getString(R.string.event_key_inserted)
             is ProcessingPaymentEvent.ACTIVATION_SUCCEEDED -> getString(R.string.event_activation_succeeded)
             is ProcessingPaymentEvent.SOLVING_PENDING_ISSUES -> getString(R.string.event_solving_pending_issues)
             is ProcessingPaymentEvent.PIN_REQUESTED -> getString(R.string.event_pin_requested)
-            is ProcessingPaymentEvent.PIN_DIGIT_INPUT -> getString(R.string.event_pin_digit_input)
-            is ProcessingPaymentEvent.PIN_DIGIT_REMOVED -> getString(R.string.event_pin_digit_removed)
+            is ProcessingPaymentEvent.CARD_INSERTED -> {
+                pinDigits.clear()
+                getString(R.string.event_card_inserted)
+            }
+            is ProcessingPaymentEvent.PIN_DIGIT_INPUT -> {
+                // For PIN input, show the PIN with asterisks
+                val pinDisplay = "*".repeat(pinDigits.size)
+                getString(R.string.event_pin_digit_input) + " $pinDisplay"
+            }
+            is ProcessingPaymentEvent.PIN_DIGIT_REMOVED -> {
+                // For PIN removal, show the updated PIN with asterisks
+                val pinDisplay = "*".repeat(pinDigits.size)
+                getString(R.string.event_pin_digit_removed) + " $pinDisplay"
+            }
+            is ProcessingPaymentEvent.CARD_REMOVAL_SUCCEEDED -> {
+                pinDigits.clear()
+                getString(R.string.event_card_removal_succeeded)
+            }
             is ProcessingPaymentEvent.PIN_OK -> getString(R.string.event_pin_ok)
             is ProcessingPaymentEvent.GENERIC_SUCCESS -> getString(R.string.event_generic_success)
             is ProcessingPaymentEvent.GENERIC_ERROR -> getString(R.string.event_generic_error)

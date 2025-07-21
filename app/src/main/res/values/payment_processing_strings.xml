@@ -38,7 +38,8 @@
     <string name="event_pin_requested">Please enter your PIN</string>
     <string name="event_pin_digit_input">PIN digit entered</string>
     <string name="event_pin_digit_removed">PIN digit removed</string>
-    <string name="event_pin_ok">PIN verified</string>
+    <string name="event_pin_ok">PIN confirmed</string>
+    <string name="pin_entry_display">PIN: %1$s</string>
     <string name="event_generic_success">Operation successful</string>
     <string name="event_generic_error">Error occurred</string>
     <string name="event_fail">Payment failed: %1$s</string>
