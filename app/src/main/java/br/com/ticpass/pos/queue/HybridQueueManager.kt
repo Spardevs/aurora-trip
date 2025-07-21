@@ -247,9 +247,9 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                                 }
                                 ErrorHandlingAction.ABORT_CURRENT -> {
                                     // Skip this processor but keep the item in queue
-                                    // Mark as skipped but don't remove from queue
-                                    val skippedItem = updateItemStatus(nextItem, "skipped")
-                                    inMemoryQueue[0] = skippedItem
+                                    // Mark as aborted but don't remove from queue
+                                    val abortedItem = updateItemStatus(nextItem, "aborted")
+                                    inMemoryQueue[0] = abortedItem
                                     _queueState.value = inMemoryQueue.toList()
                                     
                                     // Call the processor's abort method with the current item
@@ -260,11 +260,11 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                                     // Update storage if using persistence
                                     if (persistenceStrategy != PersistenceStrategy.NEVER) {
                                         scope.launch {
-                                            storage.updateStatus(skippedItem, "skipped")
+                                            storage.updateStatus(abortedItem, "aborted")
                                         }
                                     }
                                     
-                                    _processingState.value = ProcessingState.ItemSkipped(skippedItem)
+                                    _processingState.value = ProcessingState.ItemSkipped(abortedItem)
                                 }
                                 ErrorHandlingAction.ABORT_ALL -> {
                                     // Cancel the entire queue processing
