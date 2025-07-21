@@ -1,18 +1,15 @@
 package br.com.ticpass.pos.queue
 
-import br.com.ticpass.pos.queue.payment.SystemPaymentMethod
+// No need to import SystemPaymentMethod anymore as it's moved to PaymentQueueInputResponse
 
 /**
  * Queue Input Response
  * Represents a response to a queue-level input request
  */
-data class QueueInputResponse(
+open class QueueInputResponse(
     val requestId: String,
     val value: Any? = null,
-    val isCanceled: Boolean = false,
-    val modifiedAmount: Int? = null,
-    val modifiedMethod: SystemPaymentMethod? = null,
-    val modifiedProcessorType: String? = null
+    val isCanceled: Boolean = false
 ) {
     /**
      * Get the error handling action from the response value
@@ -39,23 +36,7 @@ data class QueueInputResponse(
             return QueueInputResponse(requestId, true)
         }
         
-        /**
-         * Create a proceed response for CONFIRM_NEXT_PROCESSOR with modified payment details
-         */
-        fun proceedWithModifiedPayment(
-            requestId: String,
-            modifiedAmount: Int,
-            modifiedMethod: SystemPaymentMethod,
-            modifiedProcessorType: String
-        ): QueueInputResponse {
-            return QueueInputResponse(
-                requestId = requestId,
-                value = true,
-                modifiedAmount = modifiedAmount,
-                modifiedMethod = modifiedMethod,
-                modifiedProcessorType = modifiedProcessorType
-            )
-        }
+        // Payment-specific responses have been moved to PaymentQueueInputResponse class
 
         /**
          * Create a skip response for CONFIRM_NEXT_PROCESSOR

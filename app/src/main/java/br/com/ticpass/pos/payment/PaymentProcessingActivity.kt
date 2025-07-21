@@ -23,8 +23,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
 import dagger.hilt.android.AndroidEntryPoint
-import br.com.ticpass.pos.queue.ProcessingErrorEventResourceMapper
 import br.com.ticpass.pos.queue.ProcessingErrorEvent
+import br.com.ticpass.pos.queue.ProcessingErrorEventResourceMapper
 import br.com.ticpass.pos.queue.ProcessingState
 import br.com.ticpass.pos.queue.payment.InteractivePaymentViewModel
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
@@ -222,8 +222,12 @@ class PaymentProcessingActivity : AppCompatActivity() {
         lifecycleScope.launch {
             viewModel.uiState.collectLatest { uiState ->
                 when (uiState) {
-                    is InteractivePaymentViewModel.UiState.confirmCustomerReceiptPrinting -> {
-                        showCustomerReceiptDialog(uiState.requestId)
+                    is InteractivePaymentViewModel.UiState.ConfirmNextPaymentProcessor -> {
+                        showConfirmNextPaymentProcessorDialog(
+                            requestId = uiState.requestId,
+                            currentIndex = uiState.currentItemIndex,
+                            totalItems = uiState.totalItems
+                        )
                     }
                     is InteractivePaymentViewModel.UiState.Error -> {
                         displayErrorMessage(uiState.event)
@@ -235,13 +239,8 @@ class PaymentProcessingActivity : AppCompatActivity() {
                             totalItems = uiState.totalItems
                         )
                     }
-                    is InteractivePaymentViewModel.UiState.ConfirmNextPaymentProcessor -> {
-                        showConfirmNextPaymentProcessorDialog(
-                            requestId = uiState.requestId,
-                            currentIndex = uiState.currentItemIndex,
-                            totalItems = uiState.totalItems
-                            // The payment details are accessed directly from the state in the dialog method
-                        )
+                    is InteractivePaymentViewModel.UiState.ConfirmCustomerReceiptPrinting -> {
+                        showCustomerReceiptDialog(uiState.requestId)
                     }
                     is InteractivePaymentViewModel.UiState.ErrorRetryOrSkip -> {
                         showErrorRetryOptionsDialog(uiState.requestId, uiState.error)

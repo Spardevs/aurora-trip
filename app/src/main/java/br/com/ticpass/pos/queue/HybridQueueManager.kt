@@ -1,6 +1,8 @@
 package br.com.ticpass.pos.queue
 
 import android.util.Log
+import br.com.ticpass.pos.queue.payment.PaymentQueueInputResponse
+import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -158,7 +160,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                     
                     val confirmRequest = if (paymentItem != null) {
                         // Use payment-specific confirmation request with payment details
-                        QueueInputRequest.CONFIRM_NEXT_PAYMENT_PROCESSOR(
+                        PaymentQueueInputRequest.CONFIRM_NEXT_PAYMENT(
                             currentItemIndex = nextItemIndex,
                             totalItems = inMemoryQueue.size,
                             currentItemId = nextItem.id,
@@ -195,13 +197,13 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                         continue
                     }
                     
-                    // Check if the payment details were modified
-                    if (response.modifiedAmount != null || response.modifiedMethod != null || response.modifiedProcessorType != null) {
-                        // Cast to ProcessingPaymentQueueItem to modify payment-specific properties
-                        val paymentItem = nextItem as? br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
-                        
+                    // Apply any modifications to the queue item if provided in the response
+                    if (response is PaymentQueueInputResponse && 
+                        (response.modifiedAmount != null || response.modifiedMethod != null || response.modifiedProcessorType != null)) {
+                        // Only ProcessingPaymentQueueItem can be modified
+                        val paymentItem = nextItem as? ProcessingPaymentQueueItem
                         if (paymentItem != null) {
-                            // Create a new item with the modified properties
+                            // Create a copy with modified values
                             val modifiedItem = paymentItem.copy(
                                 amount = response.modifiedAmount ?: paymentItem.amount,
                                 method = response.modifiedMethod ?: paymentItem.method,
@@ -209,11 +211,12 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                             )
                             
                             // Replace the item in the queue
-                            inMemoryQueue[0] = modifiedItem as T
-                            _queueState.value = inMemoryQueue.toList()
-                            
-                            // Update the nextItem reference to the modified item
-                            nextItem = modifiedItem as T
+                            val itemIndex = inMemoryQueue.indexOf(nextItem)
+                            if (itemIndex >= 0) {
+                                inMemoryQueue[itemIndex] = modifiedItem as T
+                                nextItem = modifiedItem as T
+                                _queueState.value = inMemoryQueue.toList()
+                            }
                         }
                     }
                 }

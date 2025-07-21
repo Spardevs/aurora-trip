@@ -1,6 +1,5 @@
 package br.com.ticpass.pos.queue.payment
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -8,6 +7,8 @@ import javax.inject.Inject
 import br.com.ticpass.pos.queue.ErrorHandlingAction
 import br.com.ticpass.pos.queue.InputRequest
 import br.com.ticpass.pos.queue.InputResponse
+import br.com.ticpass.pos.queue.PaymentQueueInputRequest
+import br.com.ticpass.pos.queue.payment.PaymentQueueInputResponse
 import br.com.ticpass.pos.queue.PersistenceStrategy
 import br.com.ticpass.pos.queue.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.ProcessingState
@@ -53,7 +54,7 @@ class InteractivePaymentViewModel @Inject constructor(
         data class Error(val event: ProcessingErrorEvent) : UiState()
         
         // Processor-level input requests
-        data class confirmCustomerReceiptPrinting(val requestId: String, val doPrint: Boolean) : UiState()
+        data class ConfirmCustomerReceiptPrinting(val requestId: String, val doPrint: Boolean) : UiState()
         
         // Generic processor confirmation (no payment details)
         data class ConfirmNextProcessor(
@@ -98,7 +99,7 @@ class InteractivePaymentViewModel @Inject constructor(
             (paymentQueue.processor.inputRequests).collectLatest { request ->
                 when (request) {
                     is InputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING -> {
-                        _uiState.value = UiState.confirmCustomerReceiptPrinting(
+                        _uiState.value = UiState.ConfirmCustomerReceiptPrinting(
                             requestId = request.id,
                             doPrint = false // Default value, user can change via UI
                         )
@@ -118,7 +119,7 @@ class InteractivePaymentViewModel @Inject constructor(
                             totalItems = request.totalItems
                         )
                     }
-                    is QueueInputRequest.CONFIRM_NEXT_PAYMENT_PROCESSOR -> {
+                    is PaymentQueueInputRequest.CONFIRM_NEXT_PAYMENT -> {
                         _uiState.value = UiState.ConfirmNextPaymentProcessor(
                             requestId = request.id,
                             currentItemIndex = request.currentItemIndex,
@@ -205,7 +206,7 @@ class InteractivePaymentViewModel @Inject constructor(
     }
     
     /**
-     * Confirm proceeding to the next processor with modified payment details
+     * Confirm the next processor with modified payment details
      */
     fun confirmNextProcessorWithModifiedPayment(
         requestId: String,
@@ -214,7 +215,7 @@ class InteractivePaymentViewModel @Inject constructor(
         modifiedProcessorType: String
     ) {
         viewModelScope.launch {
-            val response = QueueInputResponse.proceedWithModifiedPayment(
+            val response = PaymentQueueInputResponse.proceedWithModifiedPayment(
                 requestId = requestId,
                 modifiedAmount = modifiedAmount,
                 modifiedMethod = modifiedMethod,
