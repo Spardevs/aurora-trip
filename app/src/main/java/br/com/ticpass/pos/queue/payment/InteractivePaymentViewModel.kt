@@ -293,22 +293,6 @@ class InteractivePaymentViewModel @Inject constructor(
     }
     
     /**
-     * @deprecated Use retryFailedPaymentLater instead
-     */
-    @Deprecated("Use retryFailedPaymentLater instead", ReplaceWith("retryFailedPaymentLater(requestId)"))
-    fun retryFailedPayment(requestId: String) {
-        retryFailedPaymentLater(requestId)
-    }
-    
-    /**
-     * @deprecated Use abortCurrentProcessor instead
-     */
-    @Deprecated("Use abortCurrentProcessor instead", ReplaceWith("abortCurrentProcessor(requestId)"))
-    fun skipFailedPayment(requestId: String) {
-        abortCurrentProcessor(requestId)
-    }
-    
-    /**
      * Cancel a payment
      */
     fun cancelPayment(paymentId: String) {
