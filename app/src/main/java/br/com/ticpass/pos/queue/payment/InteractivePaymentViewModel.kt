@@ -42,6 +42,22 @@ class InteractivePaymentViewModel @Inject constructor(
         scope = viewModelScope
     )
     
+    /**
+     * Helper function to launch coroutines in the viewModelScope with standard error handling
+     */
+    private fun launchInViewModelScope(block: suspend () -> Unit) {
+        viewModelScope.launch {
+            try {
+                block()
+            } catch (e: Exception) {
+                // Common error handling
+                _uiState.value = UiState.Error(
+                    ProcessingErrorEvent.GENERIC
+                )
+            }
+        }
+    }
+    
     // Expose queue states to UI
     val queueState = paymentQueue.queueState
     val processingState = paymentQueue.processingState
@@ -81,7 +97,7 @@ class InteractivePaymentViewModel @Inject constructor(
     
     init {
         // Observe processing state
-        viewModelScope.launch {
+        launchInViewModelScope {
             processingState.collectLatest { state ->
                 when (state) {
                     is ProcessingState.ItemProcessing -> _uiState.value = UiState.Processing
@@ -95,7 +111,7 @@ class InteractivePaymentViewModel @Inject constructor(
         }
         
         // Listen for input requests from the processor
-        viewModelScope.launch {
+        launchInViewModelScope {
             (paymentQueue.processor.inputRequests).collectLatest { request ->
                 when (request) {
                     is InputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING -> {
@@ -109,7 +125,7 @@ class InteractivePaymentViewModel @Inject constructor(
         }
         
         // Listen for queue-level input requests
-        viewModelScope.launch {
+        launchInViewModelScope {
             paymentQueue.queueInputRequests.collectLatest { request ->
                 when (request) {
                     is QueueInputRequest.CONFIRM_NEXT_PROCESSOR -> {
@@ -141,7 +157,7 @@ class InteractivePaymentViewModel @Inject constructor(
     }
 
     fun startProcessing() {
-        viewModelScope.launch {
+        launchInViewModelScope {
             paymentQueue.startProcessing()
         }
     }
@@ -155,7 +171,7 @@ class InteractivePaymentViewModel @Inject constructor(
         method: SystemPaymentMethod,
         processorType: String = "acquirer", // "acquirer", "cash", or "transactionless"
     ) {
-        viewModelScope.launch {
+        launchInViewModelScope {
             val paymentItem = ProcessingPaymentQueueItem(
                 id = UUID.randomUUID().toString(),
                 amount = amount,
@@ -172,20 +188,20 @@ class InteractivePaymentViewModel @Inject constructor(
      * Confirm customer receipt printing (processor-level input request)
      */
     fun confirmCustomerReceiptPrinting(requestId: String, doPrint: Boolean) {
-        viewModelScope.launch {
+        launchInViewModelScope {
             paymentQueue.processor.provideInput(
                 InputResponse(requestId, doPrint)
             )
+            // Reset UI state
+            _uiState.value = UiState.Processing
         }
-        // Reset UI state
-        _uiState.value = UiState.Processing
     }
 
     /**
      * Cancel the current processor-level input request
      */
     fun cancelInput(requestId: String) {
-        viewModelScope.launch {
+        launchInViewModelScope {
             paymentQueue.processor.provideInput(
                 InputResponse.canceled(requestId)
             )
@@ -197,12 +213,11 @@ class InteractivePaymentViewModel @Inject constructor(
      * Confirm proceeding to the next processor (queue-level input request)
      */
     fun confirmNextProcessor(requestId: String) {
-        viewModelScope.launch {
+        launchInViewModelScope {
             val response = QueueInputResponse.proceed(requestId)
             paymentQueue.provideQueueInput(response)
+            _uiState.value = UiState.Processing
         }
-        // Reset UI state
-        _uiState.value = UiState.Processing
     }
     
     /**
@@ -214,7 +229,7 @@ class InteractivePaymentViewModel @Inject constructor(
         modifiedMethod: SystemPaymentMethod,
         modifiedProcessorType: String
     ) {
-        viewModelScope.launch {
+        launchInViewModelScope {
             val response = PaymentQueueInputResponse.proceedWithModifiedPayment(
                 requestId = requestId,
                 modifiedAmount = modifiedAmount,
@@ -222,20 +237,20 @@ class InteractivePaymentViewModel @Inject constructor(
                 modifiedProcessorType = modifiedProcessorType
             )
             paymentQueue.provideQueueInput(response)
+            // Reset UI state
+            _uiState.value = UiState.Processing
         }
-        // Reset UI state
-        _uiState.value = UiState.Processing
     }
     
     /**
      * Skip the current processor and move to the next one (queue-level input request)
      */
     fun skipProcessor(requestId: String) {
-        viewModelScope.launch {
+        launchInViewModelScope {
             val response = QueueInputResponse.skip(requestId)
             paymentQueue.provideQueueInput(response)
+            // UI will be updated via the queue input request flow
         }
-        // UI will be updated via the queue input request flow
     }
     
     /**
@@ -245,7 +260,7 @@ class InteractivePaymentViewModel @Inject constructor(
      * @param action The error handling action to take
      */
     fun handleFailedPayment(requestId: String, action: ErrorHandlingAction) {
-        viewModelScope.launch {
+        launchInViewModelScope {
             val response = when (action) {
                 ErrorHandlingAction.RETRY_IMMEDIATELY -> QueueInputResponse.retryImmediately(requestId)
                 ErrorHandlingAction.RETRY_LATER -> QueueInputResponse.retryLater(requestId)
@@ -253,13 +268,13 @@ class InteractivePaymentViewModel @Inject constructor(
                 ErrorHandlingAction.ABORT_ALL -> QueueInputResponse.abortAllProcessors(requestId)
             }
             paymentQueue.provideQueueInput(response)
+            
+            // Reset UI state for actions that continue processing
+            if (action == ErrorHandlingAction.RETRY_IMMEDIATELY || action == ErrorHandlingAction.RETRY_LATER) {
+                _uiState.value = UiState.Processing
+            }
+            // For other actions, UI will be updated via the queue input request flow
         }
-        
-        // Reset UI state for actions that continue processing
-        if (action == ErrorHandlingAction.RETRY_IMMEDIATELY || action == ErrorHandlingAction.RETRY_LATER) {
-            _uiState.value = UiState.Processing
-        }
-        // For other actions, UI will be updated via the queue input request flow
     }
     
     /**
@@ -296,7 +311,7 @@ class InteractivePaymentViewModel @Inject constructor(
      * Cancel a payment
      */
     fun cancelPayment(paymentId: String) {
-        viewModelScope.launch {
+        launchInViewModelScope {
             val item = paymentQueue.queueState.value.find { it.id == paymentId }
             if (item != null) {
                 paymentQueue.remove(item)
@@ -309,8 +324,7 @@ class InteractivePaymentViewModel @Inject constructor(
      * Uses a single operation to remove all items at once
      */
     fun cancelAllPayments() {
-        viewModelScope.launch {
-            // Remove all items at once (more efficient)
+        launchInViewModelScope {
             paymentQueue.removeAll()
         }
     }
