@@ -34,6 +34,8 @@ class InteractivePaymentViewModel @Inject constructor(
     processingPaymentStorage: ProcessingPaymentStorage
 ) : ViewModel() {
     
+    //region Queue Setup and Configuration
+    
     // Initialize the queue with viewModelScope
     private val paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent> = paymentQueueFactory.createDynamicPaymentQueue(
         storage = processingPaymentStorage,
@@ -62,6 +64,10 @@ class InteractivePaymentViewModel @Inject constructor(
     val queueState = paymentQueue.queueState
     val processingState = paymentQueue.processingState
     val processingPaymentEvents: SharedFlow<ProcessingPaymentEvent> = paymentQueue.processorEvents
+    
+    //endregion
+    
+    //region UI State Management
     
     // Current UI state - tracks what input the UI should be showing
     sealed class UiState {
@@ -94,6 +100,10 @@ class InteractivePaymentViewModel @Inject constructor(
     
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+    
+    //endregion
+    
+    //region Initialization and Event Handling
     
     init {
         // Observe processing state
@@ -155,7 +165,14 @@ class InteractivePaymentViewModel @Inject constructor(
             }
         }
     }
+    
+    //endregion
 
+    //region Queue Operations
+    
+    /**
+     * Start processing the payment queue
+     */
     fun startProcessing() {
         launchInViewModelScope {
             paymentQueue.startProcessing()
@@ -183,7 +200,33 @@ class InteractivePaymentViewModel @Inject constructor(
             paymentQueue.enqueue(paymentItem)
         }
     }
+    
+    /**
+     * Cancel a payment
+     */
+    fun cancelPayment(paymentId: String) {
+        launchInViewModelScope {
+            val item = paymentQueue.queueState.value.find { it.id == paymentId }
+            if (item != null) {
+                paymentQueue.remove(item)
+            }
+        }
+    }
+    
+    /**
+     * Cancel all payments
+     * Uses a single operation to remove all items at once
+     */
+    fun cancelAllPayments() {
+        launchInViewModelScope {
+            paymentQueue.removeAll()
+        }
+    }
+    
+    //endregion
 
+    //region Processor-Level Input Handling
+    
     /**
      * Confirm customer receipt printing (processor-level input request)
      */
@@ -208,6 +251,10 @@ class InteractivePaymentViewModel @Inject constructor(
             // UI will be updated via the input request flow
         }
     }
+    
+    //endregion
+    
+    //region Queue-Level Input Handling
     
     /**
      * Confirm proceeding to the next processor (queue-level input request)
@@ -252,6 +299,10 @@ class InteractivePaymentViewModel @Inject constructor(
             // UI will be updated via the queue input request flow
         }
     }
+    
+    //endregion
+    
+    //region Error Handling
     
     /**
      * Handle a failed payment with the specified action (queue-level input request)
@@ -307,25 +358,5 @@ class InteractivePaymentViewModel @Inject constructor(
         handleFailedPayment(requestId, ErrorHandlingAction.ABORT_ALL)
     }
     
-    /**
-     * Cancel a payment
-     */
-    fun cancelPayment(paymentId: String) {
-        launchInViewModelScope {
-            val item = paymentQueue.queueState.value.find { it.id == paymentId }
-            if (item != null) {
-                paymentQueue.remove(item)
-            }
-        }
-    }
-    
-    /**
-     * Cancel all payments
-     * Uses a single operation to remove all items at once
-     */
-    fun cancelAllPayments() {
-        launchInViewModelScope {
-            paymentQueue.removeAll()
-        }
-    }
+    //endregion
 }
