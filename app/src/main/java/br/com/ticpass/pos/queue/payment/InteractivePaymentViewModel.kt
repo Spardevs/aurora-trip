@@ -16,9 +16,11 @@ import br.com.ticpass.pos.queue.QueueConfirmationMode
 import br.com.ticpass.pos.queue.QueueInputRequest
 import br.com.ticpass.pos.queue.QueueInputResponse
 import br.com.ticpass.pos.queue.HybridQueueManager
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -66,6 +68,40 @@ class InteractivePaymentViewModel @Inject constructor(
     //endregion
     
     //region UI State Management
+    
+    /**
+     * Represents a one-time UI event that should be consumed by the UI
+     * These events are not part of the persistent state and are delivered only once
+     */
+    sealed class UiEvent {
+        // Navigation events
+        object NavigateBack : UiEvent()
+        data class NavigateToPaymentDetails(val paymentId: String) : UiEvent()
+        
+        // Message events
+        data class ShowToast(val message: String) : UiEvent()
+        data class ShowSnackbar(val message: String, val actionLabel: String? = null) : UiEvent()
+        
+        // Dialog events
+        data class ShowErrorDialog(val title: String, val message: String) : UiEvent()
+        data class ShowConfirmationDialog(val title: String, val message: String) : UiEvent()
+        
+        // Payment events
+        data class PaymentCompleted(val paymentId: String, val amount: Int) : UiEvent()
+        data class PaymentFailed(val paymentId: String, val error: ProcessingErrorEvent) : UiEvent()
+    }
+    
+    private val _uiEvents = MutableSharedFlow<UiEvent>()
+    val uiEvents = _uiEvents.asSharedFlow()
+    
+    /**
+     * Emit a one-time UI event
+     */
+    private fun emitUiEvent(event: UiEvent) {
+        launchInViewModelScope {
+            _uiEvents.emit(event)
+        }
+    }
     
     /**
      * Represents an action that can be dispatched to the ViewModel
@@ -176,6 +212,7 @@ class InteractivePaymentViewModel @Inject constructor(
         return when (action) {
             // Queue actions
             is Action.StartProcessing -> {
+                emitUiEvent(UiEvent.ShowToast("Starting payment processing"))
                 SideEffect.StartProcessingQueue { paymentQueue.startProcessing() }
             }
             is Action.EnqueuePayment -> {
@@ -187,6 +224,7 @@ class InteractivePaymentViewModel @Inject constructor(
                     priority = 10,
                     processorType = action.processorType
                 )
+                emitUiEvent(UiEvent.ShowToast("Payment added to queue"))
                 SideEffect.EnqueuePaymentItem(paymentItem) { paymentQueue.enqueue(paymentItem) }
             }
             is Action.CancelPayment -> {
@@ -194,10 +232,12 @@ class InteractivePaymentViewModel @Inject constructor(
                     val item = paymentQueue.queueState.value.find { it.id == action.paymentId }
                     if (item != null) {
                         paymentQueue.remove(item)
+                        emitUiEvent(UiEvent.ShowToast("Payment cancelled"))
                     }
                 }
             }
             is Action.CancelAllPayments -> {
+                emitUiEvent(UiEvent.ShowToast("All payments cancelled"))
                 SideEffect.RemoveAllPaymentItems { paymentQueue.removeAll() }
             }
             
@@ -249,6 +289,18 @@ class InteractivePaymentViewModel @Inject constructor(
                 // Update UI state for actions that continue processing
                 if (action.action == ErrorHandlingAction.RETRY_IMMEDIATELY || action.action == ErrorHandlingAction.RETRY_LATER) {
                     updateState(UiState.Processing)
+                    
+                    // Emit appropriate UI event
+                    val message = if (action.action == ErrorHandlingAction.RETRY_IMMEDIATELY) {
+                        "Retrying payment immediately"
+                    } else {
+                        "Payment moved to the end of the queue"
+                    }
+                    emitUiEvent(UiEvent.ShowToast(message))
+                } else if (action.action == ErrorHandlingAction.ABORT_CURRENT) {
+                    emitUiEvent(UiEvent.ShowToast("Skipped current payment"))
+                } else if (action.action == ErrorHandlingAction.ABORT_ALL) {
+                    emitUiEvent(UiEvent.ShowToast("Cancelled all payments"))
                 }
                 
                 SideEffect.ProvideQueueInput(response) { paymentQueue.provideQueueInput(response) }
@@ -257,9 +309,32 @@ class InteractivePaymentViewModel @Inject constructor(
             // Internal actions triggered by events
             is Action.ProcessingStateChanged -> {
                 when (action.state) {
-                    is ProcessingState.ItemProcessing -> updateState(UiState.Processing)
-                    is ProcessingState.QueueIdle -> updateState(UiState.Idle)
-                    is ProcessingState.ItemFailed -> updateState(UiState.Error(action.state.error))
+                    is ProcessingState.ItemProcessing -> {
+                        updateState(UiState.Processing)
+                        // Emit event that processing started for this item
+                        val item = action.state.item
+                        if (item is ProcessingPaymentQueueItem) {
+                            emitUiEvent(UiEvent.ShowToast("Processing payment ${item.id}"))
+                        }
+                    }
+                    is ProcessingState.ItemDone -> {
+                        // Emit event that item was completed successfully
+                        val item = action.state.item
+                        if (item is ProcessingPaymentQueueItem) {
+                            emitUiEvent(UiEvent.PaymentCompleted(item.id, item.amount))
+                        }
+                    }
+                    is ProcessingState.QueueIdle -> {
+                        updateState(UiState.Idle)
+                    }
+                    is ProcessingState.ItemFailed -> {
+                        updateState(UiState.Error(action.state.error))
+                        // Emit event that item failed
+                        val item = action.state.item
+                        if (item is ProcessingPaymentQueueItem) {
+                            emitUiEvent(UiEvent.PaymentFailed(item.id, action.state.error))
+                        }
+                    }
                     null -> { /* No UI state change when state is null */ }
                     else -> { /* No UI state change for other processing states */ }
                 }

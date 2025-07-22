@@ -152,6 +152,13 @@ class PaymentProcessingActivity : AppCompatActivity() {
             }
         }
         
+        // Observe UI events (one-time events from the ViewModel)
+        lifecycleScope.launch {
+            viewModel.uiEvents.collect { event ->
+                handleUiEvent(event)
+            }
+        }
+        
         // Observe processing state
         lifecycleScope.launch {
             viewModel.processingState.collectLatest { state ->
@@ -386,6 +393,79 @@ class PaymentProcessingActivity : AppCompatActivity() {
         currentEventTextView.text = eventMessage
         dialogEventTextView.text = eventMessage
         addEventLogMessage(eventMessage)
+    }
+    
+    /**
+     * Handle one-time UI events from the ViewModel
+     */
+    private fun handleUiEvent(event: InteractivePaymentViewModel.UiEvent) {
+        when (event) {
+            // Handle navigation events
+            is InteractivePaymentViewModel.UiEvent.NavigateBack -> {
+                finish()
+            }
+            is InteractivePaymentViewModel.UiEvent.NavigateToPaymentDetails -> {
+                // Example: Navigate to payment details
+                // val intent = Intent(this, PaymentDetailsActivity::class.java)
+                // intent.putExtra("paymentId", event.paymentId)
+                // startActivity(intent)
+                addEventLogMessage("Navigate to payment details: ${event.paymentId}")
+            }
+            
+            // Handle message events
+            is InteractivePaymentViewModel.UiEvent.ShowToast -> {
+                Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show()
+                addEventLogMessage("Toast: ${event.message}")
+            }
+            is InteractivePaymentViewModel.UiEvent.ShowSnackbar -> {
+                val view = findViewById<View>(android.R.id.content)
+                val snackbar = com.google.android.material.snackbar.Snackbar.make(
+                    view, 
+                    event.message, 
+                    com.google.android.material.snackbar.Snackbar.LENGTH_LONG
+                )
+                event.actionLabel?.let { label ->
+                    snackbar.setAction(label) {
+                        // Handle snackbar action if needed
+                    }
+                }
+                snackbar.show()
+                addEventLogMessage("Snackbar: ${event.message}")
+            }
+            
+            // Handle dialog events
+            is InteractivePaymentViewModel.UiEvent.ShowErrorDialog -> {
+                AlertDialog.Builder(this)
+                    .setTitle(event.title)
+                    .setMessage(event.message)
+                    .setPositiveButton("OK", null)
+                    .show()
+                addEventLogMessage("Error dialog: ${event.title} - ${event.message}")
+            }
+            is InteractivePaymentViewModel.UiEvent.ShowConfirmationDialog -> {
+                AlertDialog.Builder(this)
+                    .setTitle(event.title)
+                    .setMessage(event.message)
+                    .setPositiveButton("Yes") { _, _ -> 
+                        // Handle confirmation
+                        addEventLogMessage("Confirmation dialog: Yes")
+                    }
+                    .setNegativeButton("No") { _, _ ->
+                        addEventLogMessage("Confirmation dialog: No")
+                    }
+                    .show()
+                addEventLogMessage("Confirmation dialog: ${event.title} - ${event.message}")
+            }
+            
+            // Handle payment events
+            is InteractivePaymentViewModel.UiEvent.PaymentCompleted -> {
+                val amountStr = event.amount.toString()
+                addEventLogMessage("Payment ${event.paymentId} completed: $amountStr")
+            }
+            is InteractivePaymentViewModel.UiEvent.PaymentFailed -> {
+                addEventLogMessage("Payment ${event.paymentId} failed: ${event.error}")
+            }
+        }
     }
     
     private fun addEventLogMessage(message: String) {
