@@ -1,26 +1,16 @@
 package br.com.ticpass.pos.data.network.interceptor
 
-import android.content.Context
+import br.com.ticpass.pos.data.network.TokenManager
 import okhttp3.Interceptor
 import okhttp3.Response
-import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.*
+import javax.inject.Inject
 
-class AuthInterceptor(private val context: Context) : Interceptor {
-    private val prefs = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+class AuthInterceptor @Inject constructor(
+    private val tokenManager: TokenManager
+) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
-        val expirationStr = prefs.getString("token_expiration", null)
-        expirationStr?.let {
-            val sdf = SimpleDateFormat("EEE MMM dd HH:mm:ss 'GMT' yyyy", Locale.ENGLISH)
-            val expirationDate = sdf.parse(it)
-            if (expirationDate != null && expirationDate.before(Date())) {
-                throw IOException("Token expirado em $it")
-            }
-        }
-
-        val token = prefs.getString("auth_token", "") ?: ""
+        val token = tokenManager.getValidToken()
         val newRequest = chain.request().newBuilder()
             .addHeader("Authorization", "Bearer $token")
             .build()

@@ -382,6 +382,18 @@ class APIRepository @Inject constructor(
         }
     }
 
+    suspend fun getRefreshToken(refreshToken: String): RefreshTokenResponse {
+        return try {
+            service.refreshToken(
+                RefreshTokenRequest(refresh = refreshToken)
+            )
+        } catch (e: Exception) {
+            Log.e("APIRepository", "Erro ao fazer refresh do token", e)
+            throw e
+        }
+    }
+
+
 
     companion object {
         private const val NETWORK_PAGE_SIZE = 25

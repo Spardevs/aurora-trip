@@ -1,12 +1,10 @@
 package br.com.ticpass.pos.data.network
 
-import android.content.Context
 import br.com.ticpass.pos.data.api.APIService
 import br.com.ticpass.pos.data.network.interceptor.AuthInterceptor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import com.google.gson.GsonBuilder
@@ -15,21 +13,29 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-@InstallIn(SingletonComponent::class)
 @Module
-class NetworkModule {
+@InstallIn(SingletonComponent::class)
+object NetworkModule {
 
-    @Provides @Singleton
-    fun provideOkHttpClient(
-        @ApplicationContext ctx: Context
-    ): OkHttpClient = OkHttpClient.Builder()
-        .addInterceptor(AuthInterceptor(ctx))
-        .addInterceptor(HttpLoggingInterceptor().apply {
+    @Provides
+    @Singleton
+    fun provideHttpLoggingInterceptor(): HttpLoggingInterceptor =
+        HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
-        })
+        }
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(
+        authInterceptor: AuthInterceptor,
+        loggingInterceptor: HttpLoggingInterceptor
+    ): OkHttpClient = OkHttpClient.Builder()
+        .addInterceptor(authInterceptor)
+        .addInterceptor(loggingInterceptor)
         .build()
 
-    @Provides @Singleton
+    @Provides
+    @Singleton
     fun provideRetrofit(client: OkHttpClient): Retrofit =
         Retrofit.Builder()
             .baseUrl("https://api.ticpass.com.br/")
@@ -41,11 +47,9 @@ class NetworkModule {
             )
             .build()
 
-    @Singleton
     @Provides
-    fun provideAPIService(
-        @ApplicationContext ctx: Context
-    ): APIService {
-        return APIService.Companion.create(ctx)
+    @Singleton
+    fun provideAPIService(retrofit: Retrofit): APIService {
+        return retrofit.create(APIService::class.java)
     }
 }
