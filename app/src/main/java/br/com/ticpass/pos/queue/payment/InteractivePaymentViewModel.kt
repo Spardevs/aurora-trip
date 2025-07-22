@@ -15,6 +15,7 @@ import br.com.ticpass.pos.queue.ProcessingState
 import br.com.ticpass.pos.queue.QueueConfirmationMode
 import br.com.ticpass.pos.queue.QueueInputRequest
 import br.com.ticpass.pos.queue.QueueInputResponse
+import br.com.ticpass.pos.queue.HybridQueueManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,16 +30,15 @@ import java.util.UUID
  */
 @HiltViewModel
 class InteractivePaymentViewModel @Inject constructor(
-    private val processingPaymentStorage: ProcessingPaymentStorage
+    paymentQueueFactory: ProcessingPaymentQueueFactory,
+    processingPaymentStorage: ProcessingPaymentStorage
 ) : ViewModel() {
     
-    private val queueFactory = ProcessingPaymentQueueFactory()
-    
-    // Create a payment queue with a dynamic processor
-    private val paymentQueue = queueFactory.createDynamicPaymentQueue(
+    // Initialize the queue with viewModelScope
+    private val paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent> = paymentQueueFactory.createDynamicPaymentQueue(
         storage = processingPaymentStorage,
         persistenceStrategy = PersistenceStrategy.IMMEDIATE,
-        queueConfirmationMode = QueueConfirmationMode.CONFIRMATION, // Enable confirmation between processors
+        queueConfirmationMode = QueueConfirmationMode.CONFIRMATION,
         scope = viewModelScope
     )
     
