@@ -53,9 +53,7 @@ class InteractivePaymentViewModel @Inject constructor(
                 block()
             } catch (e: Exception) {
                 // Common error handling
-                _uiState.value = UiState.Error(
-                    ProcessingErrorEvent.GENERIC
-                )
+                updateState(UiState.Error(ProcessingErrorEvent.GENERIC))
             }
         }
     }
@@ -101,6 +99,14 @@ class InteractivePaymentViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
     
+    /**
+     * Single entry point for UI state updates
+     * All state changes should go through this method to ensure consistency
+     */
+    private fun updateState(newState: UiState) {
+        _uiState.value = newState
+    }
+    
     //endregion
     
     //region Initialization and Event Handling
@@ -110,11 +116,9 @@ class InteractivePaymentViewModel @Inject constructor(
         launchInViewModelScope {
             processingState.collectLatest { state ->
                 when (state) {
-                    is ProcessingState.ItemProcessing -> _uiState.value = UiState.Processing
-                    is ProcessingState.QueueIdle -> _uiState.value = UiState.Idle
-                    is ProcessingState.ItemFailed -> {
-                        _uiState.value = UiState.Error(state.error)
-                    }
+                    is ProcessingState.ItemProcessing -> updateState(UiState.Processing)
+                    is ProcessingState.QueueIdle -> updateState(UiState.Idle)
+                    is ProcessingState.ItemFailed -> updateState(UiState.Error(state.error))
                     else -> { /* No UI state change for other processing states */ }
                 }
             }
@@ -125,10 +129,10 @@ class InteractivePaymentViewModel @Inject constructor(
             (paymentQueue.processor.inputRequests).collectLatest { request ->
                 when (request) {
                     is InputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING -> {
-                        _uiState.value = UiState.ConfirmCustomerReceiptPrinting(
+                        updateState(UiState.ConfirmCustomerReceiptPrinting(
                             requestId = request.id,
                             doPrint = false // Default value, user can change via UI
-                        )
+                        ))
                     }
                 }
             }
@@ -139,27 +143,27 @@ class InteractivePaymentViewModel @Inject constructor(
             paymentQueue.queueInputRequests.collectLatest { request ->
                 when (request) {
                     is QueueInputRequest.CONFIRM_NEXT_PROCESSOR -> {
-                        _uiState.value = UiState.ConfirmNextProcessor(
+                        updateState(UiState.ConfirmNextProcessor(
                             requestId = request.id,
                             currentItemIndex = request.currentItemIndex,
                             totalItems = request.totalItems
-                        )
+                        ))
                     }
                     is PaymentQueueInputRequest.CONFIRM_NEXT_PAYMENT -> {
-                        _uiState.value = UiState.ConfirmNextPaymentProcessor(
+                        updateState(UiState.ConfirmNextPaymentProcessor(
                             requestId = request.id,
                             currentItemIndex = request.currentItemIndex,
                             totalItems = request.totalItems,
                             currentAmount = request.currentAmount,
                             currentMethod = request.currentMethod,
                             currentProcessorType = request.currentProcessorType
-                        )
+                        ))
                     }
                     is QueueInputRequest.ERROR_RETRY_OR_SKIP -> {
-                        _uiState.value = UiState.ErrorRetryOrSkip(
+                        updateState(UiState.ErrorRetryOrSkip(
                             requestId = request.id,
                             error = request.error
-                        )
+                        ))
                     }
                 }
             }
@@ -236,7 +240,7 @@ class InteractivePaymentViewModel @Inject constructor(
                 InputResponse(requestId, doPrint)
             )
             // Reset UI state
-            _uiState.value = UiState.Processing
+            updateState(UiState.Processing)
         }
     }
 
@@ -263,7 +267,7 @@ class InteractivePaymentViewModel @Inject constructor(
         launchInViewModelScope {
             val response = QueueInputResponse.proceed(requestId)
             paymentQueue.provideQueueInput(response)
-            _uiState.value = UiState.Processing
+            updateState(UiState.Processing)
         }
     }
     
@@ -285,7 +289,7 @@ class InteractivePaymentViewModel @Inject constructor(
             )
             paymentQueue.provideQueueInput(response)
             // Reset UI state
-            _uiState.value = UiState.Processing
+            updateState(UiState.Processing)
         }
     }
     
@@ -322,7 +326,7 @@ class InteractivePaymentViewModel @Inject constructor(
             
             // Reset UI state for actions that continue processing
             if (action == ErrorHandlingAction.RETRY_IMMEDIATELY || action == ErrorHandlingAction.RETRY_LATER) {
-                _uiState.value = UiState.Processing
+                updateState(UiState.Processing)
             }
             // For other actions, UI will be updated via the queue input request flow
         }
