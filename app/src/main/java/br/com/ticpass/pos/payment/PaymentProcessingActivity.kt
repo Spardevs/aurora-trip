@@ -28,6 +28,8 @@ import br.com.ticpass.pos.queue.ProcessingErrorEventResourceMapper
 import br.com.ticpass.pos.queue.ProcessingState
 import br.com.ticpass.pos.queue.payment.InteractivePaymentViewModel
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
+import br.com.ticpass.pos.queue.payment.state.UiState
+import br.com.ticpass.pos.queue.payment.state.UiEvent
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
 import br.com.ticpass.pos.queue.payment.SystemPaymentMethod
 import br.com.ticpass.pos.sdk.AcquirerSdk
@@ -229,27 +231,27 @@ class PaymentProcessingActivity : AppCompatActivity() {
         lifecycleScope.launch {
             viewModel.uiState.collectLatest { uiState ->
                 when (uiState) {
-                    is InteractivePaymentViewModel.UiState.ConfirmNextPaymentProcessor -> {
+                    is UiState.ConfirmNextPaymentProcessor -> {
                         showConfirmNextPaymentProcessorDialog(
                             requestId = uiState.requestId,
                             currentIndex = uiState.currentItemIndex,
                             totalItems = uiState.totalItems
                         )
                     }
-                    is InteractivePaymentViewModel.UiState.Error -> {
+                    is UiState.Error -> {
                         displayErrorMessage(uiState.event)
                     }
-                    is InteractivePaymentViewModel.UiState.ConfirmNextProcessor -> {
+                    is UiState.ConfirmNextProcessor -> {
                         showConfirmNextProcessorDialog(
                             requestId = uiState.requestId,
                             currentIndex = uiState.currentItemIndex,
                             totalItems = uiState.totalItems
                         )
                     }
-                    is InteractivePaymentViewModel.UiState.ConfirmCustomerReceiptPrinting -> {
+                    is UiState.ConfirmCustomerReceiptPrinting -> {
                         showCustomerReceiptDialog(uiState.requestId)
                     }
-                    is InteractivePaymentViewModel.UiState.ErrorRetryOrSkip -> {
+                    is UiState.ErrorRetryOrSkip -> {
                         showErrorRetryOptionsDialog(uiState.requestId, uiState.error)
                     }
                     else -> {
@@ -398,13 +400,13 @@ class PaymentProcessingActivity : AppCompatActivity() {
     /**
      * Handle one-time UI events from the ViewModel
      */
-    private fun handleUiEvent(event: InteractivePaymentViewModel.UiEvent) {
+    private fun handleUiEvent(event: UiEvent) {
         when (event) {
             // Handle navigation events
-            is InteractivePaymentViewModel.UiEvent.NavigateBack -> {
+            is UiEvent.NavigateBack -> {
                 finish()
             }
-            is InteractivePaymentViewModel.UiEvent.NavigateToPaymentDetails -> {
+            is UiEvent.NavigateToPaymentDetails -> {
                 // Example: Navigate to payment details
                 // val intent = Intent(this, PaymentDetailsActivity::class.java)
                 // intent.putExtra("paymentId", event.paymentId)
@@ -413,11 +415,11 @@ class PaymentProcessingActivity : AppCompatActivity() {
             }
             
             // Handle message events
-            is InteractivePaymentViewModel.UiEvent.ShowToast -> {
+            is UiEvent.ShowToast -> {
                 Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show()
                 addEventLogMessage("Toast: ${event.message}")
             }
-            is InteractivePaymentViewModel.UiEvent.ShowSnackbar -> {
+            is UiEvent.ShowSnackbar -> {
                 val view = findViewById<View>(android.R.id.content)
                 val snackbar = com.google.android.material.snackbar.Snackbar.make(
                     view, 
@@ -434,7 +436,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
             }
             
             // Handle dialog events
-            is InteractivePaymentViewModel.UiEvent.ShowErrorDialog -> {
+            is UiEvent.ShowErrorDialog -> {
                 AlertDialog.Builder(this)
                     .setTitle(event.title)
                     .setMessage(event.message)
@@ -442,7 +444,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
                     .show()
                 addEventLogMessage("Error dialog: ${event.title} - ${event.message}")
             }
-            is InteractivePaymentViewModel.UiEvent.ShowConfirmationDialog -> {
+            is UiEvent.ShowConfirmationDialog -> {
                 AlertDialog.Builder(this)
                     .setTitle(event.title)
                     .setMessage(event.message)
@@ -458,11 +460,11 @@ class PaymentProcessingActivity : AppCompatActivity() {
             }
             
             // Handle payment events
-            is InteractivePaymentViewModel.UiEvent.PaymentCompleted -> {
+            is UiEvent.PaymentCompleted -> {
                 val amountStr = event.amount.toString()
                 addEventLogMessage("Payment ${event.paymentId} completed: $amountStr")
             }
-            is InteractivePaymentViewModel.UiEvent.PaymentFailed -> {
+            is UiEvent.PaymentFailed -> {
                 addEventLogMessage("Payment ${event.paymentId} failed: ${event.error}")
             }
         }
@@ -554,7 +556,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
      */
     private fun showConfirmNextPaymentProcessorDialog(requestId: String, currentIndex: Int, totalItems: Int) {
         // Get the current UI state to access payment details
-        val state = viewModel.uiState.value as? InteractivePaymentViewModel.UiState.ConfirmNextPaymentProcessor ?: return
+        val state = viewModel.uiState.value as? UiState.ConfirmNextPaymentProcessor ?: return
         
         // Create a custom dialog view with editable fields
         val dialogView = layoutInflater.inflate(R.layout.dialog_payment_confirmation, null)

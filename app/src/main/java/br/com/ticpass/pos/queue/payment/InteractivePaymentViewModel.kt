@@ -5,17 +5,15 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import br.com.ticpass.pos.queue.ErrorHandlingAction
-import br.com.ticpass.pos.queue.InputRequest
-import br.com.ticpass.pos.queue.InputResponse
-import br.com.ticpass.pos.queue.PaymentQueueInputRequest
-import br.com.ticpass.pos.queue.payment.PaymentQueueInputResponse
-import br.com.ticpass.pos.queue.PersistenceStrategy
-import br.com.ticpass.pos.queue.ProcessingErrorEvent
-import br.com.ticpass.pos.queue.ProcessingState
 import br.com.ticpass.pos.queue.QueueConfirmationMode
-import br.com.ticpass.pos.queue.QueueInputRequest
-import br.com.ticpass.pos.queue.QueueInputResponse
+import br.com.ticpass.pos.queue.PersistenceStrategy
 import br.com.ticpass.pos.queue.HybridQueueManager
+import br.com.ticpass.pos.queue.ProcessingErrorEvent
+import br.com.ticpass.pos.queue.payment.state.Action
+import br.com.ticpass.pos.queue.payment.state.InteractivePaymentReducer
+import br.com.ticpass.pos.queue.payment.state.SideEffect
+import br.com.ticpass.pos.queue.payment.state.UiEvent
+import br.com.ticpass.pos.queue.payment.state.UiState
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -29,6 +27,13 @@ import java.util.UUID
 /**
  * Interactive Payment ViewModel
  * Example ViewModel that demonstrates handling input requests from payment processors
+ * 
+ * This ViewModel uses a modular architecture with:
+ * - Actions: Represent user interactions and events
+ * - Reducer: Handles state transitions and side effects
+ * - UiState: Represents the current UI state
+ * - UiEvent: Represents one-time events to be consumed by the UI
+ * - SideEffect: Represents operations that don't directly affect the UI state
  */
 @HiltViewModel
 class InteractivePaymentViewModel @Inject constructor(
@@ -69,28 +74,7 @@ class InteractivePaymentViewModel @Inject constructor(
     
     //region UI State Management
     
-    /**
-     * Represents a one-time UI event that should be consumed by the UI
-     * These events are not part of the persistent state and are delivered only once
-     */
-    sealed class UiEvent {
-        // Navigation events
-        object NavigateBack : UiEvent()
-        data class NavigateToPaymentDetails(val paymentId: String) : UiEvent()
-        
-        // Message events
-        data class ShowToast(val message: String) : UiEvent()
-        data class ShowSnackbar(val message: String, val actionLabel: String? = null) : UiEvent()
-        
-        // Dialog events
-        data class ShowErrorDialog(val title: String, val message: String) : UiEvent()
-        data class ShowConfirmationDialog(val title: String, val message: String) : UiEvent()
-        
-        // Payment events
-        data class PaymentCompleted(val paymentId: String, val amount: Int) : UiEvent()
-        data class PaymentFailed(val paymentId: String, val error: ProcessingErrorEvent) : UiEvent()
-    }
-    
+    // UI Events flow for one-time events
     private val _uiEvents = MutableSharedFlow<UiEvent>()
     val uiEvents = _uiEvents.asSharedFlow()
     
@@ -103,296 +87,39 @@ class InteractivePaymentViewModel @Inject constructor(
         }
     }
     
-    /**
-     * Represents an action that can be dispatched to the ViewModel
-     * Actions trigger state transitions and side effects
-     */
-    sealed class Action {
-        // Queue actions
-        object StartProcessing : Action()
-        data class EnqueuePayment(
-            val amount: Int,
-            val commission: Int,
-            val method: SystemPaymentMethod,
-            val processorType: String
-        ) : Action()
-        data class CancelPayment(val paymentId: String) : Action()
-        object CancelAllPayments : Action()
-        
-        // Processor-level input actions
-        data class ConfirmCustomerReceiptPrinting(val requestId: String, val doPrint: Boolean) : Action()
-        data class CancelInput(val requestId: String) : Action()
-        
-        // Queue-level input actions
-        data class ConfirmNextProcessor(val requestId: String) : Action()
-        data class ConfirmNextProcessorWithModifiedPayment(
-            val requestId: String,
-            val modifiedAmount: Int,
-            val modifiedMethod: SystemPaymentMethod,
-            val modifiedProcessorType: String
-        ) : Action()
-        data class SkipProcessor(val requestId: String) : Action()
-        
-        // Error handling actions
-        data class HandleFailedPayment(val requestId: String, val action: ErrorHandlingAction) : Action()
-        
-        // Internal actions triggered by events
-        data class ProcessingStateChanged(val state: ProcessingState<ProcessingPaymentQueueItem>?) : Action()
-        data class ProcessorInputRequested(val request: InputRequest) : Action()
-        data class QueueInputRequested(val request: QueueInputRequest) : Action()
-    }
-    
-    // Current UI state - tracks what input the UI should be showing
-    sealed class UiState {
-        object Idle : UiState()
-        object Processing : UiState()
-        data class Error(val event: ProcessingErrorEvent) : UiState()
-        
-        // Processor-level input requests
-        data class ConfirmCustomerReceiptPrinting(val requestId: String, val doPrint: Boolean) : UiState()
-        
-        // Generic processor confirmation (no payment details)
-        data class ConfirmNextProcessor(
-            val requestId: String, 
-            val currentItemIndex: Int, 
-            val totalItems: Int
-        ) : UiState()
-        
-        // Payment-specific processor confirmation with payment details
-        data class ConfirmNextPaymentProcessor(
-            val requestId: String, 
-            val currentItemIndex: Int, 
-            val totalItems: Int,
-            val currentAmount: Int,
-            val currentMethod: SystemPaymentMethod,
-            val currentProcessorType: String
-        ) : UiState()
-        
-        data class ErrorRetryOrSkip(val requestId: String, val error: ProcessingErrorEvent) : UiState()
-    }
-    
-    /**
-     * Represents a side effect that should be executed as a result of an action
-     * Side effects are one-time operations that don't directly affect the UI state
-     */
-    private sealed class SideEffect {
-        data class StartProcessingQueue(val scope: suspend () -> Unit) : SideEffect()
-        data class EnqueuePaymentItem(val item: ProcessingPaymentQueueItem, val scope: suspend () -> Unit) : SideEffect()
-        data class RemovePaymentItem(val itemId: String, val scope: suspend () -> Unit) : SideEffect()
-        data class RemoveAllPaymentItems(val scope: suspend () -> Unit) : SideEffect()
-        data class ProvideProcessorInput(val response: InputResponse, val scope: suspend () -> Unit) : SideEffect()
-        data class ProvideQueueInput(val response: QueueInputResponse, val scope: suspend () -> Unit) : SideEffect()
-    }
-    
+    // UI State flow for persistent state
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
     
     /**
-     * Single entry point for UI state updates
-     * All state changes should go through this method to ensure consistency
+     * Update the UI state
      */
     private fun updateState(newState: UiState) {
         _uiState.value = newState
     }
+    
+    // Reducer for handling actions and producing side effects
+    private val reducer = InteractivePaymentReducer(
+        emitUiEvent = ::emitUiEvent,
+        updateState = ::updateState
+    )
     
     /**
      * Dispatch an action to the ViewModel
      * This triggers state transitions and side effects
      */
     private fun dispatch(action: Action) {
-        val sideEffect = reduce(action)
+        val sideEffect = reducer.reduce(action, paymentQueue)
         sideEffect?.let { executeSideEffect(it) }
     }
     
     /**
-     * Reducer function that handles state transitions based on actions
-     * Returns a side effect to be executed, if any
+     * Execute a side effect
+     * All side effects are executed in the ViewModel scope
      */
-    private fun reduce(action: Action): SideEffect? {
-        return when (action) {
-            // Queue actions
-            is Action.StartProcessing -> {
-                emitUiEvent(UiEvent.ShowToast("Starting payment processing"))
-                SideEffect.StartProcessingQueue { paymentQueue.startProcessing() }
-            }
-            is Action.EnqueuePayment -> {
-                val paymentItem = ProcessingPaymentQueueItem(
-                    id = UUID.randomUUID().toString(),
-                    amount = action.amount,
-                    commission = action.commission,
-                    method = action.method,
-                    priority = 10,
-                    processorType = action.processorType
-                )
-                emitUiEvent(UiEvent.ShowToast("Payment added to queue"))
-                SideEffect.EnqueuePaymentItem(paymentItem) { paymentQueue.enqueue(paymentItem) }
-            }
-            is Action.CancelPayment -> {
-                SideEffect.RemovePaymentItem(action.paymentId) {
-                    val item = paymentQueue.queueState.value.find { it.id == action.paymentId }
-                    if (item != null) {
-                        paymentQueue.remove(item)
-                        emitUiEvent(UiEvent.ShowToast("Payment cancelled"))
-                    }
-                }
-            }
-            is Action.CancelAllPayments -> {
-                emitUiEvent(UiEvent.ShowToast("All payments cancelled"))
-                SideEffect.RemoveAllPaymentItems { paymentQueue.removeAll() }
-            }
-            
-            // Processor-level input actions
-            is Action.ConfirmCustomerReceiptPrinting -> {
-                updateState(UiState.Processing)
-                SideEffect.ProvideProcessorInput(
-                    InputResponse(action.requestId, action.doPrint)
-                ) { paymentQueue.processor.provideInput(InputResponse(action.requestId, action.doPrint)) }
-            }
-            is Action.CancelInput -> {
-                SideEffect.ProvideProcessorInput(
-                    InputResponse.canceled(action.requestId)
-                ) { paymentQueue.processor.provideInput(InputResponse.canceled(action.requestId)) }
-            }
-            
-            // Queue-level input actions
-            is Action.ConfirmNextProcessor -> {
-                updateState(UiState.Processing)
-                SideEffect.ProvideQueueInput(
-                    QueueInputResponse.proceed(action.requestId)
-                ) { paymentQueue.provideQueueInput(QueueInputResponse.proceed(action.requestId)) }
-            }
-            is Action.ConfirmNextProcessorWithModifiedPayment -> {
-                updateState(UiState.Processing)
-                val response = PaymentQueueInputResponse.proceedWithModifiedPayment(
-                    requestId = action.requestId,
-                    modifiedAmount = action.modifiedAmount,
-                    modifiedMethod = action.modifiedMethod,
-                    modifiedProcessorType = action.modifiedProcessorType
-                )
-                SideEffect.ProvideQueueInput(response) { paymentQueue.provideQueueInput(response) }
-            }
-            is Action.SkipProcessor -> {
-                SideEffect.ProvideQueueInput(
-                    QueueInputResponse.skip(action.requestId)
-                ) { paymentQueue.provideQueueInput(QueueInputResponse.skip(action.requestId)) }
-            }
-            
-            // Error handling actions
-            is Action.HandleFailedPayment -> {
-                val response = when (action.action) {
-                    ErrorHandlingAction.RETRY_IMMEDIATELY -> QueueInputResponse.retryImmediately(action.requestId)
-                    ErrorHandlingAction.RETRY_LATER -> QueueInputResponse.retryLater(action.requestId)
-                    ErrorHandlingAction.ABORT_CURRENT -> QueueInputResponse.abortCurrentProcessor(action.requestId)
-                    ErrorHandlingAction.ABORT_ALL -> QueueInputResponse.abortAllProcessors(action.requestId)
-                }
-                
-                // Update UI state for actions that continue processing
-                if (action.action == ErrorHandlingAction.RETRY_IMMEDIATELY || action.action == ErrorHandlingAction.RETRY_LATER) {
-                    updateState(UiState.Processing)
-                    
-                    // Emit appropriate UI event
-                    val message = if (action.action == ErrorHandlingAction.RETRY_IMMEDIATELY) {
-                        "Retrying payment immediately"
-                    } else {
-                        "Payment moved to the end of the queue"
-                    }
-                    emitUiEvent(UiEvent.ShowToast(message))
-                } else if (action.action == ErrorHandlingAction.ABORT_CURRENT) {
-                    emitUiEvent(UiEvent.ShowToast("Skipped current payment"))
-                } else if (action.action == ErrorHandlingAction.ABORT_ALL) {
-                    emitUiEvent(UiEvent.ShowToast("Cancelled all payments"))
-                }
-                
-                SideEffect.ProvideQueueInput(response) { paymentQueue.provideQueueInput(response) }
-            }
-            
-            // Internal actions triggered by events
-            is Action.ProcessingStateChanged -> {
-                when (action.state) {
-                    is ProcessingState.ItemProcessing -> {
-                        updateState(UiState.Processing)
-                        // Emit event that processing started for this item
-                        val item = action.state.item
-                        if (item is ProcessingPaymentQueueItem) {
-                            emitUiEvent(UiEvent.ShowToast("Processing payment ${item.id}"))
-                        }
-                    }
-                    is ProcessingState.ItemDone -> {
-                        // Emit event that item was completed successfully
-                        val item = action.state.item
-                        if (item is ProcessingPaymentQueueItem) {
-                            emitUiEvent(UiEvent.PaymentCompleted(item.id, item.amount))
-                        }
-                    }
-                    is ProcessingState.QueueIdle -> {
-                        updateState(UiState.Idle)
-                    }
-                    is ProcessingState.ItemFailed -> {
-                        updateState(UiState.Error(action.state.error))
-                        // Emit event that item failed
-                        val item = action.state.item
-                        if (item is ProcessingPaymentQueueItem) {
-                            emitUiEvent(UiEvent.PaymentFailed(item.id, action.state.error))
-                        }
-                    }
-                    null -> { /* No UI state change when state is null */ }
-                    else -> { /* No UI state change for other processing states */ }
-                }
-                null // No side effect needed
-            }
-            is Action.ProcessorInputRequested -> {
-                when (action.request) {
-                    is InputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING -> {
-                        updateState(UiState.ConfirmCustomerReceiptPrinting(
-                            requestId = action.request.id,
-                            doPrint = false // Default value, user can change via UI
-                        ))
-                    }
-                }
-                null // No side effect needed
-            }
-            is Action.QueueInputRequested -> {
-                when (action.request) {
-                    is QueueInputRequest.CONFIRM_NEXT_PROCESSOR -> {
-                        updateState(UiState.ConfirmNextProcessor(
-                            requestId = action.request.id,
-                            currentItemIndex = action.request.currentItemIndex,
-                            totalItems = action.request.totalItems
-                        ))
-                    }
-                    is PaymentQueueInputRequest.CONFIRM_NEXT_PAYMENT -> {
-                        updateState(UiState.ConfirmNextPaymentProcessor(
-                            requestId = action.request.id,
-                            currentItemIndex = action.request.currentItemIndex,
-                            totalItems = action.request.totalItems,
-                            currentAmount = action.request.currentAmount,
-                            currentMethod = action.request.currentMethod,
-                            currentProcessorType = action.request.currentProcessorType
-                        ))
-                    }
-                    is QueueInputRequest.ERROR_RETRY_OR_SKIP -> {
-                        updateState(UiState.ErrorRetryOrSkip(
-                            requestId = action.request.id,
-                            error = action.request.error
-                        ))
-                    }
-                }
-                null // No side effect needed
-            }
-        }
-    }
-    
-    /**
-     * Execute a side effect using the viewModelScope
-     */
-    private fun executeSideEffect(effect: SideEffect) {
-        when (effect) {
-            is SideEffect.StartProcessingQueue -> launchInViewModelScope { effect.scope() }
-            is SideEffect.EnqueuePaymentItem -> launchInViewModelScope { effect.scope() }
-            is SideEffect.RemovePaymentItem -> launchInViewModelScope { effect.scope() }
-            is SideEffect.RemoveAllPaymentItems -> launchInViewModelScope { effect.scope() }
-            is SideEffect.ProvideProcessorInput -> launchInViewModelScope { effect.scope() }
-            is SideEffect.ProvideQueueInput -> launchInViewModelScope { effect.scope() }
+    private fun executeSideEffect(sideEffect: SideEffect) {
+        launchInViewModelScope {
+            sideEffect.scope()
         }
     }
     
@@ -401,21 +128,14 @@ class InteractivePaymentViewModel @Inject constructor(
     //region Initialization and Event Handling
     
     init {
-        // Observe processing state
+        // Observe processing state changes
         launchInViewModelScope {
-            processingState.collectLatest { state ->
-                  dispatch(Action.ProcessingStateChanged(state))
+            paymentQueue.processingState.collectLatest { state ->
+                dispatch(Action.ProcessingStateChanged(state))
             }
         }
         
-        // Listen for input requests from the processor
-        launchInViewModelScope {
-            (paymentQueue.processor.inputRequests).collectLatest { request ->
-                dispatch(Action.ProcessorInputRequested(request))
-            }
-        }
-        
-        // Listen for queue-level input requests
+        // Observe queue input requests
         launchInViewModelScope {
             paymentQueue.queueInputRequests.collectLatest { request ->
                 dispatch(Action.QueueInputRequested(request))
@@ -424,8 +144,8 @@ class InteractivePaymentViewModel @Inject constructor(
     }
     
     //endregion
-
-    //region Queue Operations
+    
+    //region Public API
     
     /**
      * Start processing the payment queue
@@ -439,16 +159,11 @@ class InteractivePaymentViewModel @Inject constructor(
      */
     fun enqueuePayment(
         amount: Int,
-        commission: Int,
+        commission: Int = 0,
         method: SystemPaymentMethod,
         processorType: String = "acquirer", // "acquirer", "cash", or "transactionless"
     ) {
-        dispatch(Action.EnqueuePayment(
-            amount = amount,
-            commission = commission,
-            method = method,
-            processorType = processorType
-        ))
+        dispatch(Action.EnqueuePayment(amount, commission, method, processorType))
     }
     
     /**
@@ -473,15 +188,8 @@ class InteractivePaymentViewModel @Inject constructor(
     /**
      * Confirm customer receipt printing (processor-level input request)
      */
-    fun confirmCustomerReceiptPrinting(requestId: String, doPrint: Boolean) {
-        dispatch(Action.ConfirmCustomerReceiptPrinting(requestId, doPrint))
-    }
-
-    /**
-     * Cancel the current processor-level input request
-     */
-    fun cancelInput(requestId: String) {
-        dispatch(Action.CancelInput(requestId))
+    fun confirmCustomerReceiptPrinting(requestId: String, shouldPrint: Boolean) {
+        dispatch(Action.ConfirmCustomerReceiptPrinting(requestId, shouldPrint))
     }
     
     //endregion
@@ -505,10 +213,10 @@ class InteractivePaymentViewModel @Inject constructor(
         modifiedProcessorType: String
     ) {
         dispatch(Action.ConfirmNextProcessorWithModifiedPayment(
-            requestId = requestId,
-            modifiedAmount = modifiedAmount,
-            modifiedMethod = modifiedMethod,
-            modifiedProcessorType = modifiedProcessorType
+            requestId,
+            modifiedAmount,
+            modifiedMethod,
+            modifiedProcessorType
         ))
     }
     
