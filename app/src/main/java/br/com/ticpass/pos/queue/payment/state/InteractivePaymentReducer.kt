@@ -1,23 +1,38 @@
 package br.com.ticpass.pos.queue.payment.state
 
-import br.com.ticpass.pos.queue.ErrorHandlingAction
 import br.com.ticpass.pos.queue.HybridQueueManager
-import br.com.ticpass.pos.queue.PaymentQueueInputRequest
-import br.com.ticpass.pos.queue.ProcessingState
-import br.com.ticpass.pos.queue.QueueInputRequest
-import br.com.ticpass.pos.queue.QueueInputResponse
-import br.com.ticpass.pos.queue.payment.PaymentQueueInputResponse
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
-import java.util.UUID
+import br.com.ticpass.pos.queue.payment.usecases.ErrorHandlingUseCase
+import br.com.ticpass.pos.queue.payment.usecases.ProcessorConfirmationUseCase
+import br.com.ticpass.pos.queue.payment.usecases.QueueManagementUseCase
+import br.com.ticpass.pos.queue.payment.usecases.StateManagementUseCase
+import javax.inject.Inject
 
 /**
  * Reducer class for handling state transitions and side effects in the InteractivePaymentViewModel
+ * Refactored to use use case classes for better maintainability and testability
  */
-class InteractivePaymentReducer(
-    private val emitUiEvent: (UiEvent) -> Unit,
-    private val updateState: (UiState) -> Unit
+class InteractivePaymentReducer @Inject constructor(
+    private val queueManagementUseCase: QueueManagementUseCase,
+    private val errorHandlingUseCase: ErrorHandlingUseCase,
+    private val processorConfirmationUseCase: ProcessorConfirmationUseCase,
+    private val stateManagementUseCase: StateManagementUseCase
 ) {
+    
+    private lateinit var emitUiEvent: (UiEvent) -> Unit
+    private lateinit var updateState: (UiState) -> Unit
+    
+    /**
+     * Initialize the reducer with callback functions from the ViewModel
+     */
+    fun initialize(
+        emitUiEvent: (UiEvent) -> Unit,
+        updateState: (UiState) -> Unit
+    ) {
+        this.emitUiEvent = emitUiEvent
+        this.updateState = updateState
+    }
     /**
      * Reduce an action to a side effect and update the UI state
      * @param action The action to reduce
@@ -29,159 +44,93 @@ class InteractivePaymentReducer(
         paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>
     ): SideEffect? {
         return when (action) {
-            // Queue actions
+            // Queue management actions
             is Action.StartProcessing -> {
-                emitUiEvent(UiEvent.ShowToast("Starting payment processing"))
-                SideEffect.StartProcessingQueue { paymentQueue.startProcessing() }
+                queueManagementUseCase.startProcessing(paymentQueue, emitUiEvent)
             }
             is Action.EnqueuePayment -> {
-                val paymentItem = ProcessingPaymentQueueItem(
-                    id = UUID.randomUUID().toString(),
+                queueManagementUseCase.enqueuePayment(
                     amount = action.amount,
                     commission = action.commission,
                     method = action.method,
-                    priority = 10,
-                    processorType = action.processorType
+                    processorType = action.processorType,
+                    paymentQueue = paymentQueue,
+                    emitUiEvent = emitUiEvent
                 )
-                emitUiEvent(UiEvent.ShowToast("Payment added to queue"))
-                SideEffect.EnqueuePaymentItem { paymentQueue.enqueue(paymentItem) }
             }
             is Action.CancelPayment -> {
-                SideEffect.RemovePaymentItem {
-                    val item = paymentQueue.queueState.value.find { it.id == action.paymentId }
-                    if (item != null) {
-                        paymentQueue.remove(item)
-                        emitUiEvent(UiEvent.ShowToast("Payment cancelled"))
-                    }
-                }
+                queueManagementUseCase.cancelPayment(
+                    paymentId = action.paymentId,
+                    paymentQueue = paymentQueue,
+                    emitUiEvent = emitUiEvent
+                )
             }
             is Action.CancelAllPayments -> {
-                emitUiEvent(UiEvent.ShowToast("All payments cancelled"))
-                SideEffect.RemoveAllPaymentItems { paymentQueue.removeAll() }
+                queueManagementUseCase.cancelAllPayments(paymentQueue, emitUiEvent)
             }
             
-            // Processor input actions
+            // Processor confirmation actions
             is Action.ConfirmNextProcessor -> {
-                updateState(UiState.Processing)
-                SideEffect.ProvideQueueInput { 
-                    paymentQueue.provideQueueInput(QueueInputResponse.proceed(action.requestId)) 
-                }
+                processorConfirmationUseCase.confirmNextProcessor(
+                    requestId = action.requestId,
+                    paymentQueue = paymentQueue,
+                    updateState = updateState
+                )
             }
             is Action.ConfirmNextProcessorWithModifiedPayment -> {
-                updateState(UiState.Processing)
-                val response = PaymentQueueInputResponse.proceedWithModifiedPayment(
+                processorConfirmationUseCase.confirmNextProcessorWithModifiedPayment(
                     requestId = action.requestId,
                     modifiedAmount = action.modifiedAmount,
                     modifiedMethod = action.modifiedMethod,
-                    modifiedProcessorType = action.modifiedProcessorType
+                    modifiedProcessorType = action.modifiedProcessorType,
+                    paymentQueue = paymentQueue,
+                    updateState = updateState
                 )
-                SideEffect.ProvideQueueInput { paymentQueue.provideQueueInput(response) }
             }
             is Action.SkipProcessor -> {
-                SideEffect.ProvideQueueInput { 
-                    paymentQueue.provideQueueInput(QueueInputResponse.skip(action.requestId)) 
-                }
+                processorConfirmationUseCase.skipProcessor(
+                    requestId = action.requestId,
+                    paymentQueue = paymentQueue
+                )
             }
             
             // Error handling actions
             is Action.HandleFailedPayment -> {
-                val response = when (action.action) {
-                    ErrorHandlingAction.RETRY_IMMEDIATELY -> QueueInputResponse.retryImmediately(action.requestId)
-                    ErrorHandlingAction.RETRY_LATER -> QueueInputResponse.retryLater(action.requestId)
-                    ErrorHandlingAction.ABORT_CURRENT -> QueueInputResponse.abortCurrentProcessor(action.requestId)
-                    ErrorHandlingAction.ABORT_ALL -> QueueInputResponse.abortAllProcessors(action.requestId)
-                }
-                
-                // Update UI state for actions that continue processing
-                if (action.action == ErrorHandlingAction.RETRY_IMMEDIATELY || action.action == ErrorHandlingAction.RETRY_LATER) {
-                    updateState(UiState.Processing)
-                    
-                    // Emit appropriate UI event
-                    val message = if (action.action == ErrorHandlingAction.RETRY_IMMEDIATELY) {
-                        "Retrying payment immediately"
-                    } else {
-                        "Payment moved to the end of the queue"
-                    }
-                    emitUiEvent(UiEvent.ShowToast(message))
-                } else if (action.action == ErrorHandlingAction.ABORT_CURRENT) {
-                    emitUiEvent(UiEvent.ShowToast("Skipped current payment"))
-                } else if (action.action == ErrorHandlingAction.ABORT_ALL) {
-                    emitUiEvent(UiEvent.ShowToast("Cancelled all payments"))
-                }
-                
-                SideEffect.ProvideQueueInput { paymentQueue.provideQueueInput(response) }
+                errorHandlingUseCase.handleFailedPayment(
+                    requestId = action.requestId,
+                    action = action.action,
+                    paymentQueue = paymentQueue,
+                    emitUiEvent = emitUiEvent,
+                    updateState = updateState
+                )
             }
             
             // Receipt printing actions
             is Action.ConfirmCustomerReceiptPrinting -> {
-                updateState(UiState.Processing)
-                // Create a standard input response with the print choice as the value
-                val response = QueueInputResponse(action.requestId, action.shouldPrint)
-                SideEffect.ProvideQueueInput { paymentQueue.provideQueueInput(response) }
+                processorConfirmationUseCase.confirmCustomerReceiptPrinting(
+                    requestId = action.requestId,
+                    shouldPrint = action.shouldPrint,
+                    paymentQueue = paymentQueue,
+                    updateState = updateState
+                )
             }
             
             // Internal actions triggered by events
             is Action.ProcessingStateChanged -> {
-                when (action.state) {
-                    is ProcessingState.ItemProcessing -> {
-                        updateState(UiState.Processing)
-                        // Emit event that processing started for this item
-                        val item = action.state.item
-                        if (item is ProcessingPaymentQueueItem) {
-                            emitUiEvent(UiEvent.ShowToast("Processing payment ${item.id}"))
-                        }
-                    }
-                    is ProcessingState.ItemDone -> {
-                        // Emit event that item was completed successfully
-                        val item = action.state.item
-                        if (item is ProcessingPaymentQueueItem) {
-                            emitUiEvent(UiEvent.PaymentCompleted(item.id, item.amount))
-                        }
-                    }
-                    is ProcessingState.QueueIdle -> {
-                        updateState(UiState.Idle)
-                    }
-                    is ProcessingState.ItemFailed -> {
-                        android.util.Log.e("ErrorHandling", "ProcessingState.ItemFailed received in reducer: ${action.state.error}")
-                        updateState(UiState.Error(action.state.error))
-                        android.util.Log.e("ErrorHandling", "UiState.Error set in reducer")
-                        // Emit event that item failed
-                        val item = action.state.item
-                        if (item is ProcessingPaymentQueueItem) {
-                            emitUiEvent(UiEvent.PaymentFailed(item.id, action.state.error))
-                            android.util.Log.e("ErrorHandling", "UiEvent.PaymentFailed emitted")
-                        }
-                    }
-                    null -> { /* No UI state change when state is null */ }
-                    else -> { /* No UI state change for other processing states */ }
+                action.state?.let { state ->
+                    stateManagementUseCase.handleProcessingStateChange(
+                        state = state,
+                        emitUiEvent = emitUiEvent,
+                        updateState = updateState
+                    )
                 }
                 null // No side effect needed
             }
             is Action.QueueInputRequested -> {
-                when (action.request) {
-                    is PaymentQueueInputRequest.CONFIRM_NEXT_PAYMENT -> {
-                        updateState(UiState.ConfirmNextPaymentProcessor(
-                            requestId = action.request.id,
-                            currentItemIndex = action.request.currentItemIndex,
-                            totalItems = action.request.totalItems,
-                            currentAmount = action.request.currentAmount,
-                            currentMethod = action.request.currentMethod,
-                            currentProcessorType = action.request.currentProcessorType
-                        ))
-                    }
-                    is QueueInputRequest.ERROR_RETRY_OR_SKIP -> {
-                        android.util.Log.e("ErrorHandling", "QueueInputRequest.ERROR_RETRY_OR_SKIP received in reducer")
-                        updateState(UiState.ErrorRetryOrSkip(
-                            requestId = action.request.id,
-                            error = action.request.error
-                        ))
-                        android.util.Log.e("ErrorHandling", "UiState.ErrorRetryOrSkip set in reducer")
-                    }
-                    else -> {
-                        // Handle other request types if needed
-                        android.util.Log.e("ErrorHandling", "Unhandled request type: ${action.request::class.java.simpleName}")
-                    }
-                }
+                stateManagementUseCase.handleQueueInputRequest(
+                    request = action.request,
+                    updateState = updateState
+                )
                 null // No side effect needed
             }
         }

@@ -37,7 +37,8 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class InteractivePaymentViewModel @Inject constructor(
     paymentQueueFactory: ProcessingPaymentQueueFactory,
-    processingPaymentStorage: ProcessingPaymentStorage
+    processingPaymentStorage: ProcessingPaymentStorage,
+    private val reducer: InteractivePaymentReducer
 ) : ViewModel() {
     
     // Queue Setup and Configuration
@@ -93,11 +94,14 @@ class InteractivePaymentViewModel @Inject constructor(
         _uiState.value = newState
     }
     
-    // Reducer for handling actions and producing side effects
-    private val reducer = InteractivePaymentReducer(
-        emitUiEvent = ::emitUiEvent,
-        updateState = ::updateState
-    )
+    // Reducer for handling actions and producing side effects (injected)
+    init {
+        // Initialize the reducer with callback functions
+        reducer.initialize(
+            emitUiEvent = ::emitUiEvent,
+            updateState = ::updateState
+        )
+    }
     
     /**
      * Dispatch an action to the ViewModel
