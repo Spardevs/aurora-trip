@@ -2,7 +2,7 @@ package br.com.ticpass.pos.queue.payment
 
 import br.com.ticpass.pos.queue.HybridQueueManager
 import br.com.ticpass.pos.queue.PersistenceStrategy
-import br.com.ticpass.pos.queue.QueueConfirmationMode
+import br.com.ticpass.pos.queue.ProcessorStartMode
 import br.com.ticpass.pos.queue.QueueProcessor
 import br.com.ticpass.pos.queue.payment.processors.DynamicPaymentProcessor
 import br.com.ticpass.pos.queue.payment.processors.PaymentProcessorBase
@@ -42,14 +42,14 @@ class ProcessingPaymentQueueFactory {
         storage: ProcessingPaymentStorage,
         paymentMethod: String = "acquirer",
         persistenceStrategy: PersistenceStrategy = PersistenceStrategy.IMMEDIATE,
-        queueConfirmationMode: QueueConfirmationMode = QueueConfirmationMode.AUTO,
+        startMode: ProcessorStartMode = ProcessorStartMode.IMMEDIATE,
         scope: CoroutineScope
     ): HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent> {
         return HybridQueueManager(
             storage = storage,
             processor = processorProvider.getProcessor(paymentMethod),
             persistenceStrategy = persistenceStrategy,
-            queueConfirmationMode = queueConfirmationMode,
+            startMode = startMode,
             scope = scope
         )
     }
@@ -67,14 +67,14 @@ class ProcessingPaymentQueueFactory {
         storage: ProcessingPaymentStorage,
         processor: QueueProcessor<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
         persistenceStrategy: PersistenceStrategy = PersistenceStrategy.IMMEDIATE,
-        queueConfirmationMode: QueueConfirmationMode = QueueConfirmationMode.AUTO,
+        startMode: ProcessorStartMode = ProcessorStartMode.IMMEDIATE,
         scope: CoroutineScope
     ): HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent> {
         return HybridQueueManager(
             storage = storage,
             processor = processor,
             persistenceStrategy = persistenceStrategy,
-            queueConfirmationMode = queueConfirmationMode,
+            startMode = startMode,
             scope = scope
         )
     }
@@ -91,7 +91,7 @@ class ProcessingPaymentQueueFactory {
     fun createDynamicPaymentQueue(
         storage: ProcessingPaymentStorage,
         persistenceStrategy: PersistenceStrategy = PersistenceStrategy.IMMEDIATE,
-        queueConfirmationMode: QueueConfirmationMode = QueueConfirmationMode.AUTO,
+        startMode: ProcessorStartMode = ProcessorStartMode.IMMEDIATE,
         scope: CoroutineScope
     ): HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent> {
         // Create a dynamic processor with all our processor types
@@ -101,7 +101,7 @@ class ProcessingPaymentQueueFactory {
             storage = storage,
             processor = dynamicProcessor,
             persistenceStrategy = persistenceStrategy,
-            queueConfirmationMode = queueConfirmationMode,
+            startMode = startMode,
             scope = scope
         )
     }

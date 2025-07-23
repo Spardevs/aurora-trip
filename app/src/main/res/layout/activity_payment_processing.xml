@@ -90,21 +90,12 @@
                 android:text="Payment Queue"
                 android:textSize="18sp"
                 android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/text_queue_size"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Items in queue: 0"
-                android:textSize="16sp" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_queue_items"
+            
+            <br.com.ticpass.pos.payment.view.PaymentQueueView
+                android:id="@+id/payment_queue_view"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:layout_marginTop="8dp"
-                tools:listitem="@layout/item_payment_queue" />
+                android:layout_height="150dp"
+                android:layout_marginTop="8dp" />
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>
@@ -165,41 +156,26 @@
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/text_processing_progress"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Payment 0 out of 0"
-                android:textSize="16sp" />
-
-            <ProgressBar
-                android:id="@+id/progress_bar"
-                style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            <br.com.ticpass.pos.payment.view.PaymentProgressView
+                android:id="@+id/payment_progress_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp" />
-
+                
             <TextView
-                android:id="@+id/text_current_event"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:textAlignment="center"
+                android:text="Event Log"
                 android:textSize="18sp"
-                android:textStyle="bold"
-                tools:text="@string/event_start" />
-
-            <TextView
-                android:id="@+id/text_event_log"
+                android:textStyle="bold" />
+                
+            <br.com.ticpass.pos.payment.view.EventLogView
+                android:id="@+id/event_log_view"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:layout_marginTop="16dp"
-                android:background="#F5F5F5"
-                android:padding="8dp"
-                android:scrollbars="vertical"
-                android:textSize="14sp" />
+                android:layout_marginTop="8dp" />
             </LinearLayout>
         </ScrollView>
     </androidx.cardview.widget.CardView>

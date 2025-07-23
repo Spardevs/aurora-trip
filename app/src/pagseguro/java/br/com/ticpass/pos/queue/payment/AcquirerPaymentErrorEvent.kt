@@ -694,12 +694,18 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Try again, if it persists contact your commercial manager.
      */
     CONTACTLESS_NOT_AUTHORIZED_M831("M831", ProcessingErrorEvent.CONTACTLESS_NOT_AUTHORIZED),
-    
+
     /**
      * Request cannot be completed.
      * Please try again later.
      */
     REQUEST_CANNOT_BE_COMPLETED_M1000("M1000", ProcessingErrorEvent.REQUEST_CANNOT_BE_COMPLETED),
+
+    /**
+     * Request cannot be completed 2.
+     * Please try again later.
+     */
+    REQUEST_CANNOT_BE_COMPLETED_M1000_2("1000", ProcessingErrorEvent.REQUEST_CANNOT_BE_COMPLETED),
     
     /**
      * Request cannot be executed.

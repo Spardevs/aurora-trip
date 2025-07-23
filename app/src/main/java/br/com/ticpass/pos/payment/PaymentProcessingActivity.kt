@@ -2,42 +2,34 @@ package br.com.ticpass.pos.payment
 
 import android.app.AlertDialog
 import android.os.Bundle
-import android.text.method.ScrollingMovementMethod
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import android.widget.Button
 import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.LinearLayout
-import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
-import dagger.hilt.android.AndroidEntryPoint
+import br.com.ticpass.pos.payment.view.EventLogView
+import br.com.ticpass.pos.payment.view.PaymentProgressView
+import br.com.ticpass.pos.payment.view.PaymentQueueView
 import br.com.ticpass.pos.queue.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.ProcessingErrorEventResourceMapper
 import br.com.ticpass.pos.queue.ProcessingState
 import br.com.ticpass.pos.queue.payment.InteractivePaymentViewModel
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
-import br.com.ticpass.pos.queue.payment.state.UiState
-import br.com.ticpass.pos.queue.payment.state.UiEvent
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
 import br.com.ticpass.pos.queue.payment.SystemPaymentMethod
+import br.com.ticpass.pos.queue.payment.state.UiEvent
+import br.com.ticpass.pos.queue.payment.state.UiState
 import br.com.ticpass.pos.sdk.AcquirerSdk
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.text.NumberFormat
-import java.util.Locale
 
 @AndroidEntryPoint
 class PaymentProcessingActivity : AppCompatActivity() {
@@ -46,13 +38,9 @@ class PaymentProcessingActivity : AppCompatActivity() {
     private val viewModel: InteractivePaymentViewModel by viewModels()
     
     // UI components
-    private lateinit var queueSizeTextView: TextView
-    private lateinit var processingProgressTextView: TextView
-    private lateinit var progressBar: android.widget.ProgressBar
-    private lateinit var currentEventTextView: TextView
-    private lateinit var eventLogTextView: TextView
-    private lateinit var queueRecyclerView: RecyclerView
-    private lateinit var queueAdapter: PaymentQueueAdapter
+    private lateinit var paymentQueueView: PaymentQueueView
+    private lateinit var paymentProgressView: PaymentProgressView
+    private lateinit var eventLogView: EventLogView
     
     // Progress Dialog
     private var progressDialog: AlertDialog? = null
@@ -60,13 +48,12 @@ class PaymentProcessingActivity : AppCompatActivity() {
     private lateinit var dialogProgressBar: android.widget.ProgressBar
     private lateinit var dialogEventTextView: TextView
     
-    // PIN entry tracking
+    // For tracking PIN entry
     private val pinDigits = mutableListOf<Int>()
     
-    // Tracking current processing
+    // For tracking progress
     private var totalPayments = 0
     private var currentProcessingIndex = 0
-    private val eventLog = StringBuilder()
     
     override fun onCreate(savedInstanceState: Bundle?) {
         AcquirerSdk.initialize(applicationContext)
@@ -79,20 +66,15 @@ class PaymentProcessingActivity : AppCompatActivity() {
     }
     
     private fun setupViews() {
-        queueSizeTextView = findViewById(R.id.text_queue_size)
-        processingProgressTextView = findViewById(R.id.text_processing_progress)
-        progressBar = findViewById(R.id.progress_bar)
-        currentEventTextView = findViewById(R.id.text_current_event)
-        eventLogTextView = findViewById(R.id.text_event_log)
-        eventLogTextView.movementMethod = ScrollingMovementMethod()
+        // Initialize custom views
+        paymentQueueView = findViewById(R.id.payment_queue_view)
+        paymentProgressView = findViewById(R.id.payment_progress_view)
+        eventLogView = findViewById(R.id.event_log_view)
         
-        // Setup RecyclerView
-        queueRecyclerView = findViewById(R.id.recycler_queue_items)
-        queueRecyclerView.layoutManager = LinearLayoutManager(this)
-        queueAdapter = PaymentQueueAdapter(emptyList()) { paymentId ->
+        // Set up payment queue view cancel callback
+        paymentQueueView.onPaymentCanceled = { paymentId ->
             viewModel.cancelPayment(paymentId)
         }
-        queueRecyclerView.adapter = queueAdapter
         
         // Create progress dialog
         createProgressDialog()
@@ -179,7 +161,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
                         updateProcessingProgress(currentIndex, total)
                     }
                     is ProcessingState.ItemDone -> {
-                        addEventLogMessage("All payments completed")
+                        eventLogView.addSuccessMessage("All payments completed")
                     }
                     is ProcessingState.ItemFailed -> {
                         // Handle error state
@@ -187,7 +169,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
                         val resourceId = ProcessingErrorEventResourceMapper.getErrorResourceKey(state.error)
                         val displayMessage = getString(resourceId)
                         Log.e("PaymentProcessingActivity", "Error message: $displayMessage")
-                        addEventLogMessage("Error: $displayMessage")
+                        eventLogView.addErrorMessage(displayMessage)
                         
                         // Also display the error in the progress area
                         displayErrorMessage(state.error)
@@ -205,12 +187,12 @@ class PaymentProcessingActivity : AppCompatActivity() {
                     is ProcessingState.QueueCanceled -> {
                         // Reset progress when queue is canceled
                         updateProcessingProgress(0, 0)
-                        addEventLogMessage("All payments canceled")
+                        eventLogView.addMessage("All payments canceled")
                     }
                     is ProcessingState.QueueDone -> {
                         // Reset progress when queue processing is done
                         updateProcessingProgress(0, 0)
-                        addEventLogMessage("All payments processed successfully")
+                        eventLogView.addSuccessMessage("All payments processed successfully")
                     }
                     else -> { 
                         // Reset progress for other states
@@ -230,6 +212,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         // Observe UI state for input dialogs and error states
         lifecycleScope.launch {
             viewModel.uiState.collectLatest { uiState ->
+                Log.d("ErrorHandling", "UI State changed to: $uiState")
                 when (uiState) {
                     is UiState.ConfirmNextPaymentProcessor -> {
                         showConfirmNextPaymentProcessorDialog(
@@ -264,18 +247,15 @@ class PaymentProcessingActivity : AppCompatActivity() {
     }
     
     private fun updateQueueUI(queueItems: List<ProcessingPaymentQueueItem>) {
-        queueSizeTextView.text = "Items in queue: ${queueItems.size}"
-        queueAdapter.updateItems(queueItems)
+        paymentQueueView.updateQueue(queueItems)
         totalPayments = queueItems.size
-        progressBar.max = totalPayments
     }
     
     private fun updateProcessingProgress(current: Int, total: Int) {
         currentProcessingIndex = current
-        processingProgressTextView.text = getString(R.string.payment_progress, current, total)
-        // Reset text color to default when showing normal progress
-        processingProgressTextView.setTextColor(getColor(android.R.color.black))
-        progressBar.progress = current
+        
+        // Update progress in the main view
+        paymentProgressView.updateProgress(current, total)
         
         // Update dialog progress
         dialogProgressTextView.text = getString(R.string.payment_progress, current, total)
@@ -283,7 +263,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         dialogProgressBar.max = total
         
         // Show dialog if processing is happening, hide otherwise
-        if (total > 0) { // Changed condition to show dialog whenever there are items in the queue
+        if (total > 0) { // Show dialog whenever there are items in the queue
             showProgressDialog()
         } else {
             hideProgressDialog()
@@ -313,7 +293,8 @@ class PaymentProcessingActivity : AppCompatActivity() {
             getString(R.string.pin_entry_display, pinDisplay)
         }
         
-        // Update the dialog with the PIN display
+        // Update both the main UI and dialog with the PIN display
+        paymentProgressView.updateCurrentEvent(pinMessage)
         dialogEventTextView.text = pinMessage
     }
     
@@ -391,10 +372,14 @@ class PaymentProcessingActivity : AppCompatActivity() {
             ProcessingPaymentEvent.CANCELLED -> getString(R.string.event_cancelled)
         }
         
-        // Update both the main UI and dialog with the event message
-        currentEventTextView.text = eventMessage
+        // Update the payment progress view with the event message
+        paymentProgressView.updateCurrentEvent(eventMessage)
+        
+        // Update dialog with the event message
         dialogEventTextView.text = eventMessage
-        addEventLogMessage(eventMessage)
+        
+        // Log the payment event using the dedicated method
+        eventLogView.addPaymentEvent(eventMessage)
     }
     
     /**
@@ -411,13 +396,13 @@ class PaymentProcessingActivity : AppCompatActivity() {
                 // val intent = Intent(this, PaymentDetailsActivity::class.java)
                 // intent.putExtra("paymentId", event.paymentId)
                 // startActivity(intent)
-                addEventLogMessage("Navigate to payment details: ${event.paymentId}")
+                eventLogView.addMessage("Navigate to payment details: ${event.paymentId}")
             }
             
             // Handle message events
             is UiEvent.ShowToast -> {
                 Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show()
-                addEventLogMessage("Toast: ${event.message}")
+                eventLogView.addMessage("Toast: ${event.message}")
             }
             is UiEvent.ShowSnackbar -> {
                 val view = findViewById<View>(android.R.id.content)
@@ -432,7 +417,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
                     }
                 }
                 snackbar.show()
-                addEventLogMessage("Snackbar: ${event.message}")
+                eventLogView.addMessage("Snackbar: ${event.message}")
             }
             
             // Handle dialog events
@@ -442,7 +427,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
                     .setMessage(event.message)
                     .setPositiveButton("OK", null)
                     .show()
-                addEventLogMessage("Error dialog: ${event.title} - ${event.message}")
+                eventLogView.addErrorMessage("${event.title} - ${event.message}")
             }
             is UiEvent.ShowConfirmationDialog -> {
                 AlertDialog.Builder(this)
@@ -450,33 +435,27 @@ class PaymentProcessingActivity : AppCompatActivity() {
                     .setMessage(event.message)
                     .setPositiveButton("Yes") { _, _ -> 
                         // Handle confirmation
-                        addEventLogMessage("Confirmation dialog: Yes")
+                        eventLogView.addMessage("Confirmation dialog: Yes")
                     }
                     .setNegativeButton("No") { _, _ ->
-                        addEventLogMessage("Confirmation dialog: No")
+                        eventLogView.addMessage("Confirmation dialog: No")
                     }
                     .show()
-                addEventLogMessage("Confirmation dialog: ${event.title} - ${event.message}")
+                eventLogView.addMessage("Confirmation dialog: ${event.title} - ${event.message}")
             }
             
             // Handle payment events
             is UiEvent.PaymentCompleted -> {
                 val amountStr = event.amount.toString()
-                addEventLogMessage("Payment ${event.paymentId} completed: $amountStr")
+                eventLogView.addSuccessMessage("Payment ${event.paymentId} completed: $amountStr")
             }
             is UiEvent.PaymentFailed -> {
-                addEventLogMessage("Payment ${event.paymentId} failed: ${event.error}")
+                eventLogView.addErrorMessage("Payment ${event.paymentId} failed: ${event.error}")
             }
         }
     }
     
-    private fun addEventLogMessage(message: String) {
-        eventLog.append("• $message\n")
-        eventLogTextView.text = eventLog.toString()
-        // Scroll to the bottom
-        val scrollAmount = eventLogTextView.layout?.getLineTop(eventLogTextView.lineCount) ?: 0
-        eventLogTextView.scrollTo(0, scrollAmount)
-    }
+    // We now use EventLogView's methods directly
     
     private fun showCustomerReceiptDialog(requestId: String) {
         AlertDialog.Builder(this)
@@ -516,21 +495,16 @@ class PaymentProcessingActivity : AppCompatActivity() {
         Log.d("PaymentProcessingActivity", "Displaying error: $errorMessage")
 
         // Display error in progress area with error styling
-        processingProgressTextView.text = errorMessage
-        processingProgressTextView.setTextColor(getColor(android.R.color.holo_red_dark))
+        paymentProgressView.displayError(error)
 
-        // Also log the error in the event log
-        addEventLogMessage(getString(R.string.event_fail, errorMessage))
-
-        // Update current event text as well
-        currentEventTextView.text = errorMessage
+        // Also log the error in the event log using the dedicated error method
+        eventLogView.addErrorMessage(errorMessage)
         
         // Update dialog with error message
         dialogEventTextView.text = errorMessage
         
         // Make sure dialog is showing for errors
         showProgressDialog()
-        currentEventTextView.setTextColor(getColor(android.R.color.holo_red_dark))
     }
     
     /**
@@ -630,6 +604,10 @@ class PaymentProcessingActivity : AppCompatActivity() {
         val resourceId = ProcessingErrorEventResourceMapper.getErrorResourceKey(error)
         val errorMessage = getString(resourceId)
         
+        // Also update the progress view with the error message
+        Log.e("ErrorHandling", "showErrorRetryOptionsDialog updating progress view with error: $error")
+        paymentProgressView.displayError(error)
+        
         // Create a custom dialog with multiple buttons
         val dialog = AlertDialog.Builder(this)
             .setTitle(R.string.error_retry_title)
@@ -666,47 +644,4 @@ class PaymentProcessingActivity : AppCompatActivity() {
     }
 }
 
-/**
- * Adapter for the payment queue RecyclerView
- */
-class PaymentQueueAdapter(
-    private var items: List<ProcessingPaymentQueueItem>,
-    private val onCancelClicked: (String) -> Unit
-) : RecyclerView.Adapter<PaymentQueueAdapter.ViewHolder>() {
-    
-    private fun formatCurrency(amount: BigDecimal): String {
-        val format = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR"))
-        return format.format(amount)
-    }
-    
-    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val methodTextView: TextView = view.findViewById(R.id.text_payment_method)
-        val amountTextView: TextView = view.findViewById(R.id.text_payment_amount)
-        val cancelButton: ImageButton = view.findViewById(R.id.btn_cancel_payment)
-    }
-    
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_payment_queue, parent, false)
-        return ViewHolder(view)
-    }
-    
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = items[position]
-        holder.methodTextView.text = item.method.toString()
-        
-        val amountString = formatCurrency(BigDecimal(item.amount / 100.0))
-        holder.amountTextView.text = amountString
-        
-        holder.cancelButton.setOnClickListener {
-            onCancelClicked(item.id)
-        }
-    }
-    
-    override fun getItemCount() = items.size
-    
-    fun updateItems(newItems: List<ProcessingPaymentQueueItem>) {
-        this.items = newItems
-        notifyDataSetChanged()
-    }
-}
+// PaymentQueueAdapter has been moved to PaymentQueueView custom view

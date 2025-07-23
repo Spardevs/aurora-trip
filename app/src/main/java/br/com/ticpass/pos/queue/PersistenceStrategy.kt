@@ -5,7 +5,18 @@ package br.com.ticpass.pos.queue
  * Defines how and when queue items are persisted
  */
 enum class PersistenceStrategy {
-    IMMEDIATE,      // Save every item immediately to database
-    ON_BACKGROUND,  // Save only when app goes to background
-    NEVER           // Memory only (lose data on app kill)
+    /**
+     *  Save every item immediately to database
+     */
+    IMMEDIATE,
+
+    /**
+     * Save only when app goes to background
+     */
+    ON_BACKGROUND,
+
+    /**
+     * Memory only (lose data on app kill)
+     */
+    NEVER
 }

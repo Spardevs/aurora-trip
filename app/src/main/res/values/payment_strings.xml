@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Payment Processing Activity -->
+    <string name="cancel_payment">Cancel payment</string>
+    <string name="queue_size">Items in queue: %1$d</string>
+</resources>

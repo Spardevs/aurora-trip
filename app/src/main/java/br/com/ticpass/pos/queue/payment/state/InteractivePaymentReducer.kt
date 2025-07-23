@@ -4,6 +4,7 @@ import br.com.ticpass.pos.queue.ErrorHandlingAction
 import br.com.ticpass.pos.queue.HybridQueueManager
 import br.com.ticpass.pos.queue.PaymentQueueInputRequest
 import br.com.ticpass.pos.queue.ProcessingState
+import br.com.ticpass.pos.queue.QueueInputRequest
 import br.com.ticpass.pos.queue.QueueInputResponse
 import br.com.ticpass.pos.queue.payment.PaymentQueueInputResponse
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
@@ -141,11 +142,14 @@ class InteractivePaymentReducer(
                         updateState(UiState.Idle)
                     }
                     is ProcessingState.ItemFailed -> {
+                        android.util.Log.e("ErrorHandling", "ProcessingState.ItemFailed received in reducer: ${action.state.error}")
                         updateState(UiState.Error(action.state.error))
+                        android.util.Log.e("ErrorHandling", "UiState.Error set in reducer")
                         // Emit event that item failed
                         val item = action.state.item
                         if (item is ProcessingPaymentQueueItem) {
                             emitUiEvent(UiEvent.PaymentFailed(item.id, action.state.error))
+                            android.util.Log.e("ErrorHandling", "UiEvent.PaymentFailed emitted")
                         }
                     }
                     null -> { /* No UI state change when state is null */ }
@@ -165,8 +169,17 @@ class InteractivePaymentReducer(
                             currentProcessorType = action.request.currentProcessorType
                         ))
                     }
+                    is QueueInputRequest.ERROR_RETRY_OR_SKIP -> {
+                        android.util.Log.e("ErrorHandling", "QueueInputRequest.ERROR_RETRY_OR_SKIP received in reducer")
+                        updateState(UiState.ErrorRetryOrSkip(
+                            requestId = action.request.id,
+                            error = action.request.error
+                        ))
+                        android.util.Log.e("ErrorHandling", "UiState.ErrorRetryOrSkip set in reducer")
+                    }
                     else -> {
                         // Handle other request types if needed
+                        android.util.Log.e("ErrorHandling", "Unhandled request type: ${action.request::class.java.simpleName}")
                     }
                 }
                 null // No side effect needed

@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import br.com.ticpass.pos.queue.ErrorHandlingAction
-import br.com.ticpass.pos.queue.QueueConfirmationMode
+import br.com.ticpass.pos.queue.ProcessorStartMode
 import br.com.ticpass.pos.queue.PersistenceStrategy
 import br.com.ticpass.pos.queue.HybridQueueManager
 import br.com.ticpass.pos.queue.ProcessingErrorEvent
@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 /**
  * Interactive Payment ViewModel
@@ -41,13 +40,12 @@ class InteractivePaymentViewModel @Inject constructor(
     processingPaymentStorage: ProcessingPaymentStorage
 ) : ViewModel() {
     
-    //region Queue Setup and Configuration
-    
+    // Queue Setup and Configuration
     // Initialize the queue with viewModelScope
     private val paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent> = paymentQueueFactory.createDynamicPaymentQueue(
         storage = processingPaymentStorage,
         persistenceStrategy = PersistenceStrategy.IMMEDIATE,
-        queueConfirmationMode = QueueConfirmationMode.CONFIRMATION,
+        startMode = ProcessorStartMode.CONFIRMATION,
         scope = viewModelScope
     )
     
@@ -70,10 +68,7 @@ class InteractivePaymentViewModel @Inject constructor(
     val processingState = paymentQueue.processingState
     val processingPaymentEvents: SharedFlow<ProcessingPaymentEvent> = paymentQueue.processorEvents
     
-    //endregion
-    
-    //region UI State Management
-    
+    // UI State Management
     // UI Events flow for one-time events
     private val _uiEvents = MutableSharedFlow<UiEvent>()
     val uiEvents = _uiEvents.asSharedFlow()
@@ -123,9 +118,7 @@ class InteractivePaymentViewModel @Inject constructor(
         }
     }
     
-    //endregion
-    
-    //region Initialization and Event Handling
+    // Initialization and Event Handling
     
     init {
         // Observe processing state changes
@@ -143,9 +136,7 @@ class InteractivePaymentViewModel @Inject constructor(
         }
     }
     
-    //endregion
-    
-    //region Public API
+    // Public API
     
     /**
      * Start processing the payment queue
@@ -181,9 +172,7 @@ class InteractivePaymentViewModel @Inject constructor(
         dispatch(Action.CancelAllPayments)
     }
     
-    //endregion
-
-    //region Processor-Level Input Handling
+    // Processor-Level Input Handling
     
     /**
      * Confirm customer receipt printing (processor-level input request)
@@ -192,9 +181,7 @@ class InteractivePaymentViewModel @Inject constructor(
         dispatch(Action.ConfirmCustomerReceiptPrinting(requestId, shouldPrint))
     }
     
-    //endregion
-    
-    //region Queue-Level Input Handling
+    // Queue-Level Input Handling
     
     /**
      * Confirm proceeding to the next processor (queue-level input request)
@@ -227,9 +214,7 @@ class InteractivePaymentViewModel @Inject constructor(
         dispatch(Action.SkipProcessor(requestId))
     }
     
-    //endregion
-    
-    //region Error Handling
+    // Error Handling
     
     /**
      * Handle a failed payment with the specified action (queue-level input request)
@@ -237,7 +222,7 @@ class InteractivePaymentViewModel @Inject constructor(
      * @param requestId The ID of the input request
      * @param action The error handling action to take
      */
-    fun handleFailedPayment(requestId: String, action: ErrorHandlingAction) {
+    private fun handleFailedPayment(requestId: String, action: ErrorHandlingAction) {
         dispatch(Action.HandleFailedPayment(requestId, action))
     }
     
@@ -270,6 +255,4 @@ class InteractivePaymentViewModel @Inject constructor(
     fun abortAllProcessors(requestId: String) {
         handleFailedPayment(requestId, ErrorHandlingAction.ABORT_ALL)
     }
-    
-    //endregion
 }

@@ -23,7 +23,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
     private val storage: QueueStorage<T>,
     internal val processor: QueueProcessor<T, E>,
     private val persistenceStrategy: PersistenceStrategy = PersistenceStrategy.IMMEDIATE,
-    val queueConfirmationMode: QueueConfirmationMode = QueueConfirmationMode.AUTO,
+    val startMode: ProcessorStartMode = ProcessorStartMode.IMMEDIATE,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 ) {
     // In-memory queue for fast access
@@ -151,7 +151,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                 var nextItem = inMemoryQueue.first()
                 
                 // Check if we need to confirm before processing the next item
-                if (queueConfirmationMode == QueueConfirmationMode.CONFIRMATION) {
+                if (startMode == ProcessorStartMode.CONFIRMATION) {
                     Log.d("HybridQueueManager", "Confirmation mode enabled, showing confirmation dialog")
                     val nextItemIndex = inMemoryQueue.indexOf(nextItem)
                     
@@ -252,6 +252,12 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                         }
                         
                         is ProcessingResult.Error -> {
+                            // First emit the ItemFailed state to ensure it's displayed
+                            _processingState.value = ProcessingState.ItemFailed(processingItem, result.event)
+                            
+                            // Log the error for debugging
+                            Log.e("ErrorHandling", "ProcessingResult.Error received in HybridQueueManager: ${result.event}")
+                            
                             // Create an error retry/skip request
                             val errorRequest = QueueInputRequest.ERROR_RETRY_OR_SKIP(
                                 itemId = processingItem.id,

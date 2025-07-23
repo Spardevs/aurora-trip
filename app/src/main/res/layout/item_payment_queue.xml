@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="4dp"
@@ -9,31 +10,48 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:padding="8dp">
-
+        
         <TextView
-            android:id="@+id/text_payment_method"
-            android:layout_width="0dp"
+            android:id="@+id/text_payment_id"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="14sp" />
+            android:textSize="12sp"
+            android:textColor="@android:color/darker_gray"
+            tools:text="Payment ID: 12345" />
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp">
 
-        <TextView
-            android:id="@+id/text_payment_amount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            <TextView
+                android:id="@+id/text_payment_method"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="14sp"
+                tools:text="CREDIT" />
 
-        <ImageButton
-            android:id="@+id/btn_cancel_payment"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Cancel payment"
-            android:src="@android:drawable/ic_menu_close_clear_cancel" />
+            <TextView
+                android:id="@+id/text_payment_amount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="R$ 100,00" />
+
+            <ImageButton
+                android:id="@+id/btn_cancel_payment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/cancel_payment"
+                android:src="@android:drawable/ic_menu_close_clear_cancel" />
+        </LinearLayout>
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>
