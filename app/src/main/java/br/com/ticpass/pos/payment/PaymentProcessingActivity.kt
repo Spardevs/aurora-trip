@@ -16,7 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
 
-import br.com.ticpass.pos.payment.view.PaymentProgressView
+
 import br.com.ticpass.pos.payment.view.PaymentQueueView
 import br.com.ticpass.pos.payment.view.TimeoutCountdownView
 import br.com.ticpass.pos.queue.ProcessingErrorEvent
@@ -41,7 +41,6 @@ class PaymentProcessingActivity : AppCompatActivity() {
     
     // UI components
     private lateinit var paymentQueueView: PaymentQueueView
-    private lateinit var paymentProgressView: PaymentProgressView
     
     // Progress Dialog
     private var progressDialog: AlertDialog? = null
@@ -69,7 +68,6 @@ class PaymentProcessingActivity : AppCompatActivity() {
     private fun setupViews() {
         // Initialize custom views
         paymentQueueView = findViewById(R.id.payment_queue_view)
-        paymentProgressView = findViewById(R.id.payment_progress_view)
         
         // Set up payment queue view cancel callback
         paymentQueueView.onPaymentCanceled = { paymentId ->
@@ -255,7 +253,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         currentProcessingIndex = current
         
         // Update progress in the main view
-        paymentProgressView.updateProgress(current, total)
+        // Progress update: $current of $total
         
         // Update dialog progress
         dialogProgressTextView.text = getString(R.string.payment_progress, current, total)
@@ -294,7 +292,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         }
         
         // Update both the main UI and dialog with the PIN display
-        paymentProgressView.updateCurrentEvent(pinMessage)
+        // PIN message update: $pinMessage
         dialogEventTextView.text = pinMessage
     }
     
@@ -397,7 +395,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         }
         
         // Update the payment progress view with the event message
-        paymentProgressView.updateCurrentEvent(eventMessage)
+        // Event message update: $eventMessage
         
         // Update dialog with the event message
         dialogEventTextView.text = eventMessage
@@ -519,7 +517,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         Log.d("PaymentProcessingActivity", "Displaying error: $errorMessage")
 
         // Display error in progress area with error styling
-        paymentProgressView.displayError(error)
+        // Display error: $error
 
         // Also log the error in the event log using the dedicated error method
         // Error: $errorMessage
@@ -683,7 +681,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         
         // Also update the progress view with the error message
         Log.e("ErrorHandling", "showErrorRetryOptionsDialog updating progress view with error: $error")
-        paymentProgressView.displayError(error)
+        // Display error: $error
         
         // Create a custom dialog with multiple buttons and timeout
         val view = layoutInflater.inflate(R.layout.dialog_error_retry_options, null)
