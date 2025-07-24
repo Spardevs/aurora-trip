@@ -56,7 +56,28 @@ class DynamicPaymentProcessor(
             job.cancel()
         }
     }
-    
+
+    override suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean {
+        // Get the processor based on the item's processor type
+        val processor = processorMap[item?.processorType?.lowercase()] ?:
+                        processorMap["acquirer"] ?: // Fallback to acquirer
+                        return false
+
+        // Forward the start event from the base processor
+        _events.emit(ProcessingPaymentEvent.CANCELLED)
+
+        // Collect events from the delegate processor and re-emit them
+        val processorEvents = processor.events
+        val job = launchEventForwarding(processorEvents)
+
+        try {
+            return processor.abort(item)
+        } catch (e: Exception) {
+            job.cancel()
+            return false
+        }
+    }
+
     /**
      * Launch a coroutine that forwards events from the delegate processor to this processor's event flow
      * This prevents event duplication (START event)

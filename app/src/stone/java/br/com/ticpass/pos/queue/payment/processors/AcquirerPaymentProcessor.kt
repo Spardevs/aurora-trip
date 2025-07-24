@@ -47,7 +47,7 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
      * Stone-specific abort logic
      * Cancels any ongoing payment transaction and cleans up resources
      */
-    override suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean {
+    override suspend fun omeAbortaPorra(item: ProcessingPaymentQueueItem?): Boolean {
         return try {
             true
         } catch (e: Exception) {

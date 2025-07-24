@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.queue.payment.processors
 
+import android.util.Log
 import br.com.ticpass.pos.queue.InputRequest
 import br.com.ticpass.pos.queue.InputResponse
 import br.com.ticpass.pos.queue.ProcessingResult
@@ -69,21 +70,16 @@ abstract class PaymentProcessorBase : QueueProcessor<ProcessingPaymentQueueItem,
         _inputRequests.replayCache.forEach { request ->
             _inputResponses.emit(InputResponse.canceled(request.id))
         }
+        Log.d("PaymentProcessorBase", "Aborting payment for item: ${item?.id ?: "unknown"}")
         
-        // Allow subclasses to perform additional cleanup
         return onAbort(item)
     }
-    
+
     /**
-     * Hook method for subclasses to implement processor-specific abort logic
-     * 
-     * @param item The item being processed that should be aborted, or null to abort any current operation
-     * @return True if the processor was successfully aborted, false otherwise
+     * Abstract method to be implemented by concrete processors
+     * Handles the actual payment aborting logic
      */
-    protected open suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean {
-        // Default implementation just returns success
-        return true
-    }
+    protected abstract suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean
     
     /**
      * Request input from the user and wait for response

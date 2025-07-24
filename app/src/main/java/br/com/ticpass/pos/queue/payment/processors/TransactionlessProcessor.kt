@@ -30,4 +30,12 @@ class TransactionlessProcessor : PaymentProcessorBase() {
             txId = "",
         )
     }
+
+    override suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean {
+        return try {
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
 }

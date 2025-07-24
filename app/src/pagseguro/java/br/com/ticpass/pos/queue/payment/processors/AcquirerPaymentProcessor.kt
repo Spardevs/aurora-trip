@@ -80,10 +80,6 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
             cleanupCoroutineScopes()
         }
     }
-
-    private fun cleanupCoroutineScopes() {
-        scope.cancel()
-    }
     
     /**
      * PagSeguro-specific abort logic
@@ -97,15 +93,17 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
             }
 
             val hasAborted = abortResult.result == PlugPag.RET_OK
+            if(!hasAborted) throw Exception("Failed to abort transaction.")
 
-            clearPaymentListener()
-            cleanupCoroutineScopes()
-
-            return hasAborted
+            return true
         } catch (e: Exception) {
             Log.e(tag, "Error aborting transaction: ${e.message}")
             return false
         }
+    }
+
+    private fun cleanupCoroutineScopes() {
+        scope.cancel()
     }
 
     private fun setPaymentListener() {

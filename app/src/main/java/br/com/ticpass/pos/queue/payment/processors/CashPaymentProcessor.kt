@@ -47,4 +47,12 @@ class CashPaymentProcessor : PaymentProcessorBase() {
             return ProcessingResult.Error(ProcessingErrorEvent.INVALID_TRANSACTION_AMOUNT)
         }
     }
+
+    override suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean {
+        return try {
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
 }

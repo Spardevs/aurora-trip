@@ -560,121 +560,121 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Pinpad error.
      * Equipment should be replaced.
      */
-    PINPAD_ERROR_C010("C010", ProcessingErrorEvent.PINPAD_ERROR),
+    PINPAD_ERROR_C10("C10", ProcessingErrorEvent.PINPAD_ERROR),
     
     /**
      * Maximum time limit for operation exceeded.
      * Card was not inserted.
      */
-    MAX_TIME_EXCEEDED_C012("C012", ProcessingErrorEvent.MAX_TIME_EXCEEDED),
+    MAX_TIME_EXCEEDED_C12("C12", ProcessingErrorEvent.MAX_TIME_EXCEEDED),
     
     /**
      * Operation cancelled.
      * Try again.
      */
-    OPERATION_CANCELLED_C013("C013", ProcessingErrorEvent.OPERATION_CANCELLED),
+    OPERATION_CANCELLED_C13("C13", ProcessingErrorEvent.OPERATION_CANCELLED),
     
     /**
      * Feature not available in pinpad library.
      * Data processing failure, ask the seller to try again.
      */
-    FUNCTION_NOT_AVAILABLE_C018("C018", ProcessingErrorEvent.FEATURE_UNAVAILABLE),
+    FUNCTION_NOT_AVAILABLE_C18("C18", ProcessingErrorEvent.FEATURE_UNAVAILABLE),
     
     /**
      * Invalid POS key.
      * Equipment should be replaced.
      */
-    INVALID_POS_KEY_C033("C033", ProcessingErrorEvent.INVALID_POS_KEY),
+    INVALID_POS_KEY_C33("C33", ProcessingErrorEvent.INVALID_POS_KEY),
     
     /**
      * Internal pinpad error.
      * Equipment should be replaced.
      */
-    INTERNAL_PINPAD_ERROR_C040("C040", ProcessingErrorEvent.INTERNAL_PINPAD_ERROR),
+    INTERNAL_PINPAD_ERROR_C40("C40", ProcessingErrorEvent.INTERNAL_PINPAD_ERROR),
     
     /**
      * Reader without required key.
      * Force new table loading.
      */
-    READER_WITHOUT_KEY_C042("C042", ProcessingErrorEvent.READER_WITHOUT_KEY),
+    READER_WITHOUT_KEY_C42("C42", ProcessingErrorEvent.READER_WITHOUT_KEY),
     
     /**
      * Card with error or poorly inserted.
      * Try again, if it doesn't work, use another card.
      */
-    CARD_ERROR_POORLY_INSERTED_C060("C060", ProcessingErrorEvent.CARD_ERROR_POORLY_INSERTED),
+    CARD_ERROR_POORLY_INSERTED_C60("C60", ProcessingErrorEvent.CARD_ERROR_POORLY_INSERTED),
     
     /**
      * Card with error or poorly inserted.
      * Try again, if it doesn't work, use another card.
      */
-    CARD_ERROR_POORLY_INSERTED_C061("C061", ProcessingErrorEvent.CARD_ERROR_POORLY_INSERTED),
+    CARD_ERROR_POORLY_INSERTED_C61("C61", ProcessingErrorEvent.CARD_ERROR_POORLY_INSERTED),
     
     /**
      * Invalid card.
      * Card is not accepted. Use another card.
      */
-    INVALID_CARD_C062("C062", ProcessingErrorEvent.INVALID_CARD),
+    INVALID_CARD_C62("C62", ProcessingErrorEvent.INVALID_CARD),
     
     /**
      * Blocked card.
      * Card is blocked. Unblock or use another card.
      */
-    BLOCKED_CARD_C063("C063", ProcessingErrorEvent.BLOCKED_CARD),
+    BLOCKED_CARD_C63("C63", ProcessingErrorEvent.BLOCKED_CARD),
     
     /**
      * Invalid card.
      * Card is not accepted. Use another card.
      */
-    INVALID_CARD_C064("C064", ProcessingErrorEvent.INVALID_CARD_NOT_ACCEPTED),
+    INVALID_CARD_C64("C64", ProcessingErrorEvent.INVALID_CARD_NOT_ACCEPTED),
     
     /**
      * Expired card.
      * Use another card.
      */
-    EXPIRED_CARD_C065("C065", ProcessingErrorEvent.EXPIRED_CARD),
+    EXPIRED_CARD_C65("C65", ProcessingErrorEvent.EXPIRED_CARD),
     
     /**
      * Invalid card.
      * Card is not accepted. Use another card.
      */
-    INVALID_CARD_C066("C066", ProcessingErrorEvent.INVALID_CARD_USE_ANOTHER),
+    INVALID_CARD_C66("C66", ProcessingErrorEvent.INVALID_CARD_USE_ANOTHER),
     
     /**
      * Card invalidated.
      * Card is blocked. Contact the issuing bank or use another card.
      */
-    CARD_INVALIDATED_C067("C067", ProcessingErrorEvent.CARD_INVALIDATED),
+    CARD_INVALIDATED_C67("C67", ProcessingErrorEvent.CARD_INVALIDATED),
     
     /**
      * Invalid card.
      * Card is not accepted. Use another card.
      */
-    INVALID_CARD_C068("C068", ProcessingErrorEvent.INVALID_CARD_NOT_ACCEPTED),
+    INVALID_CARD_C68("C68", ProcessingErrorEvent.INVALID_CARD_NOT_ACCEPTED),
     
     /**
      * Invalid card.
      * Card is not accepted. Use another card.
      */
-    INVALID_CARD_C069("C069", ProcessingErrorEvent.INVALID_CARD_NOT_ACCEPTED),
+    INVALID_CARD_C69("C69", ProcessingErrorEvent.INVALID_CARD_NOT_ACCEPTED),
     
     /**
      * Invalid payment method.
      * A method that the card does not have may have been selected (debit, credit or financing).
      */
-    INVALID_MODE_C070("C070", ProcessingErrorEvent.INVALID_PAYMENT_METHOD),
+    INVALID_MODE_C70("C70", ProcessingErrorEvent.INVALID_PAYMENT_METHOD),
     
     /**
      * Card brand not accepted.
      * Use a card with one of the accepted brands.
      */
-    CARD_NOT_ACCEPTED_C071("C071", ProcessingErrorEvent.CARD_BRAND_NOT_ACCEPTED),
+    CARD_NOT_ACCEPTED_C71("C71", ProcessingErrorEvent.CARD_BRAND_NOT_ACCEPTED),
     
     /**
      * Invalid card.
      * Card is not accepted. Use another card.
      */
-    INVALID_CARD_C076("C076", ProcessingErrorEvent.CARD_BRAND_NOT_ACCEPTED),
+    INVALID_CARD_C76("C76", ProcessingErrorEvent.CARD_BRAND_NOT_ACCEPTED),
     
     /**
      * Invalid card, use Chip/stripe.

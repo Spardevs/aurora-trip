@@ -227,11 +227,9 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                     
                     // Update item status
                     val processingItem = updateItemStatus(nextItem, QueueItemStatus.PROCESSING)
-
-                    Log.d("HybridQueueManager", "$processingItem")
                     // Process the item
                     val result = processor.process(processingItem)
-                    
+
                     when (result) {
                         is ProcessingResult.Success -> {
                             // Remove from queue and mark as completed
@@ -425,9 +423,10 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
     /**
      * Remove all items from the queue at once
      * This is more efficient than removing items individually
+     * Also ensures any active processors are properly aborted
      */
     suspend fun removeAll() {
-        // Stop processing if active
+        if (isProcessing) processor.abort(null)
         isProcessing = false
         
         // Clear in-memory queue
