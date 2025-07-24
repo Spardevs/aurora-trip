@@ -192,7 +192,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                     // If the user chose to skip, remove the item and continue
                     if (response.isCanceled || response.value == false) {
                         // Skip this item
-                        inMemoryQueue.removeAt(0)
+                        inMemoryQueue.removeFirstOrNull()
                         _queueState.value = inMemoryQueue.toList()
                         continue
                     }
@@ -233,7 +233,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                     when (result) {
                         is ProcessingResult.Success -> {
                             // Remove from queue and mark as completed
-                            inMemoryQueue.removeAt(0)
+                            inMemoryQueue.removeFirstOrNull()
                             _queueState.value = inMemoryQueue.toList()
                             
                             // Remove from pending persistence
@@ -283,7 +283,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                                 }
                                 ErrorHandlingAction.RETRY_LATER -> {
                                     // Move to end of queue for later retry
-                                    inMemoryQueue.removeAt(0)
+                                    inMemoryQueue.removeFirstOrNull()
                                     val retryItem = updateItemStatus(nextItem, QueueItemStatus.PENDING)
                                     inMemoryQueue.add(retryItem)
                                     _queueState.value = inMemoryQueue.toList()
@@ -333,7 +333,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                                 }
                                 else -> {
                                     // Default: Skip this item (remove from queue and mark as failed)
-                                    inMemoryQueue.removeAt(0)
+                                    inMemoryQueue.removeFirstOrNull()
                                     _queueState.value = inMemoryQueue.toList()
                                     
                                     // Remove from pending persistence
@@ -353,7 +353,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                         
                         is ProcessingResult.Retry -> {
                             // Move to end of queue for retry
-                            inMemoryQueue.removeAt(0)
+                            inMemoryQueue.removeFirstOrNull()
                             val retryItem = updateItemStatus(nextItem, QueueItemStatus.PENDING)
                             inMemoryQueue.add(retryItem)
                             _queueState.value = inMemoryQueue.toList()
@@ -370,7 +370,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                 } catch (e: Exception) {
                     Log.e("HybridQueueManager", "Error processing item ${nextItem.id}: ${e.message}")
                     // Handle unexpected errors
-                    inMemoryQueue.removeAt(0)
+                    inMemoryQueue.removeFirstOrNull()
                     _queueState.value = inMemoryQueue.toList()
                     
                     // Remove from pending persistence
