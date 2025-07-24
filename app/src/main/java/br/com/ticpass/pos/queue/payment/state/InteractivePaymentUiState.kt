@@ -2,6 +2,7 @@ package br.com.ticpass.pos.queue.payment.state
 
 import br.com.ticpass.pos.queue.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.payment.SystemPaymentMethod
+import br.com.ticpass.pos.queue.payment.processors.PaymentProcessorType
 
 /**
  * Represents the UI state of the payment processing screen
@@ -41,7 +42,7 @@ sealed class UiState {
         val totalItems: Int,
         val currentAmount: Int,
         val currentMethod: SystemPaymentMethod,
-        val currentProcessorType: String,
+        val currentProcessorType: PaymentProcessorType,
         val timeoutMs: Long? = null
     ) : UiState()
     

@@ -1,6 +1,7 @@
 package br.com.ticpass.pos.queue
 
 import br.com.ticpass.pos.queue.payment.SystemPaymentMethod
+import br.com.ticpass.pos.queue.payment.processors.PaymentProcessorType
 import java.util.UUID
 
 /**
@@ -22,6 +23,6 @@ sealed class PaymentQueueInputRequest : QueueInputRequest() {
         val nextItemId: String?,
         val currentAmount: Int,
         val currentMethod: SystemPaymentMethod,
-        val currentProcessorType: String
+        val currentProcessorType: PaymentProcessorType
     ) : PaymentQueueInputRequest()
 }

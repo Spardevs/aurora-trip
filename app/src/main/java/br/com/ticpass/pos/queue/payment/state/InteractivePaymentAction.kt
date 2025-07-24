@@ -4,6 +4,7 @@ import br.com.ticpass.pos.queue.ErrorHandlingAction
 import br.com.ticpass.pos.queue.ProcessingState
 import br.com.ticpass.pos.queue.QueueInputRequest
 import br.com.ticpass.pos.queue.payment.SystemPaymentMethod
+import br.com.ticpass.pos.queue.payment.processors.PaymentProcessorType
 
 /**
  * Represents an action that can be dispatched to the ViewModel
@@ -16,7 +17,7 @@ sealed class Action {
         val amount: Int,
         val commission: Int = 0,
         val method: SystemPaymentMethod,
-        val processorType: String
+        val processorType: PaymentProcessorType
     ) : Action()
     data class CancelPayment(val paymentId: String) : Action()
     object CancelAllPayments : Action()
@@ -27,7 +28,7 @@ sealed class Action {
         val requestId: String,
         val modifiedAmount: Int,
         val modifiedMethod: SystemPaymentMethod,
-        val modifiedProcessorType: String
+        val modifiedProcessorType: PaymentProcessorType
     ) : Action()
     data class SkipProcessor(val requestId: String) : Action()
     

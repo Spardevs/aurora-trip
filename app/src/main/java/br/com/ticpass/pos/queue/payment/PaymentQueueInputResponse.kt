@@ -1,6 +1,7 @@
 package br.com.ticpass.pos.queue.payment
 
 import br.com.ticpass.pos.queue.QueueInputResponse
+import br.com.ticpass.pos.queue.payment.processors.PaymentProcessorType
 
 /**
  * Payment-specific Queue Input Response
@@ -12,7 +13,7 @@ class PaymentQueueInputResponse private constructor(
     isCanceled: Boolean = false,
     val modifiedAmount: Int? = null,
     val modifiedMethod: SystemPaymentMethod? = null,
-    val modifiedProcessorType: String? = null
+    val modifiedProcessorType: PaymentProcessorType? = null
 ) : QueueInputResponse(requestId, value, isCanceled) {
     
     companion object {
@@ -23,7 +24,7 @@ class PaymentQueueInputResponse private constructor(
             requestId: String,
             modifiedAmount: Int,
             modifiedMethod: SystemPaymentMethod,
-            modifiedProcessorType: String
+            modifiedProcessorType: PaymentProcessorType
         ): PaymentQueueInputResponse {
             return PaymentQueueInputResponse(
                 requestId = requestId,

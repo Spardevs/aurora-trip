@@ -36,7 +36,7 @@ class DynamicPaymentProcessor(
     
     override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
         // Get the processor based on the item's processor type
-        val processor = processorMap[item.processorType.lowercase()] ?: 
+        val processor = processorMap[item.processorType.name.lowercase()] ?:
                         processorMap["acquirer"] ?: // Fallback to acquirer
                         return ProcessingResult.Error(ProcessingErrorEvent.PROCESSOR_NOT_FOUND)
         
@@ -59,7 +59,7 @@ class DynamicPaymentProcessor(
 
     override suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean {
         // Get the processor based on the item's processor type
-        val processor = processorMap[item?.processorType?.lowercase()] ?:
+        val processor = processorMap[item?.processorType?.name?.lowercase()] ?:
                         processorMap["acquirer"] ?: // Fallback to acquirer
                         return false
 

@@ -6,6 +6,7 @@ import br.com.ticpass.pos.queue.payment.PaymentQueueInputResponse
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
 import br.com.ticpass.pos.queue.payment.SystemPaymentMethod
+import br.com.ticpass.pos.queue.payment.processors.PaymentProcessorType
 import br.com.ticpass.pos.queue.payment.state.SideEffect
 import br.com.ticpass.pos.queue.payment.state.UiState
 import javax.inject.Inject
@@ -36,7 +37,7 @@ class ProcessorConfirmationUseCase @Inject constructor() {
         requestId: String,
         modifiedAmount: Int,
         modifiedMethod: SystemPaymentMethod,
-        modifiedProcessorType: String,
+        modifiedProcessorType: PaymentProcessorType,
         paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
         updateState: (UiState) -> Unit
     ): SideEffect {

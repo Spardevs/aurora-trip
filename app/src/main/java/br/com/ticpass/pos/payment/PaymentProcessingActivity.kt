@@ -26,6 +26,8 @@ import br.com.ticpass.pos.queue.payment.InteractivePaymentViewModel
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
 import br.com.ticpass.pos.queue.payment.SystemPaymentMethod
+import br.com.ticpass.pos.queue.payment.processors.PaymentMethodProcessorMapper
+import br.com.ticpass.pos.queue.payment.processors.PaymentProcessorType
 import br.com.ticpass.pos.queue.payment.state.UiEvent
 import br.com.ticpass.pos.queue.payment.state.UiState
 import br.com.ticpass.pos.sdk.AcquirerSdk
@@ -117,7 +119,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         }
         
         findViewById<View>(R.id.btn_add_cash).setOnClickListener {
-            enqueuePayment(SystemPaymentMethod.CASH, "cash")
+            enqueuePayment(SystemPaymentMethod.CASH, PaymentProcessorType.CASH)
         }
         
         // Start processing button
@@ -501,7 +503,11 @@ class PaymentProcessingActivity : AppCompatActivity() {
             .show()
     }
     
-    private fun enqueuePayment(method: SystemPaymentMethod, processorType: String = "acquirer") {
+    /**
+     * Enqueue a payment with the specified method and processor type
+     * Uses ACQUIRER as the default processor type
+     */
+    private fun enqueuePayment(method: SystemPaymentMethod, processorType: PaymentProcessorType = PaymentProcessorType.ACQUIRER) {
         // Generate a random amount between R$10 and R$200
         val amount = (1000..20000).random()
         val commission = 0 // No commission for example
@@ -611,11 +617,14 @@ class PaymentProcessingActivity : AppCompatActivity() {
         methodSpinner.setSelection(paymentMethods.indexOf(state.currentMethod))
         
         // Setup processor type spinner
-        val processorTypes = arrayOf("acquirer", "cash", "transactionless")
+        val processorTypes = PaymentProcessorType.values()
         val processorAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, processorTypes)
         processorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         processorTypeSpinner.adapter = processorAdapter
-        processorTypeSpinner.setSelection(processorTypes.indexOf(state.currentProcessorType))
+        
+        // Set the current processor type
+        val currentProcessorTypePosition = processorTypes.indexOf(state.currentProcessorType)
+        processorTypeSpinner.setSelection(currentProcessorTypePosition)
         
         // Create the dialog
         val dialog = AlertDialog.Builder(this)

@@ -9,6 +9,8 @@ import br.com.ticpass.pos.queue.ProcessorStartMode
 import br.com.ticpass.pos.queue.PersistenceStrategy
 import br.com.ticpass.pos.queue.HybridQueueManager
 import br.com.ticpass.pos.queue.ProcessingErrorEvent
+import br.com.ticpass.pos.queue.payment.processors.PaymentMethodProcessorMapper
+import br.com.ticpass.pos.queue.payment.processors.PaymentProcessorType
 import br.com.ticpass.pos.queue.payment.state.Action
 import br.com.ticpass.pos.queue.payment.state.InteractivePaymentReducer
 import br.com.ticpass.pos.queue.payment.state.SideEffect
@@ -151,12 +153,13 @@ class InteractivePaymentViewModel @Inject constructor(
     
     /**
      * Process a payment with the specified processor type
+     * Uses the processor type from the mapper or the provided override
      */
     fun enqueuePayment(
         amount: Int,
         commission: Int = 0,
         method: SystemPaymentMethod,
-        processorType: String = "acquirer", // "acquirer", "cash", or "transactionless"
+        processorType: PaymentProcessorType = PaymentMethodProcessorMapper.getProcessorTypeForMethod(method)
     ) {
         dispatch(Action.EnqueuePayment(amount, commission, method, processorType))
     }
@@ -201,7 +204,7 @@ class InteractivePaymentViewModel @Inject constructor(
         requestId: String,
         modifiedAmount: Int,
         modifiedMethod: SystemPaymentMethod,
-        modifiedProcessorType: String
+        modifiedProcessorType: PaymentProcessorType = PaymentMethodProcessorMapper.getProcessorTypeForMethod(modifiedMethod)
     ) {
         dispatch(Action.ConfirmNextProcessorWithModifiedPayment(
             requestId,

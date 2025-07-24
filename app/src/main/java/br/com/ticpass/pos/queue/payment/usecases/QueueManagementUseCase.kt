@@ -4,6 +4,7 @@ import br.com.ticpass.pos.queue.HybridQueueManager
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
 import br.com.ticpass.pos.queue.payment.SystemPaymentMethod
+import br.com.ticpass.pos.queue.payment.processors.PaymentProcessorType
 import br.com.ticpass.pos.queue.payment.state.SideEffect
 import br.com.ticpass.pos.queue.payment.state.UiEvent
 import java.util.UUID
@@ -32,7 +33,7 @@ class QueueManagementUseCase @Inject constructor() {
         amount: Int,
         commission: Int,
         method: SystemPaymentMethod,
-        processorType: String,
+        processorType: PaymentProcessorType,
         paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
         emitUiEvent: (UiEvent) -> Unit
     ): SideEffect {
