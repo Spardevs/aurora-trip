@@ -6,6 +6,7 @@
     <string name="enqueue_credit_payment">Credit Payment</string>
     <string name="enqueue_debit_payment">Debit Payment</string>
     <string name="enqueue_voucher_payment">Voucher Payment</string>
+    <string name="enqueue_pix_payment">PIX Payment</string>
     <string name="start_processing">Start Processing</string>
     <string name="cancel_all_payments">Cancel All</string>
     

@@ -106,7 +106,12 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Operation not allowed. Request in progress.
      */
     REQUEST_IN_PROGRESS_S73("S73", ProcessingErrorEvent.REQUEST_IN_PROGRESS),
-    
+
+    /**
+     * Feature unavailable. Cancel through website.
+     */
+    FUNCTION_UNAVAILABLE_PP1049("PP1049", ProcessingErrorEvent.FEATURE_UNAVAILABLE),
+
     /**
      * Function unavailable. Cancel through website.
      */

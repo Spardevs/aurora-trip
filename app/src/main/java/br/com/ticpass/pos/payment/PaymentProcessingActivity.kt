@@ -112,6 +112,10 @@ class PaymentProcessingActivity : AppCompatActivity() {
             enqueuePayment(SystemPaymentMethod.VOUCHER)
         }
         
+        findViewById<View>(R.id.btn_add_pix).setOnClickListener {
+            enqueuePayment(SystemPaymentMethod.PIX)
+        }
+        
         // Start processing button
         findViewById<View>(R.id.btn_start_processing).setOnClickListener {
             viewModel.startProcessing()
