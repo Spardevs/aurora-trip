@@ -494,67 +494,67 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Table loading error.
      * Try making a sale to force the loading.
      */
-    TABLE_LOADING_ERROR_B016("B016", ProcessingErrorEvent.TABLE_LOADING_ERROR),
+    TABLE_LOADING_ERROR_B16("B16", ProcessingErrorEvent.TABLE_LOADING_ERROR),
     
     /**
      * Operation cancelled.
      * Try again.
      */
-    OPERATION_CANCELLED_B018("B018", ProcessingErrorEvent.OPERATION_CANCELLED),
+    OPERATION_CANCELLED_B18("B18", ProcessingErrorEvent.OPERATION_CANCELLED),
     
     /**
      * Read error, try again.
      * Try again.
      */
-    READ_ERROR_B019("B019", ProcessingErrorEvent.READ_ERROR),
+    READ_ERROR_B19("B19", ProcessingErrorEvent.READ_ERROR),
     
     /**
      * Transaction denied.
      * Contact the issuing bank.
      */
-    TRANSACTION_DENIED_B024("B024", ProcessingErrorEvent.TRANSACTION_NOT_AUTHORIZED_BY_ISSUER),
+    TRANSACTION_DENIED_B24("B24", ProcessingErrorEvent.TRANSACTION_NOT_AUTHORIZED_BY_ISSUER),
     
     /**
      * Response time exceeded.
      * Try again.
      */
-    RESPONSE_TIME_EXCEEDED_B025("B025", ProcessingErrorEvent.RESPONSE_TIME_EXCEEDED),
+    RESPONSE_TIME_EXCEEDED_B25("B025", ProcessingErrorEvent.RESPONSE_TIME_EXCEEDED),
     
     /**
      * Communication problem, try again.
      * Check communication (Chip or wifi).
      */
-    COMMUNICATION_PROBLEM_B026("B026", ProcessingErrorEvent.COMMUNICATION_ERROR),
+    COMMUNICATION_PROBLEM_B26("B26", ProcessingErrorEvent.COMMUNICATION_ERROR),
     
     /**
      * Use chip for this transaction.
      * Make the transaction with card chip.
      */
-    USE_CHIP_INVALID_PAYMENT_B029("B029", ProcessingErrorEvent.USE_CHIP_INVALID_PAYMENT),
+    USE_CHIP_INVALID_PAYMENT_B29("B29", ProcessingErrorEvent.USE_CHIP_INVALID_PAYMENT),
     
     /**
      * Invalid payment method.
      * Check if the card has the chosen payment method enabled.
      */
-    INVALID_MODE_B037("B037", ProcessingErrorEvent.INVALID_PAYMENT_METHOD),
+    INVALID_MODE_B37("B37", ProcessingErrorEvent.INVALID_PAYMENT_METHOD),
     
     /**
      * Operation not performed.
      * Check if the card has the chosen payment method enabled.
      */
-    OPERATION_NOT_PERFORMED_B041("B041", ProcessingErrorEvent.OPERATION_NOT_PERFORMED),
+    OPERATION_NOT_PERFORMED_B41("B41", ProcessingErrorEvent.OPERATION_NOT_PERFORMED),
     
     /**
      * Communication problem, try again.
      * Try again.
      */
-    COMMUNICATION_PROBLEM_B045("B045", ProcessingErrorEvent.COMMUNICATION_ERROR),
+    COMMUNICATION_PROBLEM_B45("B45", ProcessingErrorEvent.COMMUNICATION_ERROR),
     
     /**
      * Card with error or poorly inserted.
      * Try again.
      */
-    CARD_ERROR_POORLY_INSERTED_B051("B051", ProcessingErrorEvent.CARD_ERROR_POORLY_INSERTED),
+    CARD_ERROR_POORLY_INSERTED_B51("B51", ProcessingErrorEvent.CARD_ERROR_POORLY_INSERTED),
     
     /**
      * Pinpad error.
@@ -932,55 +932,55 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Mobile communication problem.
      * Communication problem with mobile.
      */
-    MOBILE_COMMUNICATION_PROBLEM_A09404("A09404", ProcessingErrorEvent.MOBILE_COMMUNICATION_ERROR),
+    MOBILE_COMMUNICATION_PROBLEM_A9404("A9404", ProcessingErrorEvent.MOBILE_COMMUNICATION_ERROR),
     
     /**
      * Print error due to low battery.
      * Connect charger and try again.
      */
-    PRINT_ERROR_LOW_BATTERY_A052("A052", ProcessingErrorEvent.PRINT_ERROR_LOW_BATTERY),
+    PRINT_ERROR_LOW_BATTERY_A52("A52", ProcessingErrorEvent.PRINT_ERROR_LOW_BATTERY),
     
     /**
      * Communication failure.
      * Try again.
      */
-    COMMUNICATION_FAILURE_A053("A053", ProcessingErrorEvent.COMMUNICATION_ERROR),
+    COMMUNICATION_FAILURE_A53("A53", ProcessingErrorEvent.COMMUNICATION_ERROR),
     
     /**
      * Communication failure.
      * Try again.
      */
-    COMMUNICATION_FAILURE_A054("A054", ProcessingErrorEvent.COMMUNICATION_ERROR),
+    COMMUNICATION_FAILURE_A54("A54", ProcessingErrorEvent.COMMUNICATION_ERROR),
     
     /**
      * Communication failure.
      * Try again.
      */
-    COMMUNICATION_FAILURE_A055("A055", ProcessingErrorEvent.COMMUNICATION_ERROR),
+    COMMUNICATION_FAILURE_A55("A55", ProcessingErrorEvent.COMMUNICATION_ERROR),
     
     /**
      * Communication failure.
      * Try again.
      */
-    COMMUNICATION_FAILURE_A056("A056", ProcessingErrorEvent.COMMUNICATION_ERROR),
+    COMMUNICATION_FAILURE_A56("A56", ProcessingErrorEvent.COMMUNICATION_ERROR),
     
     /**
      * Communication failure.
      * Try again.
      */
-    COMMUNICATION_FAILURE_A057("A057", ProcessingErrorEvent.COMMUNICATION_ERROR),
+    COMMUNICATION_FAILURE_A57("A57", ProcessingErrorEvent.COMMUNICATION_ERROR),
     
     /**
      * Communication problem.
      * Try again.
      */
-    COMMUNICATION_PROBLEM_A058("A058", ProcessingErrorEvent.COMMUNICATION_ERROR),
+    COMMUNICATION_PROBLEM_A58("A58", ProcessingErrorEvent.COMMUNICATION_ERROR),
     
     /**
      * Communication problem.
      * Wait a few minutes and try again.
      */
-    COMMUNICATION_PROBLEM_WAIT_A059("A059", ProcessingErrorEvent.COMMUNICATION_ERROR),
+    COMMUNICATION_PROBLEM_WAIT_A59("A59", ProcessingErrorEvent.COMMUNICATION_ERROR),
     
     /**
      * Communication problem.
@@ -1057,200 +1057,200 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Operation canceled.
      * User canceled the operation in progress.
      */
-    OPERATION_CANCELED_A001("A001", ProcessingErrorEvent.OPERATION_CANCELLED),
+    OPERATION_CANCELED_A01("A01", ProcessingErrorEvent.OPERATION_CANCELLED),
     
     /**
      * Device deactivated.
      * Device is not activated.
      */
-    DEVICE_DEACTIVATED_A002("A002", ProcessingErrorEvent.DEVICE_DEACTIVATED),
+    DEVICE_DEACTIVATED_A02("A02", ProcessingErrorEvent.DEVICE_DEACTIVATED),
     
     /**
      * No message to display.
      * No last error message to display.
      */
-    NO_MESSAGE_A003("A003", ProcessingErrorEvent.NO_MESSAGE),
+    NO_MESSAGE_A03("A03", ProcessingErrorEvent.NO_MESSAGE),
     
     /**
      * Operation not performed.
      * Transaction denied by host.
      */
-    OPERATION_NOT_PERFORMED_A004("A004", ProcessingErrorEvent.OPERATION_NOT_PERFORMED),
+    OPERATION_NOT_PERFORMED_A04("A04", ProcessingErrorEvent.OPERATION_NOT_PERFORMED),
     
     /**
      * Invalid card.
      * Card validation error.
      */
-    INVALID_CARD_A008("A008", ProcessingErrorEvent.INVALID_CARD),
+    INVALID_CARD_A08("A08", ProcessingErrorEvent.INVALID_CARD),
     
     /**
      * Card operation failed.
      * Unexpected error by terminal.
      */
-    CARD_OPERATION_FAILED_A009("A009", ProcessingErrorEvent.CARD_OPERATION_FAILED),
+    CARD_OPERATION_FAILED_A09("A09", ProcessingErrorEvent.CARD_OPERATION_FAILED),
     
     /**
      * Network operator unavailable.
      * Try again.
      */
-    NETWORK_OPERATOR_UNAVAILABLE_A010("A010", ProcessingErrorEvent.NETWORK_OPERATOR_UNAVAILABLE),
+    NETWORK_OPERATOR_UNAVAILABLE_A10("A10", ProcessingErrorEvent.NETWORK_OPERATOR_UNAVAILABLE),
     
     /**
      * Network operator timeout.
      * Try again.
      */
-    NETWORK_OPERATOR_TIMEOUT_A011("A011", ProcessingErrorEvent.NETWORK_OPERATOR_TIMEOUT),
+    NETWORK_OPERATOR_TIMEOUT_A11("A11", ProcessingErrorEvent.NETWORK_OPERATOR_TIMEOUT),
     
     /**
      * Transaction failure.
      * Try again.
      */
-    TRANSACTION_FAILURE_A012("A012", ProcessingErrorEvent.TRANSACTION_FAILURE),
+    TRANSACTION_FAILURE_A12("A12", ProcessingErrorEvent.TRANSACTION_FAILURE),
     
     /**
      * SIM card error.
      * Contact support center.
      */
-    SIM_CARD_ERROR_A014("A014", ProcessingErrorEvent.SIM_CARD_ERROR),
+    SIM_CARD_ERROR_A14("A14", ProcessingErrorEvent.SIM_CARD_ERROR),
     
     /**
      * SIM card missing.
      * Contact support center.
      */
-    SIM_CARD_MISSING_A015("A015", ProcessingErrorEvent.SIM_CARD_MISSING),
+    SIM_CARD_MISSING_A15("A15", ProcessingErrorEvent.SIM_CARD_MISSING),
     
     /**
      * No network signal.
      * Try again.
      */
-    NO_NETWORK_SIGNAL_A016("A016", ProcessingErrorEvent.NO_NETWORK_SIGNAL),
+    NO_NETWORK_SIGNAL_A16("A16", ProcessingErrorEvent.NO_NETWORK_SIGNAL),
     
     /**
      * Communication problem.
      * Contact support.
      */
-    COMMUNICATION_PROBLEM_A017("A017", ProcessingErrorEvent.COMMUNICATION_ERROR),
+    COMMUNICATION_PROBLEM_A17("A17", ProcessingErrorEvent.COMMUNICATION_ERROR),
     
     /**
      * PPP authentication failure.
      * Contact support center.
      */
-    PPP_AUTH_FAILURE_A018("A018", ProcessingErrorEvent.PPP_AUTH_FAILURE),
+    PPP_AUTH_FAILURE_A18("A18", ProcessingErrorEvent.PPP_AUTH_FAILURE),
     
     /**
      * Communication problem.
      * Try again.
      */
-    COMMUNICATION_PROBLEM_A019("A019", ProcessingErrorEvent.COMMUNICATION_ERROR),
+    COMMUNICATION_PROBLEM_A19("A19", ProcessingErrorEvent.COMMUNICATION_ERROR),
     
     /**
      * Printer out of paper.
      * Replace the paper roll.
      */
-    PRINTER_OUT_OF_PAPER_A021("A021", ProcessingErrorEvent.PRINTER_OUT_OF_PAPER),
+    PRINTER_OUT_OF_PAPER_A21("A21", ProcessingErrorEvent.PRINTER_OUT_OF_PAPER),
     
     /**
      * Operation not authorized.
      * Operation not authorized by host.
      */
-    OPERATION_NOT_AUTHORIZED_A022("A022", ProcessingErrorEvent.OPERATION_NOT_AUTHORIZED),
+    OPERATION_NOT_AUTHORIZED_A22("A22", ProcessingErrorEvent.OPERATION_NOT_AUTHORIZED),
     
     /**
      * WiFi network unavailable.
      * Try again.
      */
-    WIFI_NETWORK_UNAVAILABLE_A023("A023", ProcessingErrorEvent.WIFI_NETWORK_UNAVAILABLE),
+    WIFI_NETWORK_UNAVAILABLE_A23("A23", ProcessingErrorEvent.WIFI_NETWORK_UNAVAILABLE),
     
     /**
      * Not connected to WiFi network.
      * Configure WiFi.
      */
-    NOT_CONNECTED_TO_WIFI_A024("A024", ProcessingErrorEvent.NOT_CONNECTED_TO_WIFI),
+    NOT_CONNECTED_TO_WIFI_A24("A24", ProcessingErrorEvent.NOT_CONNECTED_TO_WIFI),
     
     /**
      * Overvoltage problem.
      * Printer reporting overvoltage.
      */
-    OVERVOLTAGE_PROBLEM_A026("A026", ProcessingErrorEvent.PRINTER_OVERVOLTAGE),
+    OVERVOLTAGE_PROBLEM_A26("A26", ProcessingErrorEvent.PRINTER_OVERVOLTAGE),
     
     /**
      * Overheating problem.
      * Printer reporting overheating.
      */
-    OVERHEATING_PROBLEM_A027("A027", ProcessingErrorEvent.PRINTER_OVERHEATING),
+    OVERHEATING_PROBLEM_A27("A27", ProcessingErrorEvent.PRINTER_OVERHEATING),
     
     /**
      * SIM card not responding.
      * Please wait.
      */
-    SIM_CARD_NOT_RESPONDING_A028("A028", ProcessingErrorEvent.SIM_CARD_NOT_RESPONDING),
+    SIM_CARD_NOT_RESPONDING_A28("A28", ProcessingErrorEvent.SIM_CARD_NOT_RESPONDING),
     
     /**
      * WiFi authentication error.
      * Check your WiFi connection.
      */
-    WIFI_AUTH_ERROR_A029("A029", ProcessingErrorEvent.WIFI_AUTH_ERROR),
+    WIFI_AUTH_ERROR_A29("A29", ProcessingErrorEvent.WIFI_AUTH_ERROR),
     
     /**
      * Connection error.
      * Try again.
      */
-    CONNECTION_ERROR_A030("A030", ProcessingErrorEvent.CONNECTION_ERROR),
+    CONNECTION_ERROR_A30("A30", ProcessingErrorEvent.CONNECTION_ERROR),
     
     /**
      * Connection error.
      * Check internet connection.
      */
-    CONNECTION_ERROR_NO_INTERNET_A031("A031", ProcessingErrorEvent.CONNECTION_ERROR_NO_INTERNET),
+    CONNECTION_ERROR_NO_INTERNET_A31("A31", ProcessingErrorEvent.CONNECTION_ERROR_NO_INTERNET),
     
     /**
      * WiFi authentication error.
      * Check your WiFi connection.
      */
-    WIFI_AUTH_ERROR_A032("A032", ProcessingErrorEvent.WIFI_AUTH_ERROR),
+    WIFI_AUTH_ERROR_A32("A32", ProcessingErrorEvent.WIFI_AUTH_ERROR),
     
     /**
      * WiFi connection error.
      * Check your connection.
      */
-    WIFI_CONNECTION_ERROR_A033("A033", ProcessingErrorEvent.WIFI_CONNECTION_ERROR),
+    WIFI_CONNECTION_ERROR_A33("A33", ProcessingErrorEvent.WIFI_CONNECTION_ERROR),
     
     /**
      * Connection error.
      * Check SIM card and WiFi network.
      */
-    CONNECTION_ERROR_SIM_WIFI_A034("A034", ProcessingErrorEvent.CONNECTION_ERROR_SIM_WIFI),
+    CONNECTION_ERROR_SIM_WIFI_A34("A34", ProcessingErrorEvent.CONNECTION_ERROR_SIM_WIFI),
 
     
     /**
      * Communication failure.
      * Try again.
      */
-    COMMUNICATION_FAILURE_A043("A043", ProcessingErrorEvent.COMMUNICATION_ERROR),
+    COMMUNICATION_FAILURE_A43("A43", ProcessingErrorEvent.COMMUNICATION_ERROR),
     
     /**
      * Communication failure.
      * Try again.
      */
-    COMMUNICATION_FAILURE_A044("A044", ProcessingErrorEvent.COMMUNICATION_ERROR),
+    COMMUNICATION_FAILURE_A44("A44", ProcessingErrorEvent.COMMUNICATION_ERROR),
     
     /**
      * Transaction failure.
      * Try again.
      */
-    TRANSACTION_FAILURE_A045("A045", ProcessingErrorEvent.TRANSACTION_FAILURE),
+    TRANSACTION_FAILURE_A45("A45", ProcessingErrorEvent.TRANSACTION_FAILURE),
 
     /**
      * Transaction failure.
      * Try again.
      */
-    TRANSACTION_FAILURE_A048("A048", ProcessingErrorEvent.TRANSACTION_FAILURE),
+    TRANSACTION_FAILURE_A48("A48", ProcessingErrorEvent.TRANSACTION_FAILURE),
     
     /**
      * Transaction failure.
      * Try again.
      */
-    TRANSACTION_FAILURE_A049("A049", ProcessingErrorEvent.TRANSACTION_FAILURE),
+    TRANSACTION_FAILURE_A49("A49", ProcessingErrorEvent.TRANSACTION_FAILURE),
     
     /**
      * Unexpected error.
@@ -1527,7 +1527,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * User initiated cancellation of the operation.
      */
     OPERATION_CANCELED(
-        "A001",
+        "A01",
         ProcessingErrorEvent.OPERATION_CANCELLED
     ),
 
@@ -1536,7 +1536,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Activate the payment terminal.
      */
     DEVICE_NOT_ACTIVATED(
-        "A002",
+        "A02",
         ProcessingErrorEvent.DEVICE_NOT_ACTIVATED
     ),
 
@@ -1545,7 +1545,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * No previous error to display.
      */
     NO_ERROR_MESSAGE(
-        "A003",
+        "A03",
         ProcessingErrorEvent.NO_MESSAGE
     ),
 
@@ -1554,7 +1554,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Try processing the transaction again.
      */
     TRANSACTION_DENIED_BY_HOST(
-        "A004",
+        "A04",
         ProcessingErrorEvent.OPERATION_NOT_AUTHORIZED_BY_HOST
     ),
 
@@ -1563,7 +1563,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Verify card type and payment method.
      */
     INVALID_CARD(
-        "A008",
+        "A08",
         ProcessingErrorEvent.INVALID_CARD
     ),
 
@@ -1572,7 +1572,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Try with a different card.
      */
     OPERATION_REJECTED_BY_CARD(
-        "A009",
+        "A09",
         ProcessingErrorEvent.OPERATION_REJECTED_BY_CARD
     ),
 
@@ -1581,7 +1581,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Try processing the transaction again.
      */
     TELECOM_PROVIDER_UNAVAILABLE(
-        "A010",
+        "A10",
         ProcessingErrorEvent.TELECOM_PROVIDER_UNAVAILABLE
     ),
 
@@ -1590,7 +1590,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Try processing the transaction again.
      */
     HOST_RESPONSE_TIMEOUT(
-        "A011",
+        "A11",
         ProcessingErrorEvent.HOST_RESPONSE_TIMEOUT
     ),
 
@@ -1599,7 +1599,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Try processing the transaction again.
      */
     TRANSACTION_FAILURE(
-        "A012",
+        "A12",
         ProcessingErrorEvent.TRANSACTION_FAILURE
     ),
 
@@ -1608,7 +1608,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Contact support for assistance.
      */
     SIM_CARD_ERROR(
-        "A014",
+        "A14",
         ProcessingErrorEvent.SIM_CARD_ERROR
     ),
 
@@ -1617,7 +1617,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Insert SIM card and try again.
      */
     SIM_CARD_MISSING(
-        "A015",
+        "A15",
         ProcessingErrorEvent.SIM_CARD_MISSING
     ),
 
@@ -1626,7 +1626,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Move to an area with better reception.
      */
     NO_GSM_SIGNAL(
-        "A016",
+        "A16",
         ProcessingErrorEvent.NO_GSM_SIGNAL
     ),
 
@@ -1635,7 +1635,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Contact support for assistance.
      */
     NETWORK_ATTACHMENT_ERROR(
-        "A017",
+        "A17",
         ProcessingErrorEvent.NETWORK_ATTACHMENT_ERROR
     ),
 
@@ -1644,7 +1644,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check network settings and try again.
      */
     GPRS_CONNECTION_ERROR(
-        "A018",
+        "A18",
         ProcessingErrorEvent.GPRS_CONNECTION_ERROR
     ),
 
@@ -1653,7 +1653,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Try processing the transaction again.
      */
     SOCKET_CONNECTION_ERROR(
-        "A019",
+        "A19",
         ProcessingErrorEvent.SOCKET_CONNECTION_ERROR
     ),
 
@@ -1662,7 +1662,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Replace paper roll and try again.
      */
     PRINTER_OUT_OF_PAPER(
-        "A021",
+        "A21",
         ProcessingErrorEvent.PRINTER_OUT_OF_PAPER
     ),
 
@@ -1671,7 +1671,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Contact support with transaction details.
      */
     OPERATION_NOT_AUTHORIZED_BY_HOST(
-        "A022",
+        "A22",
         ProcessingErrorEvent.OPERATION_NOT_AUTHORIZED_BY_HOST
     ),
 
@@ -1680,7 +1680,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check WiFi connection and try again.
      */
     WIFI_UNAVAILABLE(
-        "A023",
+        "A23",
         ProcessingErrorEvent.WIFI_NETWORK_UNAVAILABLE
     ),
 
@@ -1689,7 +1689,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Configure WiFi connection.
      */
     WIFI_NOT_CONNECTED(
-        "A024",
+        "A24",
         ProcessingErrorEvent.WIFI_NOT_CONNECTED
     ),
 
@@ -1698,7 +1698,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Contact support for assistance.
      */
     PRINTER_OVERVOLTAGE(
-        "A026",
+        "A26",
         ProcessingErrorEvent.PRINTER_OVERVOLTAGE
     ),
 
@@ -1707,7 +1707,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Allow printer to cool down and try again.
      */
     PRINTER_OVERHEATING(
-        "A027",
+        "A27",
         ProcessingErrorEvent.PRINTER_OVERHEATING
     ),
 
@@ -1716,7 +1716,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Wait for modem to initialize.
      */
     MODEM_INITIALIZATION_PENDING(
-        "A028",
+        "A28",
         ProcessingErrorEvent.MODEM_INITIALIZATION_PENDING
     ),
 
@@ -1725,7 +1725,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check WiFi credentials and try again.
      */
     WIFI_AUTHENTICATION_ERROR(
-        "A029",
+        "A29",
         ProcessingErrorEvent.WIFI_AUTH_ERROR
     ),
 
@@ -1734,7 +1734,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Try processing the transaction again.
      */
     SERVER_CONNECTION_ERROR(
-        "A030",
+        "A30",
         ProcessingErrorEvent.ACQUIRER_SERVER_CONNECTION_ERROR
     ),
 
@@ -1743,7 +1743,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check internet connection and try again.
      */
     INTERNET_CONNECTION_ERROR(
-        "A031",
+        "A31",
         ProcessingErrorEvent.INTERNET_CONNECTION_ERROR
     ),
 
@@ -1752,7 +1752,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Connect charger and try again.
      */
     LOW_BATTERY(
-        "A052",
+        "A52",
         ProcessingErrorEvent.LOW_BATTERY
     ),
 
@@ -1761,7 +1761,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Try processing the transaction again.
      */
     COMMUNICATION_INTERRUPTED(
-        "A053",
+        "A53",
         ProcessingErrorEvent.COMMUNICATION_ERROR
     ),
 
@@ -1770,7 +1770,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Configure terminal parameters.
      */
     TERMINAL_NOT_CONFIGURED(
-        "A099",
+        "A99",
         ProcessingErrorEvent.TERMINAL_NOT_CONFIGURED
     ),
 
@@ -1923,7 +1923,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check mobile connection and try again.
      */
     MOBILE_COMMUNICATION_ERROR(
-        "A09404",
+        "A9404",
         ProcessingErrorEvent.MOBILE_COMMUNICATION_ERROR
     ),
 
@@ -2291,8 +2291,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Transaction failure.
      * Try processing the transaction again.
      */
-    TRANSACTION_FAILURE_A013(
-        "A013",
+    TRANSACTION_FAILURE_A13(
+        "A13",
         ProcessingErrorEvent.TRANSACTION_FAILURE
     ),
 
@@ -2300,8 +2300,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * SIM card error.
      * Contact support for assistance.
      */
-    SIM_CARD_ERROR_A025(
-        "A025",
+    SIM_CARD_ERROR_A25(
+        "A25",
         ProcessingErrorEvent.SIM_CARD_ERROR
     ),
 
@@ -2309,8 +2309,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * WiFi authentication error.
      * Check WiFi credentials and try again.
      */
-    WIFI_AUTHENTICATION_ERROR_A032(
-        "A032",
+    WIFI_AUTHENTICATION_ERROR_A32(
+        "A32",
         ProcessingErrorEvent.WIFI_AUTH_ERROR
     ),
 
@@ -2318,8 +2318,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Connection error.
      * Check SIM card and WiFi connection.
      */
-    CONNECTION_ERROR_A034(
-        "A034",
+    CONNECTION_ERROR_A34(
+        "A34",
         ProcessingErrorEvent.NETWORK_ATTACHMENT_ERROR
     ),
 
@@ -2327,8 +2327,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Transaction failure.
      * Try processing the transaction again.
      */
-    TRANSACTION_FAILURE_A035(
-        "A035",
+    TRANSACTION_FAILURE_A35(
+        "A35",
         ProcessingErrorEvent.TRANSACTION_FAILURE
     ),
 
@@ -2336,8 +2336,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Transaction failure.
      * Try processing the transaction again.
      */
-    TRANSACTION_FAILURE_A037(
-        "A037",
+    TRANSACTION_FAILURE_A37(
+        "A37",
         ProcessingErrorEvent.TRANSACTION_FAILURE
     ),
 
@@ -2345,8 +2345,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Transaction failure.
      * Try processing the transaction again.
      */
-    TRANSACTION_FAILURE_A038(
-        "A038",
+    TRANSACTION_FAILURE_A38(
+        "A38",
         ProcessingErrorEvent.TRANSACTION_FAILURE
     ),
 
@@ -2354,8 +2354,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Transaction failure.
      * Try processing the transaction again.
      */
-    TRANSACTION_FAILURE_A039(
-        "A039",
+    TRANSACTION_FAILURE_A39(
+        "A39",
         ProcessingErrorEvent.TRANSACTION_FAILURE
     ),
 
@@ -2363,8 +2363,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Communication time exceeded.
      * Try processing the transaction again.
      */
-    COMMUNICATION_TIMEOUT_A039_ALT(
-        "A039",
+    COMMUNICATION_TIMEOUT_A39_ALT(
+        "A39",
         ProcessingErrorEvent.COMMUNICATION_TIMEOUT
     ),
 
@@ -2372,8 +2372,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Transaction failure.
      * Try processing the transaction again.
      */
-    TRANSACTION_FAILURE_A040(
-        "A040",
+    TRANSACTION_FAILURE_A40(
+        "A40",
         ProcessingErrorEvent.TRANSACTION_FAILURE
     ),
 
@@ -2381,8 +2381,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Transaction failure.
      * Try processing the transaction again.
      */
-    TRANSACTION_FAILURE_A041(
-        "A041",
+    TRANSACTION_FAILURE_A41(
+        "A41",
         ProcessingErrorEvent.TRANSACTION_FAILURE
     ),
 
@@ -2390,8 +2390,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Transaction failure.
      * Try processing the transaction again.
      */
-    TRANSACTION_FAILURE_A042(
-        "A042",
+    TRANSACTION_FAILURE_A42(
+        "A42",
         ProcessingErrorEvent.TRANSACTION_FAILURE
     ),
 
@@ -2399,8 +2399,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Transaction failure.
      * Try processing the transaction again.
      */
-    TRANSACTION_FAILURE_A043(
-        "A043",
+    TRANSACTION_FAILURE_A43(
+        "A43",
         ProcessingErrorEvent.TRANSACTION_FAILURE
     ),
 
@@ -2408,8 +2408,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Communication failure.
      * Try processing the transaction again.
      */
-    COMMUNICATION_FAILURE_A043_ALT(
-        "A043",
+    COMMUNICATION_FAILURE_A43_ALT(
+        "A43",
         ProcessingErrorEvent.COMMUNICATION_ERROR
     ),
 
@@ -2417,8 +2417,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Transaction failure.
      * Try processing the transaction again.
      */
-    TRANSACTION_FAILURE_A044(
-        "A044",
+    TRANSACTION_FAILURE_A44(
+        "A44",
         ProcessingErrorEvent.TRANSACTION_FAILURE
     ),
 
@@ -2426,8 +2426,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Communication failure.
      * Try processing the transaction again.
      */
-    COMMUNICATION_FAILURE_A044_ALT(
-        "A044",
+    COMMUNICATION_FAILURE_A44_ALT(
+        "A44",
         ProcessingErrorEvent.COMMUNICATION_ERROR
     ),
 
@@ -2435,26 +2435,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Communication failure.
      * Try processing the transaction again.
      */
-    COMMUNICATION_FAILURE_A045_ALT(
-        "A045",
-        ProcessingErrorEvent.COMMUNICATION_ERROR
-    ),
-
-    /**
-     * Transaction failure.
-     * Try processing the transaction again.
-     */
-    TRANSACTION_FAILURE_A046(
-        "A046",
-        ProcessingErrorEvent.TRANSACTION_FAILURE
-    ),
-
-    /**
-     * Communication failure.
-     * Try processing the transaction again.
-     */
-    COMMUNICATION_FAILURE_A046_ALT(
-        "A046",
+    COMMUNICATION_FAILURE_A45_ALT(
+        "A45",
         ProcessingErrorEvent.COMMUNICATION_ERROR
     ),
 
@@ -2462,8 +2444,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Transaction failure.
      * Try processing the transaction again.
      */
-    TRANSACTION_FAILURE_A047(
-        "A047",
+    TRANSACTION_FAILURE_A46(
+        "A46",
         ProcessingErrorEvent.TRANSACTION_FAILURE
     ),
 
@@ -2471,8 +2453,26 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Communication failure.
      * Try processing the transaction again.
      */
-    COMMUNICATION_FAILURE_A047_ALT(
-        "A047",
+    COMMUNICATION_FAILURE_A46_ALT(
+        "A46",
+        ProcessingErrorEvent.COMMUNICATION_ERROR
+    ),
+
+    /**
+     * Transaction failure.
+     * Try processing the transaction again.
+     */
+    TRANSACTION_FAILURE_A47(
+        "A47",
+        ProcessingErrorEvent.TRANSACTION_FAILURE
+    ),
+
+    /**
+     * Communication failure.
+     * Try processing the transaction again.
+     */
+    COMMUNICATION_FAILURE_A47_ALT(
+        "A47",
         ProcessingErrorEvent.COMMUNICATION_ERROR
     ),
 
@@ -2480,8 +2480,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * SSL error.
      * Try processing the transaction again.
      */
-    SSL_ERROR_A048(
-        "A048",
+    SSL_ERROR_A48(
+        "A48",
         ProcessingErrorEvent.COMMUNICATION_ERROR
     ),
 
@@ -2489,8 +2489,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * SSL error.
      * Try processing the transaction again.
      */
-    SSL_ERROR_A049(
-        "A049",
+    SSL_ERROR_A49(
+        "A49",
         ProcessingErrorEvent.COMMUNICATION_ERROR
     ),
 
@@ -2498,8 +2498,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * WiFi communication error.
      * Try processing the transaction again.
      */
-    WIFI_COMMUNICATION_ERROR_A050(
-        "A050",
+    WIFI_COMMUNICATION_ERROR_A50(
+        "A50",
         ProcessingErrorEvent.WIFI_NETWORK_UNAVAILABLE
     ),
 
@@ -2507,8 +2507,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Communication timeout.
      * Try processing the transaction again.
      */
-    COMMUNICATION_TIMEOUT_A058(
-        "A058",
+    COMMUNICATION_TIMEOUT_A58(
+        "A58",
         ProcessingErrorEvent.COMMUNICATION_TIMEOUT
     ),
 
@@ -2516,8 +2516,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Network attachment error.
      * Wait and try again.
      */
-    NETWORK_ATTACHMENT_ERROR_A059(
-        "A059",
+    NETWORK_ATTACHMENT_ERROR_A59(
+        "A59",
         ProcessingErrorEvent.NETWORK_ATTACHMENT_ERROR
     ),
 
@@ -2525,8 +2525,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Terminal not configured.
      * Configure terminal parameters.
      */
-    TERMINAL_NOT_CONFIGURED_A099_ALT1(
-        "A099",
+    TERMINAL_NOT_CONFIGURED_A99_ALT1(
+        "A99",
         ProcessingErrorEvent.TERMINAL_NOT_CONFIGURED
     ),
 
@@ -2534,8 +2534,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Initialization error.
      * Restart terminal and try again.
      */
-    INITIALIZATION_ERROR_A099_ALT2(
-        "A099",
+    INITIALIZATION_ERROR_A99_ALT2(
+        "A99",
         ProcessingErrorEvent.INITIALIZATION_ERROR
     ),
 
@@ -2543,8 +2543,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Terminal not configured.
      * Configure terminal parameters.
      */
-    TERMINAL_NOT_CONFIGURED_A099_ALT3(
-        "A099",
+    TERMINAL_NOT_CONFIGURED_A99_ALT3(
+        "A99",
         ProcessingErrorEvent.TERMINAL_NOT_CONFIGURED
     ),
 
@@ -2552,8 +2552,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * App update required.
      * Update application to continue.
      */
-    APP_UPDATE_REQUIRED_A099_ALT4(
-        "A099",
+    APP_UPDATE_REQUIRED_A99_ALT4(
+        "A99",
         ProcessingErrorEvent.APP_UPDATE
     ),
 
@@ -2561,8 +2561,8 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Printer error.
      * Contact support for assistance.
      */
-    PRINTER_ERROR_A099_ALT5(
-        "A099",
+    PRINTER_ERROR_A99_ALT5(
+        "A99",
         ProcessingErrorEvent.PRINTER_ERROR
     ),
 
