@@ -41,7 +41,8 @@ sealed class UiState {
         val totalItems: Int,
         val currentAmount: Int,
         val currentMethod: SystemPaymentMethod,
-        val currentProcessorType: String
+        val currentProcessorType: String,
+        val timeoutMs: Long? = null
     ) : UiState()
     
     /**
@@ -56,6 +57,7 @@ sealed class UiState {
      */
     data class ErrorRetryOrSkip(
         val requestId: String,
-        val error: ProcessingErrorEvent
+        val error: ProcessingErrorEvent,
+        val timeoutMs: Long? = null
     ) : UiState()
 }

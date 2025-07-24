@@ -15,6 +15,6 @@ sealed class InputRequest {
      */
     data class CONFIRM_CUSTOMER_RECEIPT_PRINTING(
         override val id: String = UUID.randomUUID().toString(),
-        override val timeoutMs: Long? = 60_000L, // 60 seconds default timeout
+        override val timeoutMs: Long? = 10_000L, // 60 seconds default timeout
     ) : InputRequest()
 }

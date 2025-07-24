@@ -71,14 +71,16 @@ class StateManagementUseCase @Inject constructor() {
                     totalItems = request.totalItems,
                     currentAmount = request.currentAmount,
                     currentMethod = request.currentMethod,
-                    currentProcessorType = request.currentProcessorType
+                    currentProcessorType = request.currentProcessorType,
+                    timeoutMs = request.timeoutMs
                 ))
             }
             is QueueInputRequest.ERROR_RETRY_OR_SKIP -> {
                 android.util.Log.e("ErrorHandling", "QueueInputRequest.ERROR_RETRY_OR_SKIP received in StateManagementUseCase")
                 updateState(UiState.ErrorRetryOrSkip(
                     requestId = request.id,
-                    error = request.error
+                    error = request.error,
+                    timeoutMs = request.timeoutMs
                 ))
                 android.util.Log.e("ErrorHandling", "UiState.ErrorRetryOrSkip set in StateManagementUseCase")
             }

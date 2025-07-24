@@ -63,5 +63,12 @@
         android:textStyle="italic"
         android:textSize="12sp"
         android:layout_marginTop="8dp" />
+        
+    <!-- Timeout Countdown View -->
+    <br.com.ticpass.pos.payment.view.TimeoutCountdownView
+        android:id="@+id/timeout_countdown_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp" />
 
 </LinearLayout>

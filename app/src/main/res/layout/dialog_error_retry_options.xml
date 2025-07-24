@@ -12,6 +12,13 @@
         android:layout_marginBottom="16dp"
         android:text="@string/error_retry_description"
         android:textSize="16sp" />
+        
+    <!-- Timeout Countdown View -->
+    <br.com.ticpass.pos.payment.view.TimeoutCountdownView
+        android:id="@+id/timeout_countdown_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp" />
 
     <Button
         android:id="@+id/btn_retry_immediately"

@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
@@ -17,6 +18,7 @@ import br.com.ticpass.pos.R
 import br.com.ticpass.pos.payment.view.EventLogView
 import br.com.ticpass.pos.payment.view.PaymentProgressView
 import br.com.ticpass.pos.payment.view.PaymentQueueView
+import br.com.ticpass.pos.payment.view.TimeoutCountdownView
 import br.com.ticpass.pos.queue.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.ProcessingErrorEventResourceMapper
 import br.com.ticpass.pos.queue.ProcessingState
@@ -298,6 +300,30 @@ class PaymentProcessingActivity : AppCompatActivity() {
         dialogEventTextView.text = pinMessage
     }
     
+    /**
+     * Start the timeout countdown in a dialog if a timeout is specified
+     * 
+     * @param timeoutView The TimeoutCountdownView in the dialog
+     * @param timeoutMs The timeout duration in milliseconds
+     * @param onTimeout Callback to be invoked when the timeout occurs
+     */
+    private fun startDialogTimeoutCountdown(timeoutView: TimeoutCountdownView?, timeoutMs: Long?, onTimeout: () -> Unit) {
+        Log.d("TimeoutDebug", "startDialogTimeoutCountdown called with view: $timeoutView, timeoutMs: $timeoutMs")
+        
+        // Start the countdown if a timeout is specified and view exists
+        if (timeoutView != null && timeoutMs != null && timeoutMs > 0) {
+            Log.d("TimeoutDebug", "Starting dialog timeout countdown for $timeoutMs ms")
+            timeoutView.visibility = View.VISIBLE
+            timeoutView.startCountdown(timeoutMs, onTimeout)
+        } else if (timeoutView != null) {
+            // Hide the countdown view if no timeout is specified
+            Log.d("TimeoutDebug", "Hiding countdown view because timeoutMs is null or <= 0")
+            timeoutView.visibility = View.GONE
+        } else {
+            Log.e("TimeoutDebug", "Cannot start countdown - timeoutView is null")
+        }
+    }
+    
     private fun handlePaymentEvent(event: ProcessingPaymentEvent) {
         // Handle PIN digit tracking
         when (event) {
@@ -511,17 +537,44 @@ class PaymentProcessingActivity : AppCompatActivity() {
      * Show a dialog to confirm proceeding to the next processor (generic version)
      */
     private fun showConfirmNextProcessorDialog(requestId: String, currentIndex: Int, totalItems: Int) {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.confirm_next_processor_title)
-            .setMessage(getString(R.string.confirm_next_processor_message, currentIndex + 1, totalItems))
-            .setPositiveButton(R.string.proceed) { _, _ ->
-                viewModel.confirmNextProcessor(requestId)
-            }
-            .setNegativeButton(R.string.skip) { _, _ ->
-                viewModel.skipProcessor(requestId)
-            }
+        // Get the current UI state to access timeout
+        val state = viewModel.uiState.value as? UiState.ConfirmNextPaymentProcessor ?: return
+        
+        Log.d("TimeoutDebug", "showConfirmNextProcessorDialog - state.timeoutMs: ${state.timeoutMs}")
+        
+        // Create dialog with custom view that includes timeout
+        val dialogView = layoutInflater.inflate(R.layout.dialog_confirmation_with_timeout, null)
+        val timeoutView = dialogView.findViewById<TimeoutCountdownView>(R.id.timeout_countdown_view)
+        
+        // Set dialog title and message
+        dialogView.findViewById<TextView>(R.id.text_dialog_title).text = getString(R.string.confirm_next_processor_title)
+        dialogView.findViewById<TextView>(R.id.text_dialog_message).text = 
+            getString(R.string.confirm_next_processor_message, currentIndex + 1, totalItems)
+        
+        // Create the dialog
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
             .setCancelable(false)
-            .show()
+            .create()
+            
+        // Set up button click listeners
+        dialogView.findViewById<Button>(R.id.btn_dialog_confirm).setOnClickListener {
+            viewModel.confirmNextProcessor(requestId)
+            dialog.dismiss()
+        }
+        
+        dialogView.findViewById<Button>(R.id.btn_dialog_cancel).setOnClickListener {
+            viewModel.skipProcessor(requestId)
+            dialog.dismiss()
+        }
+        
+        // Start timeout countdown if specified
+        startDialogTimeoutCountdown(timeoutView, state.timeoutMs) {
+            viewModel.skipProcessor(requestId)
+            dialog.dismiss()
+        }
+        
+        dialog.show()
     }
     
     /**
@@ -532,6 +585,8 @@ class PaymentProcessingActivity : AppCompatActivity() {
         // Get the current UI state to access payment details
         val state = viewModel.uiState.value as? UiState.ConfirmNextPaymentProcessor ?: return
         
+        Log.d("TimeoutDebug", "showConfirmNextPaymentProcessorDialog - state.timeoutMs: ${state.timeoutMs}")
+        
         // Create a custom dialog view with editable fields
         val dialogView = layoutInflater.inflate(R.layout.dialog_payment_confirmation, null)
         
@@ -539,6 +594,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         val amountEditText = dialogView.findViewById<EditText>(R.id.edit_payment_amount)
         val methodSpinner = dialogView.findViewById<Spinner>(R.id.spinner_payment_method)
         val processorTypeSpinner = dialogView.findViewById<Spinner>(R.id.spinner_processor_type)
+        val timeoutView = dialogView.findViewById<TimeoutCountdownView>(R.id.timeout_countdown_view)
         
         // Set initial values
         amountEditText.setText((state.currentAmount / 100.0).toString())
@@ -557,11 +613,19 @@ class PaymentProcessingActivity : AppCompatActivity() {
         processorTypeSpinner.adapter = processorAdapter
         processorTypeSpinner.setSelection(processorTypes.indexOf(state.currentProcessorType))
         
-        // Create and show the dialog
-        AlertDialog.Builder(this)
+        // Create the dialog
+        val dialog = AlertDialog.Builder(this)
             .setTitle(R.string.confirm_next_processor_title)
             .setView(dialogView)
-            .setPositiveButton(R.string.proceed) { _, _ ->
+            .setPositiveButton(R.string.proceed, null) // Set to null initially to prevent auto-dismiss
+            .setNegativeButton(R.string.skip, null) // Set to null initially to prevent auto-dismiss
+            .setCancelable(false)
+            .create()
+            
+        // Set button click listeners manually to prevent auto-dismiss
+        dialog.setOnShowListener {
+            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            positiveButton.setOnClickListener {
                 try {
                     // Get the modified values
                     val modifiedAmount = (amountEditText.text.toString().toDouble() * 100).toInt()
@@ -583,24 +647,39 @@ class PaymentProcessingActivity : AppCompatActivity() {
                         // Use the original payment details
                         viewModel.confirmNextProcessor(requestId)
                     }
+                    dialog.dismiss()
                 } catch (e: Exception) {
                     // Handle parsing errors
                     Toast.makeText(this, "Invalid amount format", Toast.LENGTH_SHORT).show()
-                    // Use the original payment details
-                    viewModel.confirmNextProcessor(requestId)
                 }
             }
-            .setNegativeButton(R.string.skip) { _, _ ->
+            
+            val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+            negativeButton.setOnClickListener {
                 viewModel.skipProcessor(requestId)
+                dialog.dismiss()
             }
-            .setCancelable(false)
-            .show()
+        }
+        
+        // Start timeout countdown if specified
+        startDialogTimeoutCountdown(timeoutView, state.timeoutMs) {
+            // Auto-skip on timeout
+            viewModel.skipProcessor(requestId)
+            dialog.dismiss()
+        }
+        
+        dialog.show()
     }
     
     /**
      * Show a dialog with error retry options
      */
     private fun showErrorRetryOptionsDialog(requestId: String, error: ProcessingErrorEvent) {
+        // Get the current UI state to access timeout
+        val state = viewModel.uiState.value as? UiState.ErrorRetryOrSkip ?: return
+        
+        Log.d("TimeoutDebug", "showErrorRetryOptionsDialog - state.timeoutMs: ${state.timeoutMs}")
+        
         val resourceId = ProcessingErrorEventResourceMapper.getErrorResourceKey(error)
         val errorMessage = getString(resourceId)
         
@@ -608,16 +687,18 @@ class PaymentProcessingActivity : AppCompatActivity() {
         Log.e("ErrorHandling", "showErrorRetryOptionsDialog updating progress view with error: $error")
         paymentProgressView.displayError(error)
         
-        // Create a custom dialog with multiple buttons
+        // Create a custom dialog with multiple buttons and timeout
+        val view = layoutInflater.inflate(R.layout.dialog_error_retry_options, null)
+        val timeoutView = view.findViewById<TimeoutCountdownView>(R.id.timeout_countdown_view)
+        
+        // Set error description with the specific error message
+        view.findViewById<TextView>(R.id.text_error_description).text = errorMessage
+        
         val dialog = AlertDialog.Builder(this)
             .setTitle(R.string.error_retry_title)
-            .setMessage(errorMessage)
             .setCancelable(false)
+            .setView(view)
             .create()
-            
-        // Use a custom layout with multiple buttons
-        val view = layoutInflater.inflate(R.layout.dialog_error_retry_options, null)
-        dialog.setView(view)
         
         // Set up button click listeners
         view.findViewById<View>(R.id.btn_retry_immediately).setOnClickListener {
@@ -636,7 +717,14 @@ class PaymentProcessingActivity : AppCompatActivity() {
         }
         
         view.findViewById<View>(R.id.btn_abort_all).setOnClickListener {
-            viewModel.abortAllProcessors(requestId)
+            viewModel.cancelAllPayments()
+            dialog.dismiss()
+        }
+        
+        // Start timeout countdown if specified
+        startDialogTimeoutCountdown(timeoutView, state.timeoutMs) {
+            // Auto-skip on timeout
+            viewModel.skipProcessor(requestId)
             dialog.dismiss()
         }
         
