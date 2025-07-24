@@ -1,9 +1,12 @@
 package br.com.ticpass.pos.view.ui.products
 
+import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
@@ -11,8 +14,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.view.ui.products.adapter.ProductsAdapter
+import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartScreen
 import br.com.ticpass.pos.viewmodel.products.ProductsViewModel
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
+
+
+
 
 @AndroidEntryPoint
 class ProductsListScreen : Fragment(R.layout.fragment_products) {
@@ -26,6 +34,10 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
             "${product.title} adicionado ao carrinho",
             Toast.LENGTH_SHORT
         ).show()
+    }
+
+    companion object {
+        const val REQUEST_CART_UPDATE = 1001
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -52,11 +64,27 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
             override fun onTabUnselected(tab: TabLayout.Tab) {}
             override fun onTabReselected(tab: TabLayout.Tab) {}
         })
+
+        val fab: FloatingActionButton = view.findViewById(R.id.fab)
+        fab.setOnClickListener {
+            val intent = Intent(requireContext(), ShoppingCartScreen::class.java)
+            startActivityForResult(intent, REQUEST_CART_UPDATE)
+        }
     }
 
     override fun onResume() {
         super.onResume()
         viewModel.loadCategoriesWithProducts()
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_CART_UPDATE && resultCode == AppCompatActivity.RESULT_OK) {
+            adapter.notifyDataSetChanged()
+        }
     }
 
     private fun onCategorySelected(cat: String) {

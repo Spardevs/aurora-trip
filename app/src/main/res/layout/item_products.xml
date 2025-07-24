@@ -13,15 +13,32 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center"
-        android:padding="10dp">
+        android:padding="10dp"
+        android:gravity="center_horizontal">
 
-        <ImageView
-            android:id="@+id/productImage"
-            android:layout_width="75dp"
-            android:layout_height="75dp"
-            android:contentDescription="@string/manu_image"
-            android:scaleType="centerCrop" />
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/productImage"
+                android:layout_width="75dp"
+                android:layout_height="75dp"
+                android:contentDescription="@string/manu_image"
+                android:scaleType="centerCrop" />
+
+            <TextView
+                android:id="@+id/productBadge"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="top|end"
+                android:background="@drawable/badge_background"
+                android:textColor="@android:color/white"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:visibility="gone"
+                android:layout_margin="2dp" />
+        </FrameLayout>
 
         <TextView
             android:id="@+id/productTitle"

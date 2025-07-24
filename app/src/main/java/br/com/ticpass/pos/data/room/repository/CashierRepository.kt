@@ -17,6 +17,8 @@ class CashierRepository @Inject constructor(
 
     suspend fun getUser() = cashierDao.getUser()
 
+    suspend fun clearAll() = cashierDao.removeUser(getUser()!!)
+
     companion object {
 
         // For Singleton instantiation

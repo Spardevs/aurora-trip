@@ -2,6 +2,7 @@ package br.com.ticpass.pos.data.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.MenuItem
 import android.widget.FrameLayout
@@ -10,18 +11,46 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
+import br.com.ticpass.pos.data.room.AppDatabase
+import br.com.ticpass.pos.data.room.repository.CashierRepository
+import br.com.ticpass.pos.data.room.repository.CategoryRepository
+import br.com.ticpass.pos.data.room.repository.EventRepository
+import br.com.ticpass.pos.data.room.repository.PosRepository
+import br.com.ticpass.pos.data.room.repository.ProductRepository
 import br.com.ticpass.pos.view.ui.login.LoginScreen
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.navigation.NavigationView
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 abstract class DrawerBaseActivity : AppCompatActivity() {
     protected lateinit var drawerLayout: DrawerLayout
     protected lateinit var navView: NavigationView
 
+    @Inject
+    lateinit var posRepository: PosRepository
+    @Inject
+    lateinit var menuRepository: EventRepository
+    @Inject
+    lateinit var cashierRepository: CashierRepository
+    @Inject
+    lateinit var productsRepository: ProductRepository
+    @Inject
+    lateinit var categoryRepository: CategoryRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_drawer_base)
+
+        val db = AppDatabase.getInstance(this)
+
+        posRepository = PosRepository(db.posDao())
+        menuRepository = EventRepository(db.eventDao())
+        cashierRepository = CashierRepository(db.cashierDao())
+        productsRepository = ProductRepository(db.productDao())
+        categoryRepository = CategoryRepository(db.categoryDao())
 
         drawerLayout = findViewById(R.id.drawer_layout)
         navView      = findViewById(R.id.nav_view)
@@ -41,8 +70,11 @@ abstract class DrawerBaseActivity : AppCompatActivity() {
         footer.setOnClickListener {
             getSharedPreferences("UserPrefs", MODE_PRIVATE).edit { clear() }
             getSharedPreferences("SessionPrefs", MODE_PRIVATE).edit { clear() }
-            startActivity(Intent(this, LoginScreen::class.java))
-            finish()
+            lifecycleScope.launch {
+                logoutClearDb()
+                startActivity(Intent(this@DrawerBaseActivity, LoginScreen::class.java))
+                finish()
+            }
         }
 
         val header = navView.getHeaderView(0)
@@ -69,4 +101,18 @@ abstract class DrawerBaseActivity : AppCompatActivity() {
 
     protected abstract fun openProducts()
     protected abstract fun openProfile()
+
+   suspend fun logoutClearDb() {
+       try {
+           posRepository.clearAll()
+           menuRepository.clearAll()
+           cashierRepository.clearAll()
+           productsRepository.clearAll()
+           categoryRepository.clearAll()
+
+           Log.d("User logout", "Db cleared, user logged out")
+       } catch (e: Exception) {
+           throw e
+       }
+    }
 }

@@ -12,6 +12,8 @@
   ~ is strictly prohibited without the express written permission of Ticpass.
   -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="payment_form_title" translatable="false">"Payment form"</string>
+    <string name="confirm_payment">Confirm</string>
     <string name="operator_name">Operator</string>
     <string name="navigation_drawer_open">Open menu</string>
     <string name="navigation_drawer_close">Close menu</string>

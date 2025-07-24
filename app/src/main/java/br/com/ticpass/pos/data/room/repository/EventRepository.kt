@@ -84,6 +84,8 @@ class EventRepository @Inject constructor(
         return newValue
     }
 
+    suspend fun clearAll() = eventDao.clearEvents()
+
     companion object {
 
         // For Singleton instantiation

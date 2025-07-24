@@ -46,6 +46,10 @@ class ProductRepository @Inject constructor(
         return productDao.clearAll()
     }
 
+    suspend fun getById(productId: String): ProductEntity? {
+        return productDao.getById(productId)
+    }
+
     companion object {
 
         // For Singleton instantiation

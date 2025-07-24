@@ -22,4 +22,5 @@ interface CashierDao {
 
     @Delete
     suspend fun removeUser(cashier: CashierEntity)
+
 }
