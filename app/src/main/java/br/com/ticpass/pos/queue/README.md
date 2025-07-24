@@ -140,14 +140,10 @@ graph TD
     subgraph "ViewModels"
         PPQVM[ProcessingPaymentQueueViewModel]
         IPVM[InteractivePaymentViewModel]
-        MPQVM[MixedPaymentQueueViewModel]
-        MQVM[MultiPaymentQueueViewModel]
         PQVM[PrintQueueViewModel]
         
         PPQVM -->|uses| HQM
         IPVM -->|uses| HQM
-        MPQVM -->|uses| HQM
-        MQVM -->|uses| HQM
         PQVM -->|uses| HQM
     end
     
