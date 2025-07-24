@@ -16,22 +16,23 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="br.com.uol.pagseguro.permission.MANAGE_PAYMENTS" tools:node="remove"/>
-
     <application
         android:name="br.com.ticpass.pos.MainApplication"
         android:label="@string/app_name"
         tools:replace="android:label"
         android:icon="@mipmap/ic_launcher"
     >
-        <receiver android:name="br.com.uol.pagseguro.plugpagservice.wrapper.receivers.PlugPagPrintActionReceiver" tools:node="remove">
-            <intent-filter>
-                <action android:name="br.com.uol.pagseguro.plugpagservice.PRINT_LISTENER" tools:node="remove"/>
-            </intent-filter>
-        </receiver>
-
         <activity
             android:name="br.com.stone.sdk.android.envconfig.data.EnvironmentActivity"
             android:exported="true" />
+
+        <activity
+            android:name="br.com.ticpass.pos.payment.PaymentProcessingActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 </manifest>

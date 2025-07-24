@@ -1,6 +1,7 @@
 package br.com.ticpass.pos.sdk
 
 import android.content.Context
+import br.com.ticpass.pos.BuildConfig
 import stone.application.StoneStart
 import stone.user.UserModel
 
@@ -53,6 +54,9 @@ object SdkInstance {
      * @return A new SDK instance
      */
     private fun createInstance(context: Context): UserModel {
+        val isDebug = BuildConfig.DEBUG
+        if (isDebug) return UserModel()
+
         val userList: List<UserModel> = StoneStart.init(context)
             ?: throw IllegalStateException("Failed to initialize Stone SDK: User list is null")
         return userList.first()
