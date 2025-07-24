@@ -3,10 +3,11 @@
     <!-- Payment Processing UI Strings -->
     <string name="payment_processing_title">Payment Processing</string>
     <string name="payment_progress">Payment %1$d out of %2$d</string>
-    <string name="enqueue_credit_payment">Credit Payment</string>
-    <string name="enqueue_debit_payment">Debit Payment</string>
-    <string name="enqueue_voucher_payment">Voucher Payment</string>
-    <string name="enqueue_pix_payment">PIX Payment</string>
+    <string name="enqueue_credit_payment">Credit</string>
+    <string name="enqueue_debit_payment">Debit</string>
+    <string name="enqueue_voucher_payment">Voucher</string>
+    <string name="enqueue_pix_payment">PIX</string>
+    <string name="enqueue_cash_payment">Cash</string>
     <string name="start_processing">Start Processing</string>
     <string name="cancel_all_payments">Cancel All</string>
     

@@ -1,11 +1,17 @@
 package br.com.ticpass.pos.queue.payment.processors
 
+import android.util.Log
 import br.com.ticpass.pos.queue.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.ProcessingResult
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Cash Payment Processor
@@ -13,43 +19,45 @@ import java.util.UUID
  */
 class CashPaymentProcessor : PaymentProcessorBase() {
     
+    // Track if processor is currently being aborted
+    private val isAborting = AtomicBoolean(false)
+    
     override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
-        // Simulate cash payment flow
-        
-        // Cash amount entry
-        _events.emit(ProcessingPaymentEvent.START)
-        delay(1000)
-        
-        // Calculate change if needed (simulated)
-        val amountTendered = item.amount + (0..5).random()
-        val change = amountTendered - item.amount
-        
-        // We would store this information in a real implementation
-        // For example, in a receipt or transaction record
-        val cashInfo = mapOf(
-            "amountTendered" to amountTendered.toString(),
-            "change" to change.toString()
-        )
-        
-        // Custom cash event - not in default ProcessingPaymentEvent, but could be added
-        // For now we'll use a generic completed event
-        delay(1500)
-        
-        if (item.amount > 0) {
-            // Complete the transaction
+        try {
+            withContext(Dispatchers.IO) { delay(1500) }
+
             val transactionId = "CASH-${UUID.randomUUID().toString().substring(0, 8)}"
+            val hasLowAmount = item.amount <= 1000
+
+            if(hasLowAmount) return ProcessingResult.Error(
+                ProcessingErrorEvent.INVALID_TRANSACTION_AMOUNT
+            )
+            
+            withContext(Dispatchers.IO) { delay(1000) }
+
             _events.emit(ProcessingPaymentEvent.TRANSACTION_DONE)
+
+            // Use withContext to ensure we're on a background thread
+            withContext(Dispatchers.IO) { delay(1500) }
+
             return ProcessingResult.Success(
                 atk = "",
-                txId = ""
+                txId = transactionId
             )
-        } else {
-            return ProcessingResult.Error(ProcessingErrorEvent.INVALID_TRANSACTION_AMOUNT)
+        }
+        catch (e: CancellationException) {
+            return ProcessingResult.Error(
+                ProcessingErrorEvent.OPERATION_CANCELLED
+            )
+        }
+        catch (e: Exception) {
+            return ProcessingResult.Error(ProcessingErrorEvent.GENERIC)
         }
     }
 
     override suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean {
         return try {
+            isAborting.set(true)
             true
         } catch (e: Exception) {
             false

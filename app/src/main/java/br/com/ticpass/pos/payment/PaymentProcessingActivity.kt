@@ -116,6 +116,10 @@ class PaymentProcessingActivity : AppCompatActivity() {
             enqueuePayment(SystemPaymentMethod.PIX)
         }
         
+        findViewById<View>(R.id.btn_add_cash).setOnClickListener {
+            enqueuePayment(SystemPaymentMethod.CASH, "cash")
+        }
+        
         // Start processing button
         findViewById<View>(R.id.btn_start_processing).setOnClickListener {
             viewModel.startProcessing()
@@ -497,7 +501,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
             .show()
     }
     
-    private fun enqueuePayment(method: SystemPaymentMethod) {
+    private fun enqueuePayment(method: SystemPaymentMethod, processorType: String = "acquirer") {
         // Generate a random amount between R$10 and R$200
         val amount = (1000..20000).random()
         val commission = 0 // No commission for example
@@ -506,7 +510,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
             amount = amount,
             commission = commission,
             method = method,
-            processorType = "acquirer"
+            processorType = processorType
         )
     }
     
