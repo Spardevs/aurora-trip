@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.Flow
 interface QueueStorage<T : QueueItem> {
     suspend fun insert(item: T)
     suspend fun getNextPending(): T?
-    suspend fun updateStatus(item: T, status: String)
+    suspend fun updateStatus(item: T, status: QueueItemStatus)
     suspend fun remove(item: T)
-    suspend fun getAllByStatus(status: String): List<T>
-    fun observeByStatus(status: String): Flow<List<T>>
+    suspend fun getAllByStatus(status: QueueItemStatus): List<T>
+    fun observeByStatus(status: QueueItemStatus): Flow<List<T>>
 }

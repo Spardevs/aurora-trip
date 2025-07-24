@@ -1,6 +1,7 @@
 package br.com.ticpass.pos.queue.payment
 
 import androidx.room.*
+import br.com.ticpass.pos.queue.QueueItemStatus
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -12,8 +13,8 @@ interface ProcessingPaymentQueueDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(payment: ProcessingPaymentEntity)
 
-    @Query("SELECT * FROM payment_queue WHERE status = 'pending' ORDER BY priority DESC")
-    suspend fun getNextPending(): ProcessingPaymentEntity?
+    @Query("SELECT * FROM payment_queue WHERE status = :status ORDER BY priority DESC LIMIT 1")
+    suspend fun getNextPending(status: String = QueueItemStatus.PENDING.name): ProcessingPaymentEntity?
 
     @Query("UPDATE payment_queue SET status = :status WHERE id = :id")
     suspend fun updateStatus(id: String, status: String)
