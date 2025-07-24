@@ -15,7 +15,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.payment.view.EventLogView
+
 import br.com.ticpass.pos.payment.view.PaymentProgressView
 import br.com.ticpass.pos.payment.view.PaymentQueueView
 import br.com.ticpass.pos.payment.view.TimeoutCountdownView
@@ -42,7 +42,6 @@ class PaymentProcessingActivity : AppCompatActivity() {
     // UI components
     private lateinit var paymentQueueView: PaymentQueueView
     private lateinit var paymentProgressView: PaymentProgressView
-    private lateinit var eventLogView: EventLogView
     
     // Progress Dialog
     private var progressDialog: AlertDialog? = null
@@ -71,7 +70,6 @@ class PaymentProcessingActivity : AppCompatActivity() {
         // Initialize custom views
         paymentQueueView = findViewById(R.id.payment_queue_view)
         paymentProgressView = findViewById(R.id.payment_progress_view)
-        eventLogView = findViewById(R.id.event_log_view)
         
         // Set up payment queue view cancel callback
         paymentQueueView.onPaymentCanceled = { paymentId ->
@@ -163,7 +161,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
                         updateProcessingProgress(currentIndex, total)
                     }
                     is ProcessingState.ItemDone -> {
-                        eventLogView.addSuccessMessage("All payments completed")
+                        // Success: All payments completed
                     }
                     is ProcessingState.ItemFailed -> {
                         // Handle error state
@@ -171,7 +169,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
                         val resourceId = ProcessingErrorEventResourceMapper.getErrorResourceKey(state.error)
                         val displayMessage = getString(resourceId)
                         Log.e("PaymentProcessingActivity", "Error message: $displayMessage")
-                        eventLogView.addErrorMessage(displayMessage)
+                        // Error: $displayMessage
                         
                         // Also display the error in the progress area
                         displayErrorMessage(state.error)
@@ -189,12 +187,12 @@ class PaymentProcessingActivity : AppCompatActivity() {
                     is ProcessingState.QueueCanceled -> {
                         // Reset progress when queue is canceled
                         updateProcessingProgress(0, 0)
-                        eventLogView.addMessage("All payments canceled")
+                        // All payments canceled
                     }
                     is ProcessingState.QueueDone -> {
                         // Reset progress when queue processing is done
                         updateProcessingProgress(0, 0)
-                        eventLogView.addSuccessMessage("All payments processed successfully")
+                        // Success: All payments processed successfully
                     }
                     else -> { 
                         // Reset progress for other states
@@ -405,7 +403,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         dialogEventTextView.text = eventMessage
         
         // Log the payment event using the dedicated method
-        eventLogView.addPaymentEvent(eventMessage)
+        // Payment event: $eventMessage
     }
     
     /**
@@ -422,13 +420,13 @@ class PaymentProcessingActivity : AppCompatActivity() {
                 // val intent = Intent(this, PaymentDetailsActivity::class.java)
                 // intent.putExtra("paymentId", event.paymentId)
                 // startActivity(intent)
-                eventLogView.addMessage("Navigate to payment details: ${event.paymentId}")
+                // Navigate to payment details: ${event.paymentId}
             }
             
             // Handle message events
             is UiEvent.ShowToast -> {
                 Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show()
-                eventLogView.addMessage("Toast: ${event.message}")
+                // Toast message: ${event.message}
             }
             is UiEvent.ShowSnackbar -> {
                 val view = findViewById<View>(android.R.id.content)
@@ -443,7 +441,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
                     }
                 }
                 snackbar.show()
-                eventLogView.addMessage("Snackbar: ${event.message}")
+                // Snackbar message: ${event.message}
             }
             
             // Handle dialog events
@@ -453,7 +451,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
                     .setMessage(event.message)
                     .setPositiveButton("OK", null)
                     .show()
-                eventLogView.addErrorMessage("${event.title} - ${event.message}")
+                // Error dialog: ${event.title} - ${event.message}
             }
             is UiEvent.ShowConfirmationDialog -> {
                 AlertDialog.Builder(this)
@@ -461,22 +459,22 @@ class PaymentProcessingActivity : AppCompatActivity() {
                     .setMessage(event.message)
                     .setPositiveButton("Yes") { _, _ -> 
                         // Handle confirmation
-                        eventLogView.addMessage("Confirmation dialog: Yes")
+                        // Confirmation dialog: Yes
                     }
                     .setNegativeButton("No") { _, _ ->
-                        eventLogView.addMessage("Confirmation dialog: No")
+                        // Confirmation dialog: No
                     }
                     .show()
-                eventLogView.addMessage("Confirmation dialog: ${event.title} - ${event.message}")
+                // Confirmation dialog: ${event.title} - ${event.message}
             }
             
             // Handle payment events
             is UiEvent.PaymentCompleted -> {
                 val amountStr = event.amount.toString()
-                eventLogView.addSuccessMessage("Payment ${event.paymentId} completed: $amountStr")
+                // Payment ${event.paymentId} completed: $amountStr
             }
             is UiEvent.PaymentFailed -> {
-                eventLogView.addErrorMessage("Payment ${event.paymentId} failed: ${event.error}")
+                // Payment ${event.paymentId} failed: ${event.error}
             }
         }
     }
@@ -524,7 +522,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         paymentProgressView.displayError(error)
 
         // Also log the error in the event log using the dedicated error method
-        eventLogView.addErrorMessage(errorMessage)
+        // Error: $errorMessage
         
         // Update dialog with error message
         dialogEventTextView.text = errorMessage
