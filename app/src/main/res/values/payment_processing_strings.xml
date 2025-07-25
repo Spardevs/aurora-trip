@@ -9,7 +9,7 @@
     <string name="enqueue_pix_payment">PIX</string>
     <string name="enqueue_cash_payment">Cash</string>
     <string name="enqueue_bitcoin_ln_payment">Bitcoin LN</string>
-    <string name="enqueue_personal_pix_payment">Personal PIX</string>
+    <string name="enqueue_personal_pix_payment">Merchant PIX</string>
     <string name="start_processing">Start Processing</string>
     <string name="cancel_all_payments">Cancel All</string>
     

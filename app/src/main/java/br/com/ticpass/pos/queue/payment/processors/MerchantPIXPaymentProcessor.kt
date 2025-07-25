@@ -14,10 +14,10 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Personal PIX Payment Processor
- * Processes personal PIX payments without using acquirer SDK
+ * Merchant PIX Payment Processor
+ * Processes merchant PIX payments without using acquirer SDK
  */
-class PersonalPIXPaymentProcessor : PaymentProcessorBase() {
+class MerchantPIXPaymentProcessor : PaymentProcessorBase() {
 
     // Track if processor is currently being aborted
     private val isAborting = AtomicBoolean(false)
@@ -26,7 +26,7 @@ class PersonalPIXPaymentProcessor : PaymentProcessorBase() {
         try {
             val pixKey = withContext(Dispatchers.IO) {
                 requestInput(
-                    InputRequest.CONFIRM_PERSONAL_PIX_KEY()
+                    InputRequest.CONFIRM_MERCHANT_PIX_KEY()
                 )
             }.value as String
 
@@ -41,7 +41,7 @@ class PersonalPIXPaymentProcessor : PaymentProcessorBase() {
                 pixKey = pixKey,
                 amount = item.amount,
             )
-            Log.d("PersonalPIXPaymentProcessor", "Generated PIX String: $pixString")
+            Log.d("MerchantPIXPaymentProcessor", "Generated PIX String: $pixString")
             withContext(Dispatchers.IO) { delay(1500) }
 
             val transactionId = "BTC_LN-${UUID.randomUUID().toString().substring(0, 8)}"

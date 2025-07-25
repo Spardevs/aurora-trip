@@ -198,10 +198,10 @@ class InteractivePaymentViewModel @Inject constructor(
     }
     
     /**
-     * Confirm personal PIX key (processor-level input request)
+     * Confirm merchant PIX key (processor-level input request)
      */
-    fun confirmPersonalPixKey(requestId: String, pixKey: String) {
-        dispatch(Action.ConfirmPersonalPixKey(requestId, pixKey))
+    fun confirmMerchantPixKey(requestId: String, pixKey: String) {
+        dispatch(Action.ConfirmMerchantPixKey(requestId, pixKey))
     }
     
     // Queue-Level Input Handling

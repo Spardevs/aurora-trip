@@ -658,7 +658,7 @@ Handled directly by the processor operations.
 // Inside a PaymentProcessorBase subclass
 override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
   // Create an input request
-  val request = InputRequest.CONFIRM_PERSONAL_PIX_KEY(
+  val request = InputRequest.CONFIRM_MERCHANT_PIX_KEY(
     id = UUID.randomUUID().toString(),
     message = "Enter your PIX key",
     timeoutMs = 60000L // Optional timeout in milliseconds
@@ -738,8 +738,8 @@ fun reduce(state: UiState, action: Action): UiState {
         is InputRequest.PIN -> {
           UiState.EnterPin(action.request)
         }
-        is InputRequest.CONFIRM_PERSONAL_PIX_KEY -> {
-          UiState.ConfirmPersonalPixKey(action.request)
+        is InputRequest.CONFIRM_MERCHANT_PIX_KEY -> {
+          UiState.ConfirmMerchantPixKey(action.request)
         }
         // Handle other processor input request types
       }
@@ -757,11 +757,11 @@ Based on the UI state, display the appropriate UI component:
 // In your Activity/Fragment
 viewModel.uiState.collect { state ->
   when (state) {
-    is UiState.ConfirmPersonalPixKey -> {
+    is UiState.ConfirmMerchantPixKey -> {
       showPixKeyDialog(
         request = state.request,
         onConfirm = { pixKey ->
-          viewModel.confirmPersonalPixKey(state.request.id, pixKey)
+          viewModel.confirmMerchantPixKey(state.request.id, pixKey)
         },
         onCancel = {
           viewModel.cancelInput(state.request.id)
@@ -772,7 +772,7 @@ viewModel.uiState.collect { state ->
   }
 }
 
-private fun showPixKeyDialog(request: InputRequest.CONFIRM_PERSONAL_PIX_KEY, onConfirm: (String) -> Unit, onCancel: () -> Unit) {
+private fun showPixKeyDialog(request: InputRequest.CONFIRM_MERCHANT_PIX_KEY, onConfirm: (String) -> Unit, onCancel: () -> Unit) {
   val dialog = MaterialAlertDialogBuilder(this)
     .setTitle(R.string.pix_key_dialog_title)
     .setView(R.layout.dialog_pix_key_input)
@@ -795,8 +795,8 @@ Provide methods in the ViewModel to handle user responses:
 
 ```kotlin
 // In your ViewModel
-fun confirmPersonalPixKey(requestId: String, pixKey: String) {
-  val sideEffect = processorConfirmationUseCase.confirmPersonalPixKey(
+fun confirmMerchantPixKey(requestId: String, pixKey: String) {
+  val sideEffect = processorConfirmationUseCase.confirmMerchantPixKey(
     requestId = requestId,
     pixKey = pixKey,
     paymentQueue = paymentQueue,
@@ -821,7 +821,7 @@ Implement use cases to handle the business logic for input responses:
 
 ```kotlin
 // In your ProcessorConfirmationUseCase
-fun confirmPersonalPixKey(
+fun confirmMerchantPixKey(
   requestId: String,
   pixKey: String,
   paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,

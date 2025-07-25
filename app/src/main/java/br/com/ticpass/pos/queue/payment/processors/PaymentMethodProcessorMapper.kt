@@ -15,7 +15,7 @@ object PaymentMethodProcessorMapper {
         SystemPaymentMethod.DEBIT to PaymentProcessorType.ACQUIRER,
         SystemPaymentMethod.VOUCHER to PaymentProcessorType.ACQUIRER,
         SystemPaymentMethod.PIX to PaymentProcessorType.ACQUIRER,
-        SystemPaymentMethod.PERSONAL_PIX to PaymentProcessorType.PERSONAL_PIX,
+        SystemPaymentMethod.MERCHANT_PIX to PaymentProcessorType.MERCHANT_PIX,
         SystemPaymentMethod.CASH to PaymentProcessorType.CASH,
         SystemPaymentMethod.LN_BITCOIN to PaymentProcessorType.LN_BITCOIN
     )

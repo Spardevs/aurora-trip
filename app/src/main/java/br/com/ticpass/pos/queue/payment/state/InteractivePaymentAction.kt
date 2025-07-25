@@ -46,7 +46,7 @@ sealed class Action {
     ) : Action()
     
     // PIX payment actions
-    data class ConfirmPersonalPixKey(
+    data class ConfirmMerchantPixKey(
         val requestId: String,
         val pixKey: String
     ) : Action()

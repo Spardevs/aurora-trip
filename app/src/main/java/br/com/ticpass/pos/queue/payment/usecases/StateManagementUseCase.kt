@@ -100,9 +100,9 @@ class StateManagementUseCase @Inject constructor() {
         updateState: (UiState) -> Unit
     ) {
         when (request) {
-            is InputRequest.CONFIRM_PERSONAL_PIX_KEY -> {
-                Log.d("StateManagement", "CONFIRM_PERSONAL_PIX_KEY request received")
-                updateState(UiState.ConfirmPersonalPixKey(
+            is InputRequest.CONFIRM_MERCHANT_PIX_KEY -> {
+                Log.d("StateManagement", "CONFIRM_MERCHANT_PIX_KEY request received")
+                updateState(UiState.ConfirmMerchantPixKey(
                     requestId = request.id,
                     pixKey = request.pixKey,
                     timeoutMs = request.timeoutMs

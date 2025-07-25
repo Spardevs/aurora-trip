@@ -81,9 +81,9 @@ class ProcessorConfirmationUseCase @Inject constructor() {
     }
     
     /**
-     * Confirm personal PIX key
+     * Confirm merchant PIX key
      */
-    fun confirmPersonalPixKey(
+    fun confirmMerchantPixKey(
         requestId: String,
         pixKey: String,
         paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,

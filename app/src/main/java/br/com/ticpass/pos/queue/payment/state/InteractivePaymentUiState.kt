@@ -63,9 +63,9 @@ sealed class UiState {
     ) : UiState()
     
     /**
-     * Confirmation state - waiting for user to input personal PIX key
+     * Confirmation state - waiting for user to input merchant PIX key
      */
-    data class ConfirmPersonalPixKey(
+    data class ConfirmMerchantPixKey(
         val requestId: String,
         val pixKey: String = "",
         val timeoutMs: Long? = null

@@ -124,7 +124,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         }
         
         findViewById<View>(R.id.btn_add_personal_pix).setOnClickListener {
-            enqueuePayment(SystemPaymentMethod.PERSONAL_PIX)
+            enqueuePayment(SystemPaymentMethod.MERCHANT_PIX)
         }
         
         findViewById<View>(R.id.btn_add_cash).setOnClickListener {
@@ -255,8 +255,8 @@ class PaymentProcessingActivity : AppCompatActivity() {
                     is UiState.ConfirmCustomerReceiptPrinting -> {
                         showCustomerReceiptDialog(uiState.requestId)
                     }
-                    is UiState.ConfirmPersonalPixKey -> {
-                        confirmPersonalPixKey(uiState.requestId)
+                    is UiState.ConfirmMerchantPixKey -> {
+                        confirmMerchantPixKey(uiState.requestId)
                     }
                     is UiState.ErrorRetryOrSkip -> {
                         showErrorRetryOptionsDialog(uiState.requestId, uiState.error)
@@ -577,12 +577,12 @@ class PaymentProcessingActivity : AppCompatActivity() {
      * NOTE: In a real-world application, this value should be fetched from a database
      * or user preferences instead of being hardcoded. This is just for demonstration purposes.
      */
-    private fun confirmPersonalPixKey(requestId: String) {
+    private fun confirmMerchantPixKey(requestId: String) {
         // Hardcoded PIX key value instead of fetching from storage
         val hardcodedPixKey = "payfor@stupid.codes"
         
         // Directly confirm the PIX key without showing a dialog
-        viewModel.confirmPersonalPixKey(requestId, hardcodedPixKey)
+        viewModel.confirmMerchantPixKey(requestId, hardcodedPixKey)
     }
     
     /**

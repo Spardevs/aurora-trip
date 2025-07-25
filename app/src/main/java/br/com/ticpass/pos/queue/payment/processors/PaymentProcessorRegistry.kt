@@ -11,7 +11,7 @@ object PaymentProcessorRegistry {
     private val cashProcessor by lazy { CashPaymentProcessor() }
     private val bitcoinLNProcessor by lazy { BitcoinLNPaymentProcessor() }
     private val transactionlessProcessor by lazy { TransactionlessProcessor() }
-    private val personalPIXProcessor by lazy { PersonalPIXPaymentProcessor() }
+    private val personalPIXProcessor by lazy { MerchantPIXPaymentProcessor() }
 
     // Map of processor types to processors (for dynamic processor)
     private val processorMap: Map<PaymentProcessorType, PaymentProcessorBase> by lazy {
@@ -20,7 +20,7 @@ object PaymentProcessorRegistry {
             PaymentProcessorType.CASH to cashProcessor,
             PaymentProcessorType.LN_BITCOIN to bitcoinLNProcessor,
             PaymentProcessorType.TRANSACTIONLESS to transactionlessProcessor,
-            PaymentProcessorType.PERSONAL_PIX to personalPIXProcessor
+            PaymentProcessorType.MERCHANT_PIX to personalPIXProcessor
         )
     }
 

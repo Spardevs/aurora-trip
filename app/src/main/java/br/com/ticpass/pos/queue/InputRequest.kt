@@ -18,7 +18,7 @@ sealed class InputRequest {
         override val timeoutMs: Long? = 10_000L, // 10 seconds default timeout
     ) : InputRequest()
 
-    data class CONFIRM_PERSONAL_PIX_KEY(
+    data class CONFIRM_MERCHANT_PIX_KEY(
         override val id: String = UUID.randomUUID().toString(),
         override val timeoutMs: Long? = 60_000L, // 60 seconds default timeout
         val pixKey: String = "",

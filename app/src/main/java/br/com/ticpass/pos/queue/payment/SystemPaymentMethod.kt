@@ -7,7 +7,7 @@ enum class SystemPaymentMethod(
     DEBIT("debit"),
     VOUCHER("voucher"),
     PIX("pix"),
-    PERSONAL_PIX("personal_pix"),
+    MERCHANT_PIX("personal_pix"),
     CASH("cash"),
     LN_BITCOIN("ln_bitcoin");
 

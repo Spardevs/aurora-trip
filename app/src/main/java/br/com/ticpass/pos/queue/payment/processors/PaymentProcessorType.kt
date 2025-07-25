@@ -8,5 +8,5 @@ enum class PaymentProcessorType {
     CASH,
     LN_BITCOIN,
     TRANSACTIONLESS,
-    PERSONAL_PIX
+    MERCHANT_PIX
 }

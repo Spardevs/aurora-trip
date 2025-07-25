@@ -117,8 +117,8 @@ class InteractivePaymentReducer @Inject constructor(
             }
             
             // PIX payment actions
-            is Action.ConfirmPersonalPixKey -> {
-                processorConfirmationUseCase.confirmPersonalPixKey(
+            is Action.ConfirmMerchantPixKey -> {
+                processorConfirmationUseCase.confirmMerchantPixKey(
                     requestId = action.requestId,
                     pixKey = action.pixKey,
                     paymentQueue = paymentQueue,
