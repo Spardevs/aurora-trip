@@ -2,5 +2,4 @@
 <resources>
     <!-- Payment Processing Activity -->
     <string name="cancel_payment">Cancel payment</string>
-    <string name="queue_size">Items in queue: %1$d</string>
 </resources>

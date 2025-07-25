@@ -47,4 +47,7 @@ sealed class Action {
     // Internal actions triggered by events
     data class ProcessingStateChanged(val state: ProcessingState<*>?) : Action()
     data class QueueInputRequested(val request: QueueInputRequest) : Action()
+    
+    // Transactionless mode actions
+    data class UpdateAllProcessorTypes(val useTransactionless: Boolean) : Action()
 }

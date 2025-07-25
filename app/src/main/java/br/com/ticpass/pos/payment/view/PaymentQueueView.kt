@@ -23,7 +23,6 @@ class PaymentQueueView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
 
-    private val queueSizeTextView: TextView
     private val queueRecyclerView: RecyclerView
     private val queueAdapter: PaymentQueueAdapter
     
@@ -33,7 +32,6 @@ class PaymentQueueView @JvmOverloads constructor(
     init {
         val view = LayoutInflater.from(context).inflate(R.layout.view_payment_queue, this, true)
         
-        queueSizeTextView = view.findViewById(R.id.text_queue_size)
         queueRecyclerView = view.findViewById(R.id.recycler_queue_items)
         
         // Setup RecyclerView
@@ -50,7 +48,6 @@ class PaymentQueueView @JvmOverloads constructor(
      * @param queueItems List of payment queue items to display
      */
     fun updateQueue(queueItems: List<ProcessingPaymentQueueItem>) {
-        queueSizeTextView.text = context.getString(R.string.queue_size, queueItems.size)
         queueAdapter.updateItems(queueItems)
     }
 

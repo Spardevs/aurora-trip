@@ -198,6 +198,14 @@ class InteractivePaymentViewModel @Inject constructor(
     }
     
     /**
+     * Update processor type for all queued items
+     * Used when toggling transactionless mode
+     */
+    fun updateAllProcessorTypes(useTransactionless: Boolean) {
+        dispatch(Action.UpdateAllProcessorTypes(useTransactionless))
+    }
+    
+    /**
      * Confirm the next processor with modified payment details
      */
     fun confirmNextProcessorWithModifiedPayment(

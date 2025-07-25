@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.queue.payment.state
 
+import android.util.Log
 import br.com.ticpass.pos.queue.HybridQueueManager
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
@@ -132,6 +133,15 @@ class InteractivePaymentReducer @Inject constructor(
                     updateState = updateState
                 )
                 null // No side effect needed
+            }
+            
+            // Transactionless mode actions
+            is Action.UpdateAllProcessorTypes -> {
+                queueManagementUseCase.updateAllProcessorTypes(
+                    useTransactionless = action.useTransactionless,
+                    paymentQueue = paymentQueue,
+                    emitUiEvent = emitUiEvent
+                )
             }
         }
     }

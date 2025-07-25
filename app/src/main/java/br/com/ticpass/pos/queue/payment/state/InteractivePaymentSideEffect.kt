@@ -43,4 +43,10 @@ sealed class SideEffect {
      * Provide input to the queue
      */
     data class ProvideQueueInput(override val scope: suspend () -> Unit) : SideEffect()
+    
+    /**
+     * Update processor types for all queued items
+     * Used when toggling transactionless mode
+     */
+    data class UpdateAllProcessorTypes(override val scope: suspend () -> Unit) : SideEffect()
 }

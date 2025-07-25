@@ -28,7 +28,8 @@ class DynamicPaymentProcessor(
             when {
                 className.contains("acquirer") -> "acquirer"
                 className.contains("cash") -> "cash"
-                className.contains("transaction") -> "transactionless"
+                className.contains("bitcoin_ln") -> "bitcoin_ln"
+                className.contains("transactionless") -> "transactionless"
                 else -> className
             }
         }

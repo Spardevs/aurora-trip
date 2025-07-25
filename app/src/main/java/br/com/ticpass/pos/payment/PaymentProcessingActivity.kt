@@ -76,6 +76,12 @@ class PaymentProcessingActivity : AppCompatActivity() {
             viewModel.cancelPayment(paymentId)
         }
         
+        // Set up transactionless checkbox listener
+        findViewById<android.widget.CheckBox>(R.id.checkbox_transactionless).setOnCheckedChangeListener { _, isChecked ->
+            // Update all queued items when checkbox state changes
+            viewModel.updateAllProcessorTypes(isChecked)
+        }
+        
         // Create progress dialog
         createProgressDialog()
     }
@@ -257,6 +263,10 @@ class PaymentProcessingActivity : AppCompatActivity() {
     private fun updateQueueUI(queueItems: List<ProcessingPaymentQueueItem>) {
         paymentQueueView.updateQueue(queueItems)
         totalPayments = queueItems.size
+        
+        // Update the queue title with item count
+        findViewById<TextView>(R.id.text_payment_queue_title).text = 
+            getString(R.string.payment_queue, queueItems.size)
     }
     
     private fun updateProcessingProgress(current: Int, total: Int) {
@@ -505,18 +515,26 @@ class PaymentProcessingActivity : AppCompatActivity() {
     
     /**
      * Enqueue a payment with the specified method and processor type
-     * Uses ACQUIRER as the default processor type
+     * Uses ACQUIRER as the default processor type, or TRANSACTIONLESS if the checkbox is checked
      */
     private fun enqueuePayment(method: SystemPaymentMethod, processorType: PaymentProcessorType = PaymentProcessorType.ACQUIRER) {
         // Generate a random amount between R$10 and R$200
         val amount = (1000..20000).random()
         val commission = 0 // No commission for example
         
+        // Check if transactionless mode is enabled
+        val transactionlessCheckbox = findViewById<android.widget.CheckBox>(R.id.checkbox_transactionless)
+        val finalProcessorType = if (transactionlessCheckbox.isChecked) {
+            PaymentProcessorType.TRANSACTIONLESS
+        } else {
+            PaymentMethodProcessorMapper.getProcessorTypeForMethod(method)
+        }
+        
         viewModel.enqueuePayment(
             amount = amount,
             commission = commission,
             method = method,
-            processorType = processorType
+            processorType = finalProcessorType
         )
     }
     

@@ -37,13 +37,12 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 app:layout_constraintTop_toTopOf="parent">
-
-                <TextView
-                    android:layout_width="wrap_content"
+                
+                <CheckBox
+                    android:id="@+id/checkbox_transactionless"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Add Payment:"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
+                    android:text="@string/transactionless_mode"
                     android:layout_marginBottom="8dp" />
 
                 <LinearLayout
@@ -125,16 +124,17 @@
                     android:padding="16dp">
 
                     <TextView
+                        android:id="@+id/text_payment_queue_title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Payment Queue"
+                        android:text="@string/payment_queue"
                         android:textSize="18sp"
                         android:textStyle="bold" />
                     
                     <br.com.ticpass.pos.payment.view.PaymentQueueView
                         android:id="@+id/payment_queue_view"
                         android:layout_width="match_parent"
-                        android:layout_height="170dp"
+                        android:layout_height="160dp"
                         android:layout_marginTop="8dp" />
 
                 </LinearLayout>

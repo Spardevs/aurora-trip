@@ -4,6 +4,7 @@ import br.com.ticpass.pos.queue.HybridQueueManager
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
 import br.com.ticpass.pos.queue.payment.SystemPaymentMethod
+import br.com.ticpass.pos.queue.payment.processors.PaymentMethodProcessorMapper
 import br.com.ticpass.pos.queue.payment.processors.PaymentProcessorType
 import br.com.ticpass.pos.queue.payment.state.SideEffect
 import br.com.ticpass.pos.queue.payment.state.UiEvent
@@ -75,5 +76,37 @@ class QueueManagementUseCase @Inject constructor() {
     ): SideEffect {
         emitUiEvent(UiEvent.ShowToast("All payments cancelled"))
         return SideEffect.RemoveAllPaymentItems { paymentQueue.removeAll() }
+    }
+    
+    /**
+     * Update processor type for all queued items
+     * Used when toggling transactionless mode
+     */
+    fun updateAllProcessorTypes(
+        useTransactionless: Boolean,
+        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
+        emitUiEvent: (UiEvent) -> Unit
+    ): SideEffect {
+        return SideEffect.UpdateAllProcessorTypes {
+            val currentItems = paymentQueue.queueState.value
+            val updatedItems = currentItems.map { item ->
+                if (useTransactionless) {
+                    item.copy(processorType = PaymentProcessorType.TRANSACTIONLESS)
+                } else {
+                    item.copy(processorType = PaymentMethodProcessorMapper.getProcessorTypeForMethod(item.method))
+                }
+            }
+            
+            // Remove all items and re-add the updated ones
+            paymentQueue.removeAll()
+            updatedItems.forEach { paymentQueue.enqueue(it) }
+            
+            val message = if (useTransactionless) {
+                "All payments set to transactionless mode"
+            } else {
+                "Transactionless mode disabled"
+            }
+            emitUiEvent(UiEvent.ShowToast(message))
+        }
     }
 }
