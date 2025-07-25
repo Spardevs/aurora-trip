@@ -73,6 +73,7 @@ plugpag = "1.30.51"
 stoneSdkVersion = "4.11.6"
 playServicesGamesV2 = "21.0.0"
 androidSupportDesign = "28.0.0"
+gridlayout = "1.1.0"
 
 [libraries]
 
@@ -166,6 +167,7 @@ play-services-measurement-api = { group = "com.google.android.gms", name = "play
 reactivex-java = { module = "io.reactivex.rxjava2:rxjava", version.ref = "reactivexJava" }
 reactivex-android = { module = "io.reactivex.rxjava2:rxandroid", version.ref = "reactivexAndroid" }
 play-services-games-v2 = { group = "com.google.android.gms", name = "play-services-games-v2", version.ref = "playServicesGamesV2" }
+androidx-gridlayout = { group = "androidx.gridlayout", name = "gridlayout", version.ref = "gridlayout" }
 
 
 [plugins]

@@ -1,14 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/material_dynamic_neutral_variant95"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
+    android:background="@color/material_dynamic_neutral_variant95"
     android:paddingHorizontal="16dp"
-
     android:paddingTop="8dp"
     android:paddingBottom="24dp">
 
+    <!-- handle e título -->
     <View
         android:layout_width="36dp"
         android:layout_height="4dp"
@@ -26,182 +27,56 @@
         android:layout_height="1dp"
         android:layout_marginVertical="16dp"
         android:background="?attr/colorOnSurface" />
-    <LinearLayout
+
+    <androidx.gridlayout.widget.GridLayout
+        android:id="@+id/gridMethods"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:padding="11dp"
-        >
+        app:columnCount="2"
+        app:useDefaultMargins="true"
+        app:alignmentMode="alignMargins"
+        tools:ignore="MissingClass">
 
-        <LinearLayout
-            android:id="@+id/llPix"
-            android:layout_width="0dp"
+        <include
+            android:id="@+id/cardPix"
+            layout="@layout/item_payment_method"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content" />
+
+        <include
+            android:id="@+id/cardCredit"
+            layout="@layout/item_payment_method"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="16dp"
-            android:background="@android:color/white"
-            android:clickable="true"
-            android:elevation="4dp"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:padding="8dp">
+            />
 
-            <ImageView
-                android:layout_width="25dp"
-                android:layout_height="25dp"
-                android:layout_gravity="center"
-                android:layout_marginEnd="10dp"
-                android:src="@drawable/pix" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Pix"
-                android:textAlignment="center"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/llCreditCard"
-            android:layout_width="0dp"
+        <include
+            android:id="@+id/cardDebit"
+            layout="@layout/item_payment_method"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="16dp"
-            android:background="@android:color/white"
-            android:clickable="true"
-            android:elevation="4dp"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:padding="8dp">
+            />
 
-            <ImageView
-                android:layout_width="25dp"
-                android:layout_height="25dp"
-                android:layout_gravity="center"
-                android:layout_marginEnd="10dp"
-                android:src="@drawable/credit" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Crédito"
-                android:textAlignment="center"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:padding="11dp"
-        >
-
-        <LinearLayout
-            android:id="@+id/llDebit"
-            android:layout_width="0dp"
+        <include
+            android:id="@+id/cardCash"
+            layout="@layout/item_payment_method"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="16dp"
-            android:background="@android:color/white"
-            android:clickable="true"
-            android:elevation="4dp"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:padding="8dp">
+            />
 
-            <ImageView
-                android:layout_width="25dp"
-                android:layout_height="25dp"
-                android:layout_gravity="center"
-                android:layout_marginEnd="10dp"
-                android:src="@drawable/debit" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Débito"
-                android:textAlignment="center"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/llCash"
-            android:layout_width="0dp"
+        <include
+            android:id="@+id/cardVr"
+            layout="@layout/item_payment_method"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="16dp"
-            android:background="@android:color/white"
-            android:clickable="true"
-            android:elevation="4dp"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:padding="8dp">
+            />
 
-            <ImageView
-                android:layout_width="25dp"
-                android:layout_height="25dp"
-                android:layout_gravity="center"
-                android:layout_marginEnd="10dp"
-                android:src="@drawable/cash" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Dinheiro"
-                android:textAlignment="center"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:padding="11dp">
-
-        <LinearLayout
-            android:id="@+id/llVr"
-            android:layout_width="0dp"
+        <include
+            android:id="@+id/splitPayment"
+            layout="@layout/item_payment_method"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:layout_weight="1"
-            android:background="@android:color/white"
-            android:clickable="true"
-            android:elevation="4dp"
-            android:focusable="true"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:padding="8dp">
+            />
 
-            <ImageView
-                android:layout_width="25dp"
-                android:layout_height="25dp"
-                android:layout_gravity="center"
-                android:layout_marginEnd="10dp"
-                android:src="@drawable/vr" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Vale refeição"
-                android:textAlignment="center"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-    </LinearLayout>
-
+    </androidx.gridlayout.widget.GridLayout>
 </LinearLayout>

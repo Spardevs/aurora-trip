@@ -196,6 +196,7 @@ dependencies {
     implementation(libs.androidx.cardview)
     implementation(libs.play.services.measurement.api)
     implementation(libs.play.services.games.v2)
+    implementation(libs.androidx.gridlayout)
     ksp(libs.androidx.room.compiler)
     implementation("com.google.code.gson:gson:2.13.1")
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
