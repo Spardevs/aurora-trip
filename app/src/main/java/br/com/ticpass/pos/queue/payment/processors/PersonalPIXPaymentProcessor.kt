@@ -23,7 +23,8 @@ class PersonalPIXPaymentProcessor : PaymentProcessorBase() {
     
     override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
         try {
-            val pixString = PixStringGenerator.generatePixString(
+            val pix = PixCodeGenerator()
+            val pixString = pix.generate(
                 pixKey = "payfor@stupid.codes",
                 amount = item.amount,
             )
