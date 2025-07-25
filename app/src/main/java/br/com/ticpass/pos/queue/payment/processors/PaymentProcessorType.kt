@@ -6,5 +6,6 @@ package br.com.ticpass.pos.queue.payment.processors
 enum class PaymentProcessorType {
     ACQUIRER,
     CASH,
+    LN_BITCOIN,
     TRANSACTIONLESS
 }
