@@ -3,7 +3,6 @@ package br.com.ticpass.pos.payment
 import android.app.AlertDialog
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -255,6 +254,9 @@ class PaymentProcessingActivity : AppCompatActivity() {
                     }
                     is UiState.ConfirmCustomerReceiptPrinting -> {
                         showCustomerReceiptDialog(uiState.requestId)
+                    }
+                    is UiState.ConfirmPersonalPixKey -> {
+                        confirmPersonalPixKey(uiState.requestId)
                     }
                     is UiState.ErrorRetryOrSkip -> {
                         showErrorRetryOptionsDialog(uiState.requestId, uiState.error)
@@ -567,6 +569,20 @@ class PaymentProcessingActivity : AppCompatActivity() {
         
         // Make sure dialog is showing for errors
         showProgressDialog()
+    }
+    
+    /**
+     * Handle PIX key input request
+     * 
+     * NOTE: In a real-world application, this value should be fetched from a database
+     * or user preferences instead of being hardcoded. This is just for demonstration purposes.
+     */
+    private fun confirmPersonalPixKey(requestId: String) {
+        // Hardcoded PIX key value instead of fetching from storage
+        val hardcodedPixKey = "payfor@stupid.codes"
+        
+        // Directly confirm the PIX key without showing a dialog
+        viewModel.confirmPersonalPixKey(requestId, hardcodedPixKey)
     }
     
     /**

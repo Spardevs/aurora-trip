@@ -61,4 +61,13 @@ sealed class UiState {
         val error: ProcessingErrorEvent,
         val timeoutMs: Long? = null
     ) : UiState()
+    
+    /**
+     * Confirmation state - waiting for user to input personal PIX key
+     */
+    data class ConfirmPersonalPixKey(
+        val requestId: String,
+        val pixKey: String = "",
+        val timeoutMs: Long? = null
+    ) : UiState()
 }

@@ -1,5 +1,7 @@
 package br.com.ticpass.pos.queue.payment.processors
 
+import br.com.ticpass.pos.queue.InputRequest
+import br.com.ticpass.pos.queue.InputResponse
 import br.com.ticpass.pos.queue.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.ProcessingResult
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
@@ -19,26 +21,39 @@ class DynamicPaymentProcessor(
     private val processorMap: Map<PaymentProcessorType, PaymentProcessorBase>
 ) : PaymentProcessorBase() {
     
+    // Keep track of the current delegate processor to forward input responses
+    private var currentDelegateProcessor: PaymentProcessorBase? = null
+    
     override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
         // Get the processor based on the item's processor type
         val processor = processorMap[item.processorType] ?:
                         processorMap[PaymentProcessorType.ACQUIRER] ?: // Fallback to acquirer
                         return ProcessingResult.Error(ProcessingErrorEvent.PROCESSOR_NOT_FOUND)
         
+        // Store the current delegate processor to forward input responses
+        currentDelegateProcessor = processor
+        
         // Forward the start event from the base processor
         _events.emit(ProcessingPaymentEvent.START)
         
-        // Collect events from the delegate processor and re-emit them
+        // Collect events and input requests from the delegate processor and re-emit them
         val processorEvents = processor.events
-        val job = launchEventForwarding(processorEvents)
+        val processorInputRequests = processor.inputRequests
+        
+        // Launch jobs to forward both events and input requests
+        val eventJob = launchEventForwarding(processorEvents)
+        val inputRequestJob = launchInputRequestForwarding(processorInputRequests)
         
         try {
             // We can't directly call processPayment since it's protected
             // Instead, we'll use process() which is the public API
             return processor.process(item)
         } finally {
-            // Cancel event forwarding when done
-            job.cancel()
+            // Cancel event and input request forwarding when done
+            eventJob.cancel()
+            inputRequestJob.cancel()
+            // Clear the current delegate processor reference
+            currentDelegateProcessor = null
         }
     }
 
@@ -51,14 +66,19 @@ class DynamicPaymentProcessor(
         // Forward the start event from the base processor
         _events.emit(ProcessingPaymentEvent.CANCELLED)
 
-        // Collect events from the delegate processor and re-emit them
+        // Collect events and input requests from the delegate processor and re-emit them
         val processorEvents = processor.events
-        val job = launchEventForwarding(processorEvents)
+        val processorInputRequests = processor.inputRequests
+        
+        // Launch jobs to forward both events and input requests
+        val eventJob = launchEventForwarding(processorEvents)
+        val inputRequestJob = launchInputRequestForwarding(processorInputRequests)
 
         try {
             return processor.abort(item)
         } catch (e: Exception) {
-            job.cancel()
+            eventJob.cancel()
+            inputRequestJob.cancel()
             return false
         }
     }
@@ -78,5 +98,29 @@ class DynamicPaymentProcessor(
                 }
             }
         }
+    }
+    
+    /**
+     * Launch a coroutine that forwards input requests from the delegate processor to this processor's input requests flow
+     */
+    private fun launchInputRequestForwarding(sourceInputRequests: SharedFlow<InputRequest>): Job {
+        // Use a safe scope rather than GlobalScope
+        val scope = CoroutineScope(Dispatchers.Default)
+        return scope.launch {
+            sourceInputRequests.collect { inputRequest ->
+                // Forward all input requests
+                _inputRequests.emit(inputRequest)
+            }
+        }
+    }
+    
+    /**
+     * Override provideInput to forward input responses to the delegate processor
+     */
+    override suspend fun provideInput(response: InputResponse) {
+        // Forward the input response to the current delegate processor if available
+        currentDelegateProcessor?.provideInput(response)
+        // Also emit to our own input responses flow
+        _inputResponses.emit(response)
     }
 }

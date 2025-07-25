@@ -1,6 +1,7 @@
 package br.com.ticpass.pos.queue.payment.state
 
 import br.com.ticpass.pos.queue.ErrorHandlingAction
+import br.com.ticpass.pos.queue.InputRequest
 import br.com.ticpass.pos.queue.ProcessingState
 import br.com.ticpass.pos.queue.QueueInputRequest
 import br.com.ticpass.pos.queue.payment.SystemPaymentMethod
@@ -44,9 +45,16 @@ sealed class Action {
         val shouldPrint: Boolean
     ) : Action()
     
+    // PIX payment actions
+    data class ConfirmPersonalPixKey(
+        val requestId: String,
+        val pixKey: String
+    ) : Action()
+    
     // Internal actions triggered by events
     data class ProcessingStateChanged(val state: ProcessingState<*>?) : Action()
     data class QueueInputRequested(val request: QueueInputRequest) : Action()
+    data class ProcessorInputRequested(val request: InputRequest) : Action()
     
     // Transactionless mode actions
     data class UpdateAllProcessorTypes(val useTransactionless: Boolean) : Action()

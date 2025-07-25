@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.queue.payment
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -103,6 +104,14 @@ class InteractivePaymentViewModel @Inject constructor(
             emitUiEvent = ::emitUiEvent,
             updateState = ::updateState
         )
+        
+        // Observe processor input requests
+        viewModelScope.launch {
+            paymentQueue.processor.inputRequests.collect { request ->
+                Log.d("InteractivePaymentViewModel", "Processor input request received: ${request::class.simpleName}")
+                dispatch(Action.ProcessorInputRequested(request))
+            }
+        }
     }
     
     /**
@@ -113,7 +122,7 @@ class InteractivePaymentViewModel @Inject constructor(
         val sideEffect = reducer.reduce(action, paymentQueue)
         sideEffect?.let { executeSideEffect(it) }
     }
-    
+
     /**
      * Execute a side effect
      * All side effects are executed in the ViewModel scope
@@ -186,6 +195,13 @@ class InteractivePaymentViewModel @Inject constructor(
      */
     fun confirmCustomerReceiptPrinting(requestId: String, shouldPrint: Boolean) {
         dispatch(Action.ConfirmCustomerReceiptPrinting(requestId, shouldPrint))
+    }
+    
+    /**
+     * Confirm personal PIX key (processor-level input request)
+     */
+    fun confirmPersonalPixKey(requestId: String, pixKey: String) {
+        dispatch(Action.ConfirmPersonalPixKey(requestId, pixKey))
     }
     
     // Queue-Level Input Handling

@@ -629,6 +629,258 @@ paymentQueue.processor.inputRequests.collect { request ->
 }
 ```
 
+## Input Request Handling Guide
+
+This section provides a comprehensive guide on how to create, listen, react, and respond to input requests in the queue system.
+
+### 1. Creating Input Requests (Processor Side)
+
+Input requests are created by payment processors when they need user interaction. There are two types of input requests:
+
+#### Queue-Level Input Requests
+Handled by the `HybridQueueManager` and used for queue management operations.
+
+```kotlin
+// Inside a QueueProcessor implementation
+val request = QueueInputRequest.Confirmation(
+  id = UUID.randomUUID().toString(),
+  title = "Confirm Action",
+  message = "Are you sure you want to proceed?"
+)
+
+// The HybridQueueManager will emit this request to its queueInputRequests flow
+```
+
+#### Processor-Level Input Requests
+Handled directly by the processor operations.
+
+```kotlin
+// Inside a PaymentProcessorBase subclass
+override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
+  // Create an input request
+  val request = InputRequest.CONFIRM_PERSONAL_PIX_KEY(
+    id = UUID.randomUUID().toString(),
+    message = "Enter your PIX key",
+    timeoutMs = 60000L // Optional timeout in milliseconds
+  )
+  
+  // Emit the request and wait for response
+  val response = requestInput(request)
+  
+  // Check if the request was canceled or timed out
+  if (response.isCanceled) {
+    return ProcessingResult.Error(ProcessingErrorEvent.USER_CANCELED)
+  }
+  if (response.isTimeout) {
+    return ProcessingResult.Error(ProcessingErrorEvent.TIMEOUT)
+  }
+  
+  // Use the response value
+  val pixKey = response.value as String
+  // Continue processing with the PIX key
+  // ...
+}
+```
+
+### 2. Listening for Input Requests (UI Side)
+
+The UI needs to listen for both queue-level and processor-level input requests:
+
+#### Queue-Level Input Requests
+
+```kotlin
+// In your ViewModel
+fun observeQueueInputRequests() {
+  viewModelScope.launch {
+    paymentQueue.queueInputRequests.collect { request ->
+      // Dispatch an action to update UI state
+      dispatch(Action.QueueInputRequested(request))
+    }
+  }
+}
+```
+
+#### Processor-Level Input Requests
+
+```kotlin
+// In your ViewModel
+fun observeProcessorInputRequests() {
+  viewModelScope.launch {
+    paymentQueue.processor.inputRequests.collect { request ->
+      // Dispatch an action to update UI state
+      dispatch(Action.ProcessorInputRequested(request))
+    }
+  }
+}
+```
+
+### 3. Reacting to Input Requests (UI Side)
+
+The UI state should be updated based on the input request type:
+
+```kotlin
+// In your Reducer
+fun reduce(state: UiState, action: Action): UiState {
+  return when (action) {
+    is Action.QueueInputRequested -> {
+      when (action.request) {
+        is QueueInputRequest.Confirmation -> {
+          UiState.ConfirmNextProcessor(action.request)
+        }
+        is QueueInputRequest.ErrorRetryOrSkip -> {
+          UiState.HandleProcessingError(action.request)
+        }
+        // Handle other queue input request types
+      }
+    }
+    is Action.ProcessorInputRequested -> {
+      when (action.request) {
+        is InputRequest.PIN -> {
+          UiState.EnterPin(action.request)
+        }
+        is InputRequest.CONFIRM_PERSONAL_PIX_KEY -> {
+          UiState.ConfirmPersonalPixKey(action.request)
+        }
+        // Handle other processor input request types
+      }
+    }
+    // Handle other actions
+  }
+}
+```
+
+### 4. Displaying UI for Input Requests (Activity/Fragment)
+
+Based on the UI state, display the appropriate UI component:
+
+```kotlin
+// In your Activity/Fragment
+viewModel.uiState.collect { state ->
+  when (state) {
+    is UiState.ConfirmPersonalPixKey -> {
+      showPixKeyDialog(
+        request = state.request,
+        onConfirm = { pixKey ->
+          viewModel.confirmPersonalPixKey(state.request.id, pixKey)
+        },
+        onCancel = {
+          viewModel.cancelInput(state.request.id)
+        }
+      )
+    }
+    // Handle other UI states
+  }
+}
+
+private fun showPixKeyDialog(request: InputRequest.CONFIRM_PERSONAL_PIX_KEY, onConfirm: (String) -> Unit, onCancel: () -> Unit) {
+  val dialog = MaterialAlertDialogBuilder(this)
+    .setTitle(R.string.pix_key_dialog_title)
+    .setView(R.layout.dialog_pix_key_input)
+    .setPositiveButton(R.string.confirm) { _, _ -> 
+      // Dialog view is inflated and shown
+      val pixKeyEditText = dialog.findViewById<EditText>(R.id.pixKeyEditText)
+      onConfirm(pixKeyEditText.text.toString())
+    }
+    .setNegativeButton(R.string.cancel) { _, _ -> onCancel() }
+    .setCancelable(false)
+    .create()
+  
+  dialog.show()
+}
+```
+
+### 5. Responding to Input Requests (ViewModel)
+
+Provide methods in the ViewModel to handle user responses:
+
+```kotlin
+// In your ViewModel
+fun confirmPersonalPixKey(requestId: String, pixKey: String) {
+  val sideEffect = processorConfirmationUseCase.confirmPersonalPixKey(
+    requestId = requestId,
+    pixKey = pixKey,
+    paymentQueue = paymentQueue,
+    updateState = { state -> dispatch(Action.UpdateState(state)) }
+  )
+  executeSideEffect(sideEffect)
+}
+
+fun cancelInput(requestId: String) {
+  val sideEffect = processorConfirmationUseCase.cancelInput(
+    requestId = requestId,
+    paymentQueue = paymentQueue,
+    updateState = { state -> dispatch(Action.UpdateState(state)) }
+  )
+  executeSideEffect(sideEffect)
+}
+```
+
+### 6. Handling Input Responses (Use Case)
+
+Implement use cases to handle the business logic for input responses:
+
+```kotlin
+// In your ProcessorConfirmationUseCase
+fun confirmPersonalPixKey(
+  requestId: String,
+  pixKey: String,
+  paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
+  updateState: (UiState) -> Unit
+): SideEffect {
+  updateState(UiState.Processing)
+  // Create an input response with the PIX key as the value
+  val response = InputResponse(requestId, pixKey)
+  // Provide input directly to the processor
+  return SideEffect.ProvideProcessorInput { 
+    paymentQueue.processor.provideInput(response) 
+  }
+}
+```
+
+### 7. Special Considerations for Delegating Processors
+
+When using a delegating processor like `DynamicPaymentProcessor`, ensure input responses are forwarded to the delegate processor:
+
+```kotlin
+// In DynamicPaymentProcessor
+override suspend fun provideInput(response: InputResponse) {
+  // Forward the input response to the current delegate processor if available
+  currentDelegateProcessor?.provideInput(response)
+  // Also emit to our own input responses flow
+  _inputResponses.emit(response)
+}
+```
+
+### 8. Debugging Input Request Flow
+
+To debug the input request flow:
+
+1. Add logging to the processor's `requestInput` method to see when requests are made
+2. Add logging to the processor's `provideInput` method to see when responses are received
+3. Verify that input requests are correctly emitted to the appropriate flow
+4. Verify that input responses are correctly routed back to the processor
+5. Check that the processor resumes execution after receiving the input response
+
+```kotlin
+// Example debug logging
+override suspend fun provideInput(response: InputResponse) {
+  Log.d("InputFlow", "Received input response: $response")
+  _inputResponses.emit(response)
+}
+
+protected suspend fun requestInput(request: InputRequest): InputResponse {
+  Log.d("InputFlow", "Requesting input: $request")
+  _inputRequests.emit(request)
+  
+  val response = withTimeoutOrNull(request.timeoutMs ?: Long.MAX_VALUE) {
+    _inputResponses.first { it.requestId == request.id }
+  } ?: InputResponse.timeout(request.id)
+  
+  Log.d("InputFlow", "Received response for request ${request.id}: $response")
+  return response
+}
+```
+
 ## Benefits
 
 1. **Hybrid Performance**: Combines the speed of in-memory operations with the durability of persistence

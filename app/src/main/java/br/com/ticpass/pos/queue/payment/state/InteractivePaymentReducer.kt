@@ -116,6 +116,16 @@ class InteractivePaymentReducer @Inject constructor(
                 )
             }
             
+            // PIX payment actions
+            is Action.ConfirmPersonalPixKey -> {
+                processorConfirmationUseCase.confirmPersonalPixKey(
+                    requestId = action.requestId,
+                    pixKey = action.pixKey,
+                    paymentQueue = paymentQueue,
+                    updateState = updateState
+                )
+            }
+            
             // Internal actions triggered by events
             is Action.ProcessingStateChanged -> {
                 action.state?.let { state ->
@@ -129,6 +139,14 @@ class InteractivePaymentReducer @Inject constructor(
             }
             is Action.QueueInputRequested -> {
                 stateManagementUseCase.handleQueueInputRequest(
+                    request = action.request,
+                    updateState = updateState
+                )
+                null // No side effect needed
+            }
+            
+            is Action.ProcessorInputRequested -> {
+                stateManagementUseCase.handleProcessorInputRequest(
                     request = action.request,
                     updateState = updateState
                 )

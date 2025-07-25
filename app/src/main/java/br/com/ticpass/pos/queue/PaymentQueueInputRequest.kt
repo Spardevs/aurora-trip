@@ -16,7 +16,7 @@ sealed class PaymentQueueInputRequest : QueueInputRequest() {
      */
     data class CONFIRM_NEXT_PAYMENT(
         override val id: String = UUID.randomUUID().toString(),
-        override val timeoutMs: Long? = 10_000L, // 60 seconds default timeout
+        override val timeoutMs: Long? = 10_000L, // 10 seconds default timeout
         val currentItemIndex: Int,
         val totalItems: Int,
         val currentItemId: String,

@@ -1,6 +1,7 @@
 package br.com.ticpass.pos.queue.payment.processors
 
 import android.util.Log
+import br.com.ticpass.pos.queue.InputRequest
 import br.com.ticpass.pos.queue.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.ProcessingResult
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
@@ -17,15 +18,27 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Processes personal PIX payments without using acquirer SDK
  */
 class PersonalPIXPaymentProcessor : PaymentProcessorBase() {
-    
+
     // Track if processor is currently being aborted
     private val isAborting = AtomicBoolean(false)
-    
+
     override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
         try {
+            val pixKey = withContext(Dispatchers.IO) {
+                requestInput(
+                    InputRequest.CONFIRM_PERSONAL_PIX_KEY()
+                )
+            }.value as String
+
+            if (pixKey.isBlank()) {
+                return ProcessingResult.Error(
+                    ProcessingErrorEvent.INVALID_PIX_KEY
+                )
+            }
+
             val pix = PixCodeGenerator()
             val pixString = pix.generate(
-                pixKey = "payfor@stupid.codes",
+                pixKey = pixKey,
                 amount = item.amount,
             )
             Log.d("PersonalPIXPaymentProcessor", "Generated PIX String: $pixString")
@@ -37,7 +50,7 @@ class PersonalPIXPaymentProcessor : PaymentProcessorBase() {
             if(hasLowAmount) return ProcessingResult.Error(
                 ProcessingErrorEvent.INVALID_TRANSACTION_AMOUNT
             )
-            
+
             withContext(Dispatchers.IO) { delay(1000) }
 
             _events.emit(ProcessingPaymentEvent.TRANSACTION_DONE)

@@ -28,7 +28,7 @@ abstract class PaymentProcessorBase : QueueProcessor<ProcessingPaymentQueueItem,
     override val inputRequests: SharedFlow<InputRequest> = _inputRequests.asSharedFlow()
     
     // For receiving input responses
-    private val _inputResponses = MutableSharedFlow<InputResponse>(replay = 0, extraBufferCapacity = 3)
+    protected val _inputResponses = MutableSharedFlow<InputResponse>(replay = 0, extraBufferCapacity = 3)
 
     /**
      * Public processing method - delegates to protected template method

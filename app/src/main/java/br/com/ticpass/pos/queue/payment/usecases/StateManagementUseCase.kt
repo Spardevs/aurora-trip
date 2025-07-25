@@ -1,5 +1,7 @@
 package br.com.ticpass.pos.queue.payment.usecases
 
+import android.util.Log
+import br.com.ticpass.pos.queue.InputRequest
 import br.com.ticpass.pos.queue.PaymentQueueInputRequest
 import br.com.ticpass.pos.queue.ProcessingState
 import br.com.ticpass.pos.queue.QueueInputRequest
@@ -86,6 +88,31 @@ class StateManagementUseCase @Inject constructor() {
             }
             else -> {
                 android.util.Log.d("StateManagement", "Unhandled queue input request: ${request::class.simpleName}")
+            }
+        }
+    }
+    
+    /**
+     * Handle processor input requests
+     */
+    fun handleProcessorInputRequest(
+        request: InputRequest,
+        updateState: (UiState) -> Unit
+    ) {
+        when (request) {
+            is InputRequest.CONFIRM_PERSONAL_PIX_KEY -> {
+                Log.d("StateManagement", "CONFIRM_PERSONAL_PIX_KEY request received")
+                updateState(UiState.ConfirmPersonalPixKey(
+                    requestId = request.id,
+                    pixKey = request.pixKey,
+                    timeoutMs = request.timeoutMs
+                ))
+            }
+            is InputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING -> {
+                Log.d("StateManagement", "CONFIRM_CUSTOMER_RECEIPT_PRINTING request received")
+                updateState(UiState.ConfirmCustomerReceiptPrinting(
+                    requestId = request.id,
+                ))
             }
         }
     }

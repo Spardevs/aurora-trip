@@ -1,6 +1,8 @@
 package br.com.ticpass.pos.queue.payment.usecases
 
+import android.util.Log
 import br.com.ticpass.pos.queue.HybridQueueManager
+import br.com.ticpass.pos.queue.InputResponse
 import br.com.ticpass.pos.queue.QueueInputResponse
 import br.com.ticpass.pos.queue.payment.PaymentQueueInputResponse
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
@@ -26,7 +28,7 @@ class ProcessorConfirmationUseCase @Inject constructor() {
     ): SideEffect {
         updateState(UiState.Processing)
         return SideEffect.ProvideQueueInput { 
-            paymentQueue.provideQueueInput(QueueInputResponse.proceed(requestId)) 
+            paymentQueue.provideQueueInput(QueueInputResponse.proceed(requestId))
         }
     }
     
@@ -76,5 +78,23 @@ class ProcessorConfirmationUseCase @Inject constructor() {
         // Create a standard input response with the print choice as the value
         val response = QueueInputResponse(requestId, shouldPrint)
         return SideEffect.ProvideQueueInput { paymentQueue.provideQueueInput(response) }
+    }
+    
+    /**
+     * Confirm personal PIX key
+     */
+    fun confirmPersonalPixKey(
+        requestId: String,
+        pixKey: String,
+        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
+        updateState: (UiState) -> Unit
+    ): SideEffect {
+        updateState(UiState.Processing)
+        // Create an input response with the PIX key as the value
+        val response = InputResponse(requestId, pixKey)
+        // Provide input directly to the processor instead of using queue input
+        return SideEffect.ProvideProcessorInput { 
+            paymentQueue.processor.provideInput(response) 
+        }
     }
 }

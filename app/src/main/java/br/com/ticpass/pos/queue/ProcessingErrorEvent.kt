@@ -6,6 +6,11 @@ package br.com.ticpass.pos.queue
 sealed class ProcessingErrorEvent : BaseProcessingEvent {
 
     /**
+     * Merchant invalid PIX key.
+     */
+    object INVALID_PIX_KEY : ProcessingErrorEvent()
+
+    /**
      * Processor not found.
      * No suitable processor found.
      */

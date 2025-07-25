@@ -141,9 +141,8 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
     
     // Start processing queue
     fun startProcessing() {
-        if (isProcessing)             return
+        if (isProcessing) return
 
-        
         scope.launch {
             isProcessing = true
             
@@ -156,7 +155,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                     val nextItemIndex = inMemoryQueue.indexOf(nextItem)
                     
                     // Cast to ProcessingPaymentQueueItem to access payment-specific properties
-                    val paymentItem = nextItem as? br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
+                    val paymentItem = nextItem as? ProcessingPaymentQueueItem
                     
                     val confirmRequest = if (paymentItem != null) {
                         // Use payment-specific confirmation request with payment details
