@@ -3,9 +3,12 @@ package br.com.ticpass.pos.queue.payment
 import br.com.ticpass.pos.queue.HybridQueueManager
 import br.com.ticpass.pos.queue.PersistenceStrategy
 import br.com.ticpass.pos.queue.ProcessorStartMode
-import br.com.ticpass.pos.queue.QueueProcessor
+import br.com.ticpass.pos.queue.payment.processors.AcquirerPaymentProcessor
+import br.com.ticpass.pos.queue.payment.processors.BitcoinLNPaymentProcessor
+import br.com.ticpass.pos.queue.payment.processors.CashPaymentProcessor
 import br.com.ticpass.pos.queue.payment.processors.DynamicPaymentProcessor
-import br.com.ticpass.pos.queue.payment.processors.PaymentProcessorBase
+import br.com.ticpass.pos.queue.payment.processors.PaymentProcessorType
+import br.com.ticpass.pos.queue.payment.processors.TransactionlessProcessor
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -13,71 +16,19 @@ import kotlinx.coroutines.CoroutineScope
  * Helper class to create configured payment queue instances
  */
 class ProcessingPaymentQueueFactory {
-    // Processor provider instance
-    private val processorProvider = PaymentProcessorProvider()
-    
     // Create processor instances (shared across methods)
-    private val acquirerProcessor = processorProvider.getProcessor("acquirer") as PaymentProcessorBase
-    private val cashProcessor = processorProvider.getProcessor("cash") as PaymentProcessorBase
-    private val transactionlessProcessor = processorProvider.getProcessor("transactionless") as PaymentProcessorBase
-    
+    private val acquirerProcessor = AcquirerPaymentProcessor()
+    private val cashProcessor = CashPaymentProcessor()
+    private val bitcoinLNProcessor = BitcoinLNPaymentProcessor()
+    private val transactionlessProcessor = TransactionlessProcessor()
+
     // Create a map of processor types to processors
     private val processorMap = mapOf(
-        "acquirer" to acquirerProcessor,
-        "cash" to cashProcessor,
-        "transactionless" to transactionlessProcessor
+        PaymentProcessorType.ACQUIRER to acquirerProcessor,
+        PaymentProcessorType.CASH to cashProcessor,
+        PaymentProcessorType.LN_BITCOIN to bitcoinLNProcessor,
+        PaymentProcessorType.TRANSACTIONLESS to transactionlessProcessor
     )
-    
-    /**
-     * Create a payment queue with the specified storage, persistence strategy, and scope
-     * Uses the specified payment method to select the appropriate processor
-     * 
-     * @param storage The payment storage to use
-     * @param paymentMethod The payment method to use (e.g., "acquirer", "cash", "transactionless")
-     * @param persistenceStrategy The persistence strategy to use
-     * @param scope The coroutine scope to use
-     * @return A configured HybridQueueManager with the appropriate processor
-     */
-    fun createPaymentQueue(
-        storage: ProcessingPaymentStorage,
-        paymentMethod: String = "acquirer",
-        persistenceStrategy: PersistenceStrategy = PersistenceStrategy.IMMEDIATE,
-        startMode: ProcessorStartMode = ProcessorStartMode.IMMEDIATE,
-        scope: CoroutineScope
-    ): HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent> {
-        return HybridQueueManager(
-            storage = storage,
-            processor = processorProvider.getProcessor(paymentMethod),
-            persistenceStrategy = persistenceStrategy,
-            startMode = startMode,
-            scope = scope
-        )
-    }
-    
-    /**
-     * Create a payment queue with a specific processor
-     * 
-     * @param storage The payment storage to use
-     * @param processor The specific processor to use
-     * @param persistenceStrategy The persistence strategy to use
-     * @param scope The coroutine scope to use
-     * @return A configured HybridQueueManager with the specified processor
-     */
-    fun createPaymentQueueWithProcessor(
-        storage: ProcessingPaymentStorage,
-        processor: QueueProcessor<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
-        persistenceStrategy: PersistenceStrategy = PersistenceStrategy.IMMEDIATE,
-        startMode: ProcessorStartMode = ProcessorStartMode.IMMEDIATE,
-        scope: CoroutineScope
-    ): HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent> {
-        return HybridQueueManager(
-            storage = storage,
-            processor = processor,
-            persistenceStrategy = persistenceStrategy,
-            startMode = startMode,
-            scope = scope
-        )
-    }
     
     /**
      * Create a payment queue that can handle multiple payment types in a single queue

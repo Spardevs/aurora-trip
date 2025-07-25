@@ -102,7 +102,16 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:layout_marginEnd="4dp"
                         android:text="@string/enqueue_cash_payment" />
+                        
+                    <Button
+                        android:id="@+id/btn_add_bitcoin_ln"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="4dp"
+                        android:text="@string/enqueue_bitcoin_ln_payment" />
                 </LinearLayout>
 
             </LinearLayout>

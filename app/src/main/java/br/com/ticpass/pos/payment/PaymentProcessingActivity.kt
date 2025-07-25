@@ -128,6 +128,10 @@ class PaymentProcessingActivity : AppCompatActivity() {
             enqueuePayment(SystemPaymentMethod.CASH, PaymentProcessorType.CASH)
         }
         
+        findViewById<View>(R.id.btn_add_bitcoin_ln).setOnClickListener {
+            enqueuePayment(SystemPaymentMethod.LN_BITCOIN)
+        }
+        
         // Start processing button
         findViewById<View>(R.id.btn_start_processing).setOnClickListener {
             viewModel.startProcessing()

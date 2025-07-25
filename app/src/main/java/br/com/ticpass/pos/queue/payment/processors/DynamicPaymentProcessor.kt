@@ -16,29 +16,13 @@ import kotlinx.coroutines.launch
  * Allows multiple payment types to be processed in a single queue
  */
 class DynamicPaymentProcessor(
-    private val processorMap: Map<String, PaymentProcessorBase>
+    private val processorMap: Map<PaymentProcessorType, PaymentProcessorBase>
 ) : PaymentProcessorBase() {
-    
-    /**
-     * Constructor that takes a list of processors and builds the map using their class names
-     */
-    constructor(vararg processors: PaymentProcessorBase) : this(
-        processors.associateBy { 
-            val className = it::class.java.simpleName.lowercase()
-            when {
-                className.contains("acquirer") -> "acquirer"
-                className.contains("cash") -> "cash"
-                className.contains("bitcoin_ln") -> "bitcoin_ln"
-                className.contains("transactionless") -> "transactionless"
-                else -> className
-            }
-        }
-    )
     
     override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
         // Get the processor based on the item's processor type
-        val processor = processorMap[item.processorType.name.lowercase()] ?:
-                        processorMap["acquirer"] ?: // Fallback to acquirer
+        val processor = processorMap[item.processorType] ?:
+                        processorMap[PaymentProcessorType.ACQUIRER] ?: // Fallback to acquirer
                         return ProcessingResult.Error(ProcessingErrorEvent.PROCESSOR_NOT_FOUND)
         
         // Forward the start event from the base processor
@@ -60,8 +44,8 @@ class DynamicPaymentProcessor(
 
     override suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean {
         // Get the processor based on the item's processor type
-        val processor = processorMap[item?.processorType?.name?.lowercase()] ?:
-                        processorMap["acquirer"] ?: // Fallback to acquirer
+        val processor = processorMap[item?.processorType] ?:
+                        processorMap[PaymentProcessorType.ACQUIRER] ?: // Fallback to acquirer
                         return false
 
         // Forward the start event from the base processor
