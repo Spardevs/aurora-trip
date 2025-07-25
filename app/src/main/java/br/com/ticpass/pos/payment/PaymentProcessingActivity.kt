@@ -603,7 +603,6 @@ class PaymentProcessingActivity : AppCompatActivity() {
         // Get references to the editable fields
         val amountEditText = dialogView.findViewById<EditText>(R.id.edit_payment_amount)
         val methodSpinner = dialogView.findViewById<Spinner>(R.id.spinner_payment_method)
-        val processorTypeSpinner = dialogView.findViewById<Spinner>(R.id.spinner_processor_type)
         val timeoutView = dialogView.findViewById<TimeoutCountdownView>(R.id.timeout_countdown_view)
         
         // Set initial values
@@ -615,16 +614,6 @@ class PaymentProcessingActivity : AppCompatActivity() {
         methodAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         methodSpinner.adapter = methodAdapter
         methodSpinner.setSelection(paymentMethods.indexOf(state.currentMethod))
-        
-        // Setup processor type spinner
-        val processorTypes = PaymentProcessorType.values()
-        val processorAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, processorTypes)
-        processorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        processorTypeSpinner.adapter = processorAdapter
-        
-        // Set the current processor type
-        val currentProcessorTypePosition = processorTypes.indexOf(state.currentProcessorType)
-        processorTypeSpinner.setSelection(currentProcessorTypePosition)
         
         // Create the dialog
         val dialog = AlertDialog.Builder(this)
@@ -643,12 +632,12 @@ class PaymentProcessingActivity : AppCompatActivity() {
                     // Get the modified values
                     val modifiedAmount = (amountEditText.text.toString().toDouble() * 100).toInt()
                     val modifiedMethod = paymentMethods[methodSpinner.selectedItemPosition]
-                    val modifiedProcessorType = processorTypes[processorTypeSpinner.selectedItemPosition]
+                    // Automatically determine processor type based on payment method
+                    val modifiedProcessorType = PaymentMethodProcessorMapper.getProcessorTypeForMethod(modifiedMethod)
                     
                     // Check if any values were modified
                     if (modifiedAmount != state.currentAmount || 
-                        modifiedMethod != state.currentMethod || 
-                        modifiedProcessorType != state.currentProcessorType) {
+                        modifiedMethod != state.currentMethod) {
                         // Use the modified payment details
                         viewModel.confirmNextProcessorWithModifiedPayment(
                             requestId = requestId,

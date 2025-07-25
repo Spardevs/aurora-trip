@@ -42,18 +42,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp" />
 
-    <!-- Processor Type Field -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/processor_type"
-        android:textStyle="bold" />
-
-    <Spinner
-        android:id="@+id/spinner_processor_type"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp" />
+    <!-- Processor type is automatically selected based on payment method -->
 
     <!-- Note about editing -->
     <TextView
