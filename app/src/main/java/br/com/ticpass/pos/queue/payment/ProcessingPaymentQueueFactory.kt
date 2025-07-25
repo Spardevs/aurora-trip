@@ -3,12 +3,7 @@ package br.com.ticpass.pos.queue.payment
 import br.com.ticpass.pos.queue.HybridQueueManager
 import br.com.ticpass.pos.queue.PersistenceStrategy
 import br.com.ticpass.pos.queue.ProcessorStartMode
-import br.com.ticpass.pos.queue.payment.processors.AcquirerPaymentProcessor
-import br.com.ticpass.pos.queue.payment.processors.BitcoinLNPaymentProcessor
-import br.com.ticpass.pos.queue.payment.processors.CashPaymentProcessor
-import br.com.ticpass.pos.queue.payment.processors.DynamicPaymentProcessor
-import br.com.ticpass.pos.queue.payment.processors.PaymentProcessorType
-import br.com.ticpass.pos.queue.payment.processors.TransactionlessProcessor
+import br.com.ticpass.pos.queue.payment.processors.PaymentProcessorRegistry
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -16,19 +11,6 @@ import kotlinx.coroutines.CoroutineScope
  * Helper class to create configured payment queue instances
  */
 class ProcessingPaymentQueueFactory {
-    // Create processor instances (shared across methods)
-    private val acquirerProcessor = AcquirerPaymentProcessor()
-    private val cashProcessor = CashPaymentProcessor()
-    private val bitcoinLNProcessor = BitcoinLNPaymentProcessor()
-    private val transactionlessProcessor = TransactionlessProcessor()
-
-    // Create a map of processor types to processors
-    private val processorMap = mapOf(
-        PaymentProcessorType.ACQUIRER to acquirerProcessor,
-        PaymentProcessorType.CASH to cashProcessor,
-        PaymentProcessorType.LN_BITCOIN to bitcoinLNProcessor,
-        PaymentProcessorType.TRANSACTIONLESS to transactionlessProcessor
-    )
     
     /**
      * Create a payment queue that can handle multiple payment types in a single queue
@@ -45,8 +27,8 @@ class ProcessingPaymentQueueFactory {
         startMode: ProcessorStartMode = ProcessorStartMode.IMMEDIATE,
         scope: CoroutineScope
     ): HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent> {
-        // Create a dynamic processor with all our processor types
-        val dynamicProcessor = DynamicPaymentProcessor(processorMap)
+        // Get a dynamic processor from the registry
+        val dynamicProcessor = PaymentProcessorRegistry.createDynamicProcessor()
         
         return HybridQueueManager(
             storage = storage,
