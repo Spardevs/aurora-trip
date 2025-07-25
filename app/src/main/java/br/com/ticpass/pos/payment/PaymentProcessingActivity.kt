@@ -124,8 +124,12 @@ class PaymentProcessingActivity : AppCompatActivity() {
             enqueuePayment(SystemPaymentMethod.PIX)
         }
         
+        findViewById<View>(R.id.btn_add_personal_pix).setOnClickListener {
+            enqueuePayment(SystemPaymentMethod.PERSONAL_PIX)
+        }
+        
         findViewById<View>(R.id.btn_add_cash).setOnClickListener {
-            enqueuePayment(SystemPaymentMethod.CASH, PaymentProcessorType.CASH)
+            enqueuePayment(SystemPaymentMethod.CASH)
         }
         
         findViewById<View>(R.id.btn_add_bitcoin_ln).setOnClickListener {
@@ -521,7 +525,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
      * Enqueue a payment with the specified method and processor type
      * Uses ACQUIRER as the default processor type, or TRANSACTIONLESS if the checkbox is checked
      */
-    private fun enqueuePayment(method: SystemPaymentMethod, processorType: PaymentProcessorType = PaymentProcessorType.ACQUIRER) {
+    private fun enqueuePayment(method: SystemPaymentMethod) {
         // Generate a random amount between R$10 and R$200
         val amount = (1000..20000).random()
         val commission = 0 // No commission for example

@@ -88,7 +88,16 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp"
                         android:text="@string/enqueue_pix_payment" />
+                        
+                    <Button
+                        android:id="@+id/btn_add_personal_pix"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="4dp"
+                        android:text="@string/enqueue_personal_pix_payment" />
                 </LinearLayout>
                 
                 <LinearLayout
