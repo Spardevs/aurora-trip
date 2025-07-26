@@ -23,6 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * PagSeguro Payment Processor
@@ -150,11 +151,13 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
                             SystemCustomerReceiptPrinting.CONFIRMATION -> {
                                 try {
                                     scope.launch {
-                                        val response = requestInput(
-                                            InputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING()
-                                        )
+                                        val userAccepted = withContext(Dispatchers.IO) {
+                                            requestInput(
+                                                InputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING()
+                                            )
+                                        }.value as Boolean
 
-                                        if (response.value == true) onFinishActions?.doPrint(plugpag)
+                                        if (userAccepted) onFinishActions?.doPrint(plugpag)
                                         else onFinishActions?.doNothing(plugpag)
                                     }
                                 }

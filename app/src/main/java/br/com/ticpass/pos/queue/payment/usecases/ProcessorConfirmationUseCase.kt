@@ -75,9 +75,10 @@ class ProcessorConfirmationUseCase @Inject constructor() {
         updateState: (UiState) -> Unit
     ): SideEffect {
         updateState(UiState.Processing)
-        // Create a standard input response with the print choice as the value
-        val response = QueueInputResponse(requestId, shouldPrint)
-        return SideEffect.ProvideQueueInput { paymentQueue.provideQueueInput(response) }
+        // Create an input response with the print choice as the value
+        val response = InputResponse(requestId, shouldPrint)
+        // Provide input directly to the processor instead of using queue input
+        return SideEffect.ProvideProcessorInput { paymentQueue.processor.provideInput(response) }
     }
     
     /**

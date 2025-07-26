@@ -40,8 +40,6 @@ class TimeoutCountdownView @JvmOverloads constructor(
      * @param onTimeout Callback to be invoked when the timeout occurs
      */
     fun startCountdown(timeoutMs: Long?, onTimeout: (() -> Unit)? = null) {
-        android.util.Log.d("TimeoutDebug", "TimeoutCountdownView.startCountdown called with timeoutMs: $timeoutMs")
-        
         // If no timeout is specified, don't show the countdown
         if (timeoutMs == null || timeoutMs <= 0) {
             android.util.Log.d("TimeoutDebug", "TimeoutCountdownView - No valid timeout, hiding view")
@@ -80,7 +78,6 @@ class TimeoutCountdownView @JvmOverloads constructor(
                 }
                 
                 countdownText.text = timeText
-                android.util.Log.d("TimeoutDebug", "TimeoutCountdownView - onTick: $timeText")
             }
             
             override fun onFinish() {
