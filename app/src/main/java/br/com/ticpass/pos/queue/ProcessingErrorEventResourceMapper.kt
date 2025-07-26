@@ -15,6 +15,7 @@ object ProcessingErrorEventResourceMapper {
      */
     fun getErrorResourceKey(error: ProcessingErrorEvent): Int {
         return when (error) {
+            is ProcessingErrorEvent.CARD_REACH_NOT_ALLOWED -> R.string.error_card_reach_not_allowed
             is ProcessingErrorEvent.PROCESSOR_NOT_FOUND -> R.string.error_processor_not_found
             is ProcessingErrorEvent.INVALID_TRANSACTION_BUFFER -> R.string.error_invalid_transaction_buffer
             is ProcessingErrorEvent.INVALID_CARD_USE_ANOTHER -> R.string.error_invalid_card_use_another

@@ -375,6 +375,12 @@ sealed class ProcessingErrorEvent : BaseProcessingEvent {
     object INVALID_SELECTED_OPTION : ProcessingErrorEvent()
 
     /**
+     * Card reach not allowed.
+     * Use chip instead of contactless.
+     */
+    object CARD_REACH_NOT_ALLOWED : ProcessingErrorEvent()
+
+    /**
      * Card not accepted.
      * Brand not accepted. Use a card with one of the accepted brands.
      */

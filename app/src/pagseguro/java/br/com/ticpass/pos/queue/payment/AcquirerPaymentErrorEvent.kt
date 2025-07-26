@@ -681,12 +681,18 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Try again.
      */
     INVALID_CARD_USE_CHIP_C83("C83", ProcessingErrorEvent.USE_CHIP_FOR_TRANSACTION),
-    
+
     /**
      * Invalid selected option.
      * Contactless product different from the one selected for payment.
      */
     INVALID_SELECTED_OPTION_C84("C84", ProcessingErrorEvent.INVALID_SELECTED_OPTION),
+
+    /**
+     * Invalid selected option.
+     * Contactless product different from the one selected for payment.
+     */
+    CARD_REACH_NOT_ALLOWED("C87", ProcessingErrorEvent.CARD_REACH_NOT_ALLOWED),
     
     /**
      * Not authorized.
