@@ -710,7 +710,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Request cannot be completed 2.
      * Please try again later.
      */
-    REQUEST_CANNOT_BE_COMPLETED_M1000_2("1000", ProcessingErrorEvent.REQUEST_CANNOT_BE_COMPLETED),
+    REQUEST_CANNOT_BE_COMPLETED_M1000_2("-1000", ProcessingErrorEvent.REQUEST_CANNOT_BE_COMPLETED),
     
     /**
      * Request cannot be executed.
@@ -2670,7 +2670,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Contact support with logs.
      */
     MESSAGE_BUFFER_OVERFLOW(
-        "1001",
+        "-1001",
         ProcessingErrorEvent.MESSAGE_BUFFER_OVERFLOW
     ),
     
@@ -2679,7 +2679,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Contact support with logs.
      */
     INVALID_APPLICATION_PARAMETER(
-        "1002",
+        "-1002",
         ProcessingErrorEvent.INVALID_APPLICATION_PARAMETER
     ),
     
@@ -2688,7 +2688,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Try again.
      */
     TERMINAL_NOT_READY(
-        "1003",
+        "-1003",
         ProcessingErrorEvent.TERMINAL_NOT_CONFIGURED
     ),
     
@@ -2697,7 +2697,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check returned message.
      */
     TRANSACTION_FAILED(
-        "1004",
+        "-1004",
         ProcessingErrorEvent.TRANSACTION_FAILURE
     ),
     
@@ -2706,7 +2706,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check last transaction status.
      */
     INVALID_TRANSACTION_RESPONSE(
-        "1005",
+        "-1005",
         ProcessingErrorEvent.INVALID_TRANSACTION_BUFFER
     ),
     
@@ -2715,7 +2715,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check implementation.
      */
     NULL_TRANSACTION_VALUE(
-        "1006",
+        "-1006",
         ProcessingErrorEvent.NULL_TRANSACTION_RESULT
     ),
     
@@ -2724,7 +2724,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check implementation.
      */
     NULL_TOTAL_VALUE(
-        "1007",
+        "-1007",
         ProcessingErrorEvent.TRANSACTION_NULL_AMOUNT
     ),
     
@@ -2733,7 +2733,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check implementation.
      */
     NULL_SALE_CODE(
-        "1008",
+        "-1008",
         ProcessingErrorEvent.TRANSACTION_NULL_SALE_CODE
     ),
     
@@ -2742,7 +2742,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check implementation.
      */
     NULL_TRANSACTION_RESULT(
-        "1009",
+        "-1009",
         ProcessingErrorEvent.NULL_TRANSACTION_RESULT
     ),
     
@@ -2751,7 +2751,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check file directory.
      */
     CONNECTION_DRIVER_NOT_FOUND(
-        "1010",
+        "-1010",
         ProcessingErrorEvent.CONNECTION_DRIVER_NOT_FOUND
     ),
     
@@ -2760,7 +2760,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Reinstall connection driver files.
      */
     CONNECTION_DRIVER_ERROR(
-        "1011",
+        "-1011",
         ProcessingErrorEvent.CONNECTION_DRIVER_ERROR
     ),
     
@@ -2769,7 +2769,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Value must be integer without decimal point.
      */
     INVALID_SALE_VALUE_FORMAT(
-        "1012",
+        "-1012",
         ProcessingErrorEvent.INVALID_TRANSACTION_AMOUNT_FORMAT
     ),
     
@@ -2778,7 +2778,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Truncate sale code to maximum 10 digits.
      */
     SALE_CODE_TOO_LONG(
-        "1013",
+        "-1013",
         ProcessingErrorEvent.TRANSACTION_CODE_TOO_LONG
     ),
     
@@ -2787,7 +2787,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Retry transaction.
      */
     CORRUPTED_RECEPTION_BUFFER(
-        "1014",
+        "-1014",
         ProcessingErrorEvent.CORRUPTED_RECEPTION_BUFFER
     ),
     
@@ -2796,7 +2796,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Limit application name to 25 characters.
      */
     APPLICATION_NAME_TOO_LONG(
-        "1015",
+        "-1015",
         ProcessingErrorEvent.APPLICATION_NAME_TOO_LONG
     ),
     
@@ -2805,7 +2805,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Limit application version to 10 characters.
      */
     APPLICATION_VERSION_TOO_LONG(
-        "1016",
+        "-1016",
         ProcessingErrorEvent.APPLICATION_VERSION_TOO_LONG
     ),
     
@@ -2814,7 +2814,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Set name and version with setVersionName(String, String).
      */
     APPLICATION_NAME_REQUIRED(
-        "1017",
+        "-1017",
         ProcessingErrorEvent.APPLICATION_NAME_REQUIRED
     ),
 
@@ -2823,7 +2823,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Retry transaction.
      */
     NO_LAST_TRANSACTION_DATA(
-        "1018",
+        "-1018",
         ProcessingErrorEvent.NO_LAST_TRANSACTION_DATA
     ),
     
@@ -2832,7 +2832,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check last transaction status.
      */
     TERMINAL_COMMUNICATION_ERROR(
-        "1019",
+        "-1019",
         ProcessingErrorEvent.TERMINAL_COMMUNICATION_ERROR
     ),
     
@@ -2841,7 +2841,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Reinitialize (reload tables).
      */
     TABLE_LOADING_ERROR(
-        "1024",
+        "-1024",
         ProcessingErrorEvent.TABLE_LOADING_ERROR
     ),
     
@@ -2850,7 +2850,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Reauthenticate.
      */
     TOKEN_NOT_FOUND(
-        "1030",
+        "-1030",
         ProcessingErrorEvent.TOKEN_NOT_FOUND
     ),
     
@@ -2859,7 +2859,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check payment amount and try again. Minimum: R$ 1.00.
      */
     INVALID_VALUE_1031(
-        "1031",
+        "-1031",
         ProcessingErrorEvent.TRANSACTION_INVALID_AMOUNT
     ),
     
@@ -2868,7 +2868,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check installment count, try again.
      */
     INVALID_INSTALLMENT_1032(
-        "1032",
+        "-1032",
         ProcessingErrorEvent.INVALID_INSTALLMENTS_COUNT
     ),
     
@@ -2877,7 +2877,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check username/password or activation code and try again.
      */
     AUTHENTICATION_ERROR_1033(
-        "1033",
+        "-1033",
         ProcessingErrorEvent.AUTHENTICATION_ERROR
     ),
     
@@ -2886,7 +2886,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Invalid buyer installment coefficients. Try new login/activation.
      */
     MISSING_INSTALLMENT_COEFFICIENTS(
-        "1034",
+        "-1034",
         ProcessingErrorEvent.MISSING_INSTALLMENT_COEFFICIENTS
     ),
     
@@ -2895,7 +2895,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check device registration.
      */
     INVALID_DEVICE_ID(
-        "1035",
+        "-1035",
         ProcessingErrorEvent.INVALID_DEVICE_ID
     ),
     
@@ -2904,7 +2904,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check if initializeAndActivatePinpad was called correctly.
      */
     CARD_READER_NOT_INITIALIZED(
-        "1036",
+        "-1036",
         ProcessingErrorEvent.CARD_READER_NOT_INITIALIZED
     ),
     
@@ -2913,7 +2913,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check card reader name used in code.
      */
     INVALID_CARD_READER(
-        "1037",
+        "-1037",
         ProcessingErrorEvent.INVALID_CARD
     ),
     
@@ -2922,7 +2922,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Check payment value and try again.
      */
     INVALID_VALUE_1038(
-        "1038",
+        "-1038",
         ProcessingErrorEvent.TRANSACTION_INVALID_AMOUNT
     ),
     
@@ -2931,7 +2931,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Remove root permission from device.
      */
     ROOT_PERMISSION_DETECTED(
-        "3001",
+        "-3001",
         ProcessingErrorEvent.ROOT_PERMISSION_DETECTED
     ),
     
@@ -2940,7 +2940,7 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Perform authentication.
      */
     NO_AUTHENTICATION_DATA(
-        "4046",
+        "-4046",
         ProcessingErrorEvent.NO_AUTHENTICATION_DATA
     ),
     
