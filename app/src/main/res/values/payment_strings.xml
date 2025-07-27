@@ -2,4 +2,10 @@
 <resources>
     <!-- Payment Processing Activity -->
     <string name="cancel_payment">Cancel payment</string>
+    
+    <!-- PIX QR Code Dialog -->
+    <string name="pix_qrcode_title">PIX Payment</string>
+    <string name="pix_qrcode_subtitle">Scan this QR code to complete the payment</string>
+    <string name="pix_qrcode_description">PIX QR Code</string>
+    <string name="done">Done</string>
 </resources>

@@ -4,10 +4,10 @@ import android.util.Log
 import br.com.ticpass.pos.queue.InputRequest
 import br.com.ticpass.pos.queue.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.ProcessingResult
+import br.com.ticpass.pos.queue.payment.PaymentProcessingException
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 import java.util.UUID
@@ -21,42 +21,24 @@ class MerchantPIXPaymentProcessor : PaymentProcessorBase() {
 
     // Track if processor is currently being aborted
     private val isAborting = AtomicBoolean(false)
+    private val pix = PixCodeGenerator()
 
     override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
         try {
-            val pixKey = withContext(Dispatchers.IO) {
-                requestInput(
-                    InputRequest.CONFIRM_MERCHANT_PIX_KEY()
-                )
-            }.value as String
+            val pixKey = requestPixKey()
+            val pixCode = generatePixCode(pixKey, item.amount)
 
-            if (pixKey.isBlank()) {
-                return ProcessingResult.Error(
-                    ProcessingErrorEvent.INVALID_PIX_KEY
-                )
-            }
+            Log.d("MerchantPIXPaymentProcessor", "Generated PIX code: $pixCode")
 
-            val pix = PixCodeGenerator()
-            val pixString = pix.generate(
-                pixKey = pixKey,
-                amount = item.amount,
+            val didScan = requestPixScanning(pixCode)
+
+            if(!didScan) return ProcessingResult.Error(
+                ProcessingErrorEvent.TRANSACTION_FAILURE
             )
-            Log.d("MerchantPIXPaymentProcessor", "Generated PIX String: $pixString")
-            withContext(Dispatchers.IO) { delay(1500) }
 
             val transactionId = "BTC_LN-${UUID.randomUUID().toString().substring(0, 8)}"
-            val hasLowAmount = item.amount <= 1000
-
-            if(hasLowAmount) return ProcessingResult.Error(
-                ProcessingErrorEvent.INVALID_TRANSACTION_AMOUNT
-            )
-
-            withContext(Dispatchers.IO) { delay(1000) }
 
             _events.emit(ProcessingPaymentEvent.TRANSACTION_DONE)
-
-            // Use withContext to ensure we're on a background thread
-            withContext(Dispatchers.IO) { delay(1500) }
 
             return ProcessingResult.Success(
                 atk = "",
@@ -79,6 +61,68 @@ class MerchantPIXPaymentProcessor : PaymentProcessorBase() {
             true
         } catch (e: Exception) {
             false
+        }
+    }
+
+    private suspend fun requestPixKey(): String {
+        try {
+            val pixKey = withContext(Dispatchers.IO) {
+                requestInput(
+                    InputRequest.CONFIRM_MERCHANT_PIX_KEY()
+                )
+            }.value as String
+
+            if (pixKey.isBlank()) {
+                throw PaymentProcessingException(
+                    ProcessingErrorEvent.INVALID_PIX_KEY
+                )
+            }
+
+            return pixKey
+        }
+        catch (exception: Exception) {
+            if (exception is PaymentProcessingException) throw exception
+
+            throw PaymentProcessingException(
+                ProcessingErrorEvent.GENERIC
+            )
+        }
+    }
+
+    private fun generatePixCode(pixKey: String, amount: Int): String {
+        try {
+            val pixCode = pix.generate(
+                pixKey = pixKey,
+                amount = amount,
+            )
+
+            return pixCode
+        }
+        catch (exception: Exception) {
+            if (exception is PaymentProcessingException) throw exception
+
+            throw PaymentProcessingException(
+                ProcessingErrorEvent.GENERIC
+            )
+        }
+    }
+
+    private suspend fun requestPixScanning(pixCode: String): Boolean {
+        try {
+            val didScan = withContext(Dispatchers.IO) {
+                requestInput(
+                    InputRequest.MERCHANT_PIX_SCANNING(pixCode = pixCode)
+                )
+            }.value as Boolean
+
+            return didScan
+        }
+        catch (exception: Exception) {
+            if (exception is PaymentProcessingException) throw exception
+
+            throw PaymentProcessingException(
+                ProcessingErrorEvent.GENERIC
+            )
         }
     }
 }

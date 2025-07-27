@@ -51,6 +51,11 @@ sealed class Action {
         val pixKey: String
     ) : Action()
     
+    data class ConfirmMerchantPixHasBeenPaid(
+        val requestId: String,
+        val didPay: Boolean
+    ) : Action()
+    
     // Internal actions triggered by events
     data class ProcessingStateChanged(val state: ProcessingState<*>?) : Action()
     data class QueueInputRequested(val request: QueueInputRequest) : Action()

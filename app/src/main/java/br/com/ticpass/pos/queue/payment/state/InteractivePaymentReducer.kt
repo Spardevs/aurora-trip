@@ -126,6 +126,15 @@ class InteractivePaymentReducer @Inject constructor(
                 )
             }
             
+            is Action.ConfirmMerchantPixHasBeenPaid -> {
+                processorConfirmationUseCase.confirmMerchantPixHasBeenPaid(
+                    requestId = action.requestId,
+                    didPay = action.didPay,
+                    paymentQueue = paymentQueue,
+                    updateState = updateState
+                )
+            }
+            
             // Internal actions triggered by events
             is Action.ProcessingStateChanged -> {
                 action.state?.let { state ->

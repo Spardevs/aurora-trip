@@ -52,6 +52,14 @@ sealed class UiState {
     data class ConfirmCustomerReceiptPrinting(
         val requestId: String
     ) : UiState()
+
+    /**
+     * PIX scanning state - waiting for user to scan a PIX code
+     */
+    data class MerchantPixScanning(
+        val requestId: String,
+        val pixCode: String,
+    ) : UiState()
     
     /**
      * Error retry state - waiting for user to decide how to handle an error
@@ -67,7 +75,6 @@ sealed class UiState {
      */
     data class ConfirmMerchantPixKey(
         val requestId: String,
-        val pixKey: String = "",
         val timeoutMs: Long? = null
     ) : UiState()
 }

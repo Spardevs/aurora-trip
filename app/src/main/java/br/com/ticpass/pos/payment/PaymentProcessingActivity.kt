@@ -1,15 +1,22 @@
 package br.com.ticpass.pos.payment
 
 import android.app.AlertDialog
+import android.graphics.Bitmap
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.EncodeHintType
+import com.google.zxing.qrcode.QRCodeWriter
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -233,7 +240,6 @@ class PaymentProcessingActivity : AppCompatActivity() {
         // Observe UI state for input dialogs and error states
         lifecycleScope.launch {
             viewModel.uiState.collectLatest { uiState ->
-                Log.d("ErrorHandling", "UI State changed to: $uiState")
                 when (uiState) {
                     is UiState.ConfirmNextPaymentProcessor -> {
                         showConfirmNextPaymentProcessorDialog(
@@ -254,6 +260,9 @@ class PaymentProcessingActivity : AppCompatActivity() {
                     }
                     is UiState.ConfirmCustomerReceiptPrinting -> {
                         showCustomerReceiptDialog(uiState.requestId)
+                    }
+                    is UiState.MerchantPixScanning -> {
+                        pixScanningDialog(uiState.requestId, uiState.pixCode)
                     }
                     is UiState.ConfirmMerchantPixKey -> {
                         confirmMerchantPixKey(uiState.requestId)
@@ -583,6 +592,69 @@ class PaymentProcessingActivity : AppCompatActivity() {
         
         // Directly confirm the PIX key without showing a dialog
         viewModel.confirmMerchantPixKey(requestId, hardcodedPixKey)
+    }
+
+    private fun pixScanningDialog(requestId: String, pixCode: String) {
+        // Create a dialog with custom view for QR code
+        val dialogView = layoutInflater.inflate(R.layout.dialog_pix_qrcode, null)
+
+        Log.d("PaymentProcessingActivity", "pixScanningDialog called with requestId: $requestId, pixCode: $pixCode")
+        // Get the ImageView for QR code
+        val qrCodeImageView = dialogView.findViewById<ImageView>(R.id.image_qr_code)
+        
+        // Generate QR code bitmap
+        try {
+            val qrCodeBitmap = generateQRCode(pixCode)
+            qrCodeImageView.setImageBitmap(qrCodeBitmap)
+            
+            // Create and show the dialog
+            val dialog = AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(false)
+                .create()
+            
+            // Set up Cancel button
+            dialogView.findViewById<Button>(R.id.btn_cancel).setOnClickListener {
+                dialog.dismiss()
+                viewModel.confirmMerchantPixHasBeenPaid(requestId, false)
+            }
+            
+            // Set up Done button
+            dialogView.findViewById<Button>(R.id.btn_done).setOnClickListener {
+                dialog.dismiss()
+                viewModel.confirmMerchantPixHasBeenPaid(requestId, true)
+            }
+            
+            dialog.show()
+        } catch (e: Exception) {
+            Log.e("PaymentProcessingActivity", "Error generating QR code: ${e.message}")
+            Toast.makeText(this, "Error generating QR code", Toast.LENGTH_SHORT).show()
+            viewModel.confirmMerchantPixHasBeenPaid(requestId, false)
+        }
+    }
+    
+    /**
+     * Generate a QR code bitmap from the given content
+     */
+    private fun generateQRCode(content: String): Bitmap {
+        val width = 500
+        val height = 500
+        val hints = HashMap<EncodeHintType, Any>()
+        hints[EncodeHintType.CHARACTER_SET] = "UTF-8"
+        hints[EncodeHintType.ERROR_CORRECTION] = ErrorCorrectionLevel.M
+        hints[EncodeHintType.MARGIN] = 2
+        
+        val qrCodeWriter = QRCodeWriter()
+        val bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, width, height, hints)
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
+        
+        for (x in 0 until width) {
+            for (y in 0 until height) {
+                bitmap.setPixel(x, y, if (bitMatrix[x, y]) Color.BLACK else Color.WHITE)
+            }
+        }
+        
+        return bitmap
     }
     
     /**

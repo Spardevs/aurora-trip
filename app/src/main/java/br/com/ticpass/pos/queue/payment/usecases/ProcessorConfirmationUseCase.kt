@@ -98,4 +98,22 @@ class ProcessorConfirmationUseCase @Inject constructor() {
             paymentQueue.processor.provideInput(response) 
         }
     }
+    
+    /**
+     * Confirm merchant PIX has been paid
+     */
+    fun confirmMerchantPixHasBeenPaid(
+        requestId: String,
+        didPay: Boolean,
+        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
+        updateState: (UiState) -> Unit
+    ): SideEffect {
+        updateState(UiState.Processing)
+        // Create an input response with the payment confirmation as the value
+        val response = InputResponse(requestId, didPay)
+        // Provide input directly to the processor instead of using queue input
+        return SideEffect.ProvideProcessorInput { 
+            paymentQueue.processor.provideInput(response) 
+        }
+    }
 }

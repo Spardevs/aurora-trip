@@ -104,7 +104,6 @@ class StateManagementUseCase @Inject constructor() {
                 Log.d("StateManagement", "CONFIRM_MERCHANT_PIX_KEY request received")
                 updateState(UiState.ConfirmMerchantPixKey(
                     requestId = request.id,
-                    pixKey = request.pixKey,
                     timeoutMs = request.timeoutMs
                 ))
             }
@@ -112,6 +111,14 @@ class StateManagementUseCase @Inject constructor() {
                 Log.d("StateManagement", "CONFIRM_CUSTOMER_RECEIPT_PRINTING request received")
                 updateState(UiState.ConfirmCustomerReceiptPrinting(
                     requestId = request.id,
+                ))
+            }
+
+            is InputRequest.MERCHANT_PIX_SCANNING -> {
+                Log.d("StateManagement", "MERCHANT_PIX_SCANNING request received")
+                updateState(UiState.MerchantPixScanning(
+                    requestId = request.id,
+                    pixCode = request.pixCode,
                 ))
             }
         }

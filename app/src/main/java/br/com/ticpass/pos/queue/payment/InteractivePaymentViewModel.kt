@@ -204,6 +204,13 @@ class InteractivePaymentViewModel @Inject constructor(
         dispatch(Action.ConfirmMerchantPixKey(requestId, pixKey))
     }
     
+    /**
+     * Confirm merchant PIX has been paid (processor-level input request)
+     */
+    fun confirmMerchantPixHasBeenPaid(requestId: String, didPay: Boolean) {
+        dispatch(Action.ConfirmMerchantPixHasBeenPaid(requestId, didPay))
+    }
+    
     // Queue-Level Input Handling
     
     /**
