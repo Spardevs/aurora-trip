@@ -10,6 +10,7 @@ import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -25,10 +26,11 @@ class MerchantPIXPaymentProcessor : PaymentProcessorBase() {
 
     override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
         try {
+            _events.emit(ProcessingPaymentEvent.TRANSACTION_PROCESSING)
+
+            val transactionId = "BTC_LN-${UUID.randomUUID().toString().substring(0, 8)}"
             val pixKey = requestPixKey()
             val pixCode = generatePixCode(pixKey, item.amount)
-
-            Log.d("MerchantPIXPaymentProcessor", "Generated PIX code: $pixCode")
 
             val didScan = requestPixScanning(pixCode)
 
@@ -36,9 +38,13 @@ class MerchantPIXPaymentProcessor : PaymentProcessorBase() {
                 ProcessingErrorEvent.TRANSACTION_FAILURE
             )
 
-            val transactionId = "BTC_LN-${UUID.randomUUID().toString().substring(0, 8)}"
+            _events.emit(ProcessingPaymentEvent.AUTHORIZING)
+
+            withContext(Dispatchers.IO) { delay(1500) }
 
             _events.emit(ProcessingPaymentEvent.TRANSACTION_DONE)
+
+            withContext(Dispatchers.IO) { delay(300) }
 
             return ProcessingResult.Success(
                 atk = "",
