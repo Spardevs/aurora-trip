@@ -30,7 +30,10 @@ class MerchantPIXPaymentProcessor : PaymentProcessorBase() {
 
             val transactionId = "BTC_LN-${UUID.randomUUID().toString().substring(0, 8)}"
             val pixKey = requestPixKey()
-            val pixCode = generatePixCode(pixKey, item.amount)
+            val pixCode = pix.generate(
+                pixKey = pixKey,
+                amount = item.amount,
+            )
 
             val didScan = requestPixScanning(pixCode)
 
@@ -85,24 +88,6 @@ class MerchantPIXPaymentProcessor : PaymentProcessorBase() {
             }
 
             return pixKey
-        }
-        catch (exception: Exception) {
-            if (exception is PaymentProcessingException) throw exception
-
-            throw PaymentProcessingException(
-                ProcessingErrorEvent.GENERIC
-            )
-        }
-    }
-
-    private fun generatePixCode(pixKey: String, amount: Int): String {
-        try {
-            val pixCode = pix.generate(
-                pixKey = pixKey,
-                amount = amount,
-            )
-
-            return pixCode
         }
         catch (exception: Exception) {
             if (exception is PaymentProcessingException) throw exception
