@@ -305,6 +305,9 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.iconsExtended)
     implementation(libs.datastore)
+    implementation(libs.emv.qrcode) {
+        exclude(group = "org.aspectj")
+    }
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.mockito:mockito-core:5.2.0")
