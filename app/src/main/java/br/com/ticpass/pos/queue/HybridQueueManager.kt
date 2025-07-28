@@ -186,12 +186,12 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                         // Store the continuation to be resumed later
                         pendingQueueInputContinuations[confirmRequest.id] = continuation
                     }
-                    
-                    
-                    // If the user chose to skip, remove the item and continue
+
+                    // If the user chose to skip, move the item to the end of the queue and continue
                     if (response.isCanceled || response.value == false) {
-                        // Skip this item
-                        inMemoryQueue.removeFirstOrNull()
+                        // Move this item to the end of the queue
+                        val skippedItem = inMemoryQueue.removeFirstOrNull()
+                        if (skippedItem != null) { inMemoryQueue.add(skippedItem) }
                         _queueState.value = inMemoryQueue.toList()
                         continue
                     }
