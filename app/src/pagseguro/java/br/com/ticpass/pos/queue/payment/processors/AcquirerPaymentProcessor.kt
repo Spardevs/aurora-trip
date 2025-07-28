@@ -15,6 +15,7 @@ import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagEventData
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagEventListener
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagPaymentData
 import br.com.ticpass.pos.queue.payment.SystemCustomerReceiptPrinting
+import br.com.ticpass.utils.fromConversionFactor
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagTransactionResult
 import br.com.uol.pagseguro.plugpagservice.wrapper.exception.PlugPagException
 import br.com.uol.pagseguro.plugpagservice.wrapper.listeners.PlugPagPrintActionListener
@@ -31,9 +32,9 @@ import kotlinx.coroutines.withContext
  */
 class AcquirerPaymentProcessor : PaymentProcessorBase() {
 
-    private val tag = "AcquirerPaymentProcessor"
+    private val tag = this.javaClass.simpleName
     private val plugpag = AcquirerSdk.payment.getInstance()
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     lateinit var _item: ProcessingPaymentQueueItem
     
@@ -43,14 +44,14 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
             setPaymentListener()
             setCustomerReceiptListener()
 
-            val commission = ((item.amount * item.commission) / CONVERSION_FACTOR).toInt()
+            val commission = (_item.amount * _item.commission).fromConversionFactor()
 
             val acquirerPaymentData = PlugPagPaymentData(
-                AcquirerPaymentMethod.translate(item.method),
-                item.amount + commission,
+                AcquirerPaymentMethod.translate(_item.method),
+                _item.amount + commission,
                 PlugPag.INSTALLMENT_TYPE_A_VISTA,
                 1,
-                item.id
+                _item.id
             )
 
             // Use withContext to ensure this blocking call doesn't freeze the UI
@@ -64,6 +65,9 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
                 payment.result
             )
 
+            clearPaymentListener()
+            cleanupCoroutineScopes()
+
             return ProcessingResult.Success(
                 atk = "",
                 txId =  ""
@@ -76,10 +80,6 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
 
             return ProcessingResult.Error(ProcessingErrorEvent.GENERIC)
         }
-        finally {
-            clearPaymentListener()
-            cleanupCoroutineScopes()
-        }
     }
     
     /**
@@ -89,12 +89,15 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
     override suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean {
         try {
             // Attempt to abort any ongoing transaction
-            val abortResult = kotlinx.coroutines.withContext(Dispatchers.IO) {
+            val abortResult = withContext(Dispatchers.IO) {
                 plugpag.abort()
             }
 
             val hasAborted = abortResult.result == PlugPag.RET_OK
             if(!hasAborted) throw Exception("Failed to abort transaction.")
+
+            clearPaymentListener()
+            cleanupCoroutineScopes()
 
             return true
         } catch (e: Exception) {
@@ -103,8 +106,15 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
         }
     }
 
+    /**
+     * Cancels all coroutines in the current scope and creates a new scope.
+     * This ensures that any ongoing operations are properly terminated and
+     * resources are released, while maintaining the processor ready for
+     * future payment operations.
+     */
     private fun cleanupCoroutineScopes() {
         scope.cancel()
+        scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
 
     private fun setPaymentListener() {
@@ -131,7 +141,6 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
         }
         plugpag.setEventListener(eventListener)
     }
-
 
     private fun setCustomerReceiptListener() {
         scope.launch {
