@@ -4,6 +4,7 @@ import br.com.ticpass.pos.queue.ErrorHandlingAction
 import br.com.ticpass.pos.queue.InputRequest
 import br.com.ticpass.pos.queue.ProcessingState
 import br.com.ticpass.pos.queue.QueueInputRequest
+import br.com.ticpass.pos.queue.QueueItem
 import br.com.ticpass.pos.queue.payment.SystemPaymentMethod
 import br.com.ticpass.pos.queue.payment.processors.PaymentProcessorType
 
@@ -24,13 +25,8 @@ sealed class Action {
     object CancelAllPayments : Action()
     
     // Processor input actions
-    data class ConfirmNextProcessor(val requestId: String) : Action()
-    data class ConfirmNextProcessorWithModifiedPayment(
-        val requestId: String,
-        val modifiedAmount: Int,
-        val modifiedMethod: SystemPaymentMethod,
-        val modifiedProcessorType: PaymentProcessorType
-    ) : Action()
+    data class ConfirmProcessor<T: QueueItem>(val requestId: String, val modifiedItem: T) : Action()
+
     data class SkipProcessor(val requestId: String) : Action()
     
     // Error handling actions

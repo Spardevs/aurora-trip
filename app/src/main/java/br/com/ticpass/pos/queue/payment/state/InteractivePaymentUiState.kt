@@ -26,23 +26,11 @@ sealed class UiState {
     /**
      * Confirmation state - waiting for user to confirm proceeding to next processor
      */
-    data class ConfirmNextProcessor(
-        val requestId: String,
-        val currentItemIndex: Int,
-        val totalItems: Int
-    ) : UiState()
-    
-    /**
-     * Confirmation state - waiting for user to confirm proceeding to next payment processor
-     * Includes payment details that can be modified
-     */
-    data class ConfirmNextPaymentProcessor(
+    data class ConfirmNextProcessor<T>(
         val requestId: String,
         val currentItemIndex: Int,
         val totalItems: Int,
-        val currentAmount: Int,
-        val currentMethod: SystemPaymentMethod,
-        val currentProcessorType: PaymentProcessorType,
+        val currentItem: T,  // Generic item data for UI access
         val timeoutMs: Long? = null
     ) : UiState()
     

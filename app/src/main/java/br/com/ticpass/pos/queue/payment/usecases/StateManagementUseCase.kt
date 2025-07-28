@@ -1,10 +1,11 @@
 package br.com.ticpass.pos.queue.payment.usecases
 
 import android.util.Log
+import br.com.ticpass.pos.queue.HybridQueueManager
 import br.com.ticpass.pos.queue.InputRequest
-import br.com.ticpass.pos.queue.PaymentQueueInputRequest
 import br.com.ticpass.pos.queue.ProcessingState
 import br.com.ticpass.pos.queue.QueueInputRequest
+import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
 import br.com.ticpass.pos.queue.payment.state.UiEvent
 import br.com.ticpass.pos.queue.payment.state.UiState
@@ -62,32 +63,33 @@ class StateManagementUseCase @Inject constructor() {
      */
     fun handleQueueInputRequest(
         request: QueueInputRequest,
+        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
         updateState: (UiState) -> Unit
     ) {
         when (request) {
-            is PaymentQueueInputRequest.CONFIRM_NEXT_PAYMENT -> {
-                android.util.Log.d("StateManagement", "CONFIRM_NEXT_PAYMENT request received")
-                updateState(UiState.ConfirmNextPaymentProcessor(
+            is QueueInputRequest.CONFIRM_NEXT_PROCESSOR -> {
+                Log.d("StateManagement", "CONFIRM_NEXT_PROCESSOR request received")
+                // Get current item from queue to provide item-specific data to UI
+                val currentItem = paymentQueue.getCurrentItem()
+                updateState(UiState.ConfirmNextProcessor(
                     requestId = request.id,
                     currentItemIndex = request.currentItemIndex,
                     totalItems = request.totalItems,
-                    currentAmount = request.currentAmount,
-                    currentMethod = request.currentMethod,
-                    currentProcessorType = request.currentProcessorType,
+                    currentItem = currentItem,
                     timeoutMs = request.timeoutMs
                 ))
             }
             is QueueInputRequest.ERROR_RETRY_OR_SKIP -> {
-                android.util.Log.e("ErrorHandling", "QueueInputRequest.ERROR_RETRY_OR_SKIP received in StateManagementUseCase")
+                Log.e("ErrorHandling", "QueueInputRequest.ERROR_RETRY_OR_SKIP received in StateManagementUseCase")
                 updateState(UiState.ErrorRetryOrSkip(
                     requestId = request.id,
                     error = request.error,
                     timeoutMs = request.timeoutMs
                 ))
-                android.util.Log.e("ErrorHandling", "UiState.ErrorRetryOrSkip set in StateManagementUseCase")
+                Log.e("ErrorHandling", "UiState.ErrorRetryOrSkip set in StateManagementUseCase")
             }
             else -> {
-                android.util.Log.d("StateManagement", "Unhandled queue input request: ${request::class.simpleName}")
+                Log.d("StateManagement", "Unhandled queue input request: ${request::class.simpleName}")
             }
         }
     }

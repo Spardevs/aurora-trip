@@ -1,8 +1,7 @@
 package br.com.ticpass.pos.queue
 
 import android.util.Log
-import br.com.ticpass.pos.queue.payment.PaymentQueueInputResponse
-import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
+// Removed payment-specific imports to keep queue processor-agnostic
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -154,29 +153,13 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                     Log.d("HybridQueueManager", "Confirmation mode enabled, showing confirmation dialog")
                     val nextItemIndex = inMemoryQueue.indexOf(nextItem)
                     
-                    // Cast to ProcessingPaymentQueueItem to access payment-specific properties
-                    val paymentItem = nextItem as? ProcessingPaymentQueueItem
-                    
-                    val confirmRequest = if (paymentItem != null) {
-                        // Use payment-specific confirmation request with payment details
-                        PaymentQueueInputRequest.CONFIRM_NEXT_PAYMENT(
-                            currentItemIndex = nextItemIndex,
-                            totalItems = inMemoryQueue.size,
-                            currentItemId = nextItem.id,
-                            nextItemId = if (nextItemIndex < inMemoryQueue.size - 1) inMemoryQueue[nextItemIndex + 1].id else null,
-                            currentAmount = paymentItem.amount,
-                            currentMethod = paymentItem.method,
-                            currentProcessorType = paymentItem.processorType
-                        )
-                    } else {
-                        // Generic confirmation request for non-payment items
-                        QueueInputRequest.CONFIRM_NEXT_PROCESSOR(
-                            currentItemIndex = nextItemIndex,
-                            totalItems = inMemoryQueue.size,
-                            currentItemId = nextItem.id,
-                            nextItemId = if (nextItemIndex < inMemoryQueue.size - 1) inMemoryQueue[nextItemIndex + 1].id else null
-                        )
-                    }
+                    // Use generic confirmation request - let the UI layer interpret item-specific data
+                    val confirmRequest = QueueInputRequest.CONFIRM_NEXT_PROCESSOR(
+                        currentItemIndex = nextItemIndex,
+                        totalItems = inMemoryQueue.size,
+                        currentItemId = nextItem.id,
+                        nextItemId = if (nextItemIndex < inMemoryQueue.size - 1) inMemoryQueue[nextItemIndex + 1].id else null
+                    )
                     
                     // Emit the confirmation request
                     _queueInputRequests.emit(confirmRequest)
@@ -186,6 +169,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                         // Store the continuation to be resumed later
                         pendingQueueInputContinuations[confirmRequest.id] = continuation
                     }
+                    nextItem = inMemoryQueue.first()
 
                     // If the user chose to skip, move the item to the end of the queue and continue
                     if (response.isCanceled || response.value == false) {
@@ -194,29 +178,6 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                         if (skippedItem != null) { inMemoryQueue.add(skippedItem) }
                         _queueState.value = inMemoryQueue.toList()
                         continue
-                    }
-                    
-                    // Apply any modifications to the queue item if provided in the response
-                    if (response is PaymentQueueInputResponse && 
-                        (response.modifiedAmount != null || response.modifiedMethod != null || response.modifiedProcessorType != null)) {
-                        // Only ProcessingPaymentQueueItem can be modified
-                        val paymentItem = nextItem as? ProcessingPaymentQueueItem
-                        if (paymentItem != null) {
-                            // Create a copy with modified values
-                            val modifiedItem = paymentItem.copy(
-                                amount = response.modifiedAmount ?: paymentItem.amount,
-                                method = response.modifiedMethod ?: paymentItem.method,
-                                processorType = response.modifiedProcessorType ?: paymentItem.processorType
-                            )
-                            
-                            // Replace the item in the queue
-                            val itemIndex = inMemoryQueue.indexOf(nextItem)
-                            if (itemIndex >= 0) {
-                                inMemoryQueue[itemIndex] = modifiedItem as T
-                                nextItem = modifiedItem as T
-                                _queueState.value = inMemoryQueue.toList()
-                            }
-                        }
                     }
                 }
                 
@@ -460,6 +421,37 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
         }
     }
     
+    /**
+     * Get the current item being processed (first item in queue)
+     * 
+     * @return The current item or null if queue is empty
+     */
+    fun getCurrentItem(): T? {
+        return inMemoryQueue.firstOrNull()
+    }
+    
+    /**
+     * Replace the current item in the queue with a modified version
+     * This is used by UseCase layer to modify items before processing
+     * 
+     * @param modifiedItem The modified item to replace the current one
+     */
+    fun replaceCurrentItem(modifiedItem: T) {
+        if (inMemoryQueue.isNotEmpty()) {
+            inMemoryQueue[0] = modifiedItem
+            _queueState.value = inMemoryQueue.toList()
+            
+            // Update persistence if needed
+            if (persistenceStrategy == PersistenceStrategy.IMMEDIATE) {
+                scope.launch {
+                    storage.update(modifiedItem)
+                }
+            } else if (persistenceStrategy == PersistenceStrategy.ON_BACKGROUND) {
+                pendingPersistence.add(modifiedItem)
+            }
+        }
+    }
+
     /**
      * Provide input for a queue-level input request
      * 

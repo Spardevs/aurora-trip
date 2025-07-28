@@ -1,10 +1,11 @@
 package br.com.ticpass.pos.queue.payment.usecases
 
 import android.util.Log
+import br.com.ticpass.pos.queue.BaseProcessingEvent
 import br.com.ticpass.pos.queue.HybridQueueManager
 import br.com.ticpass.pos.queue.InputResponse
 import br.com.ticpass.pos.queue.QueueInputResponse
-import br.com.ticpass.pos.queue.payment.PaymentQueueInputResponse
+import br.com.ticpass.pos.queue.QueueItem
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
 import br.com.ticpass.pos.queue.payment.SystemPaymentMethod
@@ -21,36 +22,49 @@ class ProcessorConfirmationUseCase @Inject constructor() {
     /**
      * Confirm proceeding to the next processor
      */
-    fun confirmNextProcessor(
+    fun <T : QueueItem, E : BaseProcessingEvent> confirmProcessor(
         requestId: String,
-        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
+        queue: HybridQueueManager<T, E>,
+        modifiedItem: T,
         updateState: (UiState) -> Unit
     ): SideEffect {
         updateState(UiState.Processing)
-        return SideEffect.ProvideQueueInput { 
-            paymentQueue.provideQueueInput(QueueInputResponse.proceed(requestId))
+        Log.d("ProcessorConfirmationUseCase", "confirmProcessor called with requestId: $requestId, modifiedItem: $modifiedItem")
+        return SideEffect.ProvideQueueInput {
+            queue.replaceCurrentItem(modifiedItem)
+            queue.provideQueueInput(QueueInputResponse.proceed(requestId))
         }
     }
     
     /**
      * Confirm proceeding to the next processor with modified payment details
      */
-    fun confirmNextProcessorWithModifiedPayment(
+    fun confirmPayment(
         requestId: String,
-        modifiedAmount: Int,
-        modifiedMethod: SystemPaymentMethod,
-        modifiedProcessorType: PaymentProcessorType,
+        amount: Int,
+        method: SystemPaymentMethod,
+        processorType: PaymentProcessorType,
         paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
         updateState: (UiState) -> Unit
     ): SideEffect {
         updateState(UiState.Processing)
-        val response = PaymentQueueInputResponse.proceedWithModifiedPayment(
-            requestId = requestId,
-            modifiedAmount = modifiedAmount,
-            modifiedMethod = modifiedMethod,
-            modifiedProcessorType = modifiedProcessorType
-        )
-        return SideEffect.ProvideQueueInput { paymentQueue.provideQueueInput(response) }
+        
+        // Handle item modification at the UseCase layer
+        return SideEffect.ProvideQueueInput {
+            // First, modify the current item in the queue
+            val currentItem = paymentQueue.getCurrentItem() as? ProcessingPaymentQueueItem
+            if (currentItem != null) {
+                val modifiedItem = currentItem.copy(
+                    amount = amount,
+                    method = method,
+                    processorType = processorType
+                )
+                paymentQueue.replaceCurrentItem(modifiedItem)
+            }
+            
+            // Then provide the proceed response
+            paymentQueue.provideQueueInput(QueueInputResponse.proceed(requestId))
+        }
     }
     
     /**

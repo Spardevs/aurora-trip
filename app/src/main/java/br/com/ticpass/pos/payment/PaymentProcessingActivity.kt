@@ -243,21 +243,12 @@ class PaymentProcessingActivity : AppCompatActivity() {
         lifecycleScope.launch {
             viewModel.uiState.collectLatest { uiState ->
                 when (uiState) {
-                    is UiState.ConfirmNextPaymentProcessor -> {
-                        showConfirmNextPaymentProcessorDialog(
-                            requestId = uiState.requestId,
-                            currentIndex = uiState.currentItemIndex,
-                            totalItems = uiState.totalItems
-                        )
-                    }
                     is UiState.Error -> {
                         displayErrorMessage(uiState.event)
                     }
-                    is UiState.ConfirmNextProcessor -> {
-                        showConfirmNextProcessorDialog(
-                            requestId = uiState.requestId,
-                            currentIndex = uiState.currentItemIndex,
-                            totalItems = uiState.totalItems
+                    is UiState.ConfirmNextProcessor<*> -> {
+                        showConfirmNextPaymentProcessorDialog(
+                            requestId = uiState.requestId
                         )
                     }
                     is UiState.ConfirmCustomerReceiptPrinting -> {
@@ -669,56 +660,13 @@ class PaymentProcessingActivity : AppCompatActivity() {
     }
     
     /**
-     * Show a dialog to confirm proceeding to the next processor (generic version)
-     */
-    private fun showConfirmNextProcessorDialog(requestId: String, currentIndex: Int, totalItems: Int) {
-        // Get the current UI state to access timeout
-        val state = viewModel.uiState.value as? UiState.ConfirmNextPaymentProcessor ?: return
-        
-        Log.d("TimeoutDebug", "showConfirmNextProcessorDialog - state.timeoutMs: ${state.timeoutMs}")
-        
-        // Create dialog with custom view that includes timeout
-        val dialogView = layoutInflater.inflate(R.layout.dialog_confirmation_with_timeout, null)
-        val timeoutView = dialogView.findViewById<TimeoutCountdownView>(R.id.timeout_countdown_view)
-        
-        // Set dialog title and message
-        dialogView.findViewById<TextView>(R.id.text_dialog_title).text = getString(R.string.confirm_next_processor_title)
-        dialogView.findViewById<TextView>(R.id.text_dialog_message).text = 
-            getString(R.string.confirm_next_processor_message, currentIndex + 1, totalItems)
-        
-        // Create the dialog
-        val dialog = AlertDialog.Builder(this)
-            .setView(dialogView)
-            .setCancelable(false)
-            .create()
-            
-        // Set up button click listeners
-        dialogView.findViewById<Button>(R.id.btn_dialog_confirm).setOnClickListener {
-            viewModel.confirmNextProcessor(requestId)
-            dialog.dismiss()
-        }
-        
-        dialogView.findViewById<Button>(R.id.btn_dialog_cancel).setOnClickListener {
-            viewModel.skipProcessor(requestId)
-            dialog.dismiss()
-        }
-        
-        // Start timeout countdown if specified
-        startDialogTimeoutCountdown(timeoutView, state.timeoutMs) {
-            viewModel.skipProcessor(requestId)
-            dialog.dismiss()
-        }
-        
-        dialog.show()
-    }
-    
-    /**
      * Show a dialog to confirm proceeding to the next payment processor
      * Allows editing payment method and amount before proceeding
      */
-    private fun showConfirmNextPaymentProcessorDialog(requestId: String, currentIndex: Int, totalItems: Int) {
+    private fun showConfirmNextPaymentProcessorDialog(requestId: String) {
         // Get the current UI state to access payment details
-        val state = viewModel.uiState.value as? UiState.ConfirmNextPaymentProcessor ?: return
+        val state = viewModel.uiState.value as UiState.ConfirmNextProcessor<ProcessingPaymentQueueItem>
+        val currentPayment = state.currentItem
         
         Log.d("TimeoutDebug", "showConfirmNextPaymentProcessorDialog - state.timeoutMs: ${state.timeoutMs}")
         
@@ -731,14 +679,14 @@ class PaymentProcessingActivity : AppCompatActivity() {
         val timeoutView = dialogView.findViewById<TimeoutCountdownView>(R.id.timeout_countdown_view)
         
         // Set initial values
-        amountEditText.setText((state.currentAmount.toMoneyAsDouble()).toString())
+        amountEditText.setText((currentPayment.amount.toMoneyAsDouble()).toString())
         
         // Setup payment method spinner
         val paymentMethods = SystemPaymentMethod.values()
         val methodAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, paymentMethods)
         methodAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         methodSpinner.adapter = methodAdapter
-        methodSpinner.setSelection(paymentMethods.indexOf(state.currentMethod))
+        methodSpinner.setSelection(paymentMethods.indexOf(currentPayment.method))
         
         // Create the dialog
         val dialog = AlertDialog.Builder(this)
@@ -759,21 +707,16 @@ class PaymentProcessingActivity : AppCompatActivity() {
                     val modifiedMethod = paymentMethods[methodSpinner.selectedItemPosition]
                     // Automatically determine processor type based on payment method
                     val modifiedProcessorType = PaymentMethodProcessorMapper.getProcessorTypeForMethod(modifiedMethod)
-                    
-                    // Check if any values were modified
-                    if (modifiedAmount != state.currentAmount || 
-                        modifiedMethod != state.currentMethod) {
-                        // Use the modified payment details
-                        viewModel.confirmNextProcessorWithModifiedPayment(
-                            requestId = requestId,
-                            modifiedAmount = modifiedAmount,
-                            modifiedMethod = modifiedMethod,
-                            modifiedProcessorType = modifiedProcessorType
+
+                    viewModel.confirmProcessor(
+                        requestId = requestId,
+                        modifiedItem = currentPayment.copy(
+                            amount = modifiedAmount,
+                            method = modifiedMethod,
+                            processorType = modifiedProcessorType
                         )
-                    } else {
-                        // Use the original payment details
-                        viewModel.confirmNextProcessor(requestId)
-                    }
+                    )
+
                     dialog.dismiss()
                 } catch (e: Exception) {
                     // Handle parsing errors

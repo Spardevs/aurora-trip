@@ -1,6 +1,5 @@
 package br.com.ticpass.pos.queue.payment.state
 
-import android.util.Log
 import br.com.ticpass.pos.queue.HybridQueueManager
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEvent
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
@@ -71,20 +70,11 @@ class InteractivePaymentReducer @Inject constructor(
             }
             
             // Processor confirmation actions
-            is Action.ConfirmNextProcessor -> {
-                processorConfirmationUseCase.confirmNextProcessor(
+            is Action.ConfirmProcessor<*> -> {
+                processorConfirmationUseCase.confirmProcessor(
                     requestId = action.requestId,
-                    paymentQueue = paymentQueue,
-                    updateState = updateState
-                )
-            }
-            is Action.ConfirmNextProcessorWithModifiedPayment -> {
-                processorConfirmationUseCase.confirmNextProcessorWithModifiedPayment(
-                    requestId = action.requestId,
-                    modifiedAmount = action.modifiedAmount,
-                    modifiedMethod = action.modifiedMethod,
-                    modifiedProcessorType = action.modifiedProcessorType,
-                    paymentQueue = paymentQueue,
+                    queue = paymentQueue,
+                    modifiedItem = action.modifiedItem as ProcessingPaymentQueueItem,
                     updateState = updateState
                 )
             }
@@ -149,6 +139,7 @@ class InteractivePaymentReducer @Inject constructor(
             is Action.QueueInputRequested -> {
                 stateManagementUseCase.handleQueueInputRequest(
                     request = action.request,
+                    paymentQueue = paymentQueue,
                     updateState = updateState
                 )
                 null // No side effect needed

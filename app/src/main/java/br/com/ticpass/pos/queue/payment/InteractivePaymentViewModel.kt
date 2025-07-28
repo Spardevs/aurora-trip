@@ -10,6 +10,7 @@ import br.com.ticpass.pos.queue.ProcessorStartMode
 import br.com.ticpass.pos.queue.PersistenceStrategy
 import br.com.ticpass.pos.queue.HybridQueueManager
 import br.com.ticpass.pos.queue.ProcessingErrorEvent
+import br.com.ticpass.pos.queue.QueueItem
 import br.com.ticpass.pos.queue.payment.processors.PaymentMethodProcessorMapper
 import br.com.ticpass.pos.queue.payment.processors.PaymentProcessorType
 import br.com.ticpass.pos.queue.payment.state.Action
@@ -216,8 +217,8 @@ class InteractivePaymentViewModel @Inject constructor(
     /**
      * Confirm proceeding to the next processor (queue-level input request)
      */
-    fun confirmNextProcessor(requestId: String) {
-        dispatch(Action.ConfirmNextProcessor(requestId))
+    fun <T: QueueItem> confirmProcessor(requestId: String, modifiedItem: T) {
+        dispatch(Action.ConfirmProcessor(requestId, modifiedItem))
     }
     
     /**
@@ -226,23 +227,6 @@ class InteractivePaymentViewModel @Inject constructor(
      */
     fun updateAllProcessorTypes(useTransactionless: Boolean) {
         dispatch(Action.UpdateAllProcessorTypes(useTransactionless))
-    }
-    
-    /**
-     * Confirm the next processor with modified payment details
-     */
-    fun confirmNextProcessorWithModifiedPayment(
-        requestId: String,
-        modifiedAmount: Int,
-        modifiedMethod: SystemPaymentMethod,
-        modifiedProcessorType: PaymentProcessorType = PaymentMethodProcessorMapper.getProcessorTypeForMethod(modifiedMethod)
-    ) {
-        dispatch(Action.ConfirmNextProcessorWithModifiedPayment(
-            requestId,
-            modifiedAmount,
-            modifiedMethod,
-            modifiedProcessorType
-        ))
     }
     
     /**
