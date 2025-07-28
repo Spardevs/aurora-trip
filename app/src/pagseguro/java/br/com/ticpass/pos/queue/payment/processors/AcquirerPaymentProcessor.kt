@@ -1,7 +1,6 @@
 package br.com.ticpass.pos.queue.payment.processors
 
 import android.util.Log
-import br.com.ticpass.Constants.CONVERSION_FACTOR
 import br.com.ticpass.pos.queue.InputRequest
 import br.com.ticpass.pos.queue.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.ProcessingResult
@@ -15,7 +14,7 @@ import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagEventData
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagEventListener
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagPaymentData
 import br.com.ticpass.pos.queue.payment.SystemCustomerReceiptPrinting
-import br.com.ticpass.utils.fromConversionFactor
+import br.com.ticpass.utils.toMoney
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagTransactionResult
 import br.com.uol.pagseguro.plugpagservice.wrapper.exception.PlugPagException
 import br.com.uol.pagseguro.plugpagservice.wrapper.listeners.PlugPagPrintActionListener
@@ -44,7 +43,7 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
             setPaymentListener()
             setCustomerReceiptListener()
 
-            val commission = (_item.amount * _item.commission).fromConversionFactor()
+            val commission = (_item.amount * _item.commission).toMoney()
 
             val acquirerPaymentData = PlugPagPaymentData(
                 AcquirerPaymentMethod.translate(_item.method),

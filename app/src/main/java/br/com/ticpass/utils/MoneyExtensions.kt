@@ -33,15 +33,31 @@ fun Long.fromCents(): Int = MoneyUtils.fromCents(this.toInt())
 /**
  * Extension function to convert Int amount using the system's conversion factor
  * Uses MoneyUtils.fromConversionFactor
- * 
+ *
  * @return The converted amount as an Int
  */
-fun Int.fromConversionFactor(): Int = MoneyUtils.fromConversionFactor(this)
+fun Int.toMoney(): Int = MoneyUtils.fromConversionFactor(this)
 
 /**
  * Extension function to convert Long amount using the system's conversion factor
  * Uses MoneyUtils.fromConversionFactor
- * 
+ *
  * @return The converted amount as an Int
  */
-fun Long.fromConversionFactor(): Int = MoneyUtils.fromConversionFactor(this.toInt())
+fun Long.toMoney(): Int = MoneyUtils.fromConversionFactor(this.toInt())
+
+/**
+ * Extension function to convert Int amount using the system's conversion factor
+ * Uses MoneyUtils.fromConversionFactor
+ *
+ * @return The converted amount as an Int
+ */
+fun Int.toMoneyAsDouble(): Double = MoneyUtils.doubleFromConversionFactor(this)
+
+/**
+ * Extension function to convert Long amount using the system's conversion factor
+ * Uses MoneyUtils.fromConversionFactor
+ *
+ * @return The converted amount as an Int
+ */
+fun Long.toMoneyAsDouble(): Double = MoneyUtils.doubleFromConversionFactor(this.toInt())

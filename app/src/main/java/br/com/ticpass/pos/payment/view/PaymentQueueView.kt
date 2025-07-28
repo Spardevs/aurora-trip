@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
+import br.com.ticpass.utils.toMoneyAsDouble
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -84,7 +85,7 @@ class PaymentQueueView @JvmOverloads constructor(
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val item = items[position]
             holder.paymentIdText.text = item.id
-            holder.paymentAmountText.text = formatCurrency(item.amount)
+            holder.paymentAmountText.text = formatCurrency(item.amount.toMoneyAsDouble())
             holder.paymentMethodText.text = item.method.toString()
             
             holder.cancelButton.setOnClickListener {
@@ -100,6 +101,11 @@ class PaymentQueueView @JvmOverloads constructor(
         }
 
         private fun formatCurrency(amount: Int): String {
+            val formatter = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+            return formatter.format(amount)
+        }
+
+        private fun formatCurrency(amount: Double): String {
             val formatter = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
             return formatter.format(amount)
         }

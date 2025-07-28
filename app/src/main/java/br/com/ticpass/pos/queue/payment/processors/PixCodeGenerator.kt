@@ -5,12 +5,9 @@ import com.emv.qrcode.model.mpm.AdditionalDataField
 import com.emv.qrcode.model.mpm.MerchantAccountInformationReservedAdditional
 import com.emv.qrcode.model.mpm.MerchantAccountInformationTemplate
 import com.emv.qrcode.model.mpm.MerchantPresentedMode
-import br.com.ticpass.utils.MoneyUtils
-import br.com.ticpass.utils.fromCents
-import br.com.ticpass.utils.fromConversionFactor
+import br.com.ticpass.utils.toMoney
 import com.emv.qrcode.model.mpm.AdditionalDataFieldTemplate
 import java.text.Normalizer
-import java.util.UUID
 
 /**
  * Utility class for generating PIX payment strings using mvallim EMV library v0.1.2
@@ -90,7 +87,7 @@ class PixCodeGenerator {
         merchant.addMerchantAccountInformation(merchantAccountInformation)
         merchant.setMerchantCategoryCode(MERCHANT_CATEGORY_CODE)
         merchant.setTransactionCurrency(CURRENCY_CODE_BRL)
-        merchant.setTransactionAmount(amount.fromConversionFactor().toString())
+        merchant.setTransactionAmount(amount.toMoney().toString())
         merchant.setCountryCode(COUNTRY_CODE_BRAZIL)
         merchant.setMerchantName(normalizeText(options.merchantName).take(25))
         merchant.setMerchantCity(normalizeText(options.merchantCity).take(15))

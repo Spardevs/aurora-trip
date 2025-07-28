@@ -38,6 +38,7 @@ import br.com.ticpass.pos.queue.payment.processors.PaymentProcessorType
 import br.com.ticpass.pos.queue.payment.state.UiEvent
 import br.com.ticpass.pos.queue.payment.state.UiState
 import br.com.ticpass.pos.sdk.AcquirerSdk
+import br.com.ticpass.utils.toMoneyAsDouble
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -730,7 +731,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         val timeoutView = dialogView.findViewById<TimeoutCountdownView>(R.id.timeout_countdown_view)
         
         // Set initial values
-        amountEditText.setText((state.currentAmount / 100.0).toString())
+        amountEditText.setText((state.currentAmount.toMoneyAsDouble()).toString())
         
         // Setup payment method spinner
         val paymentMethods = SystemPaymentMethod.values()

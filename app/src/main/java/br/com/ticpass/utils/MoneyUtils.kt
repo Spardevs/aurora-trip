@@ -23,7 +23,7 @@ object MoneyUtils {
 
     /**
      * Converts monetary value from smaller units (e.g., cents) to a larger unit (e.g., dollars)
-     * 
+     *
      * @param amount The amount in smaller units (e.g., cents)
      * @param conversionFactor The factor to divide by (default is from Constants.CONVERSION_FACTOR)
      * @return Converted amount as an integer
@@ -33,6 +33,20 @@ object MoneyUtils {
         conversionFactor: Long = Constants.CONVERSION_FACTOR
     ): Int {
         return (amount / conversionFactor).toInt()
+    }
+
+    /**
+     * Converts monetary value from smaller units (e.g., cents) to a larger unit (e.g., dollars)
+     *
+     * @param amount The amount in smaller units (e.g., cents)
+     * @param conversionFactor The factor to divide by (default is from Constants.CONVERSION_FACTOR)
+     * @return Converted amount as an integer
+     */
+    private fun convertAmountAsDouble(
+        amount: Int,
+        conversionFactor: Long = Constants.CONVERSION_FACTOR
+    ): Double {
+        return (amount / conversionFactor.toDouble())
     }
 
     /**
@@ -55,5 +69,16 @@ object MoneyUtils {
      */
     fun fromConversionFactor(amount: Int): Int {
         return convertAmount(amount)
+    }
+
+    /**
+     * Converts monetary value from system CONVERSION_FACTOR
+     * This is a convenience method that uses the system's conversion factor constant
+     *
+     * @param amount The amount in cents
+     * @return Converted amount as an integer
+     */
+    fun doubleFromConversionFactor(amount: Int): Double {
+        return convertAmountAsDouble(amount)
     }
 }
