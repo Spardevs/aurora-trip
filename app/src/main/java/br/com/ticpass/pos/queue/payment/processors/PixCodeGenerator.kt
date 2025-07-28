@@ -2,13 +2,15 @@ package br.com.ticpass.pos.queue.payment.processors
 
 import com.emv.qrcode.core.model.mpm.TagLengthString
 import com.emv.qrcode.model.mpm.AdditionalDataField
-import com.emv.qrcode.model.mpm.AdditionalDataFieldTemplate
 import com.emv.qrcode.model.mpm.MerchantAccountInformationReservedAdditional
 import com.emv.qrcode.model.mpm.MerchantAccountInformationTemplate
 import com.emv.qrcode.model.mpm.MerchantPresentedMode
-import java.math.BigDecimal
-import java.math.RoundingMode
+import br.com.ticpass.utils.MoneyUtils
+import br.com.ticpass.utils.fromCents
+import br.com.ticpass.utils.fromConversionFactor
+import com.emv.qrcode.model.mpm.AdditionalDataFieldTemplate
 import java.text.Normalizer
+import java.util.UUID
 
 /**
  * Utility class for generating PIX payment strings using mvallim EMV library v0.1.2
@@ -57,48 +59,46 @@ class PixCodeGenerator {
         amount: Int,
         options: PixOptions = PixOptions()
     ): String {
-        // Create Additional Data Field
-        val additionalDataFieldValue = AdditionalDataField()
-        additionalDataFieldValue.setReferenceLabel(options.transactionId)
-
-        val additionalDataField = AdditionalDataFieldTemplate()
-        additionalDataField.setValue(additionalDataFieldValue)
-
-        // Create PIX Merchant Account Information (Tag 26)
         val pixKeyTag = TagLengthString()
-        pixKeyTag.setTag(TAG_PIX_KEY)
-        pixKeyTag.setValue(pixKey.trim().replace(" ", ""))
+        val merchant = MerchantPresentedMode()
+        val merchantData = MerchantAccountInformationReservedAdditional()
+        val additionalTemplate = AdditionalDataFieldTemplate()
+        val additionalData = AdditionalDataField()
 
-        val merchantAccountValue = MerchantAccountInformationReservedAdditional()
-        merchantAccountValue.setGloballyUniqueIdentifier(GUI_PIX)
-        merchantAccountValue.addPaymentNetworkSpecific(pixKeyTag)
+        additionalData.setReferenceLabel(options.transactionId)
+        additionalTemplate.value = additionalData
+
+        // Create PIX Merchant Account Information
+        pixKeyTag.tag = TAG_PIX_KEY
+        pixKeyTag.value = pixKey.trim().replace(" ", "")
+
+        merchantData.setGloballyUniqueIdentifier(GUI_PIX)
+        merchantData.addPaymentNetworkSpecific(pixKeyTag)
 
         // Add description if provided
-        options.description?.takeIf { it.isNotBlank() }?.let { desc ->
+        options.description?.takeIf { it.isNotBlank() }?.let { description ->
             val descriptionTag = TagLengthString()
-            descriptionTag.setTag(TAG_DESCRIPTION)
-            descriptionTag.setValue(desc)
-            merchantAccountValue.addPaymentNetworkSpecific(descriptionTag)
+            descriptionTag.tag = TAG_DESCRIPTION
+            descriptionTag.value = description
+            merchantData.addPaymentNetworkSpecific(descriptionTag)
         }
 
-        val merchantAccountInformation = MerchantAccountInformationTemplate(PIX_MERCHANT_ACCOUNT_TAG, merchantAccountValue)
+        val merchantAccountInformation = MerchantAccountInformationTemplate(PIX_MERCHANT_ACCOUNT_TAG, merchantData)
 
         // Create Merchant Presented Mode
-        val merchant = MerchantPresentedMode()
         merchant.setPayloadFormatIndicator(PAYLOAD_FORMAT_INDICATOR)
         merchant.addMerchantAccountInformation(merchantAccountInformation)
         merchant.setMerchantCategoryCode(MERCHANT_CATEGORY_CODE)
         merchant.setTransactionCurrency(CURRENCY_CODE_BRL)
-        merchant.setTransactionAmount(formatAmountFromCents(amount))
+        merchant.setTransactionAmount(amount.fromConversionFactor().toString())
         merchant.setCountryCode(COUNTRY_CODE_BRAZIL)
         merchant.setMerchantName(normalizeText(options.merchantName).take(25))
         merchant.setMerchantCity(normalizeText(options.merchantCity).take(15))
-        merchant.setAdditionalDataField(additionalDataField)
+
+        merchant.additionalDataField = additionalTemplate
 
         // Set postal code if provided
-        options.postalCode?.let {
-            merchant.setPostalCode(it)
-        }
+        options.postalCode?.let { merchant.setPostalCode(it) }
 
         return merchant.toString()
     }
@@ -114,13 +114,5 @@ class PixCodeGenerator {
             .trim()
     }
 
-    /**
-     * Formats monetary value from cents
-     */
-    private fun formatAmountFromCents(amountInCents: Int): String {
-        val amount = BigDecimal.valueOf(amountInCents.toLong())
-            .divide(BigDecimal.valueOf(100))
-            .setScale(2, RoundingMode.HALF_UP)
-        return amount.toString()
-    }
+    // Formatting is now handled by MoneyUtils.formatAmountFromCents
 }
