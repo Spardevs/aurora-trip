@@ -3,6 +3,7 @@ package br.com.ticpass.pos.payment
 import android.app.AlertDialog
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -597,8 +598,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
     private fun pixScanningDialog(requestId: String, pixCode: String) {
         // Create a dialog with custom view for QR code
         val dialogView = layoutInflater.inflate(R.layout.dialog_pix_qrcode, null)
-
-        Log.d("PaymentProcessingActivity", "pixScanningDialog called with requestId: $requestId, pixCode: $pixCode")
+        
         // Get the ImageView for QR code
         val qrCodeImageView = dialogView.findViewById<ImageView>(R.id.image_qr_code)
         
@@ -612,6 +612,16 @@ class PaymentProcessingActivity : AppCompatActivity() {
                 .setView(dialogView)
                 .setCancelable(false)
                 .create()
+            
+            // Set up dialog dismiss listener to recycle bitmap when dialog is dismissed
+            dialog.setOnDismissListener {
+                // Get the drawable from the ImageView and recycle the bitmap
+                val drawable = qrCodeImageView.drawable
+                if (drawable is BitmapDrawable) {
+                    qrCodeBitmap.recycle()
+                    drawable.bitmap?.recycle()
+                }
+            }
             
             // Set up Cancel button
             dialogView.findViewById<Button>(R.id.btn_cancel).setOnClickListener {
