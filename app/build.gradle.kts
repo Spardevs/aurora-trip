@@ -12,8 +12,6 @@
  * is strictly prohibited without the express written permission of Ticpass.
  */
 
-import java.util.Properties
-
 PropertyDelegates.init(project)
 
 plugins {
@@ -52,19 +50,22 @@ android {
         testInstrumentationRunnerArguments["disableAnalytics"] = "true"
 
         buildConfigField("String", "EXODUS_API_KEY", "\"bbe6ebae4ad45a9cbacb17d69739799b8df2c7ae\"")
-        buildConfigField("String", "CHECK_DUE_PAYMENTS_INTERVAL", "\"" + getAPICheckDuePaymentsInterval() + "\"")
-        buildConfigField("String", "ALERT_DUE_PAYMENTS_INTERVAL", "\"" + getAPIAlertDuePaymentsInterval() + "\"")
-        buildConfigField("String", "MAX_DUE_PAYMENTS_DAYS", "\"" + getAPIMaxDuePaymentsDays() + "\"")
-        buildConfigField("String", "EVENT_SYNC_INTERVAL", "\"" + getAPIEventSyncInterval() + "\"")
-        buildConfigField("String", "TELEMETRY_INTERVAL", "\"" + getAPITelemetryInterval() + "\"")
-        buildConfigField("String", "POS_SYNC_INTERVAL", "\"" + getAPIPOSSyncInterval() + "\"")
-        buildConfigField("String", "REMOVE_OLD_RECORDS_INTERVAL", "\"" + getPOSOldRecordsRemovalInterval() + "\"")
-        buildConfigField("String", "API_HOST", "\"" + getApiHost() + "\"")
-        buildConfigField("String", "STONE_QRCODE_AUTH", "\"" + getQRCodeAuthCode() + "\"")
-        buildConfigField("String", "STONE_QRCODE_PROVIDER_ID", "\"" + getQRCodeAuthProviderID() + "\"")
-        buildConfigField("String", "PASS_REPRINTING_MAX_RETRIES", "\"" + getPassReprintingMaxRetries() + "\"")
-        buildConfigField("String", "API_MAX_RETRIES", "\"" + getApiMaxRetries() + "\"")
-        buildConfigField("String", "API_TIMEOUT_SECONDS", "\"" + getApiTimeoutSeconds() + "\"")
+        buildConfigField("String", "CHECK_DUE_PAYMENTS_INTERVAL", "\"" + AppConfig.apiCheckDuePaymentsInterval + "\"")
+        buildConfigField("String", "ALERT_DUE_PAYMENTS_INTERVAL", "\"" + AppConfig.apiAlertDuePaymentsInterval + "\"")
+        buildConfigField("String", "MAX_DUE_PAYMENTS_DAYS", "\"" + AppConfig.apiMaxDuePaymentsDays + "\"")
+        buildConfigField("String", "EVENT_SYNC_INTERVAL", "\"" + AppConfig.apiEventSyncInterval + "\"")
+        buildConfigField("String", "TELEMETRY_INTERVAL", "\"" + AppConfig.apiTelemetryInterval + "\"")
+        buildConfigField("String", "POS_SYNC_INTERVAL", "\"" + AppConfig.apiPosSyncInterval + "\"")
+        buildConfigField("String", "REMOVE_OLD_RECORDS_INTERVAL", "\"" + AppConfig.posOldRecordsRemovalInterval + "\"")
+        buildConfigField("String", "API_HOST", "\"" + AppConfig.apiHost + "\"")
+        buildConfigField("String", "STONE_QRCODE_AUTH", "\"" + AppConfig.qrCodeAuthCode + "\"")
+        buildConfigField("String", "STONE_QRCODE_PROVIDER_ID", "\"" + AppConfig.qrCodeAuthProviderId + "\"")
+        buildConfigField("String", "PASS_REPRINTING_MAX_RETRIES", "\"" + AppConfig.passReprintingMaxRetries + "\"")
+        buildConfigField("String", "API_MAX_RETRIES", "\"" + AppConfig.apiMaxRetries + "\"")
+        buildConfigField("String", "API_TIMEOUT_SECONDS", "\"" + AppConfig.apiTimeoutSeconds + "\"")
+        buildConfigField("String", "PACKAGE_CLOUD_READ_TOKEN", "\"" + AppConfig.packageCloudReadToken + "\"")
+        buildConfigField("String", "CONVERSION_FACTOR", "\"" + AppConfig.conversionFactor + "\"")
+        buildConfigField("String", "APP_NAME", "\"${AppConfig.appName}\"")
 
         missingDimensionStrategy("device", "vanilla")
         javaCompileOptions {
@@ -334,63 +335,4 @@ dependencies {
     "stoneImplementation"(libs.stone.sdk.ingenico)
     "stoneImplementation"(libs.stone.sdk.gertec)
     "stoneImplementation"(libs.stone.sdk.tectoy)
-
-
-}
-
-
-fun getPackageCloudReadToken(): String? {
-    return project.findProperty("PACKAGE_CLOUD_READ_TOKEN") as? String
-}
-
-fun getAPITelemetryInterval(): String? {
-    return project.findProperty("API_TELEMETRY_INTERVAL") as? String
-}
-
-fun getAPIEventSyncInterval(): String? {
-    return project.findProperty("API_EVENT_SYNC_INTERVAL") as? String
-}
-
-fun getAPICheckDuePaymentsInterval(): String? {
-    return project.findProperty("API_CHECK_DUE_PAYMENTS_INTERVAL") as? String
-}
-
-fun getAPIAlertDuePaymentsInterval(): String? {
-    return project.findProperty("API_ALERT_DUE_PAYMENTS_INTERVAL") as? String
-}
-
-fun getAPIMaxDuePaymentsDays(): String? {
-    return project.findProperty("API_MAX_DUE_PAYMENTS_DAYS") as? String
-}
-
-fun getAPIPOSSyncInterval(): String? {
-    return project.findProperty("API_POS_SYNC_INTERVAL") as? String
-}
-
-fun getPOSOldRecordsRemovalInterval(): String? {
-    return project.findProperty("REMOVE_OLD_RECORDS_INTERVAL") as? String
-}
-
-fun getApiHost(): String {
-    return project.findProperty("API_HOST") as String
-}
-
-fun getApiMaxRetries(): String {
-    return project.findProperty("API_MAX_RETRIES") as String
-}
-
-fun getApiTimeoutSeconds(): String {
-    return project.findProperty("API_TIMEOUT_SECONDS") as String
-}
-
-fun getQRCodeAuthCode(): String {
-    return project.findProperty("STONE_QRCODE_AUTH") as String
-}
-
-fun getQRCodeAuthProviderID(): String {
-    return project.findProperty("STONE_QRCODE_PROVIDER_ID") as String
-}
-
-fun getPassReprintingMaxRetries(): String {
-    return project.findProperty("PASS_REPRINTING_MAX_RETRIES") as String
 }

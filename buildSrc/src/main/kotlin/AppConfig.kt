@@ -47,4 +47,7 @@ object AppConfig {
     val gertecStorePassword by required("GERTEC_STORE_PASSWORD")
     val gertecKeyAlias by required("GERTEC_KEY_ALIAS")
     val gertecKeyPassword by required("GERTEC_KEY_PASSWORD")
+
+    val conversionFactor by required("CONVERSION_FACTOR")
+    val appName by required("APP_NAME")
 }

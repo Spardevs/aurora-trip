@@ -9,12 +9,9 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.workDataOf
+import br.com.ticpass.Constants.API_HOST
+import br.com.ticpass.Constants.MAIN_DATABASE_NAME
 import br.com.ticpass.pos.MainActivity
-import br.com.ticpass.pos.data.acquirers.workers.SeedDatabaseWorker
-import br.com.ticpass.pos.data.acquirers.workers.SeedDatabaseWorker.Companion.KEY_FILENAME
 import br.com.ticpass.pos.data.room.dao.AcquisitionDao
 import br.com.ticpass.pos.data.room.entity.AcquisitionEntity
 import br.com.ticpass.pos.data.room.dao.CartOrderLineDao
@@ -49,12 +46,8 @@ import br.com.ticpass.pos.data.room.dao.VoucherRedemptionDao
 import br.com.ticpass.pos.data.room.entity.VoucherRedemptionEntity
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentEntity
 import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueDao
-import br.com.ticpass.pos.util.API_HOST
-import br.com.ticpass.pos.util.DATABASE_NAME
-import br.com.ticpass.pos.util.SEED_DATA_FILENAME
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
@@ -124,7 +117,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun processingPaymentQueueDao(): ProcessingPaymentQueueDao
 
     override fun clearAllTables() {
-        val database = Room.databaseBuilder(MainActivity.appContext, AppDatabase::class.java, DATABASE_NAME)
+        val database = Room.databaseBuilder(MainActivity.appContext, AppDatabase::class.java, MAIN_DATABASE_NAME)
             .fallbackToDestructiveMigration()
             .build()
 
@@ -145,18 +138,7 @@ abstract class AppDatabase : RoomDatabase() {
         // Create and pre-populate the database. See this article for more details:
         // https://medium.com/google-developers/7-pro-tips-for-room-fbadea4bfbd1#4785
         private fun buildDatabase(context: Context): AppDatabase {
-            return Room.databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME)
-                .addCallback(
-                    object : RoomDatabase.Callback() {
-                        override fun onCreate(db: SupportSQLiteDatabase) {
-                            super.onCreate(db)
-                            val request = OneTimeWorkRequestBuilder<SeedDatabaseWorker>()
-                                .setInputData(workDataOf(KEY_FILENAME to SEED_DATA_FILENAME))
-                                .build()
-                            WorkManager.getInstance(context).enqueue(request)
-                        }
-                    }
-                )
+            return Room.databaseBuilder(context, AppDatabase::class.java, MAIN_DATABASE_NAME)
                 .build()
         }
     }

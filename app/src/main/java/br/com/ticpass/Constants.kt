@@ -14,9 +14,28 @@
 
 package br.com.ticpass
 
-object Constants {
+import br.com.ticpass.pos.BuildConfig
+import br.com.ticpass.pos.MainActivity
 
-    const val CONVERSION_FACTOR = 100L // 1 million
+object Constants {
+    const val POS_VERSION_CODE = BuildConfig.VERSION_CODE
+    const val MAIN_DATABASE_NAME = "aurora-trip-pos"
+    val POS_SYNC_INTERVAL = BuildConfig.POS_SYNC_INTERVAL.toLong()
+    const val API_HOST = BuildConfig.API_HOST
+    val REMOVE_OLD_RECORDS_INTERVAL = BuildConfig.REMOVE_OLD_RECORDS_INTERVAL.toLong()
+    val EVENT_SYNC_INTERVAL = BuildConfig.EVENT_SYNC_INTERVAL.toLong()
+    val TELEMETRY_INTERVAL = BuildConfig.TELEMETRY_INTERVAL.toLong()
+    const val STONE_QRCODE_AUTH = BuildConfig.STONE_QRCODE_AUTH
+    const val STONE_QRCODE_PROVIDER_ID = BuildConfig.STONE_QRCODE_PROVIDER_ID
+    val PASS_REPRINTING_MAX_RETRIES = BuildConfig.PASS_REPRINTING_MAX_RETRIES.toLong().toInt()
+    val API_MAX_RETRIES = BuildConfig.API_MAX_RETRIES.toLong()
+    val API_TIMEOUT_SECONDS = BuildConfig.API_TIMEOUT_SECONDS.toLong()
+    val CHECK_DUE_PAYMENTS_INTERVAL = BuildConfig.CHECK_DUE_PAYMENTS_INTERVAL.toLong()
+    val ALERT_DUE_PAYMENTS_INTERVAL = BuildConfig.ALERT_DUE_PAYMENTS_INTERVAL.toLong()
+    val MAX_DUE_PAYMENTS_DAYS = BuildConfig.MAX_DUE_PAYMENTS_DAYS.toLong()
+    val CONVERSION_FACTOR = BuildConfig.CONVERSION_FACTOR.toLong()
+    const val APP_NAME = BuildConfig.APP_NAME
+
     const val PARCEL_DOWNLOAD = "PARCEL_DOWNLOAD"
 
     const val URL_TOS = "https://play.google.com/about/play-terms/"

@@ -5,11 +5,9 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import br.com.ticpass.Constants.PASS_REPRINTING_MAX_RETRIES
 import br.com.ticpass.pos.compose.utils.getCurrentDateString
-import br.com.ticpass.pos.data.room.entity.AcquisitionEntity
 import br.com.ticpass.pos.compose.utils.generateRandomEAN
-import br.com.ticpass.pos.util.PASS_REPRINTING_MAX_RETRIES
-import br.com.ticpass.pos.compose.utils.generateObjectId
 
 @Entity(tableName = "passes" )
 data class PassEntity(

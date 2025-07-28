@@ -2,6 +2,7 @@
 sdk.dir=/path/to/your/android/sdk
 
 # App Configuration Properties
+APP_NAME=Aurora Trip
 
 # API Configuration
 API_HOST=https://api.example.com
@@ -42,3 +43,5 @@ GERTEC_STORE_FILE=/path/to/gertec.keystore
 GERTEC_STORE_PASSWORD=your_store_password
 GERTEC_KEY_ALIAS=your_key_alias
 GERTEC_KEY_PASSWORD=your_key_password
+
+CONVERSION_FACTOR=100
