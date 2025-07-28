@@ -351,18 +351,18 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                         }
                         
                         is ProcessingResult.Retry -> {
-                            // Move to end of queue for retry
-                            inMemoryQueue.removeFirstOrNull()
-                            val retryItem = updateItemStatus(nextItem, QueueItemStatus.PENDING)
-                            inMemoryQueue.add(retryItem)
-                            _queueState.value = inMemoryQueue.toList()
-                            
-                            // Add to pending persistence if needed
-                            if (persistenceStrategy == PersistenceStrategy.ON_BACKGROUND) {
-                                pendingPersistence.add(retryItem)
+                            val skippedItem = inMemoryQueue.removeFirstOrNull()
+                            if (skippedItem != null) {
+                                inMemoryQueue.add(skippedItem)
+
+                                _queueState.value = inMemoryQueue.toList()
+
+                                if (persistenceStrategy == PersistenceStrategy.ON_BACKGROUND) {
+                                    pendingPersistence.add(skippedItem)
+                                }
+
+                                _processingState.value = ProcessingState.ItemRetrying(processingItem)
                             }
-                            
-                            _processingState.value = ProcessingState.ItemRetrying(processingItem)
                         }
                     }
 
