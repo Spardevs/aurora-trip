@@ -15,6 +15,10 @@ class PrintStorage(private val printQueueDao: PrintQueueDao) : QueueStorage<Prin
         printQueueDao.insert(item.toEntity())
     }
 
+    override suspend fun update(item: PrintQueueItem) {
+        printQueueDao.update(item.toEntity())
+    }
+
     override suspend fun getNextPending(): PrintQueueItem? {
         return printQueueDao.getNextPending()?.toQueueItem()
     }

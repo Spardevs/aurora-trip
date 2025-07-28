@@ -12,7 +12,10 @@ interface PrintQueueDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(printEntity: PrintEntity)
 
-    @Query("SELECT * FROM print_queue WHERE status = 'pending' ORDER BY priority DESC, timestamp ASC LIMIT 1")
+    @Update
+    suspend fun update(printEntity: PrintEntity)
+
+    @Query("SELECT * FROM print_queue WHERE status = 'pending' ORDER BY priority DESC")
     suspend fun getNextPending(): PrintEntity?
 
     @Query("UPDATE print_queue SET status = :status WHERE id = :id")
@@ -21,9 +24,9 @@ interface PrintQueueDao {
     @Query("DELETE FROM print_queue WHERE id = :id")
     suspend fun delete(id: String)
 
-    @Query("SELECT * FROM print_queue WHERE status = :status ORDER BY priority DESC, timestamp ASC")
+    @Query("SELECT * FROM print_queue WHERE status = :status ORDER BY priority DESC")
     suspend fun getAllByStatus(status: String): List<PrintEntity>
 
-    @Query("SELECT * FROM print_queue WHERE status = :status ORDER BY priority DESC, timestamp ASC")
+    @Query("SELECT * FROM print_queue WHERE status = :status ORDER BY priority DESC")
     fun observeByStatus(status: String): Flow<List<PrintEntity>>
 }

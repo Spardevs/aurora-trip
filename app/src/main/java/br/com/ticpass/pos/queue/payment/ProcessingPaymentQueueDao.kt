@@ -13,6 +13,9 @@ interface ProcessingPaymentQueueDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(payment: ProcessingPaymentEntity)
 
+    @Update
+    suspend fun update(payment: ProcessingPaymentEntity): Unit
+
     @Query("SELECT * FROM payment_queue WHERE status = :status ORDER BY priority DESC LIMIT 1")
     suspend fun getNextPending(status: String = QueueItemStatus.PENDING.name): ProcessingPaymentEntity?
 

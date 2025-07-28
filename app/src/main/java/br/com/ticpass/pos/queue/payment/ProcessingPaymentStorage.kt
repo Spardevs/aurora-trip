@@ -13,6 +13,10 @@ class ProcessingPaymentStorage(private val dao: ProcessingPaymentQueueDao) : Que
     override suspend fun insert(item: ProcessingPaymentQueueItem) {
         dao.insert(item.toEntity())
     }
+
+    override suspend fun update(item: ProcessingPaymentQueueItem) {
+        dao.update(item.toEntity())
+    }
     
     override suspend fun getNextPending(): ProcessingPaymentQueueItem? {
         return dao.getNextPending()?.toQueueItem()
