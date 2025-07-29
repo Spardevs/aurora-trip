@@ -51,7 +51,7 @@ abstract class PaymentProcessorBase :
      * Provide input to the processor (from UI)
      * Implementation of QueueProcessor.provideInput
      */
-    override suspend fun provideInput(response: UserInputResponse) {
+    override suspend fun provideUserInput(response: UserInputResponse) {
         _userInputResponses.emit(response)
     }
     

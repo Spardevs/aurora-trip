@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
  * Print Queue ViewModel
  * Example ViewModel for integrating the print queue with UI
  */
-class PrintQueueViewModel(
+class PrintingViewModel(
     private val printStorage: PrintStorage
 ) : ViewModel() {
     

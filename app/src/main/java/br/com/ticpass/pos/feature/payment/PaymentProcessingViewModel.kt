@@ -10,10 +10,10 @@ import br.com.ticpass.pos.queue.config.ProcessorStartMode
 import br.com.ticpass.pos.queue.config.PersistenceStrategy
 import br.com.ticpass.pos.queue.core.HybridQueueManager
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
-import br.com.ticpass.pos.feature.payment.state.Action
-import br.com.ticpass.pos.feature.payment.state.InteractivePaymentReducer
-import br.com.ticpass.pos.feature.payment.state.UiEvent
-import br.com.ticpass.pos.feature.payment.state.UiState
+import br.com.ticpass.pos.feature.payment.state.PaymentProcessingAction
+import br.com.ticpass.pos.feature.payment.state.PaymentProcessingReducer
+import br.com.ticpass.pos.feature.payment.state.PaymentProcessingUiEvent
+import br.com.ticpass.pos.feature.payment.state.PaymentProcessingUiState
 import br.com.ticpass.pos.payment.models.SystemPaymentMethod
 import br.com.ticpass.pos.queue.core.QueueItem
 import br.com.ticpass.pos.queue.processors.payment.utils.ProcessingPaymentQueueFactory
@@ -21,7 +21,7 @@ import br.com.ticpass.pos.queue.processors.payment.data.ProcessingPaymentStorage
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
 import br.com.ticpass.pos.queue.processors.payment.processors.utils.PaymentMethodProcessorMapper
 import br.com.ticpass.pos.queue.processors.payment.processors.models.PaymentProcessorType
-import br.com.ticpass.pos.feature.payment.state.SideEffect
+import br.com.ticpass.pos.feature.payment.state.PaymentProcessingSideEffect
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,21 +33,21 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 /**
- * Interactive Payment ViewModel
+ * Payment Processing ViewModel
  * Example ViewModel that demonstrates handling input requests from payment processors
  * 
  * This ViewModel uses a modular architecture with:
  * - Actions: Represent user interactions and events
  * - Reducer: Handles state transitions and side effects
- * - UiState: Represents the current UI state
- * - UiEvent: Represents one-time events to be consumed by the UI
- * - SideEffect: Represents operations that don't directly affect the UI state
+ * - PaymentProcessingUiState: Represents the current UI state
+ * - PaymentProcessingUiEvent: Represents one-time events to be consumed by the UI
+ * - PaymentProcessingSideEffect: Represents operations that don't directly affect the UI state
  */
 @HiltViewModel
-class InteractivePaymentViewModel @Inject constructor(
+class PaymentProcessingViewModel @Inject constructor(
     paymentQueueFactory: ProcessingPaymentQueueFactory,
     processingPaymentStorage: ProcessingPaymentStorage,
-    private val reducer: InteractivePaymentReducer
+    private val reducer: PaymentProcessingReducer
 ) : ViewModel() {
     
     // Queue Setup and Configuration
@@ -68,7 +68,7 @@ class InteractivePaymentViewModel @Inject constructor(
                 block()
             } catch (e: Exception) {
                 // Common error handling
-                updateState(UiState.Error(ProcessingErrorEvent.GENERIC))
+                updateState(PaymentProcessingUiState.Error(ProcessingErrorEvent.GENERIC))
             }
         }
     }
@@ -80,26 +80,26 @@ class InteractivePaymentViewModel @Inject constructor(
     
     // UI State Management
     // UI Events flow for one-time events
-    private val _uiEvents = MutableSharedFlow<UiEvent>()
+    private val _uiEvents = MutableSharedFlow<PaymentProcessingUiEvent>()
     val uiEvents = _uiEvents.asSharedFlow()
     
     /**
      * Emit a one-time UI event
      */
-    private fun emitUiEvent(event: UiEvent) {
+    private fun emitUiEvent(event: PaymentProcessingUiEvent) {
         launchInViewModelScope {
             _uiEvents.emit(event)
         }
     }
     
     // UI State flow for persistent state
-    private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
-    val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow<PaymentProcessingUiState>(PaymentProcessingUiState.Idle)
+    val uiState: StateFlow<PaymentProcessingUiState> = _uiState.asStateFlow()
     
     /**
      * Update the UI state
      */
-    private fun updateState(newState: UiState) {
+    private fun updateState(newState: PaymentProcessingUiState) {
         _uiState.value = newState
     }
     
@@ -114,8 +114,8 @@ class InteractivePaymentViewModel @Inject constructor(
         // Observe processor input requests
         viewModelScope.launch {
             paymentQueue.processor.userInputRequests.collect { request ->
-                Log.d("InteractivePaymentViewModel", "Processor input request received: ${request::class.simpleName}")
-                dispatch(Action.ProcessorInputRequested(request))
+                Log.d("PaymentProcessingViewModel", "Processor input request received: ${request::class.simpleName}")
+                dispatch(PaymentProcessingAction.ProcessorInputRequested(request))
             }
         }
     }
@@ -124,7 +124,7 @@ class InteractivePaymentViewModel @Inject constructor(
      * Dispatch an action to the ViewModel
      * This triggers state transitions and side effects
      */
-    private fun dispatch(action: Action) {
+    private fun dispatch(action: PaymentProcessingAction) {
         val sideEffect = reducer.reduce(action, paymentQueue)
         sideEffect?.let { executeSideEffect(it) }
     }
@@ -133,7 +133,7 @@ class InteractivePaymentViewModel @Inject constructor(
      * Execute a side effect
      * All side effects are executed in the ViewModel scope
      */
-    private fun executeSideEffect(sideEffect: SideEffect) {
+    private fun executeSideEffect(sideEffect: PaymentProcessingSideEffect) {
         launchInViewModelScope {
             sideEffect.scope()
         }
@@ -145,14 +145,14 @@ class InteractivePaymentViewModel @Inject constructor(
         // Observe processing state changes
         launchInViewModelScope {
             paymentQueue.processingState.collectLatest { state ->
-                dispatch(Action.ProcessingStateChanged(state))
+                dispatch(PaymentProcessingAction.ProcessingStateChanged(state))
             }
         }
         
         // Observe queue input requests
         launchInViewModelScope {
             paymentQueue.queueInputRequests.collectLatest { request ->
-                dispatch(Action.QueueInputRequested(request))
+                dispatch(PaymentProcessingAction.QueueInputRequested(request))
             }
         }
     }
@@ -163,7 +163,7 @@ class InteractivePaymentViewModel @Inject constructor(
      * Start processing the payment queue
      */
     fun startProcessing() {
-        dispatch(Action.StartProcessing)
+        dispatch(PaymentProcessingAction.StartProcessing)
     }
     
     /**
@@ -176,14 +176,14 @@ class InteractivePaymentViewModel @Inject constructor(
         method: SystemPaymentMethod,
         processorType: PaymentProcessorType = PaymentMethodProcessorMapper.getProcessorTypeForMethod(method)
     ) {
-        dispatch(Action.EnqueuePayment(amount, commission, method, processorType))
+        dispatch(PaymentProcessingAction.EnqueuePayment(amount, commission, method, processorType))
     }
     
     /**
      * Cancel a payment
      */
     fun cancelPayment(paymentId: String) {
-        dispatch(Action.CancelPayment(paymentId))
+        dispatch(PaymentProcessingAction.CancelPayment(paymentId))
     }
     
     /**
@@ -191,7 +191,7 @@ class InteractivePaymentViewModel @Inject constructor(
      * Uses a single operation to remove all items at once
      */
     fun cancelAllPayments() {
-        dispatch(Action.CancelAllPayments)
+        dispatch(PaymentProcessingAction.CancelAllPayments)
     }
     
     // Processor-Level Input Handling
@@ -200,21 +200,21 @@ class InteractivePaymentViewModel @Inject constructor(
      * Confirm customer receipt printing (processor-level input request)
      */
     fun confirmCustomerReceiptPrinting(requestId: String, shouldPrint: Boolean) {
-        dispatch(Action.ConfirmCustomerReceiptPrinting(requestId, shouldPrint))
+        dispatch(PaymentProcessingAction.ConfirmCustomerReceiptPrinting(requestId, shouldPrint))
     }
     
     /**
      * Confirm merchant PIX key (processor-level input request)
      */
     fun confirmMerchantPixKey(requestId: String, pixKey: String) {
-        dispatch(Action.ConfirmMerchantPixKey(requestId, pixKey))
+        dispatch(PaymentProcessingAction.ConfirmMerchantPixKey(requestId, pixKey))
     }
     
     /**
      * Confirm merchant PIX has been paid (processor-level input request)
      */
     fun confirmMerchantPixHasBeenPaid(requestId: String, didPay: Boolean) {
-        dispatch(Action.ConfirmMerchantPixHasBeenPaid(requestId, didPay))
+        dispatch(PaymentProcessingAction.ConfirmMerchantPixHasBeenPaid(requestId, didPay))
     }
     
     // Queue-Level Input Handling
@@ -223,7 +223,7 @@ class InteractivePaymentViewModel @Inject constructor(
      * Confirm proceeding to the next processor (queue-level input request)
      */
     fun <T: QueueItem> confirmProcessor(requestId: String, modifiedItem: T) {
-        dispatch(Action.ConfirmProcessor(requestId, modifiedItem))
+        dispatch(PaymentProcessingAction.ConfirmProcessor(requestId, modifiedItem))
     }
     
     /**
@@ -231,14 +231,14 @@ class InteractivePaymentViewModel @Inject constructor(
      * Used when toggling transactionless mode
      */
     fun updateAllProcessorTypes(useTransactionless: Boolean) {
-        dispatch(Action.UpdateAllProcessorTypes(useTransactionless))
+        dispatch(PaymentProcessingAction.UpdateAllProcessorTypes(useTransactionless))
     }
     
     /**
      * Skip the current processor and move to the next one (queue-level input request)
      */
     fun skipProcessor(requestId: String) {
-        dispatch(Action.SkipProcessor(requestId))
+        dispatch(PaymentProcessingAction.SkipProcessor(requestId))
     }
     
     // Error Handling
@@ -250,7 +250,7 @@ class InteractivePaymentViewModel @Inject constructor(
      * @param action The error handling action to take
      */
     private fun handleFailedPayment(requestId: String, action: ErrorHandlingAction) {
-        dispatch(Action.HandleFailedPayment(requestId, action))
+        dispatch(PaymentProcessingAction.HandleFailedPayment(requestId, action))
     }
     
     /**

@@ -5,21 +5,21 @@ import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
 /**
  * Represents the UI state of the payment processing screen
  */
-sealed class UiState {
+sealed class PaymentProcessingUiState {
     /**
      * Idle state - no processing happening
      */
-    object Idle : UiState()
+    object Idle : PaymentProcessingUiState()
     
     /**
      * Processing state - payments are being processed
      */
-    object Processing : UiState()
+    object Processing : PaymentProcessingUiState()
     
     /**
      * Error state - an error occurred during processing
      */
-    data class Error(val event: ProcessingErrorEvent) : UiState()
+    data class Error(val event: ProcessingErrorEvent) : PaymentProcessingUiState()
     
     /**
      * Confirmation state - waiting for user to confirm proceeding to next processor
@@ -30,14 +30,14 @@ sealed class UiState {
         val totalItems: Int,
         val currentItem: T,  // Generic item data for UI access
         val timeoutMs: Long? = null
-    ) : UiState()
+    ) : PaymentProcessingUiState()
     
     /**
      * Confirmation state - waiting for user to confirm customer receipt printing
      */
     data class ConfirmCustomerReceiptPrinting(
         val requestId: String
-    ) : UiState()
+    ) : PaymentProcessingUiState()
 
     /**
      * PIX scanning state - waiting for user to scan a PIX code
@@ -45,7 +45,7 @@ sealed class UiState {
     data class MerchantPixScanning(
         val requestId: String,
         val pixCode: String,
-    ) : UiState()
+    ) : PaymentProcessingUiState()
     
     /**
      * Error retry state - waiting for user to decide how to handle an error
@@ -54,7 +54,7 @@ sealed class UiState {
         val requestId: String,
         val error: ProcessingErrorEvent,
         val timeoutMs: Long? = null
-    ) : UiState()
+    ) : PaymentProcessingUiState()
     
     /**
      * Confirmation state - waiting for user to input merchant PIX key
@@ -62,5 +62,5 @@ sealed class UiState {
     data class ConfirmMerchantPixKey(
         val requestId: String,
         val timeoutMs: Long? = null
-    ) : UiState()
+    ) : PaymentProcessingUiState()
 }

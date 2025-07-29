@@ -1,7 +1,7 @@
 package br.com.ticpass.pos.queue.error
 
 /**
- * Error Handling Action
+ * Error Handling PaymentProcessingAction
  * Defines the possible actions that can be taken when a processor encounters an error
  */
 enum class ErrorHandlingAction {

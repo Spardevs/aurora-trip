@@ -149,7 +149,7 @@
                         android:textSize="18sp"
                         android:textStyle="bold" />
                     
-                    <br.com.ticpass.pos.payment.view.PaymentQueueView
+                    <br.com.ticpass.pos.payment.view.PaymentProcessingQueueView
                         android:id="@+id/payment_queue_view"
                         android:layout_width="match_parent"
                         android:layout_height="160dp"
@@ -158,7 +158,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Action Buttons -->
+            <!-- PaymentProcessingAction Buttons -->
             <LinearLayout
                 android:id="@+id/action_buttons"
                 android:layout_width="match_parent"

@@ -301,21 +301,6 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                                 }
                             }
                         }
-                        
-                        is ProcessingResult.Retry -> {
-                            val skippedItem = inMemoryQueue.removeFirstOrNull()
-                            if (skippedItem != null) {
-                                inMemoryQueue.add(skippedItem)
-
-                                _queueState.value = inMemoryQueue.toList()
-
-                                if (persistenceStrategy == PersistenceStrategy.ON_BACKGROUND) {
-                                    pendingPersistence.add(skippedItem)
-                                }
-
-                                _processingState.value = ProcessingState.ItemRetrying(processingItem)
-                            }
-                        }
                     }
 
                 } catch (e: Exception) {

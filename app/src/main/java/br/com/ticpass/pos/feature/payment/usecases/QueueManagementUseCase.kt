@@ -1,12 +1,12 @@
 package br.com.ticpass.pos.feature.payment.usecases
 
-import br.com.ticpass.pos.feature.payment.state.UiEvent
+import br.com.ticpass.pos.feature.payment.state.PaymentProcessingUiEvent
 import br.com.ticpass.pos.payment.models.SystemPaymentMethod
 import br.com.ticpass.pos.queue.core.HybridQueueManager
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
 import br.com.ticpass.pos.queue.processors.payment.processors.utils.PaymentMethodProcessorMapper
 import br.com.ticpass.pos.queue.processors.payment.processors.models.PaymentProcessorType
-import br.com.ticpass.pos.feature.payment.state.SideEffect
+import br.com.ticpass.pos.feature.payment.state.PaymentProcessingSideEffect
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
 import java.util.UUID
 import javax.inject.Inject
@@ -21,10 +21,10 @@ class QueueManagementUseCase @Inject constructor() {
      */
     fun startProcessing(
         paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
-        emitUiEvent: (UiEvent) -> Unit
-    ): SideEffect {
-        emitUiEvent(UiEvent.ShowToast("Starting payment processing"))
-        return SideEffect.StartProcessingQueue { paymentQueue.startProcessing() }
+        emitUiEvent: (PaymentProcessingUiEvent) -> Unit
+    ): PaymentProcessingSideEffect {
+        emitUiEvent(PaymentProcessingUiEvent.ShowToast("Starting payment processing"))
+        return PaymentProcessingSideEffect.StartProcessingQueue { paymentQueue.startProcessing() }
     }
     
     /**
@@ -36,8 +36,8 @@ class QueueManagementUseCase @Inject constructor() {
         method: SystemPaymentMethod,
         processorType: PaymentProcessorType,
         paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
-        emitUiEvent: (UiEvent) -> Unit
-    ): SideEffect {
+        emitUiEvent: (PaymentProcessingUiEvent) -> Unit
+    ): PaymentProcessingSideEffect {
         val paymentItem = ProcessingPaymentQueueItem(
             id = UUID.randomUUID().toString(),
             amount = amount,
@@ -46,8 +46,8 @@ class QueueManagementUseCase @Inject constructor() {
             priority = 10,
             processorType = processorType
         )
-        emitUiEvent(UiEvent.ShowToast("Payment added to queue"))
-        return SideEffect.EnqueuePaymentItem { paymentQueue.enqueue(paymentItem) }
+        emitUiEvent(PaymentProcessingUiEvent.ShowToast("Payment added to queue"))
+        return PaymentProcessingSideEffect.EnqueuePaymentItem { paymentQueue.enqueue(paymentItem) }
     }
     
     /**
@@ -56,13 +56,13 @@ class QueueManagementUseCase @Inject constructor() {
     fun cancelPayment(
         paymentId: String,
         paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
-        emitUiEvent: (UiEvent) -> Unit
-    ): SideEffect {
-        return SideEffect.RemovePaymentItem {
+        emitUiEvent: (PaymentProcessingUiEvent) -> Unit
+    ): PaymentProcessingSideEffect {
+        return PaymentProcessingSideEffect.RemovePaymentItem {
             val item = paymentQueue.queueState.value.find { it.id == paymentId }
             if (item != null) {
                 paymentQueue.remove(item)
-                emitUiEvent(UiEvent.ShowToast("Payment cancelled"))
+                emitUiEvent(PaymentProcessingUiEvent.ShowToast("Payment cancelled"))
             }
         }
     }
@@ -72,10 +72,10 @@ class QueueManagementUseCase @Inject constructor() {
      */
     fun cancelAllPayments(
         paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
-        emitUiEvent: (UiEvent) -> Unit
-    ): SideEffect {
-        emitUiEvent(UiEvent.ShowToast("All payments cancelled"))
-        return SideEffect.RemoveAllPaymentItems { paymentQueue.removeAll() }
+        emitUiEvent: (PaymentProcessingUiEvent) -> Unit
+    ): PaymentProcessingSideEffect {
+        emitUiEvent(PaymentProcessingUiEvent.ShowToast("All payments cancelled"))
+        return PaymentProcessingSideEffect.RemoveAllPaymentItems { paymentQueue.removeAll() }
     }
     
     /**
@@ -85,9 +85,9 @@ class QueueManagementUseCase @Inject constructor() {
     fun updateAllProcessorTypes(
         useTransactionless: Boolean,
         paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
-        emitUiEvent: (UiEvent) -> Unit
-    ): SideEffect {
-        return SideEffect.UpdateAllProcessorTypes {
+        emitUiEvent: (PaymentProcessingUiEvent) -> Unit
+    ): PaymentProcessingSideEffect {
+        return PaymentProcessingSideEffect.UpdateAllProcessorTypes {
             val currentItems = paymentQueue.queueState.value
             val updatedItems = currentItems.map { item ->
                 if (useTransactionless) {
@@ -106,7 +106,7 @@ class QueueManagementUseCase @Inject constructor() {
             } else {
                 "Transactionless mode disabled"
             }
-            emitUiEvent(UiEvent.ShowToast(message))
+            emitUiEvent(PaymentProcessingUiEvent.ShowToast(message))
         }
     }
 }

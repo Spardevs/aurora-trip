@@ -24,13 +24,13 @@ import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
 
 
-import br.com.ticpass.pos.payment.view.PaymentQueueView
+import br.com.ticpass.pos.payment.view.PaymentProcessingQueueView
 import br.com.ticpass.pos.payment.view.TimeoutCountdownView
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.models.ProcessingState
-import br.com.ticpass.pos.feature.payment.InteractivePaymentViewModel
-import br.com.ticpass.pos.feature.payment.state.UiEvent
-import br.com.ticpass.pos.feature.payment.state.UiState
+import br.com.ticpass.pos.feature.payment.PaymentProcessingViewModel
+import br.com.ticpass.pos.feature.payment.state.PaymentProcessingUiEvent
+import br.com.ticpass.pos.feature.payment.state.PaymentProcessingUiState
 import br.com.ticpass.pos.payment.models.SystemPaymentMethod
 import br.com.ticpass.pos.queue.error.ProcessingErrorEventResourceMapper
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
@@ -47,10 +47,10 @@ import kotlinx.coroutines.launch
 class PaymentProcessingActivity : AppCompatActivity() {
     
     // ViewModel injected via Hilt
-    private val viewModel: InteractivePaymentViewModel by viewModels()
+    private val viewModel: PaymentProcessingViewModel by viewModels()
     
     // UI components
-    private lateinit var paymentQueueView: PaymentQueueView
+    private lateinit var paymentProcessingQueueView: PaymentProcessingQueueView
     
     // Progress Dialog
     private var progressDialog: AlertDialog? = null
@@ -77,10 +77,10 @@ class PaymentProcessingActivity : AppCompatActivity() {
     
     private fun setupViews() {
         // Initialize custom views
-        paymentQueueView = findViewById(R.id.payment_queue_view)
+        paymentProcessingQueueView = findViewById(R.id.payment_queue_view)
         
         // Set up payment queue view cancel callback
-        paymentQueueView.onPaymentCanceled = { paymentId ->
+        paymentProcessingQueueView.onPaymentCanceled = { paymentId ->
             viewModel.cancelPayment(paymentId)
         }
         
@@ -243,24 +243,24 @@ class PaymentProcessingActivity : AppCompatActivity() {
         lifecycleScope.launch {
             viewModel.uiState.collectLatest { uiState ->
                 when (uiState) {
-                    is UiState.Error -> {
+                    is PaymentProcessingUiState.Error -> {
                         displayErrorMessage(uiState.event)
                     }
-                    is UiState.ConfirmNextProcessor<*> -> {
+                    is PaymentProcessingUiState.ConfirmNextProcessor<*> -> {
                         showConfirmNextPaymentProcessorDialog(
                             requestId = uiState.requestId
                         )
                     }
-                    is UiState.ConfirmCustomerReceiptPrinting -> {
+                    is PaymentProcessingUiState.ConfirmCustomerReceiptPrinting -> {
                         showCustomerReceiptDialog(uiState.requestId)
                     }
-                    is UiState.MerchantPixScanning -> {
+                    is PaymentProcessingUiState.MerchantPixScanning -> {
                         pixScanningDialog(uiState.requestId, uiState.pixCode)
                     }
-                    is UiState.ConfirmMerchantPixKey -> {
+                    is PaymentProcessingUiState.ConfirmMerchantPixKey -> {
                         confirmMerchantPixKey(uiState.requestId)
                     }
-                    is UiState.ErrorRetryOrSkip -> {
+                    is PaymentProcessingUiState.ErrorRetryOrSkip -> {
                         showErrorRetryOptionsDialog(uiState.requestId, uiState.error)
                     }
                     else -> {
@@ -273,7 +273,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
     }
     
     private fun updateQueueUI(queueItems: List<ProcessingPaymentQueueItem>) {
-        paymentQueueView.updateQueue(queueItems)
+        paymentProcessingQueueView.updateQueue(queueItems)
         totalPayments = queueItems.size
         
         // Update the queue title with item count
@@ -336,16 +336,13 @@ class PaymentProcessingActivity : AppCompatActivity() {
      * @param onTimeout Callback to be invoked when the timeout occurs
      */
     private fun startDialogTimeoutCountdown(timeoutView: TimeoutCountdownView?, timeoutMs: Long?, onTimeout: () -> Unit) {
-        Log.d("TimeoutDebug", "startDialogTimeoutCountdown called with view: $timeoutView, timeoutMs: $timeoutMs")
-        
+
         // Start the countdown if a timeout is specified and view exists
         if (timeoutView != null && timeoutMs != null && timeoutMs > 0) {
-            Log.d("TimeoutDebug", "Starting dialog timeout countdown for $timeoutMs ms")
             timeoutView.visibility = View.VISIBLE
             timeoutView.startCountdown(timeoutMs, onTimeout)
         } else if (timeoutView != null) {
             // Hide the countdown view if no timeout is specified
-            Log.d("TimeoutDebug", "Hiding countdown view because timeoutMs is null or <= 0")
             timeoutView.visibility = View.GONE
         } else {
             Log.e("TimeoutDebug", "Cannot start countdown - timeoutView is null")
@@ -439,13 +436,13 @@ class PaymentProcessingActivity : AppCompatActivity() {
     /**
      * Handle one-time UI events from the ViewModel
      */
-    private fun handleUiEvent(event: UiEvent) {
+    private fun handleUiEvent(event: PaymentProcessingUiEvent) {
         when (event) {
             // Handle navigation events
-            is UiEvent.NavigateBack -> {
+            is PaymentProcessingUiEvent.NavigateBack -> {
                 finish()
             }
-            is UiEvent.NavigateToPaymentDetails -> {
+            is PaymentProcessingUiEvent.NavigateToPaymentDetails -> {
                 // Example: Navigate to payment details
                 // val intent = Intent(this, PaymentDetailsActivity::class.java)
                 // intent.putExtra("paymentId", event.paymentId)
@@ -454,11 +451,11 @@ class PaymentProcessingActivity : AppCompatActivity() {
             }
             
             // Handle message events
-            is UiEvent.ShowToast -> {
+            is PaymentProcessingUiEvent.ShowToast -> {
                 Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show()
                 // Toast message: ${event.message}
             }
-            is UiEvent.ShowSnackbar -> {
+            is PaymentProcessingUiEvent.ShowSnackbar -> {
                 val view = findViewById<View>(android.R.id.content)
                 val snackbar = com.google.android.material.snackbar.Snackbar.make(
                     view, 
@@ -475,7 +472,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
             }
             
             // Handle dialog events
-            is UiEvent.ShowErrorDialog -> {
+            is PaymentProcessingUiEvent.ShowErrorDialog -> {
                 AlertDialog.Builder(this)
                     .setTitle(event.title)
                     .setMessage(event.message)
@@ -483,7 +480,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
                     .show()
                 // Error dialog: ${event.title} - ${event.message}
             }
-            is UiEvent.ShowConfirmationDialog -> {
+            is PaymentProcessingUiEvent.ShowConfirmationDialog -> {
                 AlertDialog.Builder(this)
                     .setTitle(event.title)
                     .setMessage(event.message)
@@ -499,11 +496,11 @@ class PaymentProcessingActivity : AppCompatActivity() {
             }
             
             // Handle payment events
-            is UiEvent.PaymentCompleted -> {
+            is PaymentProcessingUiEvent.PaymentCompleted -> {
                 val amountStr = event.amount.toString()
                 // Payment ${event.paymentId} completed: $amountStr
             }
-            is UiEvent.PaymentFailed -> {
+            is PaymentProcessingUiEvent.PaymentFailed -> {
                 // Payment ${event.paymentId} failed: ${event.error}
             }
         }
@@ -665,7 +662,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
      */
     private fun showConfirmNextPaymentProcessorDialog(requestId: String) {
         // Get the current UI state to access payment details
-        val state = viewModel.uiState.value as UiState.ConfirmNextProcessor<ProcessingPaymentQueueItem>
+        val state = viewModel.uiState.value as PaymentProcessingUiState.ConfirmNextProcessor<ProcessingPaymentQueueItem>
         val currentPayment = state.currentItem
         
         Log.d("TimeoutDebug", "showConfirmNextPaymentProcessorDialog - state.timeoutMs: ${state.timeoutMs}")
@@ -756,7 +753,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
      */
     private fun showErrorRetryOptionsDialog(requestId: String, error: ProcessingErrorEvent) {
         // Get the current UI state to access timeout
-        val state = viewModel.uiState.value as? UiState.ErrorRetryOrSkip ?: return
+        val state = viewModel.uiState.value as? PaymentProcessingUiState.ErrorRetryOrSkip ?: return
         
         Log.d("TimeoutDebug", "showErrorRetryOptionsDialog - state.timeoutMs: ${state.timeoutMs}")
         
@@ -812,4 +809,4 @@ class PaymentProcessingActivity : AppCompatActivity() {
     }
 }
 
-// PaymentQueueAdapter has been moved to PaymentQueueView custom view
+// PaymentQueueAdapter has been moved to PaymentProcessingQueueView custom view

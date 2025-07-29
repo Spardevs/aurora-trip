@@ -33,7 +33,6 @@ object ProcessingErrorEventResourceMapper {
             is ProcessingErrorEvent.INVALID_TRANSACTION_PERFORM_CASH -> R.string.error_invalid_transaction_perform_cash
             is ProcessingErrorEvent.ERROR_CONFIRMING_TRANSACTION -> R.string.error_confirming_transaction
             is ProcessingErrorEvent.RESPONSE_TLV_SIZE -> R.string.error_response_tlv_size
-
             is ProcessingErrorEvent.INVALID_FILE -> R.string.error_invalid_file
             is ProcessingErrorEvent.ATTEMPTS_EXCEEDED -> R.string.error_attempts_exceeded
             is ProcessingErrorEvent.INSTALLMENT_NOT_ALLOWED -> R.string.error_installment_not_allowed

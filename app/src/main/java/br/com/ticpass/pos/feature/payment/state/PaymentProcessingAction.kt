@@ -12,51 +12,51 @@ import br.com.ticpass.pos.queue.processors.payment.processors.models.PaymentProc
  * Represents an action that can be dispatched to the ViewModel
  * Actions trigger state transitions and side effects
  */
-sealed class Action {
+sealed class PaymentProcessingAction {
     // Queue actions
-    object StartProcessing : Action()
+    object StartProcessing : PaymentProcessingAction()
     data class EnqueuePayment(
         val amount: Int,
         val commission: Int = 0,
         val method: SystemPaymentMethod,
         val processorType: PaymentProcessorType
-    ) : Action()
-    data class CancelPayment(val paymentId: String) : Action()
-    object CancelAllPayments : Action()
+    ) : PaymentProcessingAction()
+    data class CancelPayment(val paymentId: String) : PaymentProcessingAction()
+    object CancelAllPayments : PaymentProcessingAction()
     
     // Processor input actions
-    data class ConfirmProcessor<T: QueueItem>(val requestId: String, val modifiedItem: T) : Action()
+    data class ConfirmProcessor<T: QueueItem>(val requestId: String, val modifiedItem: T) : PaymentProcessingAction()
 
-    data class SkipProcessor(val requestId: String) : Action()
+    data class SkipProcessor(val requestId: String) : PaymentProcessingAction()
     
     // Error handling actions
     data class HandleFailedPayment(
         val requestId: String,
         val action: ErrorHandlingAction
-    ) : Action()
+    ) : PaymentProcessingAction()
     
     // Receipt printing actions
     data class ConfirmCustomerReceiptPrinting(
         val requestId: String,
         val shouldPrint: Boolean
-    ) : Action()
+    ) : PaymentProcessingAction()
     
     // PIX payment actions
     data class ConfirmMerchantPixKey(
         val requestId: String,
         val pixKey: String
-    ) : Action()
+    ) : PaymentProcessingAction()
     
     data class ConfirmMerchantPixHasBeenPaid(
         val requestId: String,
         val didPay: Boolean
-    ) : Action()
+    ) : PaymentProcessingAction()
     
     // Internal actions triggered by events
-    data class ProcessingStateChanged(val state: ProcessingState<*>?) : Action()
-    data class QueueInputRequested(val request: QueueInputRequest) : Action()
-    data class ProcessorInputRequested(val request: UserInputRequest) : Action()
+    data class ProcessingStateChanged(val state: ProcessingState<*>?) : PaymentProcessingAction()
+    data class QueueInputRequested(val request: QueueInputRequest) : PaymentProcessingAction()
+    data class ProcessorInputRequested(val request: UserInputRequest) : PaymentProcessingAction()
     
     // Transactionless mode actions
-    data class UpdateAllProcessorTypes(val useTransactionless: Boolean) : Action()
+    data class UpdateAllProcessorTypes(val useTransactionless: Boolean) : PaymentProcessingAction()
 }

@@ -1,8 +1,8 @@
 package br.com.ticpass.pos.feature.payment.usecases
 
 import android.util.Log
-import br.com.ticpass.pos.feature.payment.state.UiEvent
-import br.com.ticpass.pos.feature.payment.state.UiState
+import br.com.ticpass.pos.feature.payment.state.PaymentProcessingUiEvent
+import br.com.ticpass.pos.feature.payment.state.PaymentProcessingUiState
 import br.com.ticpass.pos.queue.core.HybridQueueManager
 import br.com.ticpass.pos.queue.input.UserInputRequest
 import br.com.ticpass.pos.queue.models.ProcessingState
@@ -21,37 +21,35 @@ class StateManagementUseCase @Inject constructor() {
      */
     fun handleProcessingStateChange(
         state: ProcessingState<*>,
-        emitUiEvent: (UiEvent) -> Unit,
-        updateState: (UiState) -> Unit
+        emitUiEvent: (PaymentProcessingUiEvent) -> Unit,
+        updateState: (PaymentProcessingUiState) -> Unit
     ) {
         when (state) {
             is ProcessingState.ItemProcessing -> {
-                updateState(UiState.Processing)
+                updateState(PaymentProcessingUiState.Processing)
                 // Emit event that processing started for this item
                 val item = state.item
                 if (item is ProcessingPaymentQueueItem) {
-                    emitUiEvent(UiEvent.ShowToast("Processing payment ${item.id}"))
+                    emitUiEvent(PaymentProcessingUiEvent.ShowToast("Processing payment ${item.id}"))
                 }
             }
             is ProcessingState.ItemDone -> {
                 // Emit event that item was completed successfully
                 val item = state.item
                 if (item is ProcessingPaymentQueueItem) {
-                    emitUiEvent(UiEvent.PaymentCompleted(item.id, item.amount))
+                    emitUiEvent(PaymentProcessingUiEvent.PaymentCompleted(item.id, item.amount))
                 }
             }
             is ProcessingState.QueueIdle -> {
-                updateState(UiState.Idle)
+                updateState(PaymentProcessingUiState.Idle)
             }
             is ProcessingState.ItemFailed -> {
-                android.util.Log.e("ErrorHandling", "ProcessingState.ItemFailed received in StateManagementUseCase: ${state.error}")
-                updateState(UiState.Error(state.error))
-                android.util.Log.e("ErrorHandling", "UiState.Error set in StateManagementUseCase")
+                updateState(PaymentProcessingUiState.Error(state.error))
+
                 // Emit event that item failed
                 val item = state.item
                 if (item is ProcessingPaymentQueueItem) {
-                    emitUiEvent(UiEvent.PaymentFailed(item.id, state.error))
-                    android.util.Log.e("ErrorHandling", "UiEvent.PaymentFailed emitted")
+                    emitUiEvent(PaymentProcessingUiEvent.PaymentFailed(item.id, state.error))
                 }
             }
             else -> { /* No UI state change for other processing states */ }
@@ -64,14 +62,13 @@ class StateManagementUseCase @Inject constructor() {
     fun handleQueueInputRequest(
         request: QueueInputRequest,
         paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
-        updateState: (UiState) -> Unit
+        updateState: (PaymentProcessingUiState) -> Unit
     ) {
         when (request) {
             is QueueInputRequest.CONFIRM_NEXT_PROCESSOR -> {
-                Log.d("StateManagement", "CONFIRM_NEXT_PROCESSOR request received")
                 // Get current item from queue to provide item-specific data to UI
                 val currentItem = paymentQueue.getCurrentItem()
-                updateState(UiState.ConfirmNextProcessor(
+                updateState(PaymentProcessingUiState.ConfirmNextProcessor(
                     requestId = request.id,
                     currentItemIndex = request.currentItemIndex,
                     totalItems = request.totalItems,
@@ -80,13 +77,11 @@ class StateManagementUseCase @Inject constructor() {
                 ))
             }
             is QueueInputRequest.ERROR_RETRY_OR_SKIP -> {
-                Log.e("ErrorHandling", "QueueInputRequest.ERROR_RETRY_OR_SKIP received in StateManagementUseCase")
-                updateState(UiState.ErrorRetryOrSkip(
+                updateState(PaymentProcessingUiState.ErrorRetryOrSkip(
                     requestId = request.id,
                     error = request.error,
                     timeoutMs = request.timeoutMs
                 ))
-                Log.e("ErrorHandling", "UiState.ErrorRetryOrSkip set in StateManagementUseCase")
             }
             else -> {
                 Log.d("StateManagement", "Unhandled queue input request: ${request::class.simpleName}")
@@ -99,26 +94,23 @@ class StateManagementUseCase @Inject constructor() {
      */
     fun handleProcessorInputRequest(
         request: UserInputRequest,
-        updateState: (UiState) -> Unit
+        updateState: (PaymentProcessingUiState) -> Unit
     ) {
         when (request) {
             is UserInputRequest.CONFIRM_MERCHANT_PIX_KEY -> {
-                Log.d("StateManagement", "CONFIRM_MERCHANT_PIX_KEY request received")
-                updateState(UiState.ConfirmMerchantPixKey(
+                updateState(PaymentProcessingUiState.ConfirmMerchantPixKey(
                     requestId = request.id,
                     timeoutMs = request.timeoutMs
                 ))
             }
             is UserInputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING -> {
-                Log.d("StateManagement", "CONFIRM_CUSTOMER_RECEIPT_PRINTING request received")
-                updateState(UiState.ConfirmCustomerReceiptPrinting(
+                updateState(PaymentProcessingUiState.ConfirmCustomerReceiptPrinting(
                     requestId = request.id,
                 ))
             }
 
             is UserInputRequest.MERCHANT_PIX_SCANNING -> {
-                Log.d("StateManagement", "MERCHANT_PIX_SCANNING request received")
-                updateState(UiState.MerchantPixScanning(
+                updateState(PaymentProcessingUiState.MerchantPixScanning(
                     requestId = request.id,
                     pixCode = request.pixCode,
                 ))

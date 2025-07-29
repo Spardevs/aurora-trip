@@ -21,7 +21,7 @@ class PrintProcessor : QueueProcessor<PrintQueueItem, PrintingEvent> {
     override val userInputRequests: SharedFlow<UserInputRequest>
         get() = TODO("Not yet implemented")
 
-    override suspend fun provideInput(response: UserInputResponse) {
+    override suspend fun provideUserInput(response: UserInputResponse) {
         TODO("Not yet implemented")
     }
 
@@ -30,6 +30,6 @@ class PrintProcessor : QueueProcessor<PrintQueueItem, PrintingEvent> {
     }
 
     override suspend fun process(item: PrintQueueItem): ProcessingResult {
-        return ProcessingResult.Retry
+        TODO("Not yet implemented")
     }
 }

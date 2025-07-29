@@ -18,7 +18,7 @@ import java.util.Locale
 /**
  * Custom view that displays the payment queue and provides operations on queue items
  */
-class PaymentQueueView @JvmOverloads constructor(
+class PaymentProcessingQueueView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0

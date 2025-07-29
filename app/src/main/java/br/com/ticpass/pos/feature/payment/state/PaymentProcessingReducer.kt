@@ -4,31 +4,31 @@ import br.com.ticpass.pos.queue.core.HybridQueueManager
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
 import br.com.ticpass.pos.feature.payment.usecases.ErrorHandlingUseCase
-import br.com.ticpass.pos.feature.payment.usecases.ProcessorConfirmationUseCase
+import br.com.ticpass.pos.feature.payment.usecases.ConfirmationUseCase
 import br.com.ticpass.pos.feature.payment.usecases.QueueManagementUseCase
 import br.com.ticpass.pos.feature.payment.usecases.StateManagementUseCase
 import javax.inject.Inject
 
 /**
- * Reducer class for handling state transitions and side effects in the InteractivePaymentViewModel
+ * Reducer class for handling state transitions and side effects in the PaymentProcessingViewModel
  * Refactored to use use case classes for better maintainability and testability
  */
-class InteractivePaymentReducer @Inject constructor(
+class PaymentProcessingReducer @Inject constructor(
     private val queueManagementUseCase: QueueManagementUseCase,
     private val errorHandlingUseCase: ErrorHandlingUseCase,
-    private val processorConfirmationUseCase: ProcessorConfirmationUseCase,
+    private val confirmationUseCase: ConfirmationUseCase,
     private val stateManagementUseCase: StateManagementUseCase
 ) {
     
-    private lateinit var emitUiEvent: (UiEvent) -> Unit
-    private lateinit var updateState: (UiState) -> Unit
+    private lateinit var emitUiEvent: (PaymentProcessingUiEvent) -> Unit
+    private lateinit var updateState: (PaymentProcessingUiState) -> Unit
     
     /**
      * Initialize the reducer with callback functions from the ViewModel
      */
     fun initialize(
-        emitUiEvent: (UiEvent) -> Unit,
-        updateState: (UiState) -> Unit
+        emitUiEvent: (PaymentProcessingUiEvent) -> Unit,
+        updateState: (PaymentProcessingUiState) -> Unit
     ) {
         this.emitUiEvent = emitUiEvent
         this.updateState = updateState
@@ -40,15 +40,15 @@ class InteractivePaymentReducer @Inject constructor(
      * @return A side effect to execute, or null if no side effect is needed
      */
     fun reduce(
-        action: Action,
+        action: PaymentProcessingAction,
         paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>
-    ): SideEffect? {
+    ): PaymentProcessingSideEffect? {
         return when (action) {
             // Queue management actions
-            is Action.StartProcessing -> {
+            is PaymentProcessingAction.StartProcessing -> {
                 queueManagementUseCase.startProcessing(paymentQueue, emitUiEvent)
             }
-            is Action.EnqueuePayment -> {
+            is PaymentProcessingAction.EnqueuePayment -> {
                 queueManagementUseCase.enqueuePayment(
                     amount = action.amount,
                     commission = action.commission,
@@ -58,35 +58,35 @@ class InteractivePaymentReducer @Inject constructor(
                     emitUiEvent = emitUiEvent
                 )
             }
-            is Action.CancelPayment -> {
+            is PaymentProcessingAction.CancelPayment -> {
                 queueManagementUseCase.cancelPayment(
                     paymentId = action.paymentId,
                     paymentQueue = paymentQueue,
                     emitUiEvent = emitUiEvent
                 )
             }
-            is Action.CancelAllPayments -> {
+            is PaymentProcessingAction.CancelAllPayments -> {
                 queueManagementUseCase.cancelAllPayments(paymentQueue, emitUiEvent)
             }
             
             // Processor confirmation actions
-            is Action.ConfirmProcessor<*> -> {
-                processorConfirmationUseCase.confirmProcessor(
+            is PaymentProcessingAction.ConfirmProcessor<*> -> {
+                confirmationUseCase.confirmProcessor(
                     requestId = action.requestId,
                     queue = paymentQueue,
                     modifiedItem = action.modifiedItem as ProcessingPaymentQueueItem,
                     updateState = updateState
                 )
             }
-            is Action.SkipProcessor -> {
-                processorConfirmationUseCase.skipProcessor(
+            is PaymentProcessingAction.SkipProcessor -> {
+                confirmationUseCase.skipProcessor(
                     requestId = action.requestId,
                     paymentQueue = paymentQueue
                 )
             }
             
             // Error handling actions
-            is Action.HandleFailedPayment -> {
+            is PaymentProcessingAction.HandleFailedPayment -> {
                 errorHandlingUseCase.handleFailedPayment(
                     requestId = action.requestId,
                     action = action.action,
@@ -97,8 +97,8 @@ class InteractivePaymentReducer @Inject constructor(
             }
             
             // Receipt printing actions
-            is Action.ConfirmCustomerReceiptPrinting -> {
-                processorConfirmationUseCase.confirmCustomerReceiptPrinting(
+            is PaymentProcessingAction.ConfirmCustomerReceiptPrinting -> {
+                confirmationUseCase.confirmCustomerReceiptPrinting(
                     requestId = action.requestId,
                     shouldPrint = action.shouldPrint,
                     paymentQueue = paymentQueue,
@@ -107,8 +107,8 @@ class InteractivePaymentReducer @Inject constructor(
             }
             
             // PIX payment actions
-            is Action.ConfirmMerchantPixKey -> {
-                processorConfirmationUseCase.confirmMerchantPixKey(
+            is PaymentProcessingAction.ConfirmMerchantPixKey -> {
+                confirmationUseCase.confirmMerchantPixKey(
                     requestId = action.requestId,
                     pixKey = action.pixKey,
                     paymentQueue = paymentQueue,
@@ -116,8 +116,8 @@ class InteractivePaymentReducer @Inject constructor(
                 )
             }
             
-            is Action.ConfirmMerchantPixHasBeenPaid -> {
-                processorConfirmationUseCase.confirmMerchantPixHasBeenPaid(
+            is PaymentProcessingAction.ConfirmMerchantPixHasBeenPaid -> {
+                confirmationUseCase.confirmMerchantPixHasBeenPaid(
                     requestId = action.requestId,
                     didPay = action.didPay,
                     paymentQueue = paymentQueue,
@@ -126,7 +126,7 @@ class InteractivePaymentReducer @Inject constructor(
             }
             
             // Internal actions triggered by events
-            is Action.ProcessingStateChanged -> {
+            is PaymentProcessingAction.ProcessingStateChanged -> {
                 action.state?.let { state ->
                     stateManagementUseCase.handleProcessingStateChange(
                         state = state,
@@ -136,7 +136,7 @@ class InteractivePaymentReducer @Inject constructor(
                 }
                 null // No side effect needed
             }
-            is Action.QueueInputRequested -> {
+            is PaymentProcessingAction.QueueInputRequested -> {
                 stateManagementUseCase.handleQueueInputRequest(
                     request = action.request,
                     paymentQueue = paymentQueue,
@@ -145,7 +145,7 @@ class InteractivePaymentReducer @Inject constructor(
                 null // No side effect needed
             }
             
-            is Action.ProcessorInputRequested -> {
+            is PaymentProcessingAction.ProcessorInputRequested -> {
                 stateManagementUseCase.handleProcessorInputRequest(
                     request = action.request,
                     updateState = updateState
@@ -154,7 +154,7 @@ class InteractivePaymentReducer @Inject constructor(
             }
             
             // Transactionless mode actions
-            is Action.UpdateAllProcessorTypes -> {
+            is PaymentProcessingAction.UpdateAllProcessorTypes -> {
                 queueManagementUseCase.updateAllProcessorTypes(
                     useTransactionless = action.useTransactionless,
                     paymentQueue = paymentQueue,

@@ -644,7 +644,7 @@ Handled by the `HybridQueueManager` and used for queue management operations.
 // Inside a QueueProcessor implementation
 val request = QueueInputRequest.Confirmation(
   id = UUID.randomUUID().toString(),
-  title = "Confirm Action",
+  title = "Confirm PaymentProcessingAction",
   message = "Are you sure you want to proceed?"
 )
 
@@ -796,7 +796,7 @@ Provide methods in the ViewModel to handle user responses:
 ```kotlin
 // In your ViewModel
 fun confirmMerchantPixKey(requestId: String, pixKey: String) {
-  val sideEffect = processorConfirmationUseCase.confirmMerchantPixKey(
+  val sideEffect = confirmationUseCase.confirmMerchantPixKey(
     requestId = requestId,
     pixKey = pixKey,
     paymentQueue = paymentQueue,
@@ -806,7 +806,7 @@ fun confirmMerchantPixKey(requestId: String, pixKey: String) {
 }
 
 fun cancelInput(requestId: String) {
-  val sideEffect = processorConfirmationUseCase.cancelInput(
+  val sideEffect = confirmationUseCase.cancelInput(
     requestId = requestId,
     paymentQueue = paymentQueue,
     updateState = { state -> dispatch(Action.UpdateState(state)) }
@@ -820,7 +820,7 @@ fun cancelInput(requestId: String) {
 Implement use cases to handle the business logic for input responses:
 
 ```kotlin
-// In your ProcessorConfirmationUseCase
+// In your ConfirmationUseCase
 fun confirmMerchantPixKey(
   requestId: String,
   pixKey: String,

@@ -26,11 +26,11 @@ interface QueueProcessor<T : QueueItem, E : BaseProcessingEvent> {
     suspend fun process(item: T): ProcessingResult
     
     /**
-     * Provide input to a processor that is waiting for input
+     * Provide user input to a processor that is waiting for that
      * 
-     * @param response The response to the input request
+     * @param response The response to the user input request
      */
-    suspend fun provideInput(response: UserInputResponse)
+    suspend fun provideUserInput(response: UserInputResponse)
     
     /**
      * Abort the current processing operation

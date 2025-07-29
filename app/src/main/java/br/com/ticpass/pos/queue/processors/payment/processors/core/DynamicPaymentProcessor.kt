@@ -118,9 +118,9 @@ class DynamicPaymentProcessor(
     /**
      * Override provideInput to forward input responses to the delegate processor
      */
-    override suspend fun provideInput(response: UserInputResponse) {
+    override suspend fun provideUserInput(response: UserInputResponse) {
         // Forward the input response to the current delegate processor if available
-        currentDelegateProcessor?.provideInput(response)
+        currentDelegateProcessor?.provideUserInput(response)
         // Also emit to our own input responses flow
         _userInputResponses.emit(response)
     }

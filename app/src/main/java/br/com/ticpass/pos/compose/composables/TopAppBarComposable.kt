@@ -31,7 +31,7 @@ import br.com.ticpass.pos.R
 /**
  * A top app bar composable to be used with Scaffold in different Screen
  * @param title Title of the screen
- * @param onNavigateUp Action when user clicks the navigation icon
+ * @param onNavigateUp PaymentProcessingAction when user clicks the navigation icon
  * @param actions Actions to display on the top app bar (for e.g. menu)
  */
 @Composable

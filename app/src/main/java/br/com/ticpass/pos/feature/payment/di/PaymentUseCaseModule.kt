@@ -1,7 +1,7 @@
 package br.com.ticpass.pos.feature.payment.di
 
 import br.com.ticpass.pos.feature.payment.usecases.ErrorHandlingUseCase
-import br.com.ticpass.pos.feature.payment.usecases.ProcessorConfirmationUseCase
+import br.com.ticpass.pos.feature.payment.usecases.ConfirmationUseCase
 import br.com.ticpass.pos.feature.payment.usecases.QueueManagementUseCase
 import br.com.ticpass.pos.feature.payment.usecases.StateManagementUseCase
 import dagger.Module
@@ -31,8 +31,8 @@ object PaymentUseCaseModule {
     
     @Provides
     @ViewModelScoped
-    fun provideProcessorConfirmationUseCase(): ProcessorConfirmationUseCase {
-        return ProcessorConfirmationUseCase()
+    fun provideProcessorConfirmationUseCase(): ConfirmationUseCase {
+        return ConfirmationUseCase()
     }
     
     @Provides
