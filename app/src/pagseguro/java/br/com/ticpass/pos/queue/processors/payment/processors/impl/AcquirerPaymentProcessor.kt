@@ -68,8 +68,8 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
             cleanupCoroutineScopes()
 
             return ProcessingResult.Success(
-                atk = "",
-                txId =  ""
+                atk = payment.transactionCode ?: "",
+                txId = payment.transactionId ?: "",
             )
         }
         catch (exception: Exception) {
