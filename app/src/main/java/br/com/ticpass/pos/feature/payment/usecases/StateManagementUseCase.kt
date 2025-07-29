@@ -4,7 +4,7 @@ import android.util.Log
 import br.com.ticpass.pos.feature.payment.state.UiEvent
 import br.com.ticpass.pos.feature.payment.state.UiState
 import br.com.ticpass.pos.queue.core.HybridQueueManager
-import br.com.ticpass.pos.queue.input.InputRequest
+import br.com.ticpass.pos.queue.input.UserInputRequest
 import br.com.ticpass.pos.queue.models.ProcessingState
 import br.com.ticpass.pos.queue.input.QueueInputRequest
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
@@ -98,25 +98,25 @@ class StateManagementUseCase @Inject constructor() {
      * Handle processor input requests
      */
     fun handleProcessorInputRequest(
-        request: InputRequest,
+        request: UserInputRequest,
         updateState: (UiState) -> Unit
     ) {
         when (request) {
-            is InputRequest.CONFIRM_MERCHANT_PIX_KEY -> {
+            is UserInputRequest.CONFIRM_MERCHANT_PIX_KEY -> {
                 Log.d("StateManagement", "CONFIRM_MERCHANT_PIX_KEY request received")
                 updateState(UiState.ConfirmMerchantPixKey(
                     requestId = request.id,
                     timeoutMs = request.timeoutMs
                 ))
             }
-            is InputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING -> {
+            is UserInputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING -> {
                 Log.d("StateManagement", "CONFIRM_CUSTOMER_RECEIPT_PRINTING request received")
                 updateState(UiState.ConfirmCustomerReceiptPrinting(
                     requestId = request.id,
                 ))
             }
 
-            is InputRequest.MERCHANT_PIX_SCANNING -> {
+            is UserInputRequest.MERCHANT_PIX_SCANNING -> {
                 Log.d("StateManagement", "MERCHANT_PIX_SCANNING request received")
                 updateState(UiState.MerchantPixScanning(
                     requestId = request.id,

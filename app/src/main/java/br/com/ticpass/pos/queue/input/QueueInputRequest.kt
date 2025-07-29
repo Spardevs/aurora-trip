@@ -6,7 +6,7 @@ import java.util.UUID
 /**
  * Queue Input Request
  * Represents a request for user input at the queue manager level
- * (as opposed to processor-level InputRequest)
+ * (as opposed to processor-level UserInputRequest)
  */
 sealed class QueueInputRequest {
     abstract val id: String

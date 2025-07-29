@@ -2,7 +2,7 @@ package br.com.ticpass.pos.queue.processors.payment.processors.impl
 
 import android.util.Log
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
-import br.com.ticpass.pos.queue.input.InputRequest
+import br.com.ticpass.pos.queue.input.UserInputRequest
 import br.com.ticpass.pos.queue.models.ProcessingResult
 import br.com.ticpass.pos.queue.processors.payment.AcquirerPaymentEvent
 import br.com.ticpass.pos.queue.processors.payment.AcquirerPaymentMethod
@@ -160,8 +160,8 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
                                 try {
                                     scope.launch {
                                         val userAccepted = withContext(Dispatchers.IO) {
-                                            requestInput(
-                                                InputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING()
+                                            requestUserInput(
+                                                UserInputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING()
                                             )
                                         }.value as Boolean
 

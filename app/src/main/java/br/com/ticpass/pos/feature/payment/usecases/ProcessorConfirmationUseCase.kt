@@ -5,7 +5,7 @@ import br.com.ticpass.pos.feature.payment.state.UiState
 import br.com.ticpass.pos.payment.models.SystemPaymentMethod
 import br.com.ticpass.pos.queue.core.BaseProcessingEvent
 import br.com.ticpass.pos.queue.core.HybridQueueManager
-import br.com.ticpass.pos.queue.input.InputResponse
+import br.com.ticpass.pos.queue.input.UserInputResponse
 import br.com.ticpass.pos.queue.input.QueueInputResponse
 import br.com.ticpass.pos.queue.core.QueueItem
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
@@ -90,7 +90,7 @@ class ProcessorConfirmationUseCase @Inject constructor() {
     ): SideEffect {
         updateState(UiState.Processing)
         // Create an input response with the print choice as the value
-        val response = InputResponse(requestId, shouldPrint)
+        val response = UserInputResponse(requestId, shouldPrint)
         // Provide input directly to the processor instead of using queue input
         return SideEffect.ProvideProcessorInput { paymentQueue.processor.provideInput(response) }
     }
@@ -106,7 +106,7 @@ class ProcessorConfirmationUseCase @Inject constructor() {
     ): SideEffect {
         updateState(UiState.Processing)
         // Create an input response with the PIX key as the value
-        val response = InputResponse(requestId, pixKey)
+        val response = UserInputResponse(requestId, pixKey)
         // Provide input directly to the processor instead of using queue input
         return SideEffect.ProvideProcessorInput {
             paymentQueue.processor.provideInput(response) 
@@ -124,7 +124,7 @@ class ProcessorConfirmationUseCase @Inject constructor() {
     ): SideEffect {
         updateState(UiState.Processing)
         // Create an input response with the payment confirmation as the value
-        val response = InputResponse(requestId, didPay)
+        val response = UserInputResponse(requestId, didPay)
         // Provide input directly to the processor instead of using queue input
         return SideEffect.ProvideProcessorInput {
             paymentQueue.processor.provideInput(response) 

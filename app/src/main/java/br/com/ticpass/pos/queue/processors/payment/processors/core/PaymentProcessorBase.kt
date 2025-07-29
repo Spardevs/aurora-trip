@@ -2,8 +2,8 @@ package br.com.ticpass.pos.queue.processors.payment.processors.core
 
 import android.util.Log
 import br.com.ticpass.pos.queue.core.QueueProcessor
-import br.com.ticpass.pos.queue.input.InputRequest
-import br.com.ticpass.pos.queue.input.InputResponse
+import br.com.ticpass.pos.queue.input.UserInputRequest
+import br.com.ticpass.pos.queue.input.UserInputResponse
 import br.com.ticpass.pos.queue.models.ProcessingResult
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
@@ -25,11 +25,11 @@ abstract class PaymentProcessorBase :
     override val events: SharedFlow<ProcessingPaymentEvent> = _events.asSharedFlow()
     
     // Input request/response flows
-    protected val _inputRequests = MutableSharedFlow<InputRequest>(replay = 0, extraBufferCapacity = 3)
-    override val inputRequests: SharedFlow<InputRequest> = _inputRequests.asSharedFlow()
+    protected val _userInputRequests = MutableSharedFlow<UserInputRequest>(replay = 0, extraBufferCapacity = 3)
+    override val userInputRequests: SharedFlow<UserInputRequest> = _userInputRequests.asSharedFlow()
     
     // For receiving input responses
-    protected val _inputResponses = MutableSharedFlow<InputResponse>(replay = 0, extraBufferCapacity = 3)
+    protected val _userInputResponses = MutableSharedFlow<UserInputResponse>(replay = 0, extraBufferCapacity = 3)
 
     /**
      * Public processing method - delegates to protected template method
@@ -51,8 +51,8 @@ abstract class PaymentProcessorBase :
      * Provide input to the processor (from UI)
      * Implementation of QueueProcessor.provideInput
      */
-    override suspend fun provideInput(response: InputResponse) {
-        _inputResponses.emit(response)
+    override suspend fun provideInput(response: UserInputResponse) {
+        _userInputResponses.emit(response)
     }
     
     /**
@@ -68,8 +68,8 @@ abstract class PaymentProcessorBase :
         
         // Cancel any pending input requests by emitting a cancellation response
         // This will unblock any processor waiting for input
-        _inputRequests.replayCache.forEach { request ->
-            _inputResponses.emit(InputResponse.canceled(request.id))
+        _userInputRequests.replayCache.forEach { request ->
+            _userInputResponses.emit(UserInputResponse.canceled(request.id))
         }
         Log.d("PaymentProcessorBase", "Aborting payment for item: ${item?.id ?: "unknown"}")
         
@@ -88,13 +88,13 @@ abstract class PaymentProcessorBase :
      * @param request The input request
      * @return The response or null if timed out or canceled
      */
-    protected suspend fun requestInput(request: InputRequest): InputResponse {
+    protected suspend fun requestUserInput(request: UserInputRequest): UserInputResponse {
         // Emit request to UI
-        _inputRequests.emit(request)
+        _userInputRequests.emit(request)
         
         // Wait for response with optional timeout
         return withTimeoutOrNull(request.timeoutMs ?: Long.MAX_VALUE) {
-            _inputResponses.first { it.requestId == request.id }
-        } ?: InputResponse.timeout(request.id)
+            _userInputResponses.first { it.requestId == request.id }
+        } ?: UserInputResponse.timeout(request.id)
     }
 }

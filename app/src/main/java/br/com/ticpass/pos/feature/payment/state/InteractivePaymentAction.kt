@@ -3,7 +3,7 @@ package br.com.ticpass.pos.feature.payment.state
 import br.com.ticpass.pos.payment.models.SystemPaymentMethod
 import br.com.ticpass.pos.queue.core.QueueItem
 import br.com.ticpass.pos.queue.error.ErrorHandlingAction
-import br.com.ticpass.pos.queue.input.InputRequest
+import br.com.ticpass.pos.queue.input.UserInputRequest
 import br.com.ticpass.pos.queue.models.ProcessingState
 import br.com.ticpass.pos.queue.input.QueueInputRequest
 import br.com.ticpass.pos.queue.processors.payment.processors.models.PaymentProcessorType
@@ -55,7 +55,7 @@ sealed class Action {
     // Internal actions triggered by events
     data class ProcessingStateChanged(val state: ProcessingState<*>?) : Action()
     data class QueueInputRequested(val request: QueueInputRequest) : Action()
-    data class ProcessorInputRequested(val request: InputRequest) : Action()
+    data class ProcessorInputRequested(val request: UserInputRequest) : Action()
     
     // Transactionless mode actions
     data class UpdateAllProcessorTypes(val useTransactionless: Boolean) : Action()

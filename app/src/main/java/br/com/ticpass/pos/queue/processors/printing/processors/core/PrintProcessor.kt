@@ -1,7 +1,7 @@
 package br.com.ticpass.pos.queue.processors.printing.processors.core
 
-import br.com.ticpass.pos.queue.input.InputRequest
-import br.com.ticpass.pos.queue.input.InputResponse
+import br.com.ticpass.pos.queue.input.UserInputRequest
+import br.com.ticpass.pos.queue.input.UserInputResponse
 import br.com.ticpass.pos.queue.models.ProcessingResult
 import br.com.ticpass.pos.queue.core.QueueProcessor
 import br.com.ticpass.pos.queue.processors.printing.models.PrintQueueItem
@@ -18,10 +18,10 @@ class PrintProcessor : QueueProcessor<PrintQueueItem, PrintingEvent> {
     // Event flow implementation
     private val _events = MutableSharedFlow<PrintingEvent>()
     override val events: SharedFlow<PrintingEvent> = _events.asSharedFlow()
-    override val inputRequests: SharedFlow<InputRequest>
+    override val userInputRequests: SharedFlow<UserInputRequest>
         get() = TODO("Not yet implemented")
 
-    override suspend fun provideInput(response: InputResponse) {
+    override suspend fun provideInput(response: UserInputResponse) {
         TODO("Not yet implemented")
     }
 

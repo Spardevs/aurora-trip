@@ -1,8 +1,8 @@
 package br.com.ticpass.pos.queue.processors.payment.processors.core
 
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
-import br.com.ticpass.pos.queue.input.InputRequest
-import br.com.ticpass.pos.queue.input.InputResponse
+import br.com.ticpass.pos.queue.input.UserInputRequest
+import br.com.ticpass.pos.queue.input.UserInputResponse
 import br.com.ticpass.pos.queue.models.ProcessingResult
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
@@ -39,7 +39,7 @@ class DynamicPaymentProcessor(
         
         // Collect events and input requests from the delegate processor and re-emit them
         val processorEvents = processor.events
-        val processorInputRequests = processor.inputRequests
+        val processorInputRequests = processor.userInputRequests
         
         // Launch jobs to forward both events and input requests
         val eventJob = launchEventForwarding(processorEvents)
@@ -69,7 +69,7 @@ class DynamicPaymentProcessor(
 
         // Collect events and input requests from the delegate processor and re-emit them
         val processorEvents = processor.events
-        val processorInputRequests = processor.inputRequests
+        val processorInputRequests = processor.userInputRequests
         
         // Launch jobs to forward both events and input requests
         val eventJob = launchEventForwarding(processorEvents)
@@ -104,13 +104,13 @@ class DynamicPaymentProcessor(
     /**
      * Launch a coroutine that forwards input requests from the delegate processor to this processor's input requests flow
      */
-    private fun launchInputRequestForwarding(sourceInputRequests: SharedFlow<InputRequest>): Job {
+    private fun launchInputRequestForwarding(sourceUserInputRequests: SharedFlow<UserInputRequest>): Job {
         // Use a safe scope rather than GlobalScope
         val scope = CoroutineScope(Dispatchers.Default)
         return scope.launch {
-            sourceInputRequests.collect { inputRequest ->
+            sourceUserInputRequests.collect { inputRequest ->
                 // Forward all input requests
-                _inputRequests.emit(inputRequest)
+                _userInputRequests.emit(inputRequest)
             }
         }
     }
@@ -118,10 +118,10 @@ class DynamicPaymentProcessor(
     /**
      * Override provideInput to forward input responses to the delegate processor
      */
-    override suspend fun provideInput(response: InputResponse) {
+    override suspend fun provideInput(response: UserInputResponse) {
         // Forward the input response to the current delegate processor if available
         currentDelegateProcessor?.provideInput(response)
         // Also emit to our own input responses flow
-        _inputResponses.emit(response)
+        _userInputResponses.emit(response)
     }
 }

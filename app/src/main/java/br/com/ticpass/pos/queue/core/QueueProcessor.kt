@@ -1,7 +1,7 @@
 package br.com.ticpass.pos.queue.core
 
-import br.com.ticpass.pos.queue.input.InputRequest
-import br.com.ticpass.pos.queue.input.InputResponse
+import br.com.ticpass.pos.queue.input.UserInputRequest
+import br.com.ticpass.pos.queue.input.UserInputResponse
 import br.com.ticpass.pos.queue.models.ProcessingResult
 import kotlinx.coroutines.flow.SharedFlow
 
@@ -18,7 +18,7 @@ interface QueueProcessor<T : QueueItem, E : BaseProcessingEvent> {
     /**
      * Flow of input requests that require user interaction
      */
-    val inputRequests: SharedFlow<InputRequest>
+    val userInputRequests: SharedFlow<UserInputRequest>
     
     /**
      * Process a queue item
@@ -30,7 +30,7 @@ interface QueueProcessor<T : QueueItem, E : BaseProcessingEvent> {
      * 
      * @param response The response to the input request
      */
-    suspend fun provideInput(response: InputResponse)
+    suspend fun provideInput(response: UserInputResponse)
     
     /**
      * Abort the current processing operation

@@ -2,7 +2,7 @@ package br.com.ticpass.pos.queue.processors.payment.processors.impl
 
 import br.com.ticpass.pos.payment.utils.PixCodeGenerator
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
-import br.com.ticpass.pos.queue.input.InputRequest
+import br.com.ticpass.pos.queue.input.UserInputRequest
 import br.com.ticpass.pos.queue.models.ProcessingResult
 import br.com.ticpass.pos.queue.processors.payment.exceptions.PaymentProcessingException
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
@@ -77,8 +77,8 @@ class MerchantPIXPaymentProcessor : PaymentProcessorBase() {
     private suspend fun requestPixKey(): String {
         try {
             val pixKey = withContext(Dispatchers.IO) {
-                requestInput(
-                    InputRequest.CONFIRM_MERCHANT_PIX_KEY()
+                requestUserInput(
+                    UserInputRequest.CONFIRM_MERCHANT_PIX_KEY()
                 )
             }.value as String
 
@@ -102,8 +102,8 @@ class MerchantPIXPaymentProcessor : PaymentProcessorBase() {
     private suspend fun requestPixScanning(pixCode: String): Boolean {
         try {
             val didScan = withContext(Dispatchers.IO) {
-                requestInput(
-                    InputRequest.MERCHANT_PIX_SCANNING(pixCode = pixCode)
+                requestUserInput(
+                    UserInputRequest.MERCHANT_PIX_SCANNING(pixCode = pixCode)
                 )
             }.value as Boolean
 

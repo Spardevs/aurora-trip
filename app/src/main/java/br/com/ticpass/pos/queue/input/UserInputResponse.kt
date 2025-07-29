@@ -4,7 +4,7 @@ package br.com.ticpass.pos.queue.input
  * Input Response
  * Represents a response to an input request
  */
-data class InputResponse(
+data class UserInputResponse(
     val requestId: String,
     val value: Any?,
 ) {
@@ -12,15 +12,15 @@ data class InputResponse(
         /**
          * Create a canceled response
          */
-        fun canceled(requestId: String): InputResponse {
-            return InputResponse(requestId, null)
+        fun canceled(requestId: String): UserInputResponse {
+            return UserInputResponse(requestId, null)
         }
         
         /**
          * Create a timeout response
          */
-        fun timeout(requestId: String): InputResponse {
-            return InputResponse(requestId, null)
+        fun timeout(requestId: String): UserInputResponse {
+            return UserInputResponse(requestId, null)
         }
     }
 }

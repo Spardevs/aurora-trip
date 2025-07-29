@@ -113,7 +113,7 @@ class InteractivePaymentViewModel @Inject constructor(
         
         // Observe processor input requests
         viewModelScope.launch {
-            paymentQueue.processor.inputRequests.collect { request ->
+            paymentQueue.processor.userInputRequests.collect { request ->
                 Log.d("InteractivePaymentViewModel", "Processor input request received: ${request::class.simpleName}")
                 dispatch(Action.ProcessorInputRequested(request))
             }
