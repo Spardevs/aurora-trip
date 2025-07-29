@@ -693,7 +693,8 @@ class PaymentProcessingActivity : AppCompatActivity() {
             .setTitle(R.string.confirm_next_processor_title)
             .setView(dialogView)
             .setPositiveButton(R.string.proceed, null) // Set to null initially to prevent auto-dismiss
-            .setNegativeButton(R.string.skip, null) // Set to null initially to prevent auto-dismiss
+            .setNegativeButton(R.string.cancel_payment, null) // Set to null initially to prevent auto-dismiss
+            .setNeutralButton(R.string.skip, null) // Cancel button to cancel the current payment
             .setCancelable(false)
             .create()
             
@@ -726,8 +727,17 @@ class PaymentProcessingActivity : AppCompatActivity() {
             
             val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
             negativeButton.setOnClickListener {
+                viewModel.cancelPayment(currentPayment.id)
+                dialog.dismiss()
+            }
+            
+            val neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
+            neutralButton.setOnClickListener {
+                // Cancel the current payment
                 viewModel.skipProcessor(requestId)
                 dialog.dismiss()
+                // Show toast notification that payment was canceled
+                Toast.makeText(this, R.string.skip, Toast.LENGTH_SHORT).show()
             }
         }
         

@@ -116,22 +116,6 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
     val pendingPersistenceCount: Int
         get() = pendingPersistence.size
     
-    // Remove item from queue
-    suspend fun remove(item: T) {
-        inMemoryQueue.removeAll { it.id == item.id }
-        _queueState.value = inMemoryQueue.toList()
-        
-        // Remove from pending persistence if it's there
-        pendingPersistence.removeAll { it.id == item.id }
-        
-        // Remove from storage if using persistence
-        if (persistenceStrategy != PersistenceStrategy.NEVER) {
-            scope.launch {
-                storage.remove(item)
-            }
-        }
-    }
-    
     // Get queue size
     val size: Int get() = inMemoryQueue.size
     
@@ -376,6 +360,26 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                 storage.getAllByStatus(QueueItemStatus.COMPLETED).forEach { item ->
                     storage.remove(item)
                 }
+            }
+        }
+    }
+
+    // Remove item from queue
+    suspend fun remove(item: T) {
+        if (isProcessing) processor.abort(null)
+        isProcessing = false
+
+        inMemoryQueue.removeAll { it.id == item.id }
+        _queueState.value = inMemoryQueue.toList()
+        _processingState.value = null
+
+        // Remove from pending persistence if it's there
+        pendingPersistence.removeAll { it.id == item.id }
+
+        // Remove from storage if using persistence
+        if (persistenceStrategy != PersistenceStrategy.NEVER) {
+            scope.launch {
+                storage.remove(item)
             }
         }
     }
