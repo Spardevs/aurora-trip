@@ -8,8 +8,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.view.ui.shoppingCart.CartItem
+import br.com.ticpass.pos.data.room.entity.CartItem
 import com.bumptech.glide.Glide
+import java.text.NumberFormat
 import java.util.Locale
 
 class ShoppingCartAdapter(
@@ -43,22 +44,21 @@ class ShoppingCartAdapter(
                 .load(item.product.thumbnail)
                 .into(img)
 
-            btnIncrease.setOnClickListener  { onUpdate(item, item.quantity + 1) }
-            btnDecrease.setOnClickListener  {
+            btnIncrease.setOnClickListener { onUpdate(item, item.quantity + 1) }
+            btnDecrease.setOnClickListener {
                 if (item.quantity > 1) onUpdate(item, item.quantity - 1)
             }
-            btnDelete.setOnClickListener    { onUpdate(item, 0) }
+            btnDelete.setOnClickListener { onUpdate(item, 0) }
         }
 
         private fun formatCurrency(value: Long): String {
-            val fmt = java.text.NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+            val fmt = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
             return fmt.format(value / 100.0)
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val v = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_cart, parent, false)
+        val v = LayoutInflater.from(parent.context).inflate(R.layout.item_cart, parent, false)
         return ViewHolder(v)
     }
 

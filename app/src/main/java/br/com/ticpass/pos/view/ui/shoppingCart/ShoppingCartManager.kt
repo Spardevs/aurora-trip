@@ -1,20 +1,108 @@
 package br.com.ticpass.pos.view.ui.shoppingCart
 
 import android.content.Context
+import android.content.SharedPreferences
+import androidx.lifecycle.MutableLiveData
+import br.com.ticpass.pos.data.room.repository.ProductRepository
+import com.google.gson.Gson
+import kotlinx.coroutines.runBlocking
+import java.math.BigInteger
+import javax.inject.Inject
+import javax.inject.Singleton
 import androidx.core.content.edit
+import br.com.ticpass.pos.data.activity.ShoppingCartActivity
+import dagger.hilt.android.qualifiers.ApplicationContext
 
-object ShoppingCartManager {
-    private const val PREF_NAME = "ShoppingCart"
-    private const val KEY_CART = "cart_items"
-
-    fun addItem(context: Context, productId: Int) {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        val current = prefs.getInt(productId.toString(), 0)
-        prefs.edit { putInt(productId.toString(), current + 1) }
+@Singleton
+class ShoppingCartManager @Inject constructor(
+    private val productRepository: ProductRepository,
+    @ApplicationContext private val context: Context
+) {
+    private val gson = Gson()
+    private val shoppingCartPrefsName = "ShoppingCartPrefs"
+    private val shoppingCartKey = "shopping_cart_data"
+    private val sharedPreferences: SharedPreferences by lazy {
+        context.getSharedPreferences(shoppingCartPrefsName, Context.MODE_PRIVATE)
     }
 
-    fun getQuantity(context: Context, productId: Int): Int {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        return prefs.getInt(productId.toString(), 0)
+    private val _cartUpdates = MutableLiveData<Unit>()
+    val cartUpdates = _cartUpdates
+
+    data class ShoppingCart(
+        val items: Map<String, Int> = emptyMap(),
+        val totalPrice: BigInteger = BigInteger.ZERO
+    )
+
+    private var currentCart: ShoppingCart = loadCart()
+
+    fun getCart(): ShoppingCart = currentCart
+    fun getQuantity(productId: String): Int = currentCart.items[productId] ?: 0
+
+    fun addItem(productId: String) {
+        val currentQuantity = currentCart.items[productId] ?: 0
+        updateItem(productId, currentQuantity + 1)
     }
+
+    fun removeItem(productId: String) {
+        val currentQuantity = currentCart.items[productId] ?: 0
+        if (currentQuantity > 0) {
+            updateItem(productId, currentQuantity - 1)
+        }
+    }
+
+
+    fun getAllItems(activity: ShoppingCartActivity): Map<String, Int> = currentCart.items
+
+    fun notifyCartUpdated() {
+        _cartUpdates.postValue(Unit)
+    }
+
+    fun updateItem(productId: String, newQuantity: Int) {
+        val items = currentCart.items.toMutableMap()
+
+        if (newQuantity > 0) {
+            items[productId] = newQuantity
+        } else {
+            items.remove(productId)
+        }
+
+        val totalPrice = calculateTotalPrice(items)
+        currentCart = ShoppingCart(items, totalPrice)
+        saveCart(currentCart)
+        _cartUpdates.postValue(Unit)
+    }
+
+    fun clearCart() {
+        currentCart = ShoppingCart()
+        saveCart(currentCart)
+        _cartUpdates.postValue(Unit)
+    }
+
+    private fun calculateTotalPrice(items: Map<String, Int>): BigInteger {
+        return items.entries.fold(BigInteger.ZERO) { total, (productId, quantity) ->
+            val product = runBlocking { productRepository.getById(productId) }  // No need for toString()
+            total + (product?.price?.toBigInteger() ?: BigInteger.ZERO) * quantity.toBigInteger()
+        }
+    }
+
+    private fun saveCart(cart: ShoppingCart) {
+        sharedPreferences.edit {
+            putString(shoppingCartKey, gson.toJson(cart))
+        }
+    }
+
+    private fun loadCart(): ShoppingCart {
+        val cartJson = sharedPreferences.getString(shoppingCartKey, null) ?: return ShoppingCart()
+        return try {
+            gson.fromJson(cartJson, ShoppingCart::class.java) ?: ShoppingCart()
+        } catch (e: Exception) {
+            ShoppingCart()
+        }
+    }
+
+    fun getTotalItemsCount(): Int = currentCart.items.values.sum()
+
+
+
+
 }

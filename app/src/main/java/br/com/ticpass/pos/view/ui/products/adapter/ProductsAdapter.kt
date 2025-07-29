@@ -12,62 +12,82 @@ import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.api.Product
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
 import com.bumptech.glide.Glide
-import java.math.BigInteger
+import java.text.NumberFormat
 import java.util.Locale
 
-fun formatCurrency(value: BigInteger): String {
-    val locale = Locale("pt", "BR")
-    val formatter = java.text.NumberFormat.getCurrencyInstance(locale)
-    formatter.minimumFractionDigits = 2
-    return formatter.format(value.toDouble() / 100)
-}
-
 class ProductsAdapter(
-    private val onItemClick: (Product) -> Unit
-) : ListAdapter<Product, ProductsAdapter.VH>(DiffCallback) {
+    private val shoppingCartManager: ShoppingCartManager,
+    private val onProductClicked: (Product) -> Unit
+) : ListAdapter<Product, ProductsAdapter.ProductViewHolder>(ProductDiffCallback()) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_products, parent, false)
-        return VH(view)
+        return ProductViewHolder(view, shoppingCartManager)
     }
 
-    override fun onBindViewHolder(holder: VH, position: Int) {
+    override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
         val product = getItem(position)
         holder.bind(product)
         holder.itemView.setOnClickListener {
-            ShoppingCartManager.addItem(holder.itemView.context, product.id.toInt())
-            notifyItemChanged(position)
-            onItemClick(product)
+            onProductClicked(product)
+            holder.updateBadge() // Atualiza o badge imediatamente após o clique
         }
     }
 
+    inner class ProductViewHolder(
+        itemView: View,
+        private val shoppingCartManager: ShoppingCartManager
+    ) : RecyclerView.ViewHolder(itemView) {
+        private val nameTextView: TextView = itemView.findViewById(R.id.productTitle)
+        private val priceTextView: TextView = itemView.findViewById(R.id.productPrice)
+        private val imageView: ImageView = itemView.findViewById(R.id.productImage)
+        private val badgeTextView: TextView = itemView.findViewById(R.id.productBadge)
+        private var currentProduct: Product? = null
 
-    class VH(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val title = itemView.findViewById<TextView>(R.id.productTitle)
-        private val price = itemView.findViewById<TextView>(R.id.productPrice)
-        private val img   = itemView.findViewById<ImageView>(R.id.productImage)
-        private val badge = itemView.findViewById<TextView>(R.id.productBadge)
-
-        fun bind(product: Product) {
-            title.text = product.title
-            price.text = formatCurrency(product.value)
-            Glide.with(itemView).load(product.photo).into(img)
-
-            val quantity = ShoppingCartManager.getQuantity(itemView.context, product.id.toInt())
-            if (quantity > 0) {
-                badge.visibility = View.VISIBLE
-                badge.text = quantity.toString()
-            } else {
-                badge.visibility = View.GONE
+        init {
+            // Observar mudanças no carrinho
+            shoppingCartManager.cartUpdates.observeForever {
+                currentProduct?.let { updateBadge() }
             }
         }
+
+        fun bind(product: Product) {
+            currentProduct = product
+            nameTextView.text = product.title
+            priceTextView.text = formatCurrency(product.value.toDouble())
+            updateBadge()
+
+            Glide.with(itemView.context)
+                .load(product.photo)
+                .into(imageView)
+        }
+
+        fun updateBadge() {
+            currentProduct?.let { product ->
+                val quantity = shoppingCartManager.getCart().items[product.id] ?: 0
+                if (quantity > 0) {
+                    badgeTextView.text = quantity.toString()
+                    badgeTextView.visibility = View.VISIBLE
+                } else {
+                    badgeTextView.visibility = View.GONE
+                }
+            }
+        }
+
+        private fun formatCurrency(value: Double): String {
+            val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+            return format.format(value)
+        }
     }
 
-    companion object {
-        private val DiffCallback = object : DiffUtil.ItemCallback<Product>() {
-            override fun areItemsTheSame(a: Product, b: Product) = a.id == b.id
-            override fun areContentsTheSame(a: Product, b: Product) = a == b
+    class ProductDiffCallback : DiffUtil.ItemCallback<Product>() {
+        override fun areItemsTheSame(oldItem: Product, newItem: Product): Boolean {
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: Product, newItem: Product): Boolean {
+            return oldItem == newItem
         }
     }
 }

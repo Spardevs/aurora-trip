@@ -38,6 +38,9 @@ object Constants {
     const val NFC_KEY_TYPE_A = BuildConfig.NFC_KEY_TYPE_A
     const val NFC_KEY_TYPE_B = BuildConfig.NFC_KEY_TYPE_B
 
+    const val REQUEST_CART_UPDATE = 1001
+
+
     const val PARCEL_DOWNLOAD = "PARCEL_DOWNLOAD"
 
     const val URL_TOS = "https://play.google.com/about/play-terms/"

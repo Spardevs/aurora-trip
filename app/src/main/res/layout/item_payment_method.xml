@@ -1,34 +1,26 @@
-<com.google.android.material.card.MaterialCardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="170dp"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:clickable="true"
-    android:focusable="true"
-    app:cardElevation="4dp"
-    app:cardUseCompatPadding="true"
-    app:cardCornerRadius="8dp"
-    android:foreground="?attr/selectableItemBackground">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_margin="8dp"
+    android:background="@drawable/rounded_button_background"
+    android:orientation="horizontal"
+    android:padding="12dp">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:padding="12dp">
+    <ImageView
+        android:id="@+id/iv_payment_icon"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginEnd="8dp"
+        app:srcCompat="@drawable/credit" />
 
-        <ImageView
-            android:id="@+id/ivIcon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginEnd="8dp"/>
-
-        <TextView
-            android:id="@+id/tvLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textStyle="bold"/>
-    </LinearLayout>
-
-</com.google.android.material.card.MaterialCardView>
+    <TextView
+        android:id="@+id/tv_payment_name"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:text="Crédito"
+        android:textAlignment="center"
+        android:textColor="@android:color/white" />
+</LinearLayout>

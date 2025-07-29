@@ -33,3 +33,8 @@ data class CategoryWithProducts(
     )
     val products: List<ProductEntity>
 )
+
+data class CartItem(
+    val product: ProductEntity,
+    val quantity: Int
+)

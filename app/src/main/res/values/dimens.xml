@@ -66,4 +66,7 @@
     <dimen name="radius_medium">10dp</dimen>
     <dimen name="radius_normal">12dp</dimen>
     <dimen name="radius_large">16dp</dimen>
+
+    <dimen name="bottom_sheet_peek_height">60dp</dimen>
+
 </resources>

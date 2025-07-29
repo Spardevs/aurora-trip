@@ -2,14 +2,25 @@ package br.com.ticpass.pos.data.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.TextView
 import dagger.hilt.android.AndroidEntryPoint
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.view.ui.products.ProductsListScreen
+import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
+import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartScreen
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ProductsActivity : DrawerBaseActivity() {
+    private lateinit var cartBadge: TextView
+    private lateinit var cartMenuItem: MenuItem
+
+    @Inject
+    lateinit var shoppingCartManager: ShoppingCartManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,25 +33,66 @@ class ProductsActivity : DrawerBaseActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)
+
+        // Configurar o badge do carrinho
+        cartMenuItem = menu.findItem(R.id.fab)
+        val badgeLayout = LayoutInflater.from(this).inflate(R.layout.cart_badge, null)
+        cartBadge = badgeLayout.findViewById(R.id.cart_badge)
+        cartMenuItem.actionView = badgeLayout
+
+        // Configurar o clique na view personalizada
+        badgeLayout.setOnClickListener {
+            val intent = Intent(this, ShoppingCartScreen::class.java)
+            startActivityForResult(intent, ProductsListScreen.REQUEST_CART_UPDATE)
+        }
+
+        // Atualizar badge inicial
+        updateCartBadge()
+
+        // Observar mudanças no carrinho
+        shoppingCartManager.cartUpdates.observe(this) {
+            updateCartBadge()
+        }
+
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_search -> {
-                // TODO: ação de busca
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
+    private fun updateCartBadge() {
+        val count = shoppingCartManager.getTotalItemsCount()
+        if (count > 0) {
+            cartBadge.text = count.toString()
+            cartBadge.visibility = View.VISIBLE
+        } else {
+            cartBadge.visibility = View.GONE
+        }
+    }
+
+//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+//        return when (item.itemId) {
+//            R.id.action_search -> {
+//                true
+//            }
+//            R.id.fab -> {
+//                val intent = Intent(this, ShoppingCartScreen::class.java)
+//                startActivityForResult(intent, ProductsListScreen.REQUEST_CART_UPDATE)
+//                true
+//            }
+//            else -> super.onOptionsItemSelected(item)
+//        }
+//    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == ProductsListScreen.REQUEST_CART_UPDATE) {
+            updateCartBadge()
         }
     }
 
     override fun openProducts() {
         startActivity(Intent(this, ProductsActivity::class.java))
-
     }
 
     override fun openProfile() {
-//        startActivity(Intent(this, ProfileActivity::class.java))
+        // startActivity(Intent(this, ProfileActivity::class.java))
     }
 }
