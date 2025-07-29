@@ -10,7 +10,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueItem
+import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
 import br.com.ticpass.utils.toMoneyAsDouble
 import java.text.NumberFormat
 import java.util.Locale

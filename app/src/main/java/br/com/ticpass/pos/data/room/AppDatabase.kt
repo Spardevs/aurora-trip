@@ -44,8 +44,8 @@ import br.com.ticpass.pos.data.room.dao.VoucherExchangeProductDao
 import br.com.ticpass.pos.data.room.entity.VoucherExchangeProductEntity
 import br.com.ticpass.pos.data.room.dao.VoucherRedemptionDao
 import br.com.ticpass.pos.data.room.entity.VoucherRedemptionEntity
-import br.com.ticpass.pos.queue.payment.ProcessingPaymentEntity
-import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueDao
+import br.com.ticpass.pos.queue.processors.payment.data.ProcessingPaymentQueueDao
+import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEntity
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody

@@ -17,7 +17,7 @@ import br.com.ticpass.pos.data.room.dao.RefundDao
 import br.com.ticpass.pos.data.room.dao.CashierDao
 import br.com.ticpass.pos.data.room.dao.VoucherDao
 import br.com.ticpass.pos.data.room.dao.VoucherRedemptionDao
-import br.com.ticpass.pos.queue.payment.ProcessingPaymentQueueDao
+import br.com.ticpass.pos.queue.processors.payment.data.ProcessingPaymentQueueDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
