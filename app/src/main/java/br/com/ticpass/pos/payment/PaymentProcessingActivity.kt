@@ -26,6 +26,7 @@ import br.com.ticpass.pos.R
 
 import br.com.ticpass.pos.payment.view.PaymentProcessingQueueView
 import br.com.ticpass.pos.payment.view.TimeoutCountdownView
+import br.com.ticpass.pos.payment.dialogs.PaymentDialogManager
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.models.ProcessingState
 import br.com.ticpass.pos.feature.payment.PaymentProcessingViewModel
@@ -48,6 +49,9 @@ class PaymentProcessingActivity : AppCompatActivity() {
     
     // ViewModel injected via Hilt
     private val paymentViewModel: PaymentProcessingViewModel by viewModels()
+    
+    // Dialog manager for handling all payment dialogs
+    private lateinit var dialogManager: PaymentDialogManager
     
     // UI components
     private lateinit var queueView: PaymentProcessingQueueView
@@ -73,6 +77,9 @@ class PaymentProcessingActivity : AppCompatActivity() {
         setupViews()
         setupButtons()
         observeViewModel()
+        
+        // Initialize dialog manager
+        dialogManager = PaymentDialogManager(this, layoutInflater, paymentViewModel)
     }
     
     private fun setupViews() {
@@ -247,21 +254,19 @@ class PaymentProcessingActivity : AppCompatActivity() {
                         displayErrorMessage(uiState.event)
                     }
                     is PaymentProcessingUiState.ConfirmNextProcessor<*> -> {
-                        showConfirmNextPaymentProcessorDialog(
-                            requestId = uiState.requestId
-                        )
+                        dialogManager.showConfirmNextPaymentProcessorDialog(uiState.requestId)
                     }
                     is PaymentProcessingUiState.ConfirmCustomerReceiptPrinting -> {
-                        showCustomerReceiptDialog(uiState.requestId)
+                        dialogManager.showCustomerReceiptDialog(uiState.requestId)
                     }
                     is PaymentProcessingUiState.MerchantPixScanning -> {
-                        pixScanningDialog(uiState.requestId, uiState.pixCode)
+                        dialogManager.showPixScanningDialog(uiState.requestId, uiState.pixCode)
                     }
                     is PaymentProcessingUiState.ConfirmMerchantPixKey -> {
                         confirmMerchantPixKey(uiState.requestId)
                     }
                     is PaymentProcessingUiState.ErrorRetryOrSkip -> {
-                        showErrorRetryOptionsDialog(uiState.requestId, uiState.error)
+                        dialogManager.showErrorRetryOptionsDialog(uiState.requestId, uiState.error)
                     }
                     else -> {
                         // Other UI states don't need dialogs
@@ -328,26 +333,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         dialogEventTextView.text = pinMessage
     }
     
-    /**
-     * Start the timeout countdown in a dialog if a timeout is specified
-     * 
-     * @param timeoutView The TimeoutCountdownView in the dialog
-     * @param timeoutMs The timeout duration in milliseconds
-     * @param onTimeout Callback to be invoked when the timeout occurs
-     */
-    private fun startDialogTimeoutCountdown(timeoutView: TimeoutCountdownView?, timeoutMs: Long?, onTimeout: () -> Unit) {
 
-        // Start the countdown if a timeout is specified and view exists
-        if (timeoutView != null && timeoutMs != null && timeoutMs > 0) {
-            timeoutView.visibility = View.VISIBLE
-            timeoutView.startCountdown(timeoutMs, onTimeout)
-        } else if (timeoutView != null) {
-            // Hide the countdown view if no timeout is specified
-            timeoutView.visibility = View.GONE
-        } else {
-            Log.e("TimeoutDebug", "Cannot start countdown - timeoutView is null")
-        }
-    }
     
     private fun handlePaymentEvent(event: ProcessingPaymentEvent) {
         // Handle PIN digit tracking
@@ -512,19 +498,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
     
     // We now use EventLogView's methods directly
     
-    private fun showCustomerReceiptDialog(requestId: String) {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.print_customer_receipt_title)
-            .setMessage(R.string.print_customer_receipt_message)
-            .setPositiveButton(R.string.yes) { _, _ ->
-                paymentViewModel.confirmCustomerReceiptPrinting(requestId, true)
-            }
-            .setNegativeButton(R.string.no) { _, _ ->
-                paymentViewModel.confirmCustomerReceiptPrinting(requestId, false)
-            }
-            .setCancelable(false)
-            .show()
-    }
+
     
     /**
      * Enqueue a payment with the specified method and processor type
@@ -588,229 +562,13 @@ class PaymentProcessingActivity : AppCompatActivity() {
         paymentViewModel.confirmMerchantPixKey(requestId, hardcodedPixKey)
     }
 
-    private fun pixScanningDialog(requestId: String, pixCode: String) {
-        // Create a dialog with custom view for QR code
-        val dialogView = layoutInflater.inflate(R.layout.dialog_pix_qrcode, null)
-        
-        // Get the ImageView for QR code
-        val qrCodeImageView = dialogView.findViewById<ImageView>(R.id.image_qr_code)
-        
-        // Generate QR code bitmap
-        try {
-            val qrCodeBitmap = generateQRCode(pixCode)
-            qrCodeImageView.setImageBitmap(qrCodeBitmap)
-            
-            // Create and show the dialog
-            val dialog = AlertDialog.Builder(this)
-                .setView(dialogView)
-                .setCancelable(false)
-                .create()
-            
-            // Set up dialog dismiss listener to recycle bitmap when dialog is dismissed
-            dialog.setOnDismissListener {
-                // Get the drawable from the ImageView and recycle the bitmap
-                val drawable = qrCodeImageView.drawable
-                if (drawable is BitmapDrawable) {
-                    qrCodeBitmap.recycle()
-                    drawable.bitmap?.recycle()
-                }
-            }
-            
-            // Set up Cancel button
-            dialogView.findViewById<Button>(R.id.btn_cancel).setOnClickListener {
-                dialog.dismiss()
-                paymentViewModel.confirmMerchantPixHasBeenPaid(requestId, false)
-            }
-            
-            // Set up Done button
-            dialogView.findViewById<Button>(R.id.btn_done).setOnClickListener {
-                dialog.dismiss()
-                paymentViewModel.confirmMerchantPixHasBeenPaid(requestId, true)
-            }
-            
-            dialog.show()
-        } catch (e: Exception) {
-            Log.e("PaymentProcessingActivity", "Error generating QR code: ${e.message}")
-            Toast.makeText(this, "Error generating QR code", Toast.LENGTH_SHORT).show()
-            paymentViewModel.confirmMerchantPixHasBeenPaid(requestId, false)
-        }
-    }
-    
-    /**
-     * Generate a QR code bitmap from the given content
-     */
-    private fun generateQRCode(content: String): Bitmap {
-        val width = 500
-        val height = 500
-        val hints = HashMap<EncodeHintType, Any>()
-        hints[EncodeHintType.CHARACTER_SET] = "UTF-8"
-        hints[EncodeHintType.ERROR_CORRECTION] = ErrorCorrectionLevel.M
-        hints[EncodeHintType.MARGIN] = 2
-        
-        val qrCodeWriter = QRCodeWriter()
-        val bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, width, height, hints)
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
-        
-        for (x in 0 until width) {
-            for (y in 0 until height) {
-                bitmap.setPixel(x, y, if (bitMatrix[x, y]) Color.BLACK else Color.WHITE)
-            }
-        }
-        
-        return bitmap
-    }
-    
-    /**
-     * Show a dialog to confirm proceeding to the next payment processor
-     * Allows editing payment method and amount before proceeding
-     */
-    private fun showConfirmNextPaymentProcessorDialog(requestId: String) {
-        // Get the current UI state to access payment details
-        val state = paymentViewModel.uiState.value as PaymentProcessingUiState.ConfirmNextProcessor<ProcessingPaymentQueueItem>
-        val currentPayment = state.currentItem
-        
-        Log.d("TimeoutDebug", "showConfirmNextPaymentProcessorDialog - state.timeoutMs: ${state.timeoutMs}")
-        
-        // Create a custom dialog view with editable fields
-        val dialogView = layoutInflater.inflate(R.layout.dialog_payment_confirmation, null)
-        
-        // Get references to the editable fields
-        val amountEditText = dialogView.findViewById<EditText>(R.id.edit_payment_amount)
-        val methodSpinner = dialogView.findViewById<Spinner>(R.id.spinner_payment_method)
-        val timeoutView = dialogView.findViewById<TimeoutCountdownView>(R.id.timeout_countdown_view)
-        
-        // Set initial values
-        amountEditText.setText((currentPayment.amount.toMoneyAsDouble()).toString())
-        
-        // Setup payment method spinner
-        val paymentMethods = SystemPaymentMethod.values()
-        val methodAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, paymentMethods)
-        methodAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        methodSpinner.adapter = methodAdapter
-        methodSpinner.setSelection(paymentMethods.indexOf(currentPayment.method))
-        
-        // Create the dialog
-        val dialog = AlertDialog.Builder(this)
-            .setTitle(R.string.confirm_next_processor_title)
-            .setView(dialogView)
-            .setPositiveButton(R.string.proceed, null) // Set to null initially to prevent auto-dismiss
-            .setNegativeButton(R.string.cancel_payment, null) // Set to null initially to prevent auto-dismiss
-            .setNeutralButton(R.string.skip, null) // Cancel button to cancel the current payment
-            .setCancelable(false)
-            .create()
-            
-        // Set button click listeners manually to prevent auto-dismiss
-        dialog.setOnShowListener {
-            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-            positiveButton.setOnClickListener {
-                try {
-                    // Get the modified values
-                    val modifiedAmount = (amountEditText.text.toString().toDouble() * 100).toInt()
-                    val modifiedMethod = paymentMethods[methodSpinner.selectedItemPosition]
-                    // Automatically determine processor type based on payment method
-                    val modifiedProcessorType = PaymentMethodProcessorMapper.getProcessorTypeForMethod(modifiedMethod)
 
-                    paymentViewModel.confirmProcessor(
-                        requestId = requestId,
-                        modifiedItem = currentPayment.copy(
-                            amount = modifiedAmount,
-                            method = modifiedMethod,
-                            processorType = modifiedProcessorType
-                        )
-                    )
-
-                    dialog.dismiss()
-                } catch (e: Exception) {
-                    // Handle parsing errors
-                    Toast.makeText(this, "Invalid amount format", Toast.LENGTH_SHORT).show()
-                }
-            }
-            
-            val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
-            negativeButton.setOnClickListener {
-                paymentViewModel.cancelPayment(currentPayment.id)
-                dialog.dismiss()
-            }
-            
-            val neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
-            neutralButton.setOnClickListener {
-                // Cancel the current payment
-                paymentViewModel.skipProcessor(requestId)
-                dialog.dismiss()
-                // Show toast notification that payment was canceled
-                Toast.makeText(this, R.string.skip, Toast.LENGTH_SHORT).show()
-            }
-        }
-        
-        // Start timeout countdown if specified
-        startDialogTimeoutCountdown(timeoutView, state.timeoutMs) {
-            // Auto-skip on timeout
-            paymentViewModel.skipProcessor(requestId)
-            dialog.dismiss()
-        }
-        
-        dialog.show()
-    }
     
-    /**
-     * Show a dialog with error retry options
-     */
-    private fun showErrorRetryOptionsDialog(requestId: String, error: ProcessingErrorEvent) {
-        // Get the current UI state to access timeout
-        val state = paymentViewModel.uiState.value as? PaymentProcessingUiState.ErrorRetryOrSkip ?: return
-        
-        Log.d("TimeoutDebug", "showErrorRetryOptionsDialog - state.timeoutMs: ${state.timeoutMs}")
-        
-        val resourceId = ProcessingErrorEventResourceMapper.getErrorResourceKey(error)
-        val errorMessage = getString(resourceId)
-        
-        // Also update the progress view with the error message
-        Log.e("ErrorHandling", "showErrorRetryOptionsDialog updating progress view with error: $error")
-        // Display error: $error
-        
-        // Create a custom dialog with multiple buttons and timeout
-        val view = layoutInflater.inflate(R.layout.dialog_error_retry_options, null)
-        val timeoutView = view.findViewById<TimeoutCountdownView>(R.id.timeout_countdown_view)
-        
-        // Set error description with the specific error message
-        view.findViewById<TextView>(R.id.text_error_description).text = errorMessage
-        
-        val dialog = AlertDialog.Builder(this)
-            .setTitle(R.string.error_retry_title)
-            .setCancelable(false)
-            .setView(view)
-            .create()
-        
-        // Set up button click listeners
-        view.findViewById<View>(R.id.btn_retry_immediately).setOnClickListener {
-            paymentViewModel.retryFailedPaymentImmediately(requestId)
-            dialog.dismiss()
-        }
-        
-        view.findViewById<View>(R.id.btn_retry_later).setOnClickListener {
-            paymentViewModel.retryFailedPaymentLater(requestId)
-            dialog.dismiss()
-        }
-        
-        view.findViewById<View>(R.id.btn_abort_current).setOnClickListener {
-            paymentViewModel.abortCurrentProcessor(requestId)
-            dialog.dismiss()
-        }
-        
-        view.findViewById<View>(R.id.btn_abort_all).setOnClickListener {
-            paymentViewModel.cancelAllPayments()
-            dialog.dismiss()
-        }
-        
-        // Start timeout countdown if specified
-        startDialogTimeoutCountdown(timeoutView, state.timeoutMs) {
-            // Auto-skip on timeout
-            paymentViewModel.skipProcessor(requestId)
-            dialog.dismiss()
-        }
-        
-        dialog.show()
-    }
+
+    
+
+    
+
 }
 
 // PaymentQueueAdapter has been moved to PaymentProcessingQueueView custom view
