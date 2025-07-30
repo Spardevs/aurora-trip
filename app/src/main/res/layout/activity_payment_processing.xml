@@ -92,7 +92,7 @@
                         android:text="@string/enqueue_pix_payment" />
                         
                     <Button
-                        android:id="@+id/btn_add_personal_pix"
+                        android:id="@+id/btn_add_merchant_pix"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
