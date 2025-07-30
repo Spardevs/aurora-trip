@@ -8,24 +8,24 @@ import java.util.UUID
  */
 sealed class UserInputRequest {
     abstract val id: String
-    abstract val timeoutMs: Long?
+    abstract val timeoutMs: Long
 
     /**
      * Request for customer receipt printing confirmation
      */
     data class CONFIRM_CUSTOMER_RECEIPT_PRINTING(
         override val id: String = UUID.randomUUID().toString(),
-        override val timeoutMs: Long? = 10_000L, // 10 seconds default timeout
+        override val timeoutMs: Long = 10_000L, // 10 seconds default timeout
     ) : UserInputRequest()
 
     data class CONFIRM_MERCHANT_PIX_KEY(
         override val id: String = UUID.randomUUID().toString(),
-        override val timeoutMs: Long? = 60_000L, // 60 seconds default timeout
+        override val timeoutMs: Long = 60_000L, // 60 seconds default timeout
     ) : UserInputRequest()
 
     data class MERCHANT_PIX_SCANNING(
         override val id: String = UUID.randomUUID().toString(),
-        override val timeoutMs: Long? = 60_000L, // 60 seconds default timeout
+        override val timeoutMs: Long = 60_000L, // 60 seconds default timeout
         val pixCode: String,
     ) : UserInputRequest()
 }

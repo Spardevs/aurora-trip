@@ -29,6 +29,11 @@ import br.com.ticpass.pos.queue.error.ProcessingErrorEventResourceMapper
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
 import br.com.ticpass.pos.queue.processors.payment.processors.utils.PaymentMethodProcessorMapper
 import br.com.ticpass.utils.toMoneyAsDouble
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * Manages all payment-related dialogs for the PaymentProcessingActivity.
@@ -195,18 +200,48 @@ class PaymentDialogManager(
     /**
      * Show a dialog to confirm customer receipt printing.
      */
-    fun showCustomerReceiptDialog(requestId: String) {
-        AlertDialog.Builder(context)
+    fun showCustomerReceiptDialog(requestId: String, timeoutMs: Long) {
+        var isDialogAnswered = false
+        var timeoutJob: Job? = null
+        
+        val dialog = AlertDialog.Builder(context)
             .setTitle(R.string.print_customer_receipt_title)
             .setMessage(R.string.print_customer_receipt_message)
             .setPositiveButton(R.string.yes) { _, _ ->
+                isDialogAnswered = true
+                timeoutJob?.cancel()
                 paymentViewModel.confirmCustomerReceiptPrinting(requestId, true)
             }
             .setNegativeButton(R.string.no) { _, _ ->
+                isDialogAnswered = true
+                timeoutJob?.cancel()
                 paymentViewModel.confirmCustomerReceiptPrinting(requestId, false)
             }
             .setCancelable(false)
-            .show()
+            .create()
+        
+        // Set up timeout mechanism if timeout is specified
+        if (timeoutMs > 0) {
+            timeoutJob = CoroutineScope(Dispatchers.IO).launch {
+                delay(timeoutMs)
+                if (!isDialogAnswered) {
+                    isDialogAnswered = true
+                    dialog.dismiss()
+                    // Default answer on timeout: NO (don't print receipt)
+                    paymentViewModel.confirmCustomerReceiptPrinting(requestId, true)
+                }
+            }
+        }
+        
+        // Handle dialog dismissal to cancel timeout
+        dialog.setOnDismissListener {
+            if (!isDialogAnswered) {
+                isDialogAnswered = true
+                timeoutJob?.cancel()
+            }
+        }
+        
+        dialog.show()
     }
 
     /**

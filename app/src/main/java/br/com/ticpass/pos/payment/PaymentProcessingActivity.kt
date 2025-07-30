@@ -266,7 +266,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
                         dialogManager.showConfirmNextPaymentProcessorDialog(uiState.requestId)
                     }
                     is PaymentProcessingUiState.ConfirmCustomerReceiptPrinting -> {
-                        dialogManager.showCustomerReceiptDialog(uiState.requestId)
+                        dialogManager.showCustomerReceiptDialog(uiState.requestId, uiState.timeoutMs)
                     }
                     is PaymentProcessingUiState.MerchantPixScanning -> {
                         dialogManager.showPixScanningDialog(uiState.requestId, uiState.pixCode)

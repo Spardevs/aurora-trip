@@ -36,7 +36,8 @@ sealed class PaymentProcessingUiState {
      * Confirmation state - waiting for user to confirm customer receipt printing
      */
     data class ConfirmCustomerReceiptPrinting(
-        val requestId: String
+        val requestId: String,
+        val timeoutMs: Long,
     ) : PaymentProcessingUiState()
 
     /**

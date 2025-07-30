@@ -106,6 +106,7 @@ class StateManagementUseCase @Inject constructor() {
             is UserInputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING -> {
                 updateState(PaymentProcessingUiState.ConfirmCustomerReceiptPrinting(
                     requestId = request.id,
+                    timeoutMs = request.timeoutMs
                 ))
             }
 
