@@ -125,11 +125,11 @@ class ShoppingCartScreen : AppCompatActivity() {
 
     private fun setupPaymentSheet() {
         val paymentMethods = listOf(
-            PaymentMethod("Dinheiro", R.drawable.cash),
-            PaymentMethod("Crédito", R.drawable.credit),
-            PaymentMethod("Débito", R.drawable.debit),
-            PaymentMethod("Vale Refeição", R.drawable.vr),
-            PaymentMethod("Pix", R.drawable.pix)
+            PaymentMethod("Dinheiro", R.drawable.cash, "cash"),
+            PaymentMethod("Crédito", R.drawable.credit, "credit_card"),
+            PaymentMethod("Débito", R.drawable.debit, "debit_card"),
+            PaymentMethod("Vale Refeição", R.drawable.vr, "vr"),
+            PaymentMethod("Pix", R.drawable.pix,  "pix")
         )
 
         val recyclerView = paymentSheet.findViewById<RecyclerView>(R.id.rv_payment_methods)
@@ -141,7 +141,7 @@ class ShoppingCartScreen : AppCompatActivity() {
             )
             recyclerView.adapter = PaymentAdapter(paymentMethods) { method ->
                 val intent = Intent(this, PaymentScreen::class.java)
-                intent.putExtra("payment_type", method.name)
+                intent.putExtra("payment_type", method.value)
                 startActivity(intent)
             }
             recyclerView.addItemDecoration(ProductsListScreen.HorizontalSpaceItemDecoration(16))

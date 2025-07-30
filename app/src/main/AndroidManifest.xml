@@ -149,7 +149,11 @@
         <activity android:name=".view.ui.shoppingCart.ShoppingCartScreen" />
 
         <activity android:name=".view.ui.payment.PaymentScreen" />
-
+        <meta-data
+            android:name="androidx.work.WorkManagerInitializer"
+            android:value="androidx.startup"
+            tools:node="remove" />
 
     </application>
+
 </manifest>

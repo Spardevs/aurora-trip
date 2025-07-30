@@ -76,5 +76,6 @@ class PaymentViewModel(
 
 data class PaymentMethod(
     val name: String,
-    val iconRes: Int
+    val iconRes: Int,
+    val value: String? = null
 )

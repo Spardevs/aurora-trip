@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2025 Ticpass. All rights reserved.
+  ~
+  ~ PROPRIETARY AND CONFIDENTIAL
+  ~
+  ~ This software is the confidential and proprietary information of Ticpass
+  ~ ("Confidential Information"). You shall not disclose such Confidential Information
+  ~ and shall use it only in accordance with the terms of the license agreement you
+  ~ entered into with Ticpass.
+  ~
+  ~ Unauthorized copying, distribution, or use of this software, via any medium,
+  ~ is strictly prohibited without the express written permission of Ticpass.
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:tint="?attr/colorControlNormal"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M200,760L760,760Q777,760 788.5,748.5Q800,737 800,720L800,320Q800,303 788.5,291.5Q777,280 760,280L200,280Q183,280 171.5,291.5Q160,303 160,320L160,720Q160,737 171.5,748.5Q183,760 200,760ZM200,800Q167,800 143.5,776.5Q120,753 120,720L120,320Q120,287 143.5,263.5Q167,240 200,240L760,240Q793,240 816.5,263.5Q840,287 840,320L840,720Q840,753 816.5,776.5Q793,800 760,800L200,800ZM280,640L680,640L680,560L280,560L280,640ZM280,520L440,520L440,440L280,440L280,520ZM520,520L680,520L680,440L520,440L520,520ZM160,760L160,760Q160,760 160,748.5Q160,737 160,720L160,320Q160,303 160,291.5Q160,280 160,280L160,280Q160,280 160,291.5Q160,303 160,320L160,720Q160,737 160,748.5Q160,760 160,760Z" />
+</vector>
