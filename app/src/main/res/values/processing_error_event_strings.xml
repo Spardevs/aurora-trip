@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Error strings for missing ProcessingErrorEvent types -->
+    <string name="error_remove_card_before_proceeding">Remove card before proceeding.</string>
     <string name="error_card_reach_not_allowed">Card reaching is not allowed, use chip instead. </string>
     <string name="error_processor_not_found">Processor not found!</string>
     <string name="error_invalid_transaction_buffer">Invalid buffer!</string>

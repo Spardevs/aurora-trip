@@ -11,6 +11,11 @@ enum class AcquirerPaymentErrorEvent(val code: String, val event: ProcessingErro
      * Invalid transaction. Contact support.
      */
     INVALID_TRANSACTION_S40("S40", ProcessingErrorEvent.INVALID_TRANSACTION),
+
+    /**
+     * Remove card before proceeding.
+     */
+    REMOVE_CARD_BEFORE_PROCEEDING_SV03("SV03", ProcessingErrorEvent.REMOVE_CARD_BEFORE_PROCEEDING),
     
     /**
      * Invalid transaction. Contact support.

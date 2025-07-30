@@ -819,6 +819,12 @@ sealed class ProcessingErrorEvent : BaseProcessingEvent {
     object INVALID_TRANSACTION : ProcessingErrorEvent()
 
     /**
+     * Remove card before proceeding.
+     * Remove the card from the reader before continuing.
+     */
+    object REMOVE_CARD_BEFORE_PROCEEDING : ProcessingErrorEvent()
+
+    /**
      * Use CHIP for this transaction.
      * Process using chip authentication method.
      */
