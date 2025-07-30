@@ -27,6 +27,7 @@ import br.com.ticpass.pos.R
 import br.com.ticpass.pos.payment.view.PaymentProcessingQueueView
 import br.com.ticpass.pos.payment.view.TimeoutCountdownView
 import br.com.ticpass.pos.payment.dialogs.PaymentDialogManager
+import br.com.ticpass.pos.payment.utils.PaymentUIUtils
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.models.ProcessingState
 import br.com.ticpass.pos.feature.payment.PaymentProcessingViewModel
@@ -321,15 +322,12 @@ class PaymentProcessingActivity : AppCompatActivity() {
      * Updates the PIN display in the UI with asterisks based on the current pinDigits list
      */
     private fun updatePinDisplay() {
-        val pinDisplay = "*".repeat(pinDigits.size)
-        val pinMessage = if (pinDigits.isEmpty()) {
-            getString(R.string.event_pin_requested)
-        } else {
-            getString(R.string.pin_entry_display, pinDisplay)
-        }
+        val pinMessage = PaymentUIUtils.generatePinDisplayMessage(pinDigits)
         
-        // Update both the main UI and dialog with the PIN display
-        // PIN message update: $pinMessage
+        // Update the progress dialog with the PIN display
+        dialogProgressTextView.text = "Processing payment..."
+        
+        // Update the event text with PIN information
         dialogEventTextView.text = pinMessage
     }
     
@@ -505,23 +503,19 @@ class PaymentProcessingActivity : AppCompatActivity() {
      * Uses ACQUIRER as the default processor type, or TRANSACTIONLESS if the checkbox is checked
      */
     private fun enqueuePayment(method: SystemPaymentMethod) {
-        // Generate a random amount between R$10 and R$200
-        val amount = (1000..20000).random()
-        val commission = 0 // No commission for example
-        
-        // Check if transactionless mode is enabled
         val transactionlessCheckbox = findViewById<android.widget.CheckBox>(R.id.checkbox_transactionless)
-        val finalProcessorType = if (transactionlessCheckbox.isChecked) {
-            PaymentProcessorType.TRANSACTIONLESS
-        } else {
-            PaymentMethodProcessorMapper.getProcessorTypeForMethod(method)
-        }
+        val isTransactionlessEnabled = PaymentUIUtils.isTransactionlessModeEnabled(transactionlessCheckbox)
+        
+        val paymentData = PaymentUIUtils.createPaymentData(
+            method = method,
+            isTransactionlessEnabled = isTransactionlessEnabled
+        )
         
         paymentViewModel.enqueuePayment(
-            amount = amount,
-            commission = commission,
-            method = method,
-            processorType = finalProcessorType
+            amount = paymentData.amount,
+            commission = paymentData.commission,
+            method = paymentData.method,
+            processorType = paymentData.processorType
         )
     }
     
@@ -530,10 +524,8 @@ class PaymentProcessingActivity : AppCompatActivity() {
      * This overrides the current progress display with an error message
      */
     private fun displayErrorMessage(error: ProcessingErrorEvent) {
-        // Get the string resource key from the error event using the mapper
-        val resourceId = ProcessingErrorEventResourceMapper.getErrorResourceKey(error)
-        val errorMessage = getString(resourceId)
-        Log.d("PaymentProcessingActivity", "Displaying error: $errorMessage")
+        val errorMessage = PaymentUIUtils.getErrorMessage(this, error)
+        PaymentUIUtils.logError("PaymentProcessingActivity", error, this)
 
         // Display error in progress area with error styling
         // Display error: $error
@@ -555,11 +547,10 @@ class PaymentProcessingActivity : AppCompatActivity() {
      * or user preferences instead of being hardcoded. This is just for demonstration purposes.
      */
     private fun confirmMerchantPixKey(requestId: String) {
-        // Hardcoded PIX key value instead of fetching from storage
-        val hardcodedPixKey = "payfor@stupid.codes"
+        val pixKey = PaymentUIUtils.getHardcodedPixKey()
         
         // Directly confirm the PIX key without showing a dialog
-        paymentViewModel.confirmMerchantPixKey(requestId, hardcodedPixKey)
+        paymentViewModel.confirmMerchantPixKey(requestId, pixKey)
     }
 
 
