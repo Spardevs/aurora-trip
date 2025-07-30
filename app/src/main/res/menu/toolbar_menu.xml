@@ -3,14 +3,6 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     >
-<!--    <item-->
-<!--        android:title="Buscar"-->
-<!--        android:id="@+id/action_search"-->
-<!--        android:icon="@drawable/ic_search_suggestion"-->
-<!--        android:iconTint="@android:color/white"-->
-<!--        app:showAsAction="ifRoom"-->
-<!--        tools:targetApi="26"-->
-<!--    />-->
 
     <item
         android:title="Carrinho"

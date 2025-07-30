@@ -58,5 +58,13 @@
             android:textSize="16sp"
             android:visibility="gone" />
 
+        <include
+            android:id="@+id/paymentSheet"
+            layout="@layout/payment_sheet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"/>
     </LinearLayout>
+
+
 </FrameLayout>

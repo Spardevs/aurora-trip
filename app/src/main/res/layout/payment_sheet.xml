@@ -34,17 +34,18 @@
             android:text="3 itens"
             android:textSize="12sp"
             android:textStyle="bold" />
-        <ImageView
+
+        <ImageButton
             android:id="@+id/btnClearAll"
-            android:clickable="true"
-            android:focusable="true"
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:layout_marginStart="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:duplicateParentState="false"
             android:src="@drawable/ic_delete"
-            android:background="#FF0000"
-            android:visibility="visible"
-            app:tint="?attr/colorErrorContainer" />
+            app:tint="?attr/colorError" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView

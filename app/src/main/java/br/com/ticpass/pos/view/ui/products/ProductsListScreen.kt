@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -14,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.tabs.TabLayout
 import br.com.ticpass.pos.R
+import br.com.ticpass.pos.view.ui.payment.PaymentScreen
 import br.com.ticpass.pos.view.ui.payment.adapter.PaymentAdapter
 import br.com.ticpass.pos.view.ui.products.adapter.ProductsAdapter
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
@@ -83,6 +85,22 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         } else {
             paymentSheet.visibility = View.GONE
         }
+
+        paymentSheet.findViewById<ImageButton>(R.id.btnClearAll).setOnClickListener {
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Limpar carrinho")
+                .setMessage("Deseja remover todos os itens do carrinho?")
+                .setPositiveButton("Sim") { dialog, _ ->
+                    shoppingCartManager.clearCart()
+                    Toast.makeText(requireContext(), "Carrinho limpo", Toast.LENGTH_SHORT).show()
+                    dialog.dismiss()
+                }
+                .setNegativeButton("Cancelar") { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .show()
+        }
+
     }
 
     private fun updatePaymentInfo(cart: ShoppingCartManager.ShoppingCart) {
@@ -103,6 +121,7 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
     )
     private fun setupPaymentMethods() {
         val recyclerView = paymentSheet.findViewById<RecyclerView>(R.id.rv_payment_methods)
+
         if (recyclerView.adapter == null) {
             recyclerView.layoutManager = LinearLayoutManager(
                 requireContext(),
@@ -110,7 +129,9 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
                 false
             )
             recyclerView.adapter = PaymentAdapter(paymentMethods) { method ->
-                Toast.makeText(requireContext(), "Método selecionado: ${method.name}", Toast.LENGTH_SHORT).show()
+                val intent = Intent(requireContext(), PaymentScreen::class.java)
+                intent.putExtra("payment_type", method.name)
+                startActivity(intent)
             }
             recyclerView.addItemDecoration(HorizontalSpaceItemDecoration(16))
         }

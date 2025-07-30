@@ -34,22 +34,18 @@ class ProductsActivity : DrawerBaseActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)
 
-        // Configurar o badge do carrinho
         cartMenuItem = menu.findItem(R.id.fab)
         val badgeLayout = LayoutInflater.from(this).inflate(R.layout.cart_badge, null)
         cartBadge = badgeLayout.findViewById(R.id.cart_badge)
         cartMenuItem.actionView = badgeLayout
 
-        // Configurar o clique na view personalizada
         badgeLayout.setOnClickListener {
             val intent = Intent(this, ShoppingCartScreen::class.java)
             startActivityForResult(intent, ProductsListScreen.REQUEST_CART_UPDATE)
         }
 
-        // Atualizar badge inicial
         updateCartBadge()
 
-        // Observar mudanças no carrinho
         shoppingCartManager.cartUpdates.observe(this) {
             updateCartBadge()
         }
@@ -67,19 +63,6 @@ class ProductsActivity : DrawerBaseActivity() {
         }
     }
 
-//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-//        return when (item.itemId) {
-//            R.id.action_search -> {
-//                true
-//            }
-//            R.id.fab -> {
-//                val intent = Intent(this, ShoppingCartScreen::class.java)
-//                startActivityForResult(intent, ProductsListScreen.REQUEST_CART_UPDATE)
-//                true
-//            }
-//            else -> super.onOptionsItemSelected(item)
-//        }
-//    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)

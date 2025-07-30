@@ -47,15 +47,6 @@ class PaymentActivity : Fragment() {
 
         setupRecyclerView()
         setupObservers()
-        setupClickListeners()
-    }
-
-    private fun setupClickListeners() {
-        binding.btnClearAll.setOnClickListener {
-            Log.d("PaymentActivity", "Clear button clicked")
-            shoppingCartManager.clearCart()
-            Toast.makeText(requireContext(), "Carrinho limpo", Toast.LENGTH_SHORT).show()
-        }
     }
 
     private fun setupRecyclerView() {
@@ -68,13 +59,15 @@ class PaymentActivity : Fragment() {
 
     private fun setupObservers() {
         shoppingCartManager.cartUpdates.observe(viewLifecycleOwner) {
-            Log.d("PaymentActivity", "CartUpdates received")
+            Log.d("PaymentActivity", "CartUpdates observed - Updating UI")
             updateCartUI()
         }
     }
 
     private fun updateCartUI() {
         val cart = shoppingCartManager.getCart()
+        Log.d("PaymentActivity", "Updating UI - Items: ${cart.items.values.sum()}, Total: ${cart.totalPrice}")
+
         binding.tvItemsCount.text = resources.getQuantityString(
             R.plurals.items_count,
             cart.items.values.sum(),

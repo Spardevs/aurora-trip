@@ -5,22 +5,22 @@
 
     <ImageView
         android:id="@+id/cart_icon"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:src="@drawable/ic_cart"
         android:iconTint="@android:color/white"
         />
 
     <TextView
         android:id="@+id/cart_badge"
-        android:layout_width="14dp"
-        android:layout_height="14dp"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
         android:layout_gravity="bottom|end"
         android:background="@drawable/badge_background"
         android:textColor="@android:color/white"
         android:gravity="center"
-        android:textSize="6sp"
-        android:layout_marginBottom="0dp"
+        android:textSize="10sp"
+        android:layout_marginBottom="20dp"
         android:layout_marginEnd="0dp"
         android:text="10"
         />
