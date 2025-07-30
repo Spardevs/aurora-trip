@@ -28,6 +28,7 @@ import br.com.ticpass.pos.payment.view.PaymentProcessingQueueView
 import br.com.ticpass.pos.payment.view.TimeoutCountdownView
 import br.com.ticpass.pos.payment.dialogs.PaymentDialogManager
 import br.com.ticpass.pos.payment.utils.PaymentUIUtils
+import br.com.ticpass.pos.payment.events.PaymentEventHandler
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.models.ProcessingState
 import br.com.ticpass.pos.feature.payment.PaymentProcessingViewModel
@@ -54,6 +55,9 @@ class PaymentProcessingActivity : AppCompatActivity() {
     // Dialog manager for handling all payment dialogs
     private lateinit var dialogManager: PaymentDialogManager
     
+    // Event handler for handling all payment events
+    private lateinit var eventHandler: PaymentEventHandler
+    
     // UI components
     private lateinit var queueView: PaymentProcessingQueueView
     
@@ -62,9 +66,6 @@ class PaymentProcessingActivity : AppCompatActivity() {
     private lateinit var dialogProgressTextView: TextView
     private lateinit var dialogProgressBar: android.widget.ProgressBar
     private lateinit var dialogEventTextView: TextView
-    
-    // For tracking PIN entry
-    private val pinDigits = mutableListOf<Int>()
     
     // For tracking progress
     private var totalPayments = 0
@@ -81,6 +82,13 @@ class PaymentProcessingActivity : AppCompatActivity() {
         
         // Initialize dialog manager
         dialogManager = PaymentDialogManager(this, layoutInflater, paymentViewModel)
+        
+        // Initialize event handler
+        eventHandler = PaymentEventHandler(
+            context = this,
+            dialogEventTextView = dialogEventTextView,
+            onPinDisplayUpdate = { updatePinDisplay() }
+        )
     }
     
     private fun setupViews() {
@@ -177,7 +185,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         // Observe UI events (one-time events from the ViewModel)
         lifecycleScope.launch {
             paymentViewModel.uiEvents.collect { event ->
-                handleUiEvent(event)
+                eventHandler.handleUiEvent(event)
             }
         }
         
@@ -243,7 +251,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         // Observe payment events
         lifecycleScope.launch {
             paymentViewModel.processingPaymentEvents.collectLatest { event ->
-                handlePaymentEvent(event)
+                eventHandler.handlePaymentEvent(event)
             }
         }
         
@@ -322,10 +330,8 @@ class PaymentProcessingActivity : AppCompatActivity() {
      * Updates the PIN display in the UI with asterisks based on the current pinDigits list
      */
     private fun updatePinDisplay() {
+        val pinDigits = eventHandler.getCurrentPinDigits()
         val pinMessage = PaymentUIUtils.generatePinDisplayMessage(pinDigits)
-        
-        // Update the progress dialog with the PIN display
-        dialogProgressTextView.text = "Processing payment..."
         
         // Update the event text with PIN information
         dialogEventTextView.text = pinMessage
@@ -333,166 +339,9 @@ class PaymentProcessingActivity : AppCompatActivity() {
     
 
     
-    private fun handlePaymentEvent(event: ProcessingPaymentEvent) {
-        // Handle PIN digit tracking
-        when (event) {
-            is ProcessingPaymentEvent.PIN_DIGIT_INPUT -> {
-                pinDigits.add(1) // Add a digit placeholder
-                updatePinDisplay()
-            }
-            is ProcessingPaymentEvent.PIN_DIGIT_REMOVED -> {
-                if (pinDigits.isNotEmpty()) {
-                    pinDigits.removeAt(pinDigits.lastIndex) // Remove last digit
-                    updatePinDisplay()
-                } else {
-                    // sometimes acquirers will emit a PIN_DIGIT_REMOVED event
-                    // even if no digits are present
-                    pinDigits.clear()
-                }
-            }
-            is ProcessingPaymentEvent.PIN_REQUESTED -> {
-                // Reset PIN digits when a new PIN is requested
-                pinDigits.clear()
-                updatePinDisplay()
-            }
-            is ProcessingPaymentEvent.PIN_OK -> {
-                // Clear PIN digits when PIN is confirmed
-                pinDigits.clear()
-            }
-            else -> { /* Other events don't affect PIN display */ }
-        }
-        
-        val eventMessage = when (event) {
-            is ProcessingPaymentEvent.START -> getString(R.string.event_start)
-            is ProcessingPaymentEvent.CARD_REACH_OR_INSERT -> getString(R.string.event_card_reach_or_insert)
-            is ProcessingPaymentEvent.APPROVAL_SUCCEEDED -> getString(R.string.event_approval_succeeded)
-            is ProcessingPaymentEvent.APPROVAL_DECLINED -> getString(R.string.event_approval_declined)
-            is ProcessingPaymentEvent.TRANSACTION_DONE -> getString(R.string.event_transaction_done)
-            is ProcessingPaymentEvent.TRANSACTION_PROCESSING -> getString(R.string.event_transaction_processing)
-            is ProcessingPaymentEvent.AUTHORIZING -> getString(R.string.event_authorizing)
-            is ProcessingPaymentEvent.CARD_BIN_REQUESTED -> getString(R.string.event_card_bin_requested)
-            is ProcessingPaymentEvent.CARD_BIN_OK -> getString(R.string.event_card_bin_ok)
-            is ProcessingPaymentEvent.CARD_HOLDER_REQUESTED -> getString(R.string.event_card_holder_requested)
-            is ProcessingPaymentEvent.CARD_HOLDER_OK -> getString(R.string.event_card_holder_ok)
-            is ProcessingPaymentEvent.CONTACTLESS_ERROR -> getString(R.string.event_contactless_error)
-            is ProcessingPaymentEvent.CONTACTLESS_ON_DEVICE -> getString(R.string.event_contactless_on_device)
-            is ProcessingPaymentEvent.CVV_OK -> getString(R.string.event_cvv_ok)
-            is ProcessingPaymentEvent.CVV_REQUESTED -> getString(R.string.event_cvv_requested)
-            is ProcessingPaymentEvent.DOWNLOADING_TABLES -> getString(R.string.event_downloading_tables)
-            is ProcessingPaymentEvent.SAVING_TABLES -> getString(R.string.event_saving_tables)
-            is ProcessingPaymentEvent.USE_CHIP -> getString(R.string.event_use_chip)
-            is ProcessingPaymentEvent.USE_MAGNETIC_STRIPE -> getString(R.string.event_use_magnetic_stripe)
-            is ProcessingPaymentEvent.CARD_REMOVAL_REQUESTING -> getString(R.string.event_card_removal_requesting)
-            is ProcessingPaymentEvent.KEY_INSERTED -> getString(R.string.event_key_inserted)
-            is ProcessingPaymentEvent.ACTIVATION_SUCCEEDED -> getString(R.string.event_activation_succeeded)
-            is ProcessingPaymentEvent.SOLVING_PENDING_ISSUES -> getString(R.string.event_solving_pending_issues)
-            is ProcessingPaymentEvent.PIN_REQUESTED -> getString(R.string.event_pin_requested)
-            is ProcessingPaymentEvent.CARD_INSERTED -> {
-                pinDigits.clear()
-                getString(R.string.event_card_inserted)
-            }
-            is ProcessingPaymentEvent.PIN_DIGIT_INPUT -> {
-                // For PIN input, show the PIN with asterisks
-                val pinDisplay = "*".repeat(pinDigits.size)
-                getString(R.string.event_pin_digit_input) + " $pinDisplay"
-            }
-            is ProcessingPaymentEvent.PIN_DIGIT_REMOVED -> {
-                // For PIN removal, show the updated PIN with asterisks
-                val pinDisplay = "*".repeat(pinDigits.size)
-                getString(R.string.event_pin_digit_removed) + " $pinDisplay"
-            }
-            is ProcessingPaymentEvent.CARD_REMOVAL_SUCCEEDED -> {
-                pinDigits.clear()
-                getString(R.string.event_card_removal_succeeded)
-            }
-            is ProcessingPaymentEvent.PIN_OK -> getString(R.string.event_pin_ok)
-            is ProcessingPaymentEvent.GENERIC_SUCCESS -> getString(R.string.event_generic_success)
-            is ProcessingPaymentEvent.GENERIC_ERROR -> getString(R.string.event_generic_error)
-            ProcessingPaymentEvent.CANCELLED -> getString(R.string.event_cancelled)
-        }
-        
-        // Update the payment progress view with the event message
-        // Event message update: $eventMessage
-        
-        // Update dialog with the event message
-        dialogEventTextView.text = eventMessage
-        
-        // Log the payment event using the dedicated method
-        // Payment event: $eventMessage
-    }
+
     
-    /**
-     * Handle one-time UI events from the ViewModel
-     */
-    private fun handleUiEvent(event: PaymentProcessingUiEvent) {
-        when (event) {
-            // Handle navigation events
-            is PaymentProcessingUiEvent.NavigateBack -> {
-                finish()
-            }
-            is PaymentProcessingUiEvent.NavigateToPaymentDetails -> {
-                // Example: Navigate to payment details
-                // val intent = Intent(this, PaymentDetailsActivity::class.java)
-                // intent.putExtra("paymentId", event.paymentId)
-                // startActivity(intent)
-                // Navigate to payment details: ${event.paymentId}
-            }
-            
-            // Handle message events
-            is PaymentProcessingUiEvent.ShowToast -> {
-                Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show()
-                // Toast message: ${event.message}
-            }
-            is PaymentProcessingUiEvent.ShowSnackbar -> {
-                val view = findViewById<View>(android.R.id.content)
-                val snackbar = com.google.android.material.snackbar.Snackbar.make(
-                    view, 
-                    event.message, 
-                    com.google.android.material.snackbar.Snackbar.LENGTH_LONG
-                )
-                event.actionLabel?.let { label ->
-                    snackbar.setAction(label) {
-                        // Handle snackbar action if needed
-                    }
-                }
-                snackbar.show()
-                // Snackbar message: ${event.message}
-            }
-            
-            // Handle dialog events
-            is PaymentProcessingUiEvent.ShowErrorDialog -> {
-                AlertDialog.Builder(this)
-                    .setTitle(event.title)
-                    .setMessage(event.message)
-                    .setPositiveButton("OK", null)
-                    .show()
-                // Error dialog: ${event.title} - ${event.message}
-            }
-            is PaymentProcessingUiEvent.ShowConfirmationDialog -> {
-                AlertDialog.Builder(this)
-                    .setTitle(event.title)
-                    .setMessage(event.message)
-                    .setPositiveButton("Yes") { _, _ -> 
-                        // Handle confirmation
-                        // Confirmation dialog: Yes
-                    }
-                    .setNegativeButton("No") { _, _ ->
-                        // Confirmation dialog: No
-                    }
-                    .show()
-                // Confirmation dialog: ${event.title} - ${event.message}
-            }
-            
-            // Handle payment events
-            is PaymentProcessingUiEvent.PaymentCompleted -> {
-                val amountStr = event.amount.toString()
-                // Payment ${event.paymentId} completed: $amountStr
-            }
-            is PaymentProcessingUiEvent.PaymentFailed -> {
-                // Payment ${event.paymentId} failed: ${event.error}
-            }
-        }
-    }
+
     
     // We now use EventLogView's methods directly
     
