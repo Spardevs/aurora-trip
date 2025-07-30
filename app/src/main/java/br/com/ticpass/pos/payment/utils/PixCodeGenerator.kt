@@ -6,6 +6,7 @@ import com.emv.qrcode.model.mpm.MerchantAccountInformationReservedAdditional
 import com.emv.qrcode.model.mpm.MerchantAccountInformationTemplate
 import com.emv.qrcode.model.mpm.MerchantPresentedMode
 import br.com.ticpass.utils.toMoney
+import br.com.ticpass.utils.toMoneyAsDouble
 import com.emv.qrcode.model.mpm.AdditionalDataFieldTemplate
 import java.text.Normalizer
 
@@ -87,7 +88,7 @@ class PixCodeGenerator {
         merchant.addMerchantAccountInformation(merchantAccountInformation)
         merchant.setMerchantCategoryCode(MERCHANT_CATEGORY_CODE)
         merchant.setTransactionCurrency(CURRENCY_CODE_BRL)
-        merchant.setTransactionAmount(amount.toMoney().toString())
+        merchant.setTransactionAmount(amount.toMoneyAsDouble().toString())
         merchant.setCountryCode(COUNTRY_CODE_BRAZIL)
         merchant.setMerchantName(normalizeText(options.merchantName).take(25))
         merchant.setMerchantCity(normalizeText(options.merchantCity).take(15))
