@@ -163,7 +163,7 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
                                             requestUserInput(
                                                 UserInputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING()
                                             )
-                                        }.value as Boolean
+                                        }.value as? Boolean ?: true
 
                                         if (userAccepted) onFinishActions?.doPrint(plugpag)
                                         else onFinishActions?.doNothing(plugpag)

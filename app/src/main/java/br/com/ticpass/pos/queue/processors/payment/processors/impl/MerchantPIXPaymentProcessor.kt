@@ -80,7 +80,7 @@ class MerchantPIXPaymentProcessor : PaymentProcessorBase() {
                 requestUserInput(
                     UserInputRequest.CONFIRM_MERCHANT_PIX_KEY()
                 )
-            }.value as String
+            }.value as? String ?: ""
 
             if (pixKey.isBlank()) {
                 throw PaymentProcessingException(
@@ -105,7 +105,7 @@ class MerchantPIXPaymentProcessor : PaymentProcessorBase() {
                 requestUserInput(
                     UserInputRequest.MERCHANT_PIX_SCANNING(pixCode = pixCode)
                 )
-            }.value as Boolean
+            }.value as? Boolean ?: true
 
             return didScan
         }
