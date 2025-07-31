@@ -40,6 +40,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
     private lateinit var dialogProgressBar: ProgressBar
     private lateinit var dialogEventTextView: TextView
     private lateinit var dialogCancelButton: Button
+    private lateinit var queueTitleTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Initialize SDK
@@ -86,6 +87,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         dialogProgressBar = dialogView.findViewById(R.id.progress_bar_dialog)
         dialogEventTextView = dialogView.findViewById(R.id.text_dialog_event)
         dialogCancelButton = dialogView.findViewById<Button>(R.id.btn_dialog_cancel)
+        queueTitleTextView = findViewById<TextView>(R.id.text_payment_queue_title)
 
         dialogCancelButton.setOnClickListener {
             // Handle cancel button click
@@ -162,7 +164,8 @@ class PaymentProcessingActivity : AppCompatActivity() {
             dialogProgressBar = dialogProgressBar,
             dialogEventTextView = dialogEventTextView,
             showProgressDialog = { showProgressDialog() },
-            hideProgressDialog = { hideProgressDialog() }
+            hideProgressDialog = { hideProgressDialog() },
+            queueTitleTextView = queueTitleTextView
         )
     }
     

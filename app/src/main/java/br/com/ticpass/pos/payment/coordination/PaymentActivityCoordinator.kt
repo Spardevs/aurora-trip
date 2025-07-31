@@ -31,6 +31,7 @@ class PaymentActivityCoordinator(
     private val dialogManager: PaymentDialogManager,
     private val eventHandler: PaymentEventHandler,
     private val queueView: PaymentProcessingQueueView,
+    private val queueTitleTextView: TextView,
     private val dialogProgressTextView: TextView,
     private val dialogProgressBar: ProgressBar,
     private val dialogEventTextView: TextView,
@@ -166,8 +167,8 @@ class PaymentActivityCoordinator(
         totalPayments = queueItems.size
         
         // Update the queue title with item count
-        val titleView = queueView.findViewById<TextView>(R.id.text_payment_queue_title)
-        titleView?.text = context.getString(R.string.payment_queue, queueItems.size)
+        val formattedTitle = String.format(context.getString(R.string.payment_queue), queueItems.size)
+        queueTitleTextView.text = formattedTitle
     }
     
     private fun updateProcessingProgress(current: Int, total: Int) {
