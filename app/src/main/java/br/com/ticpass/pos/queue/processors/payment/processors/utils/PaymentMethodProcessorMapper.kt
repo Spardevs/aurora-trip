@@ -26,7 +26,11 @@ object PaymentMethodProcessorMapper {
      * @param method The payment method
      * @return The corresponding processor type, or ACQUIRER if not found
      */
-    fun getProcessorTypeForMethod(method: SystemPaymentMethod): PaymentProcessorType {
+    fun getProcessorTypeForMethod(
+        method: SystemPaymentMethod,
+        isTransactionless: Boolean = false
+    ): PaymentProcessorType {
+        if (isTransactionless) return PaymentProcessorType.TRANSACTIONLESS
         return methodToProcessorMap[method] ?: PaymentProcessorType.ACQUIRER
     }
 }

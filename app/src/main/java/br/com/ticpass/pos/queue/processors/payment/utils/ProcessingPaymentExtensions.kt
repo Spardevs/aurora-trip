@@ -34,5 +34,6 @@ fun ProcessingPaymentEntity.toQueueItem(): ProcessingPaymentQueueItem {
         amount = amount,
         commission = commission,
         method = SystemPaymentMethod.fromValue(method),
+        isTransactionless = false
     )
 }

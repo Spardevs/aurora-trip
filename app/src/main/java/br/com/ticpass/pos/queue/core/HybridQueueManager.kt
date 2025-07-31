@@ -96,11 +96,6 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                 // Do nothing - memory only
             }
         }
-        
-        // Start processing if not already running
-//        if (!isProcessing) {
-//            startProcessing()
-//        }
     }
     
     // Persist all pending items (call when app goes to background)

@@ -34,7 +34,7 @@ class QueueManagementUseCase @Inject constructor() {
         amount: Int,
         commission: Int,
         method: SystemPaymentMethod,
-        processorType: PaymentProcessorType,
+        isTransactionless: Boolean,
         paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
         emitUiEvent: (PaymentProcessingUiEvent) -> Unit
     ): PaymentProcessingSideEffect {
@@ -43,8 +43,8 @@ class QueueManagementUseCase @Inject constructor() {
             amount = amount,
             commission = commission,
             method = method,
+            isTransactionless = isTransactionless,
             priority = 10,
-            processorType = processorType
         )
         emitUiEvent(PaymentProcessingUiEvent.ShowToast("Payment added to queue"))
         return PaymentProcessingSideEffect.EnqueuePaymentItem { paymentQueue.enqueue(paymentItem) }
@@ -82,7 +82,7 @@ class QueueManagementUseCase @Inject constructor() {
      * Update processor type for all queued items
      * Used when toggling transactionless mode
      */
-    fun updateAllProcessorTypes(
+    fun toggleTransactionless(
         useTransactionless: Boolean,
         paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
         emitUiEvent: (PaymentProcessingUiEvent) -> Unit
@@ -90,11 +90,7 @@ class QueueManagementUseCase @Inject constructor() {
         return PaymentProcessingSideEffect.UpdateAllProcessorTypes {
             val currentItems = paymentQueue.queueState.value
             val updatedItems = currentItems.map { item ->
-                if (useTransactionless) {
-                    item.copy(processorType = PaymentProcessorType.TRANSACTIONLESS)
-                } else {
-                    item.copy(processorType = PaymentMethodProcessorMapper.getProcessorTypeForMethod(item.method))
-                }
+                item.copy(isTransactionless = useTransactionless)
             }
             
             // Remove all items and re-add the updated ones

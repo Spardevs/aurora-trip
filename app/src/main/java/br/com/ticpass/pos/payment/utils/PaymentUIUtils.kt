@@ -25,23 +25,6 @@ object PaymentUIUtils {
     }
 
     /**
-     * Determine the processor type based on payment method and transactionless mode.
-     * @param method The payment method
-     * @param isTransactionlessEnabled Whether transactionless mode is enabled
-     * @return The appropriate processor type
-     */
-    fun determineProcessorType(
-        method: SystemPaymentMethod,
-        isTransactionlessEnabled: Boolean
-    ): PaymentProcessorType {
-        return if (isTransactionlessEnabled) {
-            PaymentProcessorType.TRANSACTIONLESS
-        } else {
-            PaymentMethodProcessorMapper.getProcessorTypeForMethod(method)
-        }
-    }
-
-    /**
      * Get error message string from ProcessingErrorEvent.
      * @param context Context for string resource access
      * @param error The processing error event
@@ -91,7 +74,7 @@ object PaymentUIUtils {
             amount = amount ?: generateRandomPaymentAmount(),
             commission = commission,
             method = method,
-            processorType = determineProcessorType(method, isTransactionlessEnabled)
+            isTransactionless = isTransactionlessEnabled
         )
     }
 
@@ -102,7 +85,7 @@ object PaymentUIUtils {
         val amount: Int,
         val commission: Int,
         val method: SystemPaymentMethod,
-        val processorType: PaymentProcessorType
+        var isTransactionless: Boolean,
     )
 
     /**

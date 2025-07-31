@@ -174,9 +174,9 @@ class PaymentProcessingViewModel @Inject constructor(
         amount: Int,
         commission: Int = 0,
         method: SystemPaymentMethod,
-        processorType: PaymentProcessorType = PaymentMethodProcessorMapper.getProcessorTypeForMethod(method)
+        isTransactionless: Boolean,
     ) {
-        dispatch(PaymentProcessingAction.EnqueuePayment(amount, commission, method, processorType))
+        dispatch(PaymentProcessingAction.EnqueuePayment(amount, commission, method, isTransactionless))
     }
     
     /**

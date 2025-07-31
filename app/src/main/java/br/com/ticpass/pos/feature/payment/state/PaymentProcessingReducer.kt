@@ -53,7 +53,7 @@ class PaymentProcessingReducer @Inject constructor(
                     amount = action.amount,
                     commission = action.commission,
                     method = action.method,
-                    processorType = action.processorType,
+                    isTransactionless = action.isTransactionless,
                     paymentQueue = paymentQueue,
                     emitUiEvent = emitUiEvent
                 )
@@ -155,7 +155,7 @@ class PaymentProcessingReducer @Inject constructor(
             
             // Transactionless mode actions
             is PaymentProcessingAction.UpdateAllProcessorTypes -> {
-                queueManagementUseCase.updateAllProcessorTypes(
+                queueManagementUseCase.toggleTransactionless(
                     useTransactionless = action.useTransactionless,
                     paymentQueue = paymentQueue,
                     emitUiEvent = emitUiEvent

@@ -19,7 +19,7 @@ sealed class PaymentProcessingAction {
         val amount: Int,
         val commission: Int = 0,
         val method: SystemPaymentMethod,
-        val processorType: PaymentProcessorType
+        val isTransactionless: Boolean
     ) : PaymentProcessingAction()
     data class CancelPayment(val paymentId: String) : PaymentProcessingAction()
     object CancelAllPayments : PaymentProcessingAction()

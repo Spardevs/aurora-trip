@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.queue.processors.payment.processors.core
 
+import android.util.Log
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.input.UserInputRequest
 import br.com.ticpass.pos.queue.input.UserInputResponse
@@ -12,6 +13,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import br.com.ticpass.pos.queue.processors.payment.processors.models.PaymentProcessorType
+import br.com.ticpass.pos.queue.processors.payment.processors.utils.PaymentMethodProcessorMapper
 
 /**
  * Dynamic Payment Processor
@@ -27,7 +29,8 @@ class DynamicPaymentProcessor(
     
     override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
         // Get the processor based on the item's processor type
-        val processor = processorMap[item.processorType] ?:
+        val processorType = PaymentMethodProcessorMapper.getProcessorTypeForMethod(item.method, item.isTransactionless)
+        val processor = processorMap[processorType] ?:
                         processorMap[PaymentProcessorType.ACQUIRER] ?: // Fallback to acquirer
                         return ProcessingResult.Error(ProcessingErrorEvent.PROCESSOR_NOT_FOUND)
         
@@ -60,7 +63,9 @@ class DynamicPaymentProcessor(
 
     override suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean {
         // Get the processor based on the item's processor type
-        val processor = processorMap[item?.processorType] ?:
+        val processorType =
+            item?.let { PaymentMethodProcessorMapper.getProcessorTypeForMethod(it.method, item.isTransactionless) }
+        val processor = processorMap[processorType] ?:
                         processorMap[PaymentProcessorType.ACQUIRER] ?: // Fallback to acquirer
                         return false
 

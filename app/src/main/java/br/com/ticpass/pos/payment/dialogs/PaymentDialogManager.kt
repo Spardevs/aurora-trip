@@ -92,15 +92,12 @@ class PaymentDialogManager(
                     // Get the modified values
                     val modifiedAmount = (amountEditText.text.toString().toDouble() * 100).toInt()
                     val modifiedMethod = paymentMethods[methodSpinner.selectedItemPosition]
-                    // Automatically determine processor type based on payment method
-                    val modifiedProcessorType = PaymentMethodProcessorMapper.getProcessorTypeForMethod(modifiedMethod)
 
                     paymentViewModel.confirmProcessor(
                         requestId = requestId,
                         modifiedItem = currentPayment.copy(
                             amount = modifiedAmount,
                             method = modifiedMethod,
-                            processorType = modifiedProcessorType
                         )
                     )
 
