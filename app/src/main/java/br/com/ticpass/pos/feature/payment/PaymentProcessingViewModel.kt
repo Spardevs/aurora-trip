@@ -193,6 +193,13 @@ class PaymentProcessingViewModel @Inject constructor(
     fun cancelAllPayments() {
         dispatch(PaymentProcessingAction.CancelAllPayments)
     }
+
+    /**
+     * Abort the current processor
+     */
+    fun abortCurrentProcessor() {
+        dispatch(PaymentProcessingAction.AbortCurrentPayment)
+    }
     
     // Processor-Level Input Handling
     
@@ -267,13 +274,6 @@ class PaymentProcessingViewModel @Inject constructor(
      */
     fun retryFailedPaymentLater(requestId: String) {
         handleFailedPayment(requestId, ErrorHandlingAction.RETRY_LATER)
-    }
-    
-    /**
-     * Abort the current processor and continue with the next item (queue-level input request)
-     */
-    fun abortCurrentProcessor(requestId: String) {
-        handleFailedPayment(requestId, ErrorHandlingAction.ABORT_CURRENT)
     }
     
     /**

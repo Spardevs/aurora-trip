@@ -79,7 +79,7 @@ class PaymentDialogManager(
             .setTitle(R.string.confirm_next_processor_title)
             .setView(dialogView)
             .setPositiveButton(R.string.proceed, null) // Set to null initially to prevent auto-dismiss
-            .setNegativeButton(R.string.cancel_payment, null) // Set to null initially to prevent auto-dismiss
+            .setNegativeButton(R.string.abort_current, null) // Set to null initially to prevent auto-dismiss
             .setNeutralButton(R.string.skip, null) // Cancel button to cancel the current payment
             .setCancelable(false)
             .create()
@@ -110,7 +110,7 @@ class PaymentDialogManager(
             
             val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
             negativeButton.setOnClickListener {
-                paymentViewModel.cancelPayment(currentPayment.id)
+                paymentViewModel.abortCurrentProcessor()
                 dialog.dismiss()
             }
             
@@ -175,7 +175,7 @@ class PaymentDialogManager(
         }
         
         view.findViewById<View>(R.id.btn_abort_current).setOnClickListener {
-            paymentViewModel.abortCurrentProcessor(requestId)
+            paymentViewModel.abortCurrentProcessor()
             dialog.dismiss()
         }
         

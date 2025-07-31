@@ -212,7 +212,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                             _queueInputRequests.emit(errorRequest)
                             
                             // Wait for response (this will be resumed when provideQueueInput is called)
-                            val response = suspendCancellableCoroutine<QueueInputResponse> { continuation ->
+                            val response = suspendCancellableCoroutine { continuation ->
                                 // Store the continuation to be resumed later
                                 pendingQueueInputContinuations[errorRequest.id] = continuation
                             }
@@ -244,6 +244,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                                 ErrorHandlingAction.ABORT_CURRENT -> {
                                     // Skip this processor but keep the item in queue
                                     // Mark as aborted but don't remove from queue
+                                    isProcessing = false
                                     val abortedItem = updateItemStatus(nextItem, QueueItemStatus.CANCELLED)
                                     inMemoryQueue[0] = abortedItem
                                     _queueState.value = inMemoryQueue.toList()
@@ -367,6 +368,27 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
         if (persistenceStrategy != PersistenceStrategy.NEVER) {
             scope.launch {
                 storage.remove(item)
+            }
+        }
+    }
+
+    // Abort the current payment processing
+    fun abortCurrentPayment() {
+        if (isProcessing) {
+            // Call the processor's abort method to perform graceful cleanup
+            scope.launch {
+                processor.abort(null)
+            }
+            isProcessing = false
+
+            // Remove the current item from the queue
+            if (inMemoryQueue.isNotEmpty()) {
+                val abortedItem = inMemoryQueue.firstOrNull()
+                _queueState.value = inMemoryQueue.toList()
+                if (abortedItem == null) return
+
+                // Update processing state
+                _processingState.value = ProcessingState.QueueIdle(null)
             }
         }
     }

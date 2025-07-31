@@ -48,7 +48,7 @@ open class QueueInputResponse(
         // Error handling responses
         
         /**
-         * Create an immediate retry response for ERROR_RETRY_OR_SKIP
+         * Create an immediate retry response for RETRY_IMMEDIATELY
          * Retries the same processor immediately without moving the item
          */
         fun retryImmediately(requestId: String): QueueInputResponse {
@@ -56,7 +56,7 @@ open class QueueInputResponse(
         }
 
         /**
-         * Create a deferred retry response for ERROR_RETRY_OR_SKIP
+         * Create a deferred retry response for RETRY_LATER
          * Moves the item to the end of the queue for later retry
          */
         fun retryLater(requestId: String): QueueInputResponse {
@@ -64,15 +64,15 @@ open class QueueInputResponse(
         }
 
         /**
-         * Create an abort current processor response for ERROR_RETRY_OR_SKIP
-         * Skips this processor but keeps the item in queue
+         * Create an abort current processor response for ABORT_CURRENT
+         * Abort this processor but keeps the item in queue
          */
         fun abortCurrentProcessor(requestId: String): QueueInputResponse {
             return QueueInputResponse(requestId, ErrorHandlingAction.ABORT_CURRENT)
         }
 
         /**
-         * Create an abort all processors response for ERROR_RETRY_OR_SKIP
+         * Create an abort all processors response for ABORT_ALL
          * Cancels the entire queue processing
          */
         fun abortAllProcessors(requestId: String): QueueInputResponse {

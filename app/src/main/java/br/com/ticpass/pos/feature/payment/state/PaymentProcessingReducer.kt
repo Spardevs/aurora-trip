@@ -68,6 +68,9 @@ class PaymentProcessingReducer @Inject constructor(
             is PaymentProcessingAction.CancelAllPayments -> {
                 queueManagementUseCase.cancelAllPayments(paymentQueue, emitUiEvent)
             }
+            is PaymentProcessingAction.AbortCurrentPayment -> {
+                queueManagementUseCase.abortCurrentPayment(paymentQueue, emitUiEvent)
+            }
             
             // Processor confirmation actions
             is PaymentProcessingAction.ConfirmProcessor<*> -> {

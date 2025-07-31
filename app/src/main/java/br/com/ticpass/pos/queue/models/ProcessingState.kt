@@ -11,7 +11,7 @@ sealed class ProcessingState<T : QueueItem> {
     /**
      * Queue is idle with next item ready to be processed
      */
-    data class QueueIdle<T : QueueItem>(val item: T) : ProcessingState<T>()
+    data class QueueIdle<T : QueueItem>(val item: T?) : ProcessingState<T>()
     
     /**
      * An item is currently being processed

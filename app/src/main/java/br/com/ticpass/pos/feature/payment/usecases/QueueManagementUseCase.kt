@@ -77,6 +77,14 @@ class QueueManagementUseCase @Inject constructor() {
         emitUiEvent(PaymentProcessingUiEvent.ShowToast("All payments cancelled"))
         return PaymentProcessingSideEffect.RemoveAllPaymentItems { paymentQueue.removeAll() }
     }
+
+    fun abortCurrentPayment(
+        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
+        emitUiEvent: (PaymentProcessingUiEvent) -> Unit
+    ): PaymentProcessingSideEffect {
+        emitUiEvent(PaymentProcessingUiEvent.ShowToast("Aborting current payment"))
+        return PaymentProcessingSideEffect.AbortCurrentPayment { paymentQueue.abortCurrentPayment() }
+    }
     
     /**
      * Update processor type for all queued items

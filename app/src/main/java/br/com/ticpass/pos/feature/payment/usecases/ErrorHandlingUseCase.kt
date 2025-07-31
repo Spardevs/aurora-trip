@@ -33,70 +33,26 @@ class ErrorHandlingUseCase @Inject constructor() {
         }
         
         // Update UI state for actions that continue processing
-        if (action == ErrorHandlingAction.RETRY_IMMEDIATELY || action == ErrorHandlingAction.RETRY_LATER) {
-            updateState(PaymentProcessingUiState.Processing)
-            
-            // Emit appropriate UI event
-            val message = if (action == ErrorHandlingAction.RETRY_IMMEDIATELY) {
-                "Retrying payment immediately"
-            } else {
-                "Payment moved to the end of the queue"
+        when (action) {
+            ErrorHandlingAction.RETRY_IMMEDIATELY, ErrorHandlingAction.RETRY_LATER -> {
+                updateState(PaymentProcessingUiState.Processing)
+
+                // Emit appropriate UI event
+                val message = if (action == ErrorHandlingAction.RETRY_IMMEDIATELY) {
+                    "Retrying payment immediately"
+                } else {
+                    "Payment moved to the end of the queue"
+                }
+                emitUiEvent(PaymentProcessingUiEvent.ShowToast(message))
             }
-            emitUiEvent(PaymentProcessingUiEvent.ShowToast(message))
-        } else if (action == ErrorHandlingAction.ABORT_CURRENT) {
-            emitUiEvent(PaymentProcessingUiEvent.ShowToast("Skipped current payment"))
-        } else if (action == ErrorHandlingAction.ABORT_ALL) {
-            emitUiEvent(PaymentProcessingUiEvent.ShowToast("Cancelled all payments"))
+            ErrorHandlingAction.ABORT_CURRENT -> {
+                emitUiEvent(PaymentProcessingUiEvent.ShowToast("Aborted current payment"))
+            }
+            ErrorHandlingAction.ABORT_ALL -> {
+                emitUiEvent(PaymentProcessingUiEvent.ShowToast("Cancelled all payments"))
+            }
         }
         
         return PaymentProcessingSideEffect.ProvideQueueInput { paymentQueue.provideQueueInput(response) }
-    }
-    
-    /**
-     * Retry a failed payment immediately
-     */
-    fun retryFailedPaymentImmediately(
-        requestId: String,
-        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
-        emitUiEvent: (PaymentProcessingUiEvent) -> Unit,
-        updateState: (PaymentProcessingUiState) -> Unit
-    ): PaymentProcessingSideEffect {
-        return handleFailedPayment(requestId, ErrorHandlingAction.RETRY_IMMEDIATELY, paymentQueue, emitUiEvent, updateState)
-    }
-    
-    /**
-     * Retry a failed payment later (move to end of queue)
-     */
-    fun retryFailedPaymentLater(
-        requestId: String,
-        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
-        emitUiEvent: (PaymentProcessingUiEvent) -> Unit,
-        updateState: (PaymentProcessingUiState) -> Unit
-    ): PaymentProcessingSideEffect {
-        return handleFailedPayment(requestId, ErrorHandlingAction.RETRY_LATER, paymentQueue, emitUiEvent, updateState)
-    }
-    
-    /**
-     * Abort the current processor
-     */
-    fun abortCurrentProcessor(
-        requestId: String,
-        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
-        emitUiEvent: (PaymentProcessingUiEvent) -> Unit,
-        updateState: (PaymentProcessingUiState) -> Unit
-    ): PaymentProcessingSideEffect {
-        return handleFailedPayment(requestId, ErrorHandlingAction.ABORT_CURRENT, paymentQueue, emitUiEvent, updateState)
-    }
-    
-    /**
-     * Abort all processors (cancel entire queue)
-     */
-    fun abortAllProcessors(
-        requestId: String,
-        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
-        emitUiEvent: (PaymentProcessingUiEvent) -> Unit,
-        updateState: (PaymentProcessingUiState) -> Unit
-    ): PaymentProcessingSideEffect {
-        return handleFailedPayment(requestId, ErrorHandlingAction.ABORT_ALL, paymentQueue, emitUiEvent, updateState)
     }
 }

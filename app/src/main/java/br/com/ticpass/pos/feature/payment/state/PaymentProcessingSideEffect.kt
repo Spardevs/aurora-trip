@@ -30,6 +30,11 @@ sealed class PaymentProcessingSideEffect {
      * Remove all payment items
      */
     data class RemoveAllPaymentItems(override val scope: suspend () -> Unit) : PaymentProcessingSideEffect()
+
+    /**
+     * Abort the current payment processing
+     */
+    data class AbortCurrentPayment( override val scope: suspend () -> Unit) : PaymentProcessingSideEffect()
     
     /**
      * Provide input to a processor

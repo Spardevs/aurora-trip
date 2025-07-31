@@ -73,6 +73,6 @@
     <string name="error_retry_description">Choose how to handle this payment error:</string>
     <string name="retry_immediately">Retry Immediately</string>
     <string name="retry_later">Retry Later</string>
-    <string name="abort_current">Skip This Payment</string>
-    <string name="abort_all">Cancel All Payments</string>
+    <string name="abort_current">Abort This Payment</string>
+    <string name="abort_all">Abort All Payments</string>
 </resources>

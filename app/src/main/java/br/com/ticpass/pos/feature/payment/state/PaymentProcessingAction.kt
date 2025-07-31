@@ -23,6 +23,7 @@ sealed class PaymentProcessingAction {
     ) : PaymentProcessingAction()
     data class CancelPayment(val paymentId: String) : PaymentProcessingAction()
     object CancelAllPayments : PaymentProcessingAction()
+    object AbortCurrentPayment : PaymentProcessingAction()
     
     // Processor input actions
     data class ConfirmProcessor<T: QueueItem>(val requestId: String, val modifiedItem: T) : PaymentProcessingAction()
