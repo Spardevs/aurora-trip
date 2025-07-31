@@ -2,7 +2,6 @@ package br.com.ticpass.pos.payment
 
 import android.app.AlertDialog
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
@@ -71,7 +70,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         val transactionlessCheckbox = findViewById<android.widget.CheckBox>(R.id.checkbox_transactionless)
         transactionlessCheckbox.setOnCheckedChangeListener { _, isChecked ->
             // Update all queued items when checkbox state changes
-            paymentViewModel.updateAllProcessorTypes(isChecked)
+            paymentViewModel.toggleTransactionless(isChecked)
         }
         
         // Create progress dialog

@@ -19,8 +19,6 @@ import br.com.ticpass.pos.queue.core.QueueItem
 import br.com.ticpass.pos.queue.processors.payment.utils.ProcessingPaymentQueueFactory
 import br.com.ticpass.pos.queue.processors.payment.data.ProcessingPaymentStorage
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
-import br.com.ticpass.pos.queue.processors.payment.processors.utils.PaymentMethodProcessorMapper
-import br.com.ticpass.pos.queue.processors.payment.processors.models.PaymentProcessorType
 import br.com.ticpass.pos.feature.payment.state.PaymentProcessingSideEffect
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -237,8 +235,8 @@ class PaymentProcessingViewModel @Inject constructor(
      * Update processor type for all queued items
      * Used when toggling transactionless mode
      */
-    fun updateAllProcessorTypes(useTransactionless: Boolean) {
-        dispatch(PaymentProcessingAction.UpdateAllProcessorTypes(useTransactionless))
+    fun toggleTransactionless(useTransactionless: Boolean) {
+        dispatch(PaymentProcessingAction.ToggleTransactionless(useTransactionless))
     }
     
     /**

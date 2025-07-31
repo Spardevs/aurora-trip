@@ -157,7 +157,7 @@ class PaymentProcessingReducer @Inject constructor(
             }
             
             // Transactionless mode actions
-            is PaymentProcessingAction.UpdateAllProcessorTypes -> {
+            is PaymentProcessingAction.ToggleTransactionless -> {
                 queueManagementUseCase.toggleTransactionless(
                     useTransactionless = action.useTransactionless,
                     paymentQueue = paymentQueue,

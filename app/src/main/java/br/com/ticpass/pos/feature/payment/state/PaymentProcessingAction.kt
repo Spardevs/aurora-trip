@@ -6,7 +6,6 @@ import br.com.ticpass.pos.queue.error.ErrorHandlingAction
 import br.com.ticpass.pos.queue.input.UserInputRequest
 import br.com.ticpass.pos.queue.models.ProcessingState
 import br.com.ticpass.pos.queue.input.QueueInputRequest
-import br.com.ticpass.pos.queue.processors.payment.processors.models.PaymentProcessorType
 
 /**
  * Represents an action that can be dispatched to the ViewModel
@@ -59,5 +58,5 @@ sealed class PaymentProcessingAction {
     data class ProcessorInputRequested(val request: UserInputRequest) : PaymentProcessingAction()
     
     // Transactionless mode actions
-    data class UpdateAllProcessorTypes(val useTransactionless: Boolean) : PaymentProcessingAction()
+    data class ToggleTransactionless(val useTransactionless: Boolean) : PaymentProcessingAction()
 }
