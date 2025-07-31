@@ -26,26 +26,26 @@ class ErrorHandlingUseCase @Inject constructor() {
         updateState: (PaymentProcessingUiState) -> Unit
     ): PaymentProcessingSideEffect {
         val response = when (action) {
-            ErrorHandlingAction.RETRY_IMMEDIATELY -> QueueInputResponse.retryImmediately(requestId)
-            ErrorHandlingAction.RETRY_LATER -> QueueInputResponse.retryLater(requestId)
-            ErrorHandlingAction.ABORT_CURRENT -> QueueInputResponse.abortCurrentProcessor(requestId)
-            ErrorHandlingAction.ABORT_ALL -> QueueInputResponse.abortAllProcessors(requestId)
+            ErrorHandlingAction.RETRY -> QueueInputResponse.onErrorRetry(requestId)
+            ErrorHandlingAction.SKIP -> QueueInputResponse.onErrorSkip(requestId)
+            ErrorHandlingAction.ABORT -> QueueInputResponse.onErrorAbort(requestId)
+            ErrorHandlingAction.ABORT_ALL -> QueueInputResponse.onErrorAbortAll(requestId)
         }
         
         // Update UI state for actions that continue processing
         when (action) {
-            ErrorHandlingAction.RETRY_IMMEDIATELY, ErrorHandlingAction.RETRY_LATER -> {
+            ErrorHandlingAction.RETRY, ErrorHandlingAction.SKIP -> {
                 updateState(PaymentProcessingUiState.Processing)
 
                 // Emit appropriate UI event
-                val message = if (action == ErrorHandlingAction.RETRY_IMMEDIATELY) {
+                val message = if (action == ErrorHandlingAction.RETRY) {
                     "Retrying payment immediately"
                 } else {
                     "Payment moved to the end of the queue"
                 }
                 emitUiEvent(PaymentProcessingUiEvent.ShowToast(message))
             }
-            ErrorHandlingAction.ABORT_CURRENT -> {
+            ErrorHandlingAction.ABORT -> {
                 emitUiEvent(PaymentProcessingUiEvent.ShowToast("Aborted current payment"))
             }
             ErrorHandlingAction.ABORT_ALL -> {

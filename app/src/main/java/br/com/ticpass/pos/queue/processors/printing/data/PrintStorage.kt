@@ -12,34 +12,38 @@ import kotlinx.coroutines.flow.map
  * Print Storage
  * Implements QueueStorage interface using Room DAO
  */
-class PrintStorage(private val printQueueDao: PrintQueueDao) : QueueStorage<PrintQueueItem> {
+class PrintStorage(private val dao: PrintQueueDao) : QueueStorage<PrintQueueItem> {
     
     override suspend fun insert(item: PrintQueueItem) {
-        printQueueDao.insert(item.toEntity())
+        dao.insert(item.toEntity())
     }
 
     override suspend fun update(item: PrintQueueItem) {
-        printQueueDao.update(item.toEntity())
+        dao.update(item.toEntity())
     }
 
     override suspend fun getNextPending(): PrintQueueItem? {
-        return printQueueDao.getNextPending()?.toQueueItem()
+        return dao.getNextPending()?.toQueueItem()
     }
 
     override suspend fun updateStatus(item: PrintQueueItem, status: QueueItemStatus) {
-        printQueueDao.updateStatus(item.id, status.name)
+        dao.updateStatus(item.id, status.name)
     }
 
     override suspend fun remove(item: PrintQueueItem) {
-        printQueueDao.delete(item.id)
+        dao.delete(item.id)
+    }
+
+    override suspend fun removeByStatus(statuses: List<QueueItemStatus>) {
+        dao.deleteByStatus(statuses.map { it.name })
     }
 
     override suspend fun getAllByStatus(status: QueueItemStatus): List<PrintQueueItem> {
-        return printQueueDao.getAllByStatus(status.name).map { it.toQueueItem() }
+        return dao.getAllByStatus(status.name).map { it.toQueueItem() }
     }
 
     override fun observeByStatus(status: QueueItemStatus): Flow<List<PrintQueueItem>> {
-        return printQueueDao.observeByStatus(status.name).map { entities ->
+        return dao.observeByStatus(status.name).map { entities ->
             entities.map { it.toQueueItem() }
         }
     }

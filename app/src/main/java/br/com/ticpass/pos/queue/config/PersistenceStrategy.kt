@@ -11,11 +11,6 @@ enum class PersistenceStrategy {
     IMMEDIATE,
 
     /**
-     * Save only when app goes to background
-     */
-    ON_BACKGROUND,
-
-    /**
      * Memory only (lose data on app kill)
      */
     NEVER

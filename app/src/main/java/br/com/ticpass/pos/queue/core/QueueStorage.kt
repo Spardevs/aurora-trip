@@ -12,6 +12,7 @@ interface QueueStorage<T : QueueItem> {
     suspend fun getNextPending(): T?
     suspend fun updateStatus(item: T, status: QueueItemStatus)
     suspend fun remove(item: T)
+    suspend fun removeByStatus(status: List<QueueItemStatus>)
     suspend fun getAllByStatus(status: QueueItemStatus): List<T>
     fun observeByStatus(status: QueueItemStatus): Flow<List<T>>
 }

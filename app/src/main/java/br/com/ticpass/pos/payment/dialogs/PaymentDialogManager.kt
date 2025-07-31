@@ -27,7 +27,6 @@ import br.com.ticpass.pos.payment.view.TimeoutCountdownView
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.error.ProcessingErrorEventResourceMapper
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
-import br.com.ticpass.pos.queue.processors.payment.processors.utils.PaymentMethodProcessorMapper
 import br.com.ticpass.utils.toMoneyAsDouble
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -79,7 +78,7 @@ class PaymentDialogManager(
             .setTitle(R.string.confirm_next_processor_title)
             .setView(dialogView)
             .setPositiveButton(R.string.proceed, null) // Set to null initially to prevent auto-dismiss
-            .setNegativeButton(R.string.abort_current, null) // Set to null initially to prevent auto-dismiss
+            .setNegativeButton(R.string.abort, null) // Set to null initially to prevent auto-dismiss
             .setNeutralButton(R.string.skip, null) // Cancel button to cancel the current payment
             .setCancelable(false)
             .create()
@@ -110,7 +109,7 @@ class PaymentDialogManager(
             
             val negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE)
             negativeButton.setOnClickListener {
-                paymentViewModel.abortCurrentProcessor()
+                paymentViewModel.abortPayment()
                 dialog.dismiss()
             }
             
@@ -164,23 +163,18 @@ class PaymentDialogManager(
             .create()
         
         // Set up button click listeners
-        view.findViewById<View>(R.id.btn_retry_immediately).setOnClickListener {
+        view.findViewById<View>(R.id.btn_retry).setOnClickListener {
             paymentViewModel.retryFailedPaymentImmediately(requestId)
             dialog.dismiss()
         }
         
-        view.findViewById<View>(R.id.btn_retry_later).setOnClickListener {
+        view.findViewById<View>(R.id.btn_skip).setOnClickListener {
             paymentViewModel.retryFailedPaymentLater(requestId)
             dialog.dismiss()
         }
         
-        view.findViewById<View>(R.id.btn_abort_current).setOnClickListener {
-            paymentViewModel.abortCurrentProcessor()
-            dialog.dismiss()
-        }
-        
-        view.findViewById<View>(R.id.btn_abort_all).setOnClickListener {
-            paymentViewModel.cancelAllPayments()
+        view.findViewById<View>(R.id.btn_abort).setOnClickListener {
+            paymentViewModel.abortPayment()
             dialog.dismiss()
         }
         

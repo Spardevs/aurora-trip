@@ -65,16 +65,11 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                 val existingItems = storage.getAllByStatus(QueueItemStatus.PENDING)
                 inMemoryQueue.addAll(existingItems)
                 _queueState.value = inMemoryQueue.toList()
-                
-                if (inMemoryQueue.isNotEmpty()) {
-//                    startProcessing()
-                }
             }
         }
     }
     
-    // Enqueue item
-    suspend fun enqueue(item: T) {
+    fun enqueue(item: T) {
         // Fast: Update in-memory first (immediate UI update)
         inMemoryQueue.add(item)
         inMemoryQueue.sortByDescending { it.priority } // Keep sorted by priority
@@ -88,35 +83,11 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                     storage.insert(item)
                 }
             }
-            PersistenceStrategy.ON_BACKGROUND -> {
-                // Add to pending persistence set
-                pendingPersistence.add(item)
-            }
             PersistenceStrategy.NEVER -> {
                 // Do nothing - memory only
             }
         }
     }
-    
-    // Persist all pending items (call when app goes to background)
-    suspend fun persistPendingItems() {
-        if (persistenceStrategy == PersistenceStrategy.ON_BACKGROUND && pendingPersistence.isNotEmpty()) {
-            scope.launch {
-                pendingPersistence.forEach { item ->
-                    storage.insert(item)
-                }
-                pendingPersistence.clear()
-            }.join() // Wait for completion
-        }
-    }
-    
-    // Check if there are items waiting to be persisted
-    val hasPendingPersistence: Boolean
-        get() = pendingPersistence.isNotEmpty()
-    
-    // Get count of items waiting to be persisted
-    val pendingPersistenceCount: Int
-        get() = pendingPersistence.size
     
     // Get queue size
     val size: Int get() = inMemoryQueue.size
@@ -136,9 +107,8 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                 
                 // Check if we need to confirm before processing the next item
                 if (startMode == ProcessorStartMode.CONFIRMATION) {
-                    Log.d("HybridQueueManager", "Confirmation mode enabled, showing confirmation dialog")
                     val nextItemIndex = inMemoryQueue.indexOf(nextItem)
-                    
+
                     // Use generic confirmation request - let the UI layer interpret item-specific data
                     val confirmRequest = QueueInputRequest.CONFIRM_NEXT_PROCESSOR(
                         currentItemIndex = nextItemIndex,
@@ -151,7 +121,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                     _queueInputRequests.emit(confirmRequest)
                     
                     // Wait for response (this will be resumed when provideQueueInput is called)
-                    val response = suspendCancellableCoroutine<QueueInputResponse> { continuation ->
+                    val response = suspendCancellableCoroutine { continuation ->
                         // Store the continuation to be resumed later
                         pendingQueueInputContinuations[confirmRequest.id] = continuation
                     }
@@ -179,7 +149,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                     when (result) {
                         is ProcessingResult.Success -> {
                             // Remove from queue and mark as completed
-                            inMemoryQueue.removeFirstOrNull()
+                            val doneItem = inMemoryQueue.removeFirstOrNull()
                             _queueState.value = inMemoryQueue.toList()
                             
                             // Remove from pending persistence
@@ -192,7 +162,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                                 }
                             }
                             
-                            _processingState.value = ProcessingState.ItemDone(processingItem)
+                            if(doneItem != null) _processingState.value = ProcessingState.ItemDone(doneItem)
                         }
                         
                         is ProcessingResult.Error -> {
@@ -221,104 +191,32 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                             val action = response.getErrorHandlingAction()
                             
                             when (action) {
-                                ErrorHandlingAction.RETRY_IMMEDIATELY -> {
-                                    // Retry the same processor immediately without moving the item
-                                    _processingState.value = ProcessingState.ItemRetrying(processingItem)
-                                    // Continue with the same item (don't remove from queue)
+                                ErrorHandlingAction.RETRY -> {
+                                    retry()
                                     continue
                                 }
-                                ErrorHandlingAction.RETRY_LATER -> {
-                                    // Move to end of queue for later retry
-                                    inMemoryQueue.removeFirstOrNull()
-                                    val retryItem = updateItemStatus(nextItem, QueueItemStatus.PENDING)
-                                    inMemoryQueue.add(retryItem)
-                                    _queueState.value = inMemoryQueue.toList()
-                                    
-                                    // Add to pending persistence if needed
-                                    if (persistenceStrategy == PersistenceStrategy.ON_BACKGROUND) {
-                                        pendingPersistence.add(retryItem)
-                                    }
-                                    
-                                    _processingState.value = ProcessingState.ItemRetrying(processingItem)
+                                ErrorHandlingAction.SKIP -> {
+                                    skip()
                                 }
-                                ErrorHandlingAction.ABORT_CURRENT -> {
-                                    // Skip this processor but keep the item in queue
-                                    // Mark as aborted but don't remove from queue
-                                    isProcessing = false
-                                    val abortedItem = updateItemStatus(nextItem, QueueItemStatus.CANCELLED)
-                                    inMemoryQueue[0] = abortedItem
-                                    _queueState.value = inMemoryQueue.toList()
-                                    
-                                    // Call the processor's abort method with the current item
-                                    scope.launch {
-                                        processor.abort(processingItem)
-                                    }
-                                    
-                                    // Update storage if using persistence
-                                    if (persistenceStrategy != PersistenceStrategy.NEVER) {
-                                        scope.launch {
-                                            storage.updateStatus(abortedItem,  QueueItemStatus.CANCELLED)
-                                        }
-                                    }
-                                    
-                                    _processingState.value = ProcessingState.ItemSkipped(abortedItem)
+                                ErrorHandlingAction.ABORT -> {
+                                    abort()
                                 }
                                 ErrorHandlingAction.ABORT_ALL -> {
-                                    // Cancel the entire queue processing
-                                    isProcessing = false
-                                    
-                                    // Call the processor's abort method to perform graceful cleanup
-                                    scope.launch {
-                                        processor.abort(null)
-                                    }
-                                    
-                                    // Remove all items from the queue
-                                    val removedItems = removeAll()
-                                    
-                                    _processingState.value = ProcessingState.QueueCanceled(null)
+                                    abortAll()
                                     break
                                 }
-                                else -> {
-                                    // Default: Skip this item (remove from queue and mark as failed)
-                                    inMemoryQueue.removeFirstOrNull()
-                                    _queueState.value = inMemoryQueue.toList()
-                                    
-                                    // Remove from pending persistence
-                                    pendingPersistence.removeAll { it.id == processingItem.id }
-                                    
-                                    // Update storage if using persistence
-                                    if (persistenceStrategy != PersistenceStrategy.NEVER) {
-                                        scope.launch {
-                                            storage.updateStatus(processingItem, QueueItemStatus.FAILED)
-                                        }
-                                    }
-                                    
-                                    _processingState.value = ProcessingState.ItemFailed(processingItem, result.event)
-                                }
+                                null -> { /* no-op */ }
                             }
                         }
                     }
 
                 } catch (e: Exception) {
                     Log.e("HybridQueueManager", "Error processing item ${nextItem.id}: ${e.message}")
-                    // Handle unexpected errors
-                    inMemoryQueue.removeFirstOrNull()
-                    _queueState.value = inMemoryQueue.toList()
-                    
-                    // Remove from pending persistence
-                    pendingPersistence.removeAll { it.id == nextItem.id }
                     
                     _processingState.value = ProcessingState.ItemFailed(
                         nextItem,
                         ProcessingErrorEvent.GENERIC
                     )
-                    
-                    // Update storage if using persistence
-                    if (persistenceStrategy != PersistenceStrategy.NEVER) {
-                        scope.launch {
-                            storage.updateStatus(nextItem, QueueItemStatus.FAILED)
-                        }
-                    }
                 }
             }
             
@@ -326,23 +224,31 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
             
             // Check if we've processed all items
             if (inMemoryQueue.isEmpty()) {
-                _processingState.value = ProcessingState.QueueDone(null)
+                _processingState.value = ProcessingState.QueueDone()
             } else {
                 _processingState.value = null
             }
         }
     }
-    
-    // Helper to update item status
+
+    /**
+     * Update the status of an item in the queue
+     *
+     * @param item The item to update
+     * @param status The new status to set
+     * @return The updated item (or a copy of it)
+     */
     private fun updateItemStatus(item: T, status: QueueItemStatus): T {
-        // This is a bit tricky with generics. In a real implementation,
-        // you would need to handle this based on your concrete item types
-        // For now, we return the original item as we can't easily create a copy with modified status
+        item.status = status
+        scope.launch { storage.update(item) }
         return item
     }
-    
-    // Clear completed items
-    suspend fun clearCompleted() {
+
+    /**
+     * Clear all completed items from the queue
+     * This will also remove them from storage if persistence is enabled
+     */
+    fun clearCompleted() {
         if (persistenceStrategy != PersistenceStrategy.NEVER) {
             scope.launch {
                 storage.getAllByStatus(QueueItemStatus.COMPLETED).forEach { item ->
@@ -352,7 +258,75 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
         }
     }
 
-    // Remove item from queue
+    /**
+     * Abort the current item processing gracefully
+     * This will stop the processor and gracefully abort the current item
+     */
+    fun abort() {
+        isProcessing = false
+
+        val currentItem = getCurrentItem()
+        if(currentItem != null) {
+            scope.launch { processor.abort(currentItem) }
+            _processingState.value = ProcessingState.ItemAborted(currentItem)
+        }
+    }
+
+    /**
+     * Abort all processing.
+     * This will stop any active processor.
+     */
+    private fun abortAll() {
+        // Cancel the entire queue processing
+        isProcessing = false
+
+        // Call the processor's abort method to perform graceful cleanup
+        scope.launch { processor.abort(null) }
+
+        _processingState.value = ProcessingState.QueueAborted()
+    }
+
+    /**
+     * Retry the current item processing.
+     * This will set the processing state to retrying
+     * and allow the processor to handle it again.
+     */
+    private fun retry() {
+        val currentItem = getCurrentItem()
+        if (currentItem != null) _processingState.value = ProcessingState.ItemRetrying(currentItem)
+
+    }
+
+    /**
+     * Retry the current item later.
+     * This will move the item to the end of the queue
+     * and update its status to PENDING.
+     */
+    private fun skip() {
+        val currentItem = inMemoryQueue.removeFirstOrNull()
+        if (currentItem == null) {
+            _processingState.value = ProcessingState.QueueIdle()
+            return
+        }
+
+        val skipItem = updateItemStatus(currentItem, QueueItemStatus.PENDING)
+        inMemoryQueue.add(skipItem)
+        _queueState.value = inMemoryQueue.toList()
+
+        // Add to pending persistence if needed
+        if (persistenceStrategy == PersistenceStrategy.IMMEDIATE) {
+            pendingPersistence.add(skipItem)
+        }
+
+        _processingState.value = ProcessingState.ItemSkipped(skipItem)
+    }
+
+    /**
+     * Remove a specific item from the queue.
+     * This will also remove it from storage if persistence is enabled.
+     *
+     * @param item The item to remove
+     */
     suspend fun remove(item: T) {
         if (isProcessing) processor.abort(null)
         isProcessing = false
@@ -371,36 +345,14 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
             }
         }
     }
-
-    // Abort the current payment processing
-    fun abortCurrentPayment() {
-        if (isProcessing) {
-            // Call the processor's abort method to perform graceful cleanup
-            scope.launch {
-                processor.abort(null)
-            }
-            isProcessing = false
-
-            // Remove the current item from the queue
-            if (inMemoryQueue.isNotEmpty()) {
-                val abortedItem = inMemoryQueue.firstOrNull()
-                _queueState.value = inMemoryQueue.toList()
-                if (abortedItem == null) return
-
-                // Update processing state
-                _processingState.value = ProcessingState.QueueIdle(null)
-            }
-        }
-    }
     
     /**
-     * Remove all items from the queue at once
+     * Clears the entire queue items (which are not done).
      * This is more efficient than removing items individually
      * Also ensures any active processors are properly aborted
      */
-    suspend fun removeAll() {
-        if (isProcessing) processor.abort(null)
-        isProcessing = false
+    suspend fun clearQueue() {
+        abortAll()
         
         // Clear in-memory queue
         inMemoryQueue.clear()
@@ -411,25 +363,13 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
         if (persistenceStrategy != PersistenceStrategy.NEVER) {
             scope.launch {
                 // Remove all items from storage
-                val allItems = storage.getAllByStatus(QueueItemStatus.PENDING) + 
-                              storage.getAllByStatus(QueueItemStatus.PROCESSING)
-                allItems.forEach { item ->
-                    storage.remove(item)
-                }
-            }.join()
-        }
-    }
-    
-    // Force persist all items (useful for testing or manual persistence)
-    suspend fun forcePersist() {
-        if (persistenceStrategy != PersistenceStrategy.NEVER) {
-            scope.launch {
-                // Persist all in-memory items
-                inMemoryQueue.forEach { item ->
-                    storage.insert(item)
-                }
-                // Clear pending persistence
-                pendingPersistence.clear()
+                val allItems = listOf(
+                    QueueItemStatus.PENDING,
+                    QueueItemStatus.PROCESSING,
+                    QueueItemStatus.FAILED,
+                    QueueItemStatus.CANCELLED
+                )
+                storage.removeByStatus(allItems)
             }.join()
         }
     }
@@ -453,14 +393,16 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
         if (inMemoryQueue.isNotEmpty()) {
             inMemoryQueue[0] = modifiedItem
             _queueState.value = inMemoryQueue.toList()
-            
-            // Update persistence if needed
-            if (persistenceStrategy == PersistenceStrategy.IMMEDIATE) {
-                scope.launch {
-                    storage.update(modifiedItem)
+
+            when (persistenceStrategy) {
+                PersistenceStrategy.IMMEDIATE -> {
+                    scope.launch {
+                        storage.update(modifiedItem)
+                    }
                 }
-            } else if (persistenceStrategy == PersistenceStrategy.ON_BACKGROUND) {
-                pendingPersistence.add(modifiedItem)
+                PersistenceStrategy.NEVER -> {
+                    // Do nothing, memory only
+                }
             }
         }
     }
@@ -470,7 +412,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
      * 
      * @param response The response to the queue input request
      */
-    suspend fun provideQueueInput(response: QueueInputResponse) {
+    fun provideQueueInput(response: QueueInputResponse) {
         val continuation = pendingQueueInputContinuations.remove(response.requestId)
         if (continuation != null) {
             continuation.resume(response)

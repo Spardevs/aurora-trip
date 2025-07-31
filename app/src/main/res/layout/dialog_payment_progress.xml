@@ -47,6 +47,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="16dp"
-        android:text="@string/cancel_all_payments" />
+        android:text="@string/abort" />
 
 </LinearLayout>

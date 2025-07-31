@@ -20,35 +20,40 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp" />
 
-    <Button
-        android:id="@+id/btn_retry_immediately"
+    <!-- Buttons in a single row -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="@string/retry_immediately"
-        android:textAllCaps="false" />
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
 
-    <Button
-        android:id="@+id/btn_retry_later"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="@string/retry_later"
-        android:textAllCaps="false" />
+        <Button
+            android:id="@+id/btn_retry"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp"
+            android:text="@string/retry"
+            android:textAllCaps="false" />
 
-    <Button
-        android:id="@+id/btn_abort_current"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="@string/abort_current"
-        android:textAllCaps="false" />
+        <Button
+            android:id="@+id/btn_skip"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="2dp"
+            android:text="@string/skip"
+            android:textAllCaps="false" />
 
-    <Button
-        android:id="@+id/btn_abort_all"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/abort_all"
-        android:textAllCaps="false" />
+        <Button
+            android:id="@+id/btn_abort"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:text="@string/abort"
+            android:textAllCaps="false" />
+    </LinearLayout>
 
 </LinearLayout>

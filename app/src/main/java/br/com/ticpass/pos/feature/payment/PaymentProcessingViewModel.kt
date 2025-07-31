@@ -189,13 +189,13 @@ class PaymentProcessingViewModel @Inject constructor(
      * Uses a single operation to remove all items at once
      */
     fun cancelAllPayments() {
-        dispatch(PaymentProcessingAction.CancelAllPayments)
+        dispatch(PaymentProcessingAction.ClearQueue)
     }
 
     /**
      * Abort the current processor
      */
-    fun abortCurrentProcessor() {
+    fun abortPayment() {
         dispatch(PaymentProcessingAction.AbortCurrentPayment)
     }
     
@@ -263,7 +263,7 @@ class PaymentProcessingViewModel @Inject constructor(
      * This will retry the same processor without moving the item
      */
     fun retryFailedPaymentImmediately(requestId: String) {
-        handleFailedPayment(requestId, ErrorHandlingAction.RETRY_IMMEDIATELY)
+        handleFailedPayment(requestId, ErrorHandlingAction.RETRY)
     }
     
     /**
@@ -271,7 +271,7 @@ class PaymentProcessingViewModel @Inject constructor(
      * This will move the item to the end of the queue and continue with the next item
      */
     fun retryFailedPaymentLater(requestId: String) {
-        handleFailedPayment(requestId, ErrorHandlingAction.RETRY_LATER)
+        handleFailedPayment(requestId, ErrorHandlingAction.SKIP)
     }
     
     /**

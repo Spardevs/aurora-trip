@@ -25,6 +25,9 @@ interface PrintQueueDao {
     @Query("DELETE FROM print_queue WHERE id = :id")
     suspend fun delete(id: String)
 
+    @Query("DELETE FROM payment_queue WHERE status IN (:statuses)")
+    suspend fun deleteByStatus(statuses: List<String>)
+
     @Query("SELECT * FROM print_queue WHERE status = :status ORDER BY priority DESC")
     suspend fun getAllByStatus(status: String): List<PrintEntity>
 

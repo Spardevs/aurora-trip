@@ -21,7 +21,7 @@ sealed class PaymentProcessingAction {
         val isTransactionless: Boolean
     ) : PaymentProcessingAction()
     data class CancelPayment(val paymentId: String) : PaymentProcessingAction()
-    object CancelAllPayments : PaymentProcessingAction()
+    object ClearQueue : PaymentProcessingAction()
     object AbortCurrentPayment : PaymentProcessingAction()
     
     // Processor input actions

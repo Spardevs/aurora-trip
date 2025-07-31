@@ -42,7 +42,7 @@ class ConfirmationUseCase @Inject constructor() {
         paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>
     ): PaymentProcessingSideEffect {
         return PaymentProcessingSideEffect.ProvideQueueInput {
-            paymentQueue.provideQueueInput(QueueInputResponse.skip(requestId)) 
+            paymentQueue.provideQueueInput(QueueInputResponse.onErrorSkip(requestId))
         }
     }
     

@@ -25,7 +25,7 @@ open class QueueInputResponse(
         /**
          * Create a canceled response
          */
-        fun canceled(requestId: String): QueueInputResponse {
+        fun cancelled(requestId: String): QueueInputResponse {
             return QueueInputResponse(requestId, null, true)
         }
 
@@ -35,8 +35,6 @@ open class QueueInputResponse(
         fun proceed(requestId: String): QueueInputResponse {
             return QueueInputResponse(requestId, true)
         }
-        
-        // Payment-specific responses have been moved to PaymentQueueInputResponse class
 
         /**
          * Create a skip response for CONFIRM_NEXT_PROCESSOR
@@ -48,34 +46,34 @@ open class QueueInputResponse(
         // Error handling responses
         
         /**
-         * Create an immediate retry response for RETRY_IMMEDIATELY
+         * Create an immediate retry response for RETRY
          * Retries the same processor immediately without moving the item
          */
-        fun retryImmediately(requestId: String): QueueInputResponse {
-            return QueueInputResponse(requestId, ErrorHandlingAction.RETRY_IMMEDIATELY)
+        fun onErrorRetry(requestId: String): QueueInputResponse {
+            return QueueInputResponse(requestId, ErrorHandlingAction.RETRY)
         }
 
         /**
-         * Create a deferred retry response for RETRY_LATER
+         * Create a deferred retry response for SKIP
          * Moves the item to the end of the queue for later retry
          */
-        fun retryLater(requestId: String): QueueInputResponse {
-            return QueueInputResponse(requestId, ErrorHandlingAction.RETRY_LATER)
+        fun onErrorSkip(requestId: String): QueueInputResponse {
+            return QueueInputResponse(requestId, ErrorHandlingAction.SKIP)
         }
 
         /**
-         * Create an abort current processor response for ABORT_CURRENT
+         * Create an abort current processor response for ABORT
          * Abort this processor but keeps the item in queue
          */
-        fun abortCurrentProcessor(requestId: String): QueueInputResponse {
-            return QueueInputResponse(requestId, ErrorHandlingAction.ABORT_CURRENT)
+        fun onErrorAbort(requestId: String): QueueInputResponse {
+            return QueueInputResponse(requestId, ErrorHandlingAction.ABORT)
         }
 
         /**
          * Create an abort all processors response for ABORT_ALL
          * Cancels the entire queue processing
          */
-        fun abortAllProcessors(requestId: String): QueueInputResponse {
+        fun onErrorAbortAll(requestId: String): QueueInputResponse {
             return QueueInputResponse(requestId, ErrorHandlingAction.ABORT_ALL)
         }
     }

@@ -8,43 +8,54 @@ import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
  * Represents the current state of a queue or item being processed
  */
 sealed class ProcessingState<T : QueueItem> {
+
+    /**
+     * All processing was canceled
+     */
+    class QueueCanceled<T : QueueItem> : ProcessingState<T>()
+
+    /**
+     * Queue processing is complete (all items processed)
+     */
+    class QueueDone<T : QueueItem> : ProcessingState<T>()
+
+    /**
+     * The whole queue has been aborted
+     */
+    class QueueAborted<T : QueueItem> : ProcessingState<T>()
+
     /**
      * Queue is idle with next item ready to be processed
      */
-    data class QueueIdle<T : QueueItem>(val item: T?) : ProcessingState<T>()
+    class QueueIdle<T : QueueItem> : ProcessingState<T>()
     
     /**
      * An item is currently being processed
      */
-    data class ItemProcessing<T : QueueItem>(val item: T) : ProcessingState<T>()
+    class ItemProcessing<T : QueueItem>(val item: T) : ProcessingState<T>()
     
     /**
      * An item has been successfully processed
      */
-    data class ItemDone<T : QueueItem>(val item: T) : ProcessingState<T>()
+    class ItemDone<T : QueueItem>(val item: T) : ProcessingState<T>()
+
+    /**
+     * An item has been aborted and will not be processed for now
+     */
+    class ItemAborted<T : QueueItem>(val item: T) : ProcessingState<T>()
     
     /**
      * An item has failed processing with an error
      */
-    data class ItemFailed<T : QueueItem>(val item: T, val error: ProcessingErrorEvent) : ProcessingState<T>()
+    class ItemFailed<T : QueueItem>(val item: T, val error: ProcessingErrorEvent) : ProcessingState<T>()
     
     /**
      * An item is being retried
      */
-    data class ItemRetrying<T : QueueItem>(val item: T) : ProcessingState<T>()
+    class ItemRetrying<T : QueueItem>(val item: T) : ProcessingState<T>()
     
     /**
      * An item was skipped but remains in queue
      */
     data class ItemSkipped<T : QueueItem>(val item: T) : ProcessingState<T>()
-    
-    /**
-     * All processing was canceled
-     */
-    data class QueueCanceled<T : QueueItem>(val item: T?) : ProcessingState<T>()
-    
-    /**
-     * Queue processing is complete (all items processed)
-     */
-    data class QueueDone<T : QueueItem>(val item: T?) : ProcessingState<T>()
 }

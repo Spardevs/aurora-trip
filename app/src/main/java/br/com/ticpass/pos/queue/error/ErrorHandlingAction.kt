@@ -8,17 +8,17 @@ enum class ErrorHandlingAction {
     /**
      * Retry the same processor immediately without moving the item
      */
-    RETRY_IMMEDIATELY,
+    RETRY,
 
     /**
      * Move the item to the end of the queue for later retry
      */
-    RETRY_LATER,
+    SKIP,
 
     /**
      * Skip this processor but keep the item in queue
      */
-    ABORT_CURRENT,
+    ABORT,
 
     /**
      * Cancel the entire queue processing

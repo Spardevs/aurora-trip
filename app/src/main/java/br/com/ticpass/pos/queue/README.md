@@ -47,11 +47,11 @@ sequenceDiagram
             HQM-->>VM: queueInputRequests.emit(ErrorHandlingRequest)
             VM-->>HQM: respondToInput(ErrorHandlingAction)
             
-            alt RETRY_IMMEDIATELY
+            alt RETRY
                 HQM->>QP: process(item) [retry]
-            else RETRY_LATER
+            else SKIP
                 HQM->>HQM: Move item to end of queue
-            else ABORT_CURRENT
+            else ABORT
                 HQM->>QP: abort(item)
                 HQM->>QS: updateStatus(item, "aborted")
             else ABORT_ALL
@@ -263,7 +263,7 @@ The queue system has two distinct retry mechanisms that serve different purposes
    - Examples: temporary network issues, hardware resets, or situations where the processor wants to try again with different parameters
    - This is a processor-initiated decision
 
-2. **ErrorHandlingAction (RETRY_IMMEDIATELY, RETRY_LATER)**:
+2. **ErrorHandlingAction (RETRY, SKIP)**:
    - User-initiated actions in response to an error that the processor couldn't handle
    - Comes into play after a processor has already failed (returned `ProcessingResult.Error`)
    - Requires user interaction through the UI to decide how to proceed
@@ -272,8 +272,8 @@ The queue system has two distinct retry mechanisms that serve different purposes
 
 In summary:
 - `ProcessingResult.Retry`: "I (the processor) need to try again automatically"
-- `ErrorHandlingAction.RETRY_IMMEDIATELY`: "The user wants to retry the failed processor right now"
-- `ErrorHandlingAction.RETRY_LATER`: "The user wants to move this item to the end of the queue and try again later"
+- `ErrorHandlingAction.RETRY`: "The user wants to retry the failed processor right now"
+- `ErrorHandlingAction.SKIP`: "The user wants to move this item to the end of the queue and try again later"
 
 This separation allows for both automatic retries by the processor and user-directed retries after failures, providing flexibility in handling different error scenarios.
 
@@ -548,7 +548,7 @@ paymentQueue.queueInputRequests.collect { request ->
         onRetryImmediately = {
           viewModel.retryFailedPaymentImmediately(request.id)
         },
-        onRetryLater = {
+        ononSkip = {
           viewModel.retryFailedPaymentLater(request.id)
         },
         onAbortCurrent = {

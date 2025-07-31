@@ -7,7 +7,7 @@ package br.com.ticpass.pos.queue.core
 interface QueueItem {
     val id: String
     val priority: Int
-    val status: QueueItemStatus
+    var status: QueueItemStatus
 }
 
 enum class QueueItemStatus {

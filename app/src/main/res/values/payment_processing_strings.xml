@@ -12,6 +12,7 @@
     <string name="enqueue_personal_pix_payment">Meu PIX</string>
     <string name="start_processing">Start Processing</string>
     <string name="cancel_all_payments">Cancel All</string>
+    <string name="clear_queue">Limpar Lista</string>
     
     <!-- Processing Event Messages -->
     <string name="event_start">Starting payment process</string>
@@ -68,11 +69,9 @@
     <string name="processor_type">Processor Type</string>
     <string name="edit_payment_note">You can modify payment details before proceeding</string>
     
-    <!-- Payment Processing Dialog Strings -->
     <string name="error_retry_title">Payment Error</string>
     <string name="error_retry_description">Choose how to handle this payment error:</string>
-    <string name="retry_immediately">Retry Immediately</string>
-    <string name="retry_later">Retry Later</string>
-    <string name="abort_current">Abort This Payment</string>
+    <string name="retry">Retry</string>
+    <string name="abort">Abort</string>
     <string name="abort_all">Abort All Payments</string>
 </resources>

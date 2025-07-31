@@ -32,6 +32,10 @@ class ProcessingPaymentStorage(private val dao: ProcessingPaymentQueueDao) : Que
     override suspend fun remove(item: ProcessingPaymentQueueItem) {
         dao.delete(item.id)
     }
+
+    override suspend fun removeByStatus(statuses: List<QueueItemStatus>) {
+        dao.deleteByStatus(statuses.map { it.name })
+    }
     
     override suspend fun getAllByStatus(status: QueueItemStatus): List<ProcessingPaymentQueueItem> {
         return dao.getAllByStatus(status.name).map { it.toQueueItem() }

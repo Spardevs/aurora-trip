@@ -4,8 +4,6 @@ import br.com.ticpass.pos.feature.payment.state.PaymentProcessingUiEvent
 import br.com.ticpass.pos.payment.models.SystemPaymentMethod
 import br.com.ticpass.pos.queue.core.HybridQueueManager
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
-import br.com.ticpass.pos.queue.processors.payment.processors.utils.PaymentMethodProcessorMapper
-import br.com.ticpass.pos.queue.processors.payment.processors.models.PaymentProcessorType
 import br.com.ticpass.pos.feature.payment.state.PaymentProcessingSideEffect
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
 import java.util.UUID
@@ -70,12 +68,12 @@ class QueueManagementUseCase @Inject constructor() {
     /**
      * Cancel all payments
      */
-    fun cancelAllPayments(
+    fun clearQueue(
         paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
         emitUiEvent: (PaymentProcessingUiEvent) -> Unit
     ): PaymentProcessingSideEffect {
         emitUiEvent(PaymentProcessingUiEvent.ShowToast("All payments cancelled"))
-        return PaymentProcessingSideEffect.RemoveAllPaymentItems { paymentQueue.removeAll() }
+        return PaymentProcessingSideEffect.ClearPaymentQueue { paymentQueue.clearQueue() }
     }
 
     fun abortCurrentPayment(
@@ -83,7 +81,7 @@ class QueueManagementUseCase @Inject constructor() {
         emitUiEvent: (PaymentProcessingUiEvent) -> Unit
     ): PaymentProcessingSideEffect {
         emitUiEvent(PaymentProcessingUiEvent.ShowToast("Aborting current payment"))
-        return PaymentProcessingSideEffect.AbortCurrentPayment { paymentQueue.abortCurrentPayment() }
+        return PaymentProcessingSideEffect.AbortCurrentPayment { paymentQueue.abort() }
     }
     
     /**
@@ -102,7 +100,7 @@ class QueueManagementUseCase @Inject constructor() {
             }
             
             // Remove all items and re-add the updated ones
-            paymentQueue.removeAll()
+            paymentQueue.clearQueue()
             updatedItems.forEach { paymentQueue.enqueue(it) }
             
             val message = if (useTransactionless) {

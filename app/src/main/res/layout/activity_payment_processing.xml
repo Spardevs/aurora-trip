@@ -176,12 +176,12 @@
                     android:text="@string/start_processing" />
 
                 <Button
-                    android:id="@+id/btn_cancel_all"
+                    android:id="@+id/clear_list"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="4dp"
-                    android:text="@string/cancel_all_payments" />
+                    android:text="@string/clear_queue" />
             </LinearLayout>
 
             <!-- Space below action buttons -->

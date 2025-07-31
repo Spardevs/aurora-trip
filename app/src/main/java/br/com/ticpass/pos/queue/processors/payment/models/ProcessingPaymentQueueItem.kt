@@ -13,7 +13,7 @@ import java.util.UUID
 data class ProcessingPaymentQueueItem(
     override val id: String = UUID.randomUUID().toString(),
     override val priority: Int = 0,
-    override val status: QueueItemStatus = QueueItemStatus.PENDING,
+    override var status: QueueItemStatus = QueueItemStatus.PENDING,
     val customerReceiptPrinting: SystemCustomerReceiptPrinting = SystemCustomerReceiptPrinting.CONFIRMATION,
     val amount: Int,
     val commission: Int,

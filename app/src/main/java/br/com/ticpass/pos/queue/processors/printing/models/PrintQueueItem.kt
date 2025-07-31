@@ -16,7 +16,7 @@ data class PrintQueueItem(
     val paperSize: PaperSize = PaperSize.RECEIPT,
     val printerId: String? = null,
     val metadata: Map<String, String> = emptyMap(),
-    override val status: QueueItemStatus
+    override var status: QueueItemStatus
 ) : QueueItem {
     /**
      * Available paper sizes for printing

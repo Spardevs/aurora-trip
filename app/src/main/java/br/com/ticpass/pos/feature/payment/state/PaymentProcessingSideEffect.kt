@@ -29,7 +29,7 @@ sealed class PaymentProcessingSideEffect {
     /**
      * Remove all payment items
      */
-    data class RemoveAllPaymentItems(override val scope: suspend () -> Unit) : PaymentProcessingSideEffect()
+    data class ClearPaymentQueue(override val scope: suspend () -> Unit) : PaymentProcessingSideEffect()
 
     /**
      * Abort the current payment processing
