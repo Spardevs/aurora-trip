@@ -27,34 +27,17 @@ import android.os.Handler
 import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.preferencesDataStore
 import br.com.ticpass.pos.view.ui.login.LoginScreen
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import br.com.ticpass.Constants.ALERT_DUE_PAYMENTS_INTERVAL
 import br.com.ticpass.Constants.CHECK_DUE_PAYMENTS_INTERVAL
 import br.com.ticpass.Constants.EVENT_SYNC_INTERVAL
 import br.com.ticpass.Constants.POS_SYNC_INTERVAL
 import br.com.ticpass.Constants.REMOVE_OLD_RECORDS_INTERVAL
 import br.com.ticpass.Constants.TELEMETRY_INTERVAL
-import br.com.ticpass.Constants.getAppName
 import br.com.ticpass.pos.data.acquirers.workers.jobs.syncEvent
 import br.com.ticpass.pos.data.acquirers.workers.jobs.syncPos
 import br.com.ticpass.pos.data.activity.ProductsActivity
@@ -62,18 +45,15 @@ import br.com.ticpass.pos.data.event.ForYouViewModel
 import br.com.ticpass.pos.data.room.AuthManager
 import br.com.ticpass.pos.data.room.service.GPSService
 import br.com.ticpass.pos.view.ui.permissions.PermissionsActivity
-import com.airbnb.lottie.compose.LottieConstants
 import com.topjohnwu.superuser.internal.UiThreadHandler.handler
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Date
 import javax.inject.Inject
 import kotlin.getValue
 import kotlin.toString
-//import stone.utils.Stone
 
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user")

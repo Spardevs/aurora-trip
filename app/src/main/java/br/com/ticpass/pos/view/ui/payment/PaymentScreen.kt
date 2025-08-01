@@ -15,8 +15,6 @@ class PaymentScreen : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_payment)
 
-
-
         val paymentType = intent.getStringExtra("payment_type") ?: run {
             Log.e("PaymentScreen", "Payment type is null or not provided")
             return
