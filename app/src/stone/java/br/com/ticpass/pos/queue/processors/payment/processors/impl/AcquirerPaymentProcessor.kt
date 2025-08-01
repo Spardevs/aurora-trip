@@ -2,8 +2,8 @@ package br.com.ticpass.pos.queue.processors.payment.processors.impl
 
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.models.ProcessingResult
-import br.com.ticpass.pos.queue.payment.models.ProcessingPaymentQueueItem
-import br.com.ticpass.pos.queue.payment.processors.core.PaymentProcessorBase
+import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
+import br.com.ticpass.pos.queue.processors.payment.processors.core.PaymentProcessorBase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
