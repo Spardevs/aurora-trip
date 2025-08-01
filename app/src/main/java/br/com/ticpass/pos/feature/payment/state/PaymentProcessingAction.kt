@@ -29,6 +29,8 @@ sealed class PaymentProcessingAction {
 
     data class SkipProcessor(val requestId: String) : PaymentProcessingAction()
     
+    data class SkipProcessorOnError(val requestId: String) : PaymentProcessingAction()
+    
     // Error handling actions
     data class HandleFailedPayment(
         val requestId: String,

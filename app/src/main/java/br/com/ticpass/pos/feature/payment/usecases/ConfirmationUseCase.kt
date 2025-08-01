@@ -35,9 +35,22 @@ class ConfirmationUseCase @Inject constructor() {
     }
     
     /**
-     * Skip the current processor
+     * Skip the current processor (for confirmation dialogs)
      */
     fun skipProcessor(
+        requestId: String,
+        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>
+    ): PaymentProcessingSideEffect {
+        return PaymentProcessingSideEffect.ProvideQueueInput {
+            paymentQueue.provideQueueInput(QueueInputResponse.skip(requestId))
+        }
+    }
+    
+    /**
+     * Skip the current processor on error (for error retry dialogs)
+     * This moves the item to the end of the queue for later retry
+     */
+    fun skipProcessorOnError(
         requestId: String,
         paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>
     ): PaymentProcessingSideEffect {

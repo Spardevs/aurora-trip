@@ -87,6 +87,12 @@ class PaymentProcessingReducer @Inject constructor(
                     paymentQueue = paymentQueue
                 )
             }
+            is PaymentProcessingAction.SkipProcessorOnError -> {
+                confirmationUseCase.skipProcessorOnError(
+                    requestId = action.requestId,
+                    paymentQueue = paymentQueue
+                )
+            }
             
             // Error handling actions
             is PaymentProcessingAction.HandleFailedPayment -> {

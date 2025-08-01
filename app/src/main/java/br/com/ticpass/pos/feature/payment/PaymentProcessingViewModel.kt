@@ -246,6 +246,14 @@ class PaymentProcessingViewModel @Inject constructor(
         dispatch(PaymentProcessingAction.SkipProcessor(requestId))
     }
     
+    /**
+     * Skip the current processor on error (for error retry dialogs)
+     * This moves the item to the end of the queue for later retry
+     */
+    fun skipProcessorOnError(requestId: String) {
+        dispatch(PaymentProcessingAction.SkipProcessorOnError(requestId))
+    }
+    
     // Error Handling
     
     /**
@@ -262,7 +270,7 @@ class PaymentProcessingViewModel @Inject constructor(
      * Retry a failed payment immediately (queue-level input request)
      * This will retry the same processor without moving the item
      */
-    fun retryFailedPaymentImmediately(requestId: String) {
+    fun retryPayment(requestId: String) {
         handleFailedPayment(requestId, ErrorHandlingAction.RETRY)
     }
     
@@ -270,14 +278,14 @@ class PaymentProcessingViewModel @Inject constructor(
      * Retry a failed payment later (queue-level input request)
      * This will move the item to the end of the queue and continue with the next item
      */
-    fun retryFailedPaymentLater(requestId: String) {
+    fun skipPayment(requestId: String) {
         handleFailedPayment(requestId, ErrorHandlingAction.SKIP)
     }
     
     /**
      * Abort all processors and stop processing (queue-level input request)
      */
-    fun abortAllProcessors(requestId: String) {
+    fun abortAllPayments(requestId: String) {
         handleFailedPayment(requestId, ErrorHandlingAction.ABORT_ALL)
     }
 }

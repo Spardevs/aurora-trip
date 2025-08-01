@@ -115,7 +115,7 @@ class PaymentDialogManager(
             
             val neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
             neutralButton.setOnClickListener {
-                // Cancel the current payment
+                // Skip the current payment
                 paymentViewModel.skipProcessor(requestId)
                 dialog.dismiss()
                 // Show toast notification that payment was canceled
@@ -164,12 +164,12 @@ class PaymentDialogManager(
         
         // Set up button click listeners
         view.findViewById<View>(R.id.btn_retry).setOnClickListener {
-            paymentViewModel.retryFailedPaymentImmediately(requestId)
+            paymentViewModel.retryPayment(requestId)
             dialog.dismiss()
         }
         
         view.findViewById<View>(R.id.btn_skip).setOnClickListener {
-            paymentViewModel.retryFailedPaymentLater(requestId)
+            paymentViewModel.skipProcessorOnError(requestId)
             dialog.dismiss()
         }
         
@@ -181,7 +181,7 @@ class PaymentDialogManager(
         // Start timeout countdown if specified
         startDialogTimeoutCountdown(timeoutView, state.timeoutMs) {
             // Auto-skip on timeout
-            paymentViewModel.skipProcessor(requestId)
+            paymentViewModel.skipProcessorOnError(requestId)
             dialog.dismiss()
         }
         
