@@ -298,13 +298,14 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
      * This will move the item to the end of the queue
      * and update its status to PENDING.
      */
-    private fun skip() {
+    private suspend fun skip() {
         val currentItem = inMemoryQueue.removeFirstOrNull()
         if (currentItem == null) {
             _processingState.value = ProcessingState.QueueIdle()
             return
         }
 
+        processor.abort(currentItem)
         val skipItem = updateItemStatus(currentItem, QueueItemStatus.PENDING)
         inMemoryQueue.add(skipItem)
         _queueState.value = inMemoryQueue.toList()
