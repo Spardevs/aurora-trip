@@ -184,9 +184,16 @@ The basic unit of work in the queue system. All queue items must implement this 
 ```kotlin
 interface QueueItem {
     val id: String
-    val timestamp: Long
     val priority: Int
-    val status: QueueItemStatus
+    var status: QueueItemStatus
+}
+
+enum class QueueItemStatus {
+    PENDING,    // Item is waiting to be processed
+    PROCESSING, // Item is currently being processed
+    COMPLETED,  // Item has been processed successfully
+    FAILED,     // Item processing failed
+    CANCELLED   // Item processing was cancelled
 }
 ```
 
@@ -196,9 +203,11 @@ Processes queue items and returns results. Generic to work with any queue item t
 ```kotlin
 interface QueueProcessor<T : QueueItem, E : BaseProcessingEvent> {
     val events: SharedFlow<E>
-    val inputRequests: SharedFlow<InputRequest>
+    val userInputRequests: SharedFlow<UserInputRequest>
+    
     suspend fun process(item: T): ProcessingResult
-    suspend fun provideInput(response: InputResponse)
+    suspend fun provideUserInput(response: UserInputResponse)
+    suspend fun abort(item: T? = null): Boolean
 }
 ```
 
@@ -208,11 +217,13 @@ Handles persistence of queue items, whether in memory, database, or other storag
 ```kotlin
 interface QueueStorage<T : QueueItem> {
     suspend fun insert(item: T)
-    suspend fun getNextPending(): T?
-    suspend fun updateStatus(item: T, status: String)
+    suspend fun update(item: T)
     suspend fun remove(item: T)
-    suspend fun getAllByStatus(status: String): List<T>
-    fun observeByStatus(status: String): Flow<List<T>>
+    suspend fun updateStatus(item: T, status: QueueItemStatus)
+    suspend fun removeByStatus(statuses: List<QueueItemStatus>)
+    suspend fun getNextPending(): T?
+    suspend fun getAllByStatus(status: QueueItemStatus): List<T>
+    fun observeByStatus(status: QueueItemStatus): Flow<List<T>>
 }
 ```
 
@@ -244,38 +255,36 @@ Result of queue item processing, with appropriate states.
 
 ```kotlin
 sealed class ProcessingResult {
-    object Success : ProcessingResult()
-    data class Error(val message: String) : ProcessingResult() 
-    object Retry : ProcessingResult()
+    class Success(
+        val atk: String,
+        val txId: String,
+    ) : ProcessingResult()
+    
+    data class Error(
+        val event: ProcessingErrorEvent
+    ) : ProcessingResult()
 }
 ```
 
-#### Understanding Retry Mechanisms
+#### Understanding Error Handling
 
-**ProcessingResult.Retry vs ErrorHandlingAction**
+**ProcessingResult.Error vs ErrorHandlingAction**
 
-The queue system has two distinct retry mechanisms that serve different purposes:
+The queue system handles errors through a structured approach:
 
-1. **ProcessingResult.Retry**:
-   - Returned by the processor itself during processing
-   - Indicates an automatic retry should be attempted without user intervention
-   - Used for transient issues that the processor believes can resolve automatically
-   - Examples: temporary network issues, hardware resets, or situations where the processor wants to try again with different parameters
-   - This is a processor-initiated decision
+1. **ProcessingResult.Error**:
+   - Returned by the processor when processing fails
+   - Contains a `ProcessingErrorEvent` with detailed error information
+   - Triggers the queue manager to request user input for error handling
+   - Example: Payment declined, card read error, network failure
 
-2. **ErrorHandlingAction (RETRY, SKIP)**:
-   - User-initiated actions in response to an error that the processor couldn't handle
-   - Comes into play after a processor has already failed (returned `ProcessingResult.Error`)
-   - Requires user interaction through the UI to decide how to proceed
-   - Provides more options: retry now, retry later, abort current processor, or abort all processors
-   - This is a user-initiated decision
+2. **ErrorHandlingAction**:
+   - User-initiated response to a processing error
+   - Available actions: RETRY, SKIP, ABORT, ABORT_ALL
+   - Triggered when the user chooses how to handle the error
+   - Example: User sees payment declined error and chooses to retry or skip
 
-In summary:
-- `ProcessingResult.Retry`: "I (the processor) need to try again automatically"
-- `ErrorHandlingAction.RETRY`: "The user wants to retry the failed processor right now"
-- `ErrorHandlingAction.SKIP`: "The user wants to move this item to the end of the queue and try again later"
-
-This separation allows for both automatic retries by the processor and user-directed retries after failures, providing flexibility in handling different error scenarios.
+This separation allows processors to report detailed errors while giving users control over how to proceed.
 
 ### BaseProcessingEvent
 Base interface for processor-specific events.
@@ -291,8 +300,24 @@ interface BaseProcessingEvent {
 ### User Input Support
 The architecture supports processors that require user input during execution:
 
-- `InputRequest`: Represents a request for user input (e.g., PIN entry, signature)
-- `InputResponse`: The user's response to an input request
+```kotlin
+// Request user input (processor-level)
+val response = requestUserInput(UserInputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING())
+
+// Use the response
+val confirmed = response.value as? Boolean ?: false
+if (confirmed) {
+    // Continue with receipt printing
+}
+
+// Available UserInputRequest types:
+// - CONFIRM_CUSTOMER_RECEIPT_PRINTING
+// - CONFIRM_MERCHANT_PIX_KEY  
+// - MERCHANT_PIX_SCANNING(pixCode)
+
+// Queue-level input requests
+val queueResponse = requestQueueInput(QueueInputRequest.CONFIRM_NEXT_PROCESSOR(...))
+```
 
 This enables interactive workflows where processing can be suspended, waiting for user action.
 
@@ -316,11 +341,12 @@ The `DynamicPaymentProcessor` can delegate processing to different payment proce
 ## Usage Example
 
 ```kotlin
-// Create a payment queue with a specific processor and storage
-val paymentQueue = ProcessingPaymentQueueFactory.create(
-    processor = AcquirerPaymentProcessor(),
-    storage = ProcessingPaymentStorage(database),
-    persistenceStrategy = PersistenceStrategy.IMMEDIATE
+// Create a dynamic payment queue that handles multiple payment types
+val paymentQueue = ProcessingPaymentQueueFactory().createDynamicPaymentQueue(
+    storage = ProcessingPaymentStorage(dao),
+    persistenceStrategy = PersistenceStrategy.IMMEDIATE,
+    startMode = ProcessorStartMode.IMMEDIATE,
+    scope = viewModelScope
 )
 
 // Enqueue an item
@@ -334,37 +360,148 @@ paymentQueue.queueState.collect { items ->
 // Observe processing state
 paymentQueue.processingState.collect { state ->
     when (state) {
-        is ProcessingState.Processing -> // Show processing UI
-        is ProcessingState.Completed -> // Show success UI
-        is ProcessingState.Failed -> // Show error UI
-        is ProcessingState.Retrying -> // Show retry UI
-        null -> // No active processing
+        is ProcessingState.QueueIdle -> {
+            statusTextView.text = "Ready to process"
+            progressBar.isVisible = false
+        }
+        is ProcessingState.ItemProcessing -> {
+            val item = state.item
+            statusTextView.text = "Processing payment ${item.id}"
+            progressBar.isVisible = true
+        }
+        is ProcessingState.ItemDone -> {
+            val item = state.item
+            statusTextView.text = "Completed payment ${item.id}"
+            progressBar.isVisible = false
+            showSuccessAnimation()
+        }
+        is ProcessingState.ItemFailed -> {
+            val item = state.item
+            val error = state.error
+            statusTextView.text = "Failed: ${error}"
+            progressBar.isVisible = false
+            showErrorDialog(error)
+        }
+        is ProcessingState.ItemRetrying -> {
+            val item = state.item
+            statusTextView.text = "Retrying payment ${item.id}"
+            progressBar.isVisible = true
+        }
+        is ProcessingState.ItemSkipped -> {
+            val item = state.item
+            statusTextView.text = "Skipped payment ${item.id}"
+            progressBar.isVisible = false
+        }
+        is ProcessingState.ItemAborted -> {
+            val item = state.item
+            statusTextView.text = "Aborted payment ${item.id}"
+            progressBar.isVisible = false
+        }
+        is ProcessingState.QueueCanceled -> {
+            statusTextView.text = "Processing canceled"
+            progressBar.isVisible = false
+            showCanceledMessage()
+        }
+        is ProcessingState.QueueDone -> {
+            statusTextView.text = "All payments completed"
+            progressBar.isVisible = false
+        }
+        is ProcessingState.QueueAborted -> {
+            statusTextView.text = "Queue aborted"
+            progressBar.isVisible = false
+        }
     }
 }
 
 // Handle processor-specific events
 paymentQueue.processorEvents.collect { event ->
     when (event) {
-        is ProcessingPaymentEvent.CardDetected -> // Show card detected UI
-        is ProcessingPaymentEvent.AmountConfirmed -> // Show amount confirmed UI
-        // Other event types...
+        ProcessingPaymentEvent.START -> {
+            statusTextView.text = "Payment started"
+        }
+        ProcessingPaymentEvent.CARD_REACH_OR_INSERT -> {
+            statusTextView.text = "Please insert or reach your card"
+            showCardAnimation()
+        }
+        ProcessingPaymentEvent.TRANSACTION_PROCESSING -> {
+            statusTextView.text = "Processing transaction..."
+            showProcessingAnimation()
+        }
+        ProcessingPaymentEvent.APPROVAL_SUCCEEDED -> {
+            statusTextView.text = "Transaction approved"
+            showApprovedAnimation()
+        }
+        ProcessingPaymentEvent.APPROVAL_DECLINED -> {
+            statusTextView.text = "Transaction declined"
+            showDeclinedAnimation()
+        }
+        ProcessingPaymentEvent.TRANSACTION_DONE -> {
+            statusTextView.text = "Transaction completed"
+        }
+        ProcessingPaymentEvent.PIN_REQUESTED -> {
+            statusTextView.text = "Please enter your PIN"
+        }
+        ProcessingPaymentEvent.CANCELLED -> {
+            statusTextView.text = "Payment cancelled"
+        }
+        // Handle other event types...
     }
 }
 
-// Provide user input when requested
-paymentQueue.processor.inputRequests.collect { request ->
+// Provide user input when requested (processor-level)
+paymentQueue.processor.userInputRequests.collect { request ->
     when (request) {
-        is InputRequest.PIN -> {
-            // Show PIN entry UI
-            val pin = showPinEntryDialog()
-            paymentQueue.processor.provideInput(InputResponse.PIN(pin))
+        is UserInputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING -> {
+            // Show receipt printing confirmation
+            val confirmed = showReceiptConfirmationDialog()
+            paymentQueue.processor.provideUserInput(
+                UserInputResponse(request.id, confirmed)
+            )
         }
-        is InputRequest.Signature -> {
-            // Show signature capture UI
-            val signature = captureSignature()
-            paymentQueue.processor.provideInput(InputResponse.Signature(signature))
+        is UserInputRequest.CONFIRM_MERCHANT_PIX_KEY -> {
+            // Show PIX key confirmation
+            val pixKey = showPixKeyDialog()
+            paymentQueue.processor.provideUserInput(
+                UserInputResponse(request.id, pixKey)
+            )
         }
-        // Other input request types...
+        is UserInputRequest.MERCHANT_PIX_SCANNING -> {
+            // Show PIX QR code scanning
+            val scanned = showPixScanningDialog(request.pixCode)
+            paymentQueue.processor.provideUserInput(
+                UserInputResponse(request.id, scanned)
+            )
+        }
+    }
+}
+
+// Handle queue-level input requests
+paymentQueue.queueInputRequests.collect { request ->
+    when (request) {
+        is QueueInputRequest.CONFIRM_NEXT_PROCESSOR -> {
+            // Show next processor confirmation
+            val shouldProceed = showNextProcessorDialog(
+                currentIndex = request.currentItemIndex,
+                totalItems = request.totalItems
+            )
+            val response = if (shouldProceed) {
+                QueueInputResponse.proceed(request.id)
+            } else {
+                QueueInputResponse.skip(request.id)
+            }
+            paymentQueue.provideQueueInput(response)
+        }
+        is QueueInputRequest.ERROR_RETRY_OR_SKIP -> {
+            // Show error handling options
+            val action = showErrorHandlingDialog(request.error)
+            val response = when (action) {
+                ErrorHandlingAction.RETRY -> QueueInputResponse.onErrorRetry(request.id)
+                ErrorHandlingAction.SKIP -> QueueInputResponse.onErrorSkip(request.id)
+                ErrorHandlingAction.ABORT -> QueueInputResponse.onErrorAbort(request.id)
+                ErrorHandlingAction.ABORT_ALL -> QueueInputResponse.onErrorAbortAll(request.id)
+            }
+            paymentQueue.provideQueueInput(response)
+        }
     }
 }
 ```
