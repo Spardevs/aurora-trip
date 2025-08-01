@@ -59,7 +59,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
         // Load existing items from storage on init (only if we use persistence)
         if (persistenceStrategy != PersistenceStrategy.NEVER) {
             scope.launch {
-                val existingItems = storage.getAllByStatus(QueueItemStatus.PENDING)
+                val existingItems = storage.getAllByStatus(listOf(QueueItemStatus.PENDING))
                 inMemoryQueue.addAll(existingItems)
                 _queueState.value = inMemoryQueue.toList()
             }
@@ -85,9 +85,37 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
             }
         }
     }
-    
-    // Get queue size
-    val size: Int get() = inMemoryQueue.size
+
+    // Get queue size (all pending and processing items in database)
+    val fullSize: Int
+        get() = runBlocking {
+            if (persistenceStrategy == PersistenceStrategy.NEVER) {
+                enqueuedSize
+            } else {
+                storage.getAllByStatus(
+                    listOf(
+                        QueueItemStatus.PENDING,
+                        QueueItemStatus.PROCESSING,
+                        QueueItemStatus.COMPLETED
+                    )
+                ).size
+            }
+        }
+
+    // Get in-memory pending queue size
+    val enqueuedSize: Int get() = runBlocking {
+        storage.getAllByStatus(
+            listOf(
+                QueueItemStatus.PENDING,
+                QueueItemStatus.PROCESSING,
+            )
+        ).size
+    }
+
+    // Get in-memory pending queue size
+    val currentIndex: Int get() = runBlocking {
+        (fullSize - enqueuedSize) + 1
+    }
     
     // Check if queue is empty
     val isEmpty: Boolean get() = inMemoryQueue.isEmpty()
@@ -247,9 +275,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
     fun clearCompleted() {
         if (persistenceStrategy != PersistenceStrategy.NEVER) {
             scope.launch {
-                storage.getAllByStatus(QueueItemStatus.COMPLETED).forEach { item ->
-                    storage.remove(item)
-                }
+                storage.removeByStatus(listOf(QueueItemStatus.COMPLETED))
             }
         }
     }

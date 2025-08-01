@@ -37,8 +37,10 @@ class ProcessingPaymentStorage(private val dao: ProcessingPaymentQueueDao) : Que
         dao.deleteByStatus(statuses.map { it.name })
     }
     
-    override suspend fun getAllByStatus(status: QueueItemStatus): List<ProcessingPaymentQueueItem> {
-        return dao.getAllByStatus(status.name).map { it.toQueueItem() }
+    override suspend fun getAllByStatus(statuses: List<QueueItemStatus>): List<ProcessingPaymentQueueItem> {
+        return dao.getAllByStatus(
+            statuses.map { it.name }
+        ).map { it.toQueueItem() }
     }
     
     override fun observeByStatus(status: QueueItemStatus): Flow<List<ProcessingPaymentQueueItem>> {

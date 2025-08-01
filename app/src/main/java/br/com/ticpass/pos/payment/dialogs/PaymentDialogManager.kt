@@ -59,12 +59,23 @@ class PaymentDialogManager(
         val dialogView = layoutInflater.inflate(R.layout.dialog_payment_confirmation, null)
         
         // Get references to the editable fields
+        val paymentInfoTextView = dialogView.findViewById<TextView>(R.id.text_payment_info)
         val amountEditText = dialogView.findViewById<EditText>(R.id.edit_payment_amount)
         val methodSpinner = dialogView.findViewById<Spinner>(R.id.spinner_payment_method)
         val timeoutView = dialogView.findViewById<TimeoutCountdownView>(R.id.timeout_countdown_view)
         
         // Set initial values
         amountEditText.setText((currentPayment.amount.toMoneyAsDouble()).toString())
+
+        paymentInfoTextView.text = if(paymentViewModel.fullSize == 1) {
+            context.getString(R.string.next_payment_progress_first)
+        } else {
+            context.getString(
+                R.string.next_payment_progress,
+                paymentViewModel.currentIndex,
+                paymentViewModel.fullSize,
+            )
+        }
         
         // Setup payment method spinner
         val paymentMethods = SystemPaymentMethod.values()

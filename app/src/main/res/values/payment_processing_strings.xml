@@ -2,6 +2,7 @@
 <resources>
     <!-- Payment Processing UI Strings -->
     <string name="payment_processing_title">Payment Processing</string>
+    <string name="payment_progress_first">First Payment</string>
     <string name="payment_progress">Payment %1$d out of %2$d</string>
     <string name="enqueue_credit_payment">Credit</string>
     <string name="enqueue_debit_payment">Debit</string>
@@ -56,7 +57,8 @@
     
     <!-- Next Processor Confirmation Dialog -->
     <string name="confirm_next_processor_title">Continue to Next Payment?</string>
-    <string name="confirm_next_processor_message">Ready to process payment %1$d of %2$d?</string>
+    <string name="next_payment_progress_first">Ready for first payment?</string>
+    <string name="next_payment_progress">Ready for payment %1$d of %2$d?</string>
     <string name="proceed">Proceed</string>
     <string name="skip">Skip</string>
     <string name="yes">Yes</string>

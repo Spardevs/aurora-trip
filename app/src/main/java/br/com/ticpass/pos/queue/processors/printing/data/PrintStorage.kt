@@ -38,8 +38,10 @@ class PrintStorage(private val dao: PrintQueueDao) : QueueStorage<PrintQueueItem
         dao.deleteByStatus(statuses.map { it.name })
     }
 
-    override suspend fun getAllByStatus(status: QueueItemStatus): List<PrintQueueItem> {
-        return dao.getAllByStatus(status.name).map { it.toQueueItem() }
+    override suspend fun getAllByStatus(statuses: List<QueueItemStatus>): List<PrintQueueItem> {
+        return dao.getAllByStatus(
+            statuses.map { it.name }
+        ).map { it.toQueueItem() }
     }
 
     override fun observeByStatus(status: QueueItemStatus): Flow<List<PrintQueueItem>> {

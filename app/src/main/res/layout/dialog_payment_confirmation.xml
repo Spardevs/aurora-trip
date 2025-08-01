@@ -10,7 +10,7 @@
         android:id="@+id/text_payment_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/confirm_next_processor_message"
+        android:text="@string/next_payment_progress"
         android:textSize="16sp"
         android:layout_marginBottom="16dp" />
 

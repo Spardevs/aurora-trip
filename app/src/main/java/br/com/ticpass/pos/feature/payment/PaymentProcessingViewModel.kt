@@ -73,6 +73,9 @@ class PaymentProcessingViewModel @Inject constructor(
     
     // Expose queue states to UI
     val queueState = paymentQueue.queueState
+    val fullSize = paymentQueue.fullSize
+    val enqueuedSize = paymentQueue.enqueuedSize
+    val currentIndex = paymentQueue.currentIndex
     val processingState = paymentQueue.processingState
     val processingPaymentEvents: SharedFlow<ProcessingPaymentEvent> = paymentQueue.processorEvents
     

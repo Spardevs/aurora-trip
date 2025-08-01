@@ -36,7 +36,8 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
     }
 
     override suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean {
-        TODO("Not yet implemented")
+        // TODO
+        return true
     }
 
     private fun cleanupCoroutineScopes() {

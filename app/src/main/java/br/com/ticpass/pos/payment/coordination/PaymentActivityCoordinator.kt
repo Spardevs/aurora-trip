@@ -81,9 +81,7 @@ class PaymentActivityCoordinator(
                 
                 when (state) {
                     is ProcessingState.ItemProcessing -> {
-                        val currentIndex = paymentViewModel.queueState.value.indexOfFirst { it.id == state.item.id }
-                        val total = paymentViewModel.queueState.value.size
-                        updateProcessingProgress(currentIndex, total)
+                        updateProcessingProgress(paymentViewModel.currentIndex, paymentViewModel.fullSize)
                     }
                     is ProcessingState.ItemDone -> {
                         // Success: All payments completed
@@ -98,13 +96,11 @@ class PaymentActivityCoordinator(
                     }
                     is ProcessingState.ItemRetrying -> {
                         // Update progress for retrying state
-                        val currentIndex = paymentViewModel.queueState.value.indexOfFirst { it.id == state.item.id }
-                        updateProcessingProgress(currentIndex, totalPayments)
+                        updateProcessingProgress(paymentViewModel.currentIndex, paymentViewModel.fullSize)
                     }
                     is ProcessingState.ItemSkipped -> {
                         // Update progress for skipped state
-                        val currentIndex = paymentViewModel.queueState.value.indexOfFirst { it.id == state.item.id }
-                        updateProcessingProgress(currentIndex, totalPayments)
+                        updateProcessingProgress(paymentViewModel.currentIndex, paymentViewModel.fullSize)
                     }
                     is ProcessingState.QueueCanceled -> {
                         // Reset progress when queue is canceled
@@ -175,7 +171,11 @@ class PaymentActivityCoordinator(
         currentProcessingIndex = current
         
         // Update dialog progress
-        dialogProgressTextView.text = context.getString(R.string.payment_progress, current, total)
+        if(total == 1) {
+            dialogProgressTextView.text = context.getString(R.string.payment_progress_first)
+        } else {
+            dialogProgressTextView.text = context.getString(R.string.payment_progress, current, total)
+        }
         dialogProgressBar.progress = current
         dialogProgressBar.max = total
         
