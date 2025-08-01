@@ -6,12 +6,12 @@ This document describes the architecture of the Acquirer SDK system, which is de
 
 The Acquirer SDK uses a build flavor-based architecture that allows for different payment processors (PagSeguro, Stone, etc.) to be used without changing the client code. This is achieved through:
 
-1. **Common interfaces** in the main source set
-2. **Provider objects** that serve as access points for implementations
-3. **Flavor-specific implementations** in separate source sets
-4. **Build system selection** of the appropriate implementation at build time
-5. **Singleton SDK instances** shared across providers within each flavor
-6. **Flavor-specific type safety** ensuring proper typing and compile-time safety
+1. **Common interfaces** in the main source set (`/sdk/` directory)
+2. **Flavor-specific implementations** in separate source sets (`pagseguro/`, `stone/`)
+3. **Build system selection** of the appropriate implementation at build time
+4. **Singleton SDK instances** shared across providers within each flavor
+5. **Flavor-specific type safety** ensuring proper typing and compile-time safety
+6. **Central access point** through `AcquirerSdk` object in each flavor
 
 ## Architecture Diagram
 
@@ -28,23 +28,6 @@ graph LR
         AcquirerProvider --> BasePrintingProvider
         AcquirerProvider --> BaseNFCProvider
     end
-    
-    %% Main source set implementations
-    subgraph "Main Source Set"
-        AcquirerSdk[AcquirerSdk]
-        PaymentProviderMain[PaymentProvider]
-        PrintingProviderMain[PrintingProvider]
-        NFCProviderMain[NFCProvider]
-        
-        AcquirerSdk -- payment --> PaymentProviderMain
-        AcquirerSdk -- printing --> PrintingProviderMain
-        AcquirerSdk -- nfc --> NFCProviderMain
-    end
-    
-    %% Connect interfaces to main implementations
-    BasePaymentProvider --> PaymentProviderMain
-    BasePrintingProvider --> PrintingProviderMain
-    BaseNFCProvider --> NFCProviderMain
     
     %% Build system and flavor-specific implementations
     subgraph "Build Flavors"
@@ -94,25 +77,27 @@ graph LR
         BuildFlavor --> Acquirer_n
     end
     
-    %% Override relationships
-    PaymentProviderMain -.Override.-> PaymentProviderPag
-    PrintingProviderMain -.Override.-> PrintingProviderPag
-    NFCProviderMain -.Override.-> NFCProviderPag
+    %% Direct implementation relationships
+    BasePaymentProvider --> PaymentProviderPag
+    BasePrintingProvider --> PrintingProviderPag
+    BaseNFCProvider --> NFCProviderPag
     
-    PaymentProviderMain -.Override.-> PaymentProviderStn
-    PrintingProviderMain -.Override.-> PrintingProviderStn
-    NFCProviderMain -.Override.-> NFCProviderStn
+    BasePaymentProvider --> PaymentProviderStn
+    BasePrintingProvider --> PrintingProviderStn
+    BaseNFCProvider --> NFCProviderStn
     
-    PaymentProviderMain -.Override.-> PaymentProviderN
-    PrintingProviderMain -.Override.-> PrintingProviderN
-    NFCProviderMain -.Override.-> NFCProviderN
+    BasePaymentProvider --> PaymentProviderN
+    BasePrintingProvider --> PrintingProviderN
+    BaseNFCProvider --> NFCProviderN
     
     %% App usage
     subgraph "App Usage"
         AcquirerPaymentProcessor[AcquirerPaymentProcessor]
+        
+        AcquirerPaymentProcessor -- "uses" --> PagSeguro
+        AcquirerPaymentProcessor -- "uses" --> Stone
+        AcquirerPaymentProcessor -- "uses" --> Acquirer_n
     end
-    
-    AcquirerPaymentProcessor --> AcquirerSdk
     
     %% Styling
     classDef interface fill:#f9f,stroke:#333,stroke-width:1px;
@@ -127,7 +112,6 @@ graph LR
     
     %% Style the subgraphs
     style Interfaces fill:#fff,stroke:#333,stroke-width:1px;
-    style 'Main Source Set' fill:#eef,stroke:#333,stroke-width:1px;
     style 'Build Flavors' fill:#efe,stroke:#333,stroke-width:1px;
     style 'App Usage' fill:#fee,stroke:#333,stroke-width:1px;
     style PagSeguro fill:#bfb,stroke:#333,stroke-width:1px;
@@ -142,25 +126,25 @@ graph LR
    - Specific interfaces extend this base: `BasePaymentProvider<T>`, `BasePrintingProvider<T>`, `BaseNFCProvider<T>`
    - Type parameter `<T>` allows flavor-specific SDK type to be enforced
 
-2. **Access Layer**:
-   - `AcquirerSdk` - Central access point for all providers
+2. **Flavor Implementation**:
+   - Each flavor (PagSeguro, Stone, etc.) provides its own complete implementations
+   - Located in separate source sets: `app/src/pagseguro/`, `app/src/stone/`
+   - All use the same class names and package structure, allowing seamless build-time replacement
+
+3. **Access Layer**:
+   - `AcquirerSdk` - Central access point object in each flavor
    - Exposes properties: `payment`, `printing`, `nfc` to access provider instances
    - Each property returns a flavor-specific typed instance
 
-3. **SDK Instance Management**:
+4. **SDK Instance Management**:
    - `SdkInstance` - Singleton object that manages the flavor-specific SDK instance
    - Ensures only one SDK instance is created and shared across all providers
    - Each flavor provides its own implementation (e.g., PagSeguro → PlugPag, Stone → UserModel)
 
-4. **Provider Objects**:
+5. **Provider Objects**:
    - `PaymentProvider`, `PrintingProvider`, `NFCProvider` - Singleton objects that provide type-safe access
    - Each provider maintains its own initialization state
    - All providers delegate to the shared `SdkInstance` for the actual SDK instance
-
-5. **Flavor Implementation**:
-   - Each flavor (PagSeguro, Stone, etc.) provides its own implementations
-   - These override the providers from the main source set
-   - All use the same class names, allowing seamless replacement
 
 6. **Type Safety**:
    - Providers expose flavor-specific types enabling proper type inference
@@ -169,6 +153,30 @@ graph LR
 7. **Build System Selection**:
    - Android Gradle build system selects the appropriate source set based on build flavor
    - No runtime conditionals needed in code
+
+## Current Implementation
+
+The SDK currently includes the following files:
+
+### Main Source Set (`/sdk/`)
+- `AcquirerProvider.kt` - Base interface with `initialize()` and `isInitialized()` methods
+- `payment/BasePaymentProvider.kt` - Generic payment provider interface with `getInstance()` method
+- `nfc/BaseNFCProvider.kt` - Generic NFC provider interface with `getInstance()` method  
+- `printing/BasePrintingProvider.kt` - Generic printing provider interface with `getInstance()` method
+
+### PagSeguro Flavor (`app/src/pagseguro/`)
+- `AcquirerSdk.kt` - Central access object returning `BasePaymentProvider<PlugPag>` instances
+- `SdkInstance.kt` - Singleton managing PlugPag SDK instance
+- `payment/PaymentProvider.kt` - PagSeguro payment implementation
+- `printing/PrintingProvider.kt` - PagSeguro printing implementation
+- `nfc/NFCProvider.kt` - PagSeguro NFC implementation
+
+### Stone Flavor (`app/src/stone/`)
+- `AcquirerSdk.kt` - Central access object returning `BasePaymentProvider<UserModel>` instances
+- `SdkInstance.kt` - Singleton managing UserModel SDK instance
+- `payment/PaymentProvider.kt` - Stone payment implementation
+- `printing/PrintingProvider.kt` - Stone printing implementation
+- `nfc/NFCProvider.kt` - Stone NFC implementation
 
 ## Usage
 
