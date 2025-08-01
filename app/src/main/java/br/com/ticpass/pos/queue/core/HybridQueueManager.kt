@@ -37,9 +37,6 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
     private val _queueState = MutableStateFlow<List<T>>(emptyList())
     private val _processingState = MutableStateFlow<ProcessingState<T>?>(null)
     
-    // Track items that need persistence (for ON_BACKGROUND strategy)
-    private val pendingPersistence = mutableSetOf<T>()
-    
     // Queue-level input requests
     private val _queueInputRequests = MutableSharedFlow<QueueInputRequest>(replay = 1)
     
@@ -152,9 +149,6 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                             val doneItem = inMemoryQueue.removeFirstOrNull()
                             _queueState.value = inMemoryQueue.toList()
                             
-                            // Remove from pending persistence
-                            pendingPersistence.removeAll { it.id == processingItem.id }
-                            
                             // Update storage if using persistence
                             if (persistenceStrategy != PersistenceStrategy.NEVER) {
                                 scope.launch {
@@ -170,7 +164,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                             _processingState.value = ProcessingState.ItemFailed(processingItem, result.event)
                             
                             // Log the error for debugging
-                            Log.e("ErrorHandling", "ProcessingResult.Error received in HybridQueueManager: ${result.event}")
+                            Log.d("ErrorHandling", "ProcessingResult.Error received in HybridQueueManager: ${result.event}")
                             
                             // Create an error retry/skip request
                             val errorRequest = QueueInputRequest.ERROR_RETRY_OR_SKIP(
@@ -240,7 +234,9 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
      */
     private fun updateItemStatus(item: T, status: QueueItemStatus): T {
         item.status = status
-        scope.launch { storage.update(item) }
+        if (persistenceStrategy != PersistenceStrategy.NEVER) {
+            scope.launch { storage.update(item) }
+        }
         return item
     }
 
@@ -313,11 +309,6 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
         inMemoryQueue.add(skipItem)
         _queueState.value = inMemoryQueue.toList()
 
-        // Add to pending persistence if needed
-        if (persistenceStrategy == PersistenceStrategy.IMMEDIATE) {
-            pendingPersistence.add(skipItem)
-        }
-
         _processingState.value = ProcessingState.ItemSkipped(skipItem)
     }
 
@@ -334,9 +325,6 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
         inMemoryQueue.removeAll { it.id == item.id }
         _queueState.value = inMemoryQueue.toList()
         _processingState.value = null
-
-        // Remove from pending persistence if it's there
-        pendingPersistence.removeAll { it.id == item.id }
 
         // Remove from storage if using persistence
         if (persistenceStrategy != PersistenceStrategy.NEVER) {
