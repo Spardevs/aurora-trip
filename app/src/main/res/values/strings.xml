@@ -12,7 +12,10 @@
   ~ is strictly prohibited without the express written permission of Ticpass.
   -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
     <string name="cash">Money</string>
+    <string name="cash_refund">Cash refund</string>
+    <string name="descount_voucher">Discount voucher</string>
     <string name="credit_card">Credit</string>
     <string name="pix">Pix</string>
     <string name="added_to_cart">%s add to shoppingcart</string>

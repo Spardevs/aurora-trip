@@ -195,7 +195,7 @@ class ImageBatchProcessingWorker(
             val file = savePassAsBitmap(applicationContext, passType, passData)
             val processingTime = System.currentTimeMillis() - startTime
 
-            return file.absolutePath
+            return file?.absolutePath ?: ""
 
         } catch (e: Exception) {
             throw e

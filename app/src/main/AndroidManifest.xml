@@ -149,6 +149,19 @@
         <activity android:name=".view.ui.shoppingCart.ShoppingCartScreen" />
 
         <activity android:name=".view.ui.payment.PaymentScreen" />
+
+        <activity
+            android:name=".data.activity.HistoryActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".data.activity.VoucherActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".data.activity.RefundActivity"
+            android:exported="false" />
+
         <meta-data
             android:name="androidx.work.WorkManagerInitializer"
             android:value="androidx.startup"

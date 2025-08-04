@@ -75,7 +75,7 @@ class ProductsActivity : DrawerBaseActivity() {
         startActivity(Intent(this, ProductsActivity::class.java))
     }
 
-    override fun openProfile() {
-        // startActivity(Intent(this, ProfileActivity::class.java))
+    override fun openHistory() {
+         startActivity(Intent(this, HistoryActivity::class.java))
     }
 }

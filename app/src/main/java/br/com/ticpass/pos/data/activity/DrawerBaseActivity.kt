@@ -86,7 +86,7 @@ abstract class DrawerBaseActivity : AppCompatActivity() {
         navView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_products    -> openProducts()
-                R.id.nav_profile -> openProfile()
+                R.id.nav_history -> openHistory()
             }
             drawerLayout.closeDrawer(GravityCompat.START)
             true
@@ -100,7 +100,7 @@ abstract class DrawerBaseActivity : AppCompatActivity() {
         } else super.onOptionsItemSelected(item)
 
     protected abstract fun openProducts()
-    protected abstract fun openProfile()
+    protected abstract fun openHistory()
 
    suspend fun logoutClearDb() {
        try {

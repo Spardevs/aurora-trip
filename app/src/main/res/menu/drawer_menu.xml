@@ -8,8 +8,8 @@
             android:icon="@drawable/ic_home_black_24dp"
             android:title="@string/menu_products"/>
         <item
-            android:id="@+id/nav_profile"
-            android:icon="@drawable/ic_account_manager"
+            android:id="@+id/nav_history"
+            android:icon="@drawable/ic_server"
             android:title="@string/menu_profile" />
     </group>
 </menu>

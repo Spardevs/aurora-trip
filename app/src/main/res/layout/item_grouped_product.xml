@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+    android:layout_width="160dp"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:paddingVertical="2dp">
@@ -9,6 +9,7 @@
         android:id="@+id/itemQuantity"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="1x"
         android:textSize="10sp"/>
 
     <TextView
@@ -18,9 +19,11 @@
         android:layout_weight="1"
         android:textSize="10sp"
         android:ellipsize="end"
+        android:text="Teste teste teste teste teste teste"
         android:maxLines="1"/>
 
     <TextView
+        android:text="R$ 100.200,00"
         android:id="@+id/itemPrice"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
