@@ -112,8 +112,7 @@
         android:textStyle="italic"
         android:paddingTop="4dp"
         android:paddingBottom="4dp"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/productPrice"/>
+        android:visibility="gone"/>
 
     <TextView
         android:id="@+id/passDescription"

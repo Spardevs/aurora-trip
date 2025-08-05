@@ -150,11 +150,13 @@ class CashPaymentFragment : Fragment() {
 
         return try {
             val jsonObject = JSONObject(json)
-            val observations = jsonObject.getJSONObject("observations")
+            val observations = jsonObject.optJSONObject("observations") ?: return emptyMap()
             val map = mutableMapOf<String, String>()
 
             observations.keys().forEach { key ->
-                map[key] = observations.getString(key)
+                observations.getString(key).let { value ->
+                    map[key] = value
+                }
             }
             map
         } catch (e: Exception) {
@@ -238,7 +240,6 @@ class CashPaymentFragment : Fragment() {
                     products.flatMap { product ->
                         val quantity = cartItems[product.id] ?: 1
                         val observation = cartObservations[product.id]
-
                         (1..quantity).map { unitIndex ->
                             PassData(
                                 header = PassData.HeaderData(

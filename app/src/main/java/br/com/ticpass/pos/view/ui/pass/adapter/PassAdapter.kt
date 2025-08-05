@@ -87,10 +87,10 @@ class PassAdapter(
                 eventTime.text = it.eventTime
 
                 // Mostra a observação se existir
-                it.observation?.let { obs ->
-                    productObservation.text = "Obs: $obs"
+                if (!it.observation.isNullOrEmpty()) {
+                    productObservation.text = "Obs: ${it.observation}"
                     productObservation.visibility = View.VISIBLE
-                } ?: run {
+                } else {
                     productObservation.visibility = View.GONE
                 }
             }
