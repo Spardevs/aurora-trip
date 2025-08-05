@@ -30,7 +30,8 @@
     <string name="navigation_drawer_open">Open menu</string>
     <string name="navigation_drawer_close">Close menu</string>
     <string name="menu_products">Products</string>
-    <string name="menu_profile">Perfil</string>
+    <string name="menu_history">History</string>
+    <string name="menu_report">Report</string>
     <string name="login_email_input">Email/User</string>
     <string name="login_password_input">Password</string>
     <string name="login_enter_button">enter</string>

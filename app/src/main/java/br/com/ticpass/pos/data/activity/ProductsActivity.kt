@@ -78,4 +78,8 @@ class ProductsActivity : DrawerBaseActivity() {
     override fun openHistory() {
          startActivity(Intent(this, HistoryActivity::class.java))
     }
+
+    override fun openReport() {
+         startActivity(Intent(this, ReportActivity::class.java))
+    }
 }

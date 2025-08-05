@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Diretório interno de arquivos -->
+    <files-path name="reports" path="Reports/" />
+
+    <!-- Diretório externo de arquivos (opcional) -->
+    <external-files-path name="external_reports" path="Reports/" />
+
+    <!-- Cache interno -->
+    <cache-path name="cache" path="/" />
+</paths>

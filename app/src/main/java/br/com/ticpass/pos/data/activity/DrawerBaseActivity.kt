@@ -87,6 +87,7 @@ abstract class DrawerBaseActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_products    -> openProducts()
                 R.id.nav_history -> openHistory()
+                R.id.nav_report -> openReport()
             }
             drawerLayout.closeDrawer(GravityCompat.START)
             true
@@ -101,6 +102,7 @@ abstract class DrawerBaseActivity : AppCompatActivity() {
 
     protected abstract fun openProducts()
     protected abstract fun openHistory()
+    protected abstract fun openReport()
 
    suspend fun logoutClearDb() {
        try {

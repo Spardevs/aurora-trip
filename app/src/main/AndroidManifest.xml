@@ -95,7 +95,16 @@
 
         </provider>
 
-        <activity android:name=".view.ui.login.LoginScreen"/>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <activity
             android:name=".view.ui.permissions.PermissionsActivity"
             android:exported="false"/>
@@ -162,10 +171,15 @@
             android:name=".data.activity.RefundActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".data.activity.ReportActivity"
+            android:exported="false" />
+
         <meta-data
             android:name="androidx.work.WorkManagerInitializer"
             android:value="androidx.startup"
             tools:node="remove" />
+
 
     </application>
 

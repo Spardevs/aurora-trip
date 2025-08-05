@@ -1,13 +1,21 @@
 package br.com.ticpass.pos.util
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
+import android.os.Environment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.createBitmap
 import androidx.core.view.drawToBitmap
 import br.com.ticpass.pos.view.ui.pass.PassData
@@ -17,6 +25,7 @@ import com.google.zxing.MultiFormatWriter
 import java.io.File
 import java.io.FileOutputStream
 import br.com.ticpass.pos.R
+import br.com.ticpass.pos.viewmodel.report.ReportData
 
 
 fun calculateEAN13Checksum(code: String): String {
@@ -235,6 +244,85 @@ fun saveRefundAsBitmap(context: Context): File? {
         }
     } catch (e: Exception) {
         e.printStackTrace()
+        null
+    }
+}
+
+@Composable
+fun rememberBitmapImage(bitmap: Bitmap?): ImageBitmap? {
+    return remember(bitmap) {
+        bitmap?.asImageBitmap()
+    }
+}
+
+@SuppressLint("InflateParams")
+fun saveReportAsBitmap(context: Context, reportData: ReportData): File? {
+    return try {
+        val inflater = LayoutInflater.from(context)
+        val view = inflater.inflate(R.layout.printer_report, null)
+
+        // Preencher cabeçalho
+        view.findViewById<TextView>(R.id.eventTitle).text = reportData.eventTitle
+        view.findViewById<TextView>(R.id.eventDate).text = reportData.eventDate
+
+        // Preencher valor total
+        view.findViewById<TextView>(R.id.totalAmount).text = reportData.totalAmount
+
+        // Preencher entradas
+        view.findViewById<TextView>(R.id.cashAmount).text = reportData.cashAmount
+        view.findViewById<TextView>(R.id.bitcoinAmount).text = reportData.bitcoinAmount
+        view.findViewById<TextView>(R.id.debitAmount).text = reportData.debitAmount
+        view.findViewById<TextView>(R.id.creditAmount).text = reportData.creditAmount
+        view.findViewById<TextView>(R.id.pixAmount).text = reportData.pixAmount
+        view.findViewById<TextView>(R.id.mealVoucherAmount).text = reportData.mealVoucherAmount
+        view.findViewById<TextView>(R.id.totalInAmount).text = reportData.totalInAmount
+
+        // Preencher saídas
+        view.findViewById<TextView>(R.id.refundAmount).text = reportData.refundAmount
+        view.findViewById<TextView>(R.id.withdrawalAmount).text = reportData.withdrawalAmount
+        view.findViewById<TextView>(R.id.totalOutAmount).text = reportData.totalOutAmount
+
+        // Preencher produtos
+        view.findViewById<TextView>(R.id.productDescription).text = reportData.productDescription
+        view.findViewById<TextView>(R.id.productUnitPrice).text = reportData.productUnitPrice
+        view.findViewById<TextView>(R.id.productTotal).text = reportData.productTotal
+
+        // Preencher miscelânea
+        view.findViewById<TextView>(R.id.serialNumber).text = reportData.serialNumber
+        view.findViewById<TextView>(R.id.cashierName).text = reportData.cashierName
+        view.findViewById<TextView>(R.id.operatorName).text = reportData.operatorName
+        view.findViewById<TextView>(R.id.commissionAmount).text = reportData.commissionAmount
+        view.findViewById<TextView>(R.id.openingTime).text = reportData.openingTime
+        view.findViewById<TextView>(R.id.reprintedTickets).text = reportData.reprintedTickets
+        view.findViewById<TextView>(R.id.reprintedAmount).text = reportData.reprintedAmount
+
+        // Medir e layout da view
+        view.measure(
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        )
+        view.layout(0, 0, view.measuredWidth, view.measuredHeight)
+
+        // Criar bitmap
+        val bitmap = createBitmap(view.measuredWidth, view.measuredHeight).apply {
+            val canvas = Canvas(this)
+            canvas.drawColor(Color.WHITE)
+            view.draw(canvas)
+        }
+
+        // Salvar o arquivo
+        val outputDir = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "Reports").apply {
+            mkdirs()
+        }
+        File(outputDir, "report_${System.currentTimeMillis()}.png").apply {
+            FileOutputStream(this).use { out ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                out.flush()
+            }
+            return this
+        }
+    } catch (e: Exception) {
+        Log.e("ReportGenerator", "Erro ao gerar relatório", e)
         null
     }
 }

@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="166dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- Cabeçalho -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/eventImage"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/credit"
+            android:layout_gravity="center"/>
+
+        <TextView
+            android:id="@+id/eventTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="TICPASS"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="4dp"/>
+
+        <TextView
+            android:id="@+id/eventDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="31/07/2025 - 31/07/2025"
+            android:textSize="10sp"
+            android:gravity="center"
+            android:layout_marginBottom="8dp"/>
+    </LinearLayout>
+
+    <!-- Valor Total -->
+    <TextView
+        android:id="@+id/totalAmount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="R$2,20"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginVertical="12dp"/>
+
+    <!-- Seção Entradas -->
+    <TextView
+        android:id="@+id/entriesTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ENTRADAS"
+        android:textAlignment="center"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="2dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="DINHEIRO"
+            android:textSize="10sp"/>
+        <TextView
+            android:id="@+id/cashAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="R$2,20"
+            android:textSize="10sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="2dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="BITCOIN"
+            android:textSize="10sp"/>
+        <TextView
+            android:id="@+id/bitcoinAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="R$0,00"
+            android:textSize="10sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="2dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="DÉBITO"
+            android:textSize="10sp"/>
+        <TextView
+            android:id="@+id/debitAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="R$0,00"
+            android:textSize="10sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="2dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="CRÉDITO"
+            android:textSize="10sp"/>
+        <TextView
+            android:id="@+id/creditAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="R$0,00"
+            android:textSize="10sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="2dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="PIX"
+            android:textSize="10sp"/>
+        <TextView
+            android:id="@+id/pixAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="R$0,00"
+            android:textSize="10sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="VALE REFEIÇÃO"
+            android:textSize="10sp"/>
+        <TextView
+            android:id="@+id/mealVoucherAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="R$0,00"
+            android:textSize="10sp"/>
+    </LinearLayout>
+
+    <!-- Total Entradas -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="12dp">
+        <TextView
+            android:id="@+id/totalInAmount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="R$2,20"
+            android:textSize="10sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+    <!-- Seção Saídas -->
+    <TextView
+        android:id="@+id/outputsTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SAÍDAS"
+        android:textAlignment="center"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="2dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="ESTORNO"
+            android:textSize="10sp"/>
+        <TextView
+            android:id="@+id/refundAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="R$0,00"
+            android:textSize="10sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SANGRIA"
+            android:textSize="10sp"/>
+        <TextView
+            android:id="@+id/withdrawalAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="R$0,00"
+            android:textSize="10sp"/>
+    </LinearLayout>
+
+    <!-- Total Saídas -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="12dp">
+        <TextView
+            android:id="@+id/totalOutAmount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="- R$0,00"
+            android:textSize="10sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+    <!-- Seção Produtos -->
+    <TextView
+        android:id="@+id/productsTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="PRODUTOS"
+        android:textAlignment="center"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="2dp">
+        <TextView
+            android:id="@+id/productDescription"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="4x CRÉDITO À VISTA N"
+            android:textSize="10sp"/>
+        <TextView
+            android:id="@+id/productUnitPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="R$0,55"
+            android:textSize="10sp"/>
+    </LinearLayout>
+
+    <!-- Total Produtos -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="12dp">
+        <TextView
+            android:id="@+id/productTotal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="R$2,20"
+            android:textSize="10sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+    <!-- Seção Miscelânea -->
+    <TextView
+        android:id="@+id/miscTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="MISCELÂNIA"
+        android:textAlignment="center"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="2dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SERIAL"
+            android:textSize="10sp"/>
+        <TextView
+            android:id="@+id/serialNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="EMULATOR35X6X11X0"
+            android:textSize="10sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="2dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="CAIXA"
+            android:textSize="10sp"/>
+        <TextView
+            android:id="@+id/cashierName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CAIXA-003"
+            android:textSize="10sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="2dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="ATENDENTE"
+            android:textSize="10sp"/>
+        <TextView
+            android:id="@+id/operatorName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="teteteaTeste"
+            android:textSize="10sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="2dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="COMISSÃO"
+            android:textSize="10sp"/>
+        <TextView
+            android:id="@+id/commissionAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="R$0,20"
+            android:textSize="10sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="2dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="ABERTURA"
+            android:textSize="10sp"/>
+        <TextView
+            android:id="@+id/openingTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="31/07/2025 12:31"
+            android:textSize="10sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="2dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="FICHAS REIMPRESSAS"
+            android:textSize="10sp"/>
+        <TextView
+            android:id="@+id/reprintedTickets"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textSize="10sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="VAL. REIMPRESSÕES"
+            android:textSize="10sp"/>
+        <TextView
+            android:id="@+id/reprintedAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="R$0,00"
+            android:textSize="10sp"/>
+    </LinearLayout>
+
+    <!-- Linha de corte -->
+    <ImageView
+        android:id="@+id/passCutInHere"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:src="@drawable/cut_in_here"
+        android:contentDescription="Cut in here"/>
+</LinearLayout>
