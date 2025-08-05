@@ -3,9 +3,11 @@ package br.com.ticpass.pos.view.ui.shoppingCart
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -61,12 +63,47 @@ class ShoppingCartScreen : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = ShoppingCartAdapter { item, newQuantity ->
-            shoppingCartManager.updateItem(item.product.id, newQuantity)
-        }
+        adapter = ShoppingCartAdapter(
+            onQuantityChange = { item, newQuantity ->
+                shoppingCartManager.updateItem(item.product.id, newQuantity)
+            },
+            onObservationClick = { item ->
+                showObservationDialog(item)
+            }
+        )
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
+    }
+
+    private fun showObservationDialog(item: CartItem) {
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Observação do produto")
+            .setMessage("Digite uma observação para ${item.product.name}")
+            .setView(R.layout.dialog_observation)
+            .setPositiveButton("Salvar") { dialog, _ ->
+                val input = (dialog as AlertDialog).findViewById<EditText>(R.id.btObservation)
+                val observation = input?.text?.toString()?.trim() ?: ""
+                shoppingCartManager.updateObservation(item.product.id, observation)
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancelar") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setNeutralButton("Limpar") { dialog, _ ->
+                shoppingCartManager.updateObservation(item.product.id, "")
+                dialog.dismiss()
+            }
+            .create()
+
+        dialog.setOnShowListener {
+            val currentObservation = shoppingCartManager.getObservation(item.product.id)
+            val input = dialog.findViewById<EditText>(R.id.btObservation)
+            input?.setText(currentObservation)
+            input?.requestFocus()
+        }
+
+        dialog.show()
     }
 
     private fun setupObservers() {
@@ -163,7 +200,8 @@ class ShoppingCartScreen : AppCompatActivity() {
                     productRepository.getById(productId)
                 }
                 product?.let {
-                    cartItems.add(CartItem(it, quantity))
+                    val observation = cart.observations[productId]
+                    cartItems.add(CartItem(it, quantity, observation))
                 }
             }
 

@@ -14,7 +14,8 @@ import java.text.NumberFormat
 import java.util.Locale
 
 class ShoppingCartAdapter(
-    private val onQuantityChange: (CartItem, Int) -> Unit
+    private val onQuantityChange: (CartItem, Int) -> Unit,
+    private val onObservationClick: (CartItem) -> Unit
 ) : RecyclerView.Adapter<ShoppingCartAdapter.ViewHolder>() {
 
     private val items = mutableListOf<CartItem>()
@@ -34,11 +35,15 @@ class ShoppingCartAdapter(
         private val btnIncrease = view.findViewById<ImageView>(R.id.btnIncrease)
         private val btnDecrease = view.findViewById<ImageView>(R.id.btnDecrease)
         private val btnDelete   = view.findViewById<ImageView>(R.id.btnDelete)
+        private val btnObs = view.findViewById<ImageView>(R.id.btnObs)
+        private val obsDescription = view.findViewById<TextView>(R.id.obsDescription)
 
         fun bind(item: CartItem, onUpdate: (CartItem, Int) -> Unit) {
             name.text     = item.product.name
             price.text    = formatCurrency(item.product.price)
             quantity.text = item.quantity.toString()
+            btnObs.setOnClickListener { onObservationClick(item) }
+
 
             Glide.with(img.context)
                 .load(item.product.thumbnail)
@@ -49,6 +54,14 @@ class ShoppingCartAdapter(
                 if (item.quantity > 1) onUpdate(item, item.quantity - 1)
             }
             btnDelete.setOnClickListener { onUpdate(item, 0) }
+
+            val observation = item.observation
+            if (!observation.isNullOrEmpty()) {
+                obsDescription.text = observation
+                obsDescription.visibility = View.VISIBLE
+            } else {
+                obsDescription.visibility = View.GONE
+            }
         }
 
         private fun formatCurrency(value: Long): String {

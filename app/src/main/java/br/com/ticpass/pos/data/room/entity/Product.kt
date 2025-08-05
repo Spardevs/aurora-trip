@@ -36,5 +36,6 @@ data class CategoryWithProducts(
 
 data class CartItem(
     val product: ProductEntity,
-    val quantity: Int
+    val quantity: Int,
+    val observation: String? = null
 )

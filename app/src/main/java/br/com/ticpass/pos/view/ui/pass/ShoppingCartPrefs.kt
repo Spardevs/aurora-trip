@@ -26,6 +26,7 @@ class ShoppingCartPrefs @Inject constructor(
 
     data class ShoppingCartData(
         val items: Map<String, Int> = emptyMap(),
+        val observations: Map<String, String> = emptyMap(),
         val totalPrice: Long = 0
     )
 }

@@ -110,6 +110,18 @@
     </LinearLayout>
 
     <TextView
+        android:id="@+id/productObservation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="10sp"
+        android:textAlignment="center"
+        android:textStyle="italic"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/productPrice"/>
+
+    <TextView
         android:id="@+id/passDescription"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -56,155 +56,6 @@ fun PassScreen(
     }
 }
 
-
-
-@Composable
-private fun ProductPass(
-    layoutRes: Int,
-    passData: PassData,
-    modifier: Modifier = Modifier
-) {
-    AndroidView(
-        modifier = modifier,
-        factory = { context ->
-            val view = LayoutInflater.from(context).inflate(layoutRes, null, false)
-
-            val barcodeImage = view.findViewById<ImageView>(R.id.barcodeImageView)
-            val barcodeBitmap = try {
-                generateEAN13BarcodeBitmap(passData.header.barcode)
-            } catch (e: Exception) {
-                null
-            }
-            barcodeImage?.setImageBitmap(barcodeBitmap)
-
-            passData.productData?.let { product ->
-                view.findViewById<TextView>(R.id.productName)?.text = product.name
-                view.findViewById<TextView>(R.id.productPrice)?.text = product.price
-                view.findViewById<TextView>(R.id.eventTitle)?.text = product.eventTitle
-                view.findViewById<TextView>(R.id.eventTime)?.text = product.eventTime
-            }
-
-            view.findViewById<TextView>(R.id.attendantName)?.text = passData.footer.cashierName
-            view.findViewById<TextView>(R.id.menuName)?.text = passData.footer.menuName
-            view.findViewById<TextView>(R.id.passPrinter)?.text = passData.footer.printerInfo
-            view.findViewById<TextView>(R.id.passDescription)?.text = passData.footer.description
-            view.findViewById<TextView>(R.id.printTime)?.text = passData.footer.printTime
-
-            view.findViewById<ImageView>(R.id.passCutInHere)?.visibility =
-                if (passData.showCutLine) View.VISIBLE else View.GONE
-
-            view
-        },
-        update = { view ->
-            // Atualiza a view ao recompor (ex: mudar passData)
-            val barcodeImage = view.findViewById<ImageView>(R.id.barcodeImageView)
-            val barcodeBitmap = try {
-                generateEAN13BarcodeBitmap(passData.header.barcode)
-            } catch (e: Exception) {
-                null
-            }
-            barcodeImage?.setImageBitmap(barcodeBitmap)
-
-            passData.productData?.let { product ->
-                view.findViewById<TextView>(R.id.productName)?.text = product.name
-                view.findViewById<TextView>(R.id.productPrice)?.text = product.price
-                view.findViewById<TextView>(R.id.eventTitle)?.text = product.eventTitle
-                view.findViewById<TextView>(R.id.eventTime)?.text = product.eventTime
-            }
-
-            view.findViewById<TextView>(R.id.attendantName)?.text = passData.footer.cashierName
-            view.findViewById<TextView>(R.id.menuName)?.text = passData.footer.menuName
-            view.findViewById<TextView>(R.id.passPrinter)?.text = passData.footer.printerInfo
-            view.findViewById<TextView>(R.id.passDescription)?.text = passData.footer.description
-            view.findViewById<TextView>(R.id.printTime)?.text = passData.footer.printTime
-
-            view.findViewById<ImageView>(R.id.passCutInHere)?.visibility =
-                if (passData.showCutLine) View.VISIBLE else View.GONE
-        }
-    )
-}
-
-@Composable
-private fun GroupedPass(
-    passData: PassData,
-    modifier: Modifier = Modifier
-) {
-    AndroidView(
-        modifier = modifier,
-        factory = { context ->
-            val view = LayoutInflater.from(context).inflate(R.layout.printer_pass_grouped, null, false)
-
-            view.findViewById<TextView>(R.id.headerTitle)?.text = passData.header.title
-            view.findViewById<TextView>(R.id.headerDate)?.text = passData.header.date
-
-            val barcodeImage = view.findViewById<ImageView>(R.id.barcodeImageView)
-            val barcodeBitmap = try {
-                generateEAN13BarcodeBitmap(passData.header.barcode)
-            } catch (e: Exception) {
-                null
-            }
-            barcodeImage?.setImageBitmap(barcodeBitmap)
-
-            val itemsContainer = view.findViewById<LinearLayout>(R.id.itemsContainer)
-            itemsContainer?.removeAllViews()
-
-            passData.groupedData?.items?.forEach { item ->
-                val itemView = LayoutInflater.from(context).inflate(R.layout.item_grouped_product, itemsContainer, false)
-                itemView.findViewById<TextView>(R.id.itemQuantity)?.text = "${item.quantity}x"
-                itemView.findViewById<TextView>(R.id.itemName)?.text = item.name
-                itemView.findViewById<TextView>(R.id.itemPrice)?.text = item.price
-                itemsContainer?.addView(itemView)
-            }
-
-            passData.groupedData?.let {
-                view.findViewById<TextView>(R.id.totalItems)?.text =
-                    "${it.totalItems} itens - ${it.totalPrice}"
-            }
-
-            view.findViewById<TextView>(R.id.cashierInfo)?.text =
-                "Caixa: ${passData.footer.menuName}\nOperador: ${passData.footer.cashierName}"
-            view.findViewById<TextView>(R.id.footerText)?.text = passData.footer.description
-            view.findViewById<TextView>(R.id.printTime)?.text = passData.footer.printTime
-
-            view
-        },
-        update = { view ->
-            // Atualiza view para refletir novos dados caso recomponha
-            view.findViewById<TextView>(R.id.headerTitle)?.text = passData.header.title
-            view.findViewById<TextView>(R.id.headerDate)?.text = passData.header.date
-
-            val barcodeImage = view.findViewById<ImageView>(R.id.barcodeImageView)
-            val barcodeBitmap = try {
-                generateEAN13BarcodeBitmap(passData.header.barcode)
-            } catch (e: Exception) {
-                null
-            }
-            barcodeImage?.setImageBitmap(barcodeBitmap)
-
-            val itemsContainer = view.findViewById<LinearLayout>(R.id.itemsContainer)
-            itemsContainer?.removeAllViews()
-
-            passData.groupedData?.items?.forEach { item ->
-                val itemView = LayoutInflater.from(view.context).inflate(R.layout.item_grouped_product, itemsContainer, false)
-                itemView.findViewById<TextView>(R.id.itemQuantity)?.text = "${item.quantity}x"
-                itemView.findViewById<TextView>(R.id.itemName)?.text = item.name
-                itemView.findViewById<TextView>(R.id.itemPrice)?.text = item.price
-                itemsContainer?.addView(itemView)
-            }
-
-            passData.groupedData?.let {
-                view.findViewById<TextView>(R.id.totalItems)?.text =
-                    "${it.totalItems} itens - ${it.totalPrice}"
-            }
-
-            view.findViewById<TextView>(R.id.cashierInfo)?.text =
-                "Caixa: ${passData.footer.menuName}\nOperador: ${passData.footer.cashierName}"
-            view.findViewById<TextView>(R.id.footerText)?.text = passData.footer.description
-            view.findViewById<TextView>(R.id.printTime)?.text = passData.footer.printTime
-        }
-    )
-}
-
 sealed class PassType {
     object ProductCompact : PassType()
     object ProductExpanded : PassType()
@@ -240,7 +91,8 @@ data class PassData(
         val name: String = "",
         val price: String = "",
         val eventTitle: String = "",
-        val eventTime: String = ""
+        val eventTime: String = "",
+        val observation: String? = null
     )
 
     @Serializable
@@ -253,7 +105,9 @@ data class PassData(
         data class GroupedItem(
             val quantity: Int,
             val name: String,
-            val price: String
+            val price: String,
+            val observation: String? = null
+
         )
     }
 }

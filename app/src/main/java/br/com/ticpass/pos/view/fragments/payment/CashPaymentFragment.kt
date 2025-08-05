@@ -143,6 +143,25 @@ class CashPaymentFragment : Fragment() {
         })
     }
 
+
+    private fun getCartObservations(): Map<String, String> {
+        val prefs = requireContext().getSharedPreferences("ShoppingCartPrefs", Context.MODE_PRIVATE)
+        val json = prefs.getString("shopping_cart_data", null) ?: return emptyMap()
+
+        return try {
+            val jsonObject = JSONObject(json)
+            val observations = jsonObject.getJSONObject("observations")
+            val map = mutableMapOf<String, String>()
+
+            observations.keys().forEach { key ->
+                map[key] = observations.getString(key)
+            }
+            map
+        } catch (e: Exception) {
+            emptyMap()
+        }
+    }
+
     @Composable
     private fun PassScreenContainer(
         passType: PassType,
@@ -211,25 +230,28 @@ class CashPaymentFragment : Fragment() {
         passType: PassType
     ): List<PassData> {
         val cartItems = getCartItems()
+        val cartObservations = getCartObservations()
 
         return if (products.isNotEmpty()) {
             when (passType) {
                 PassType.ProductCompact, PassType.ProductExpanded -> {
                     products.flatMap { product ->
                         val quantity = cartItems[product.id] ?: 1
-                        // Cria uma entrada separada para cada unidade do produto
+                        val observation = cartObservations[product.id]
+
                         (1..quantity).map { unitIndex ->
                             PassData(
                                 header = PassData.HeaderData(
                                     title = event?.name ?: "ticpass",
                                     date = event?.getFormattedStartDate() ?: "",
-                                    barcode = "0000000002879" // pode ser dinâmico depois
+                                    barcode = "0000000002879"
                                 ),
                                 productData = PassData.ProductData(
                                     name = "${product.name} (${unitIndex}/$quantity)",
                                     price = "R$ ${(product.price / 100.0).format(2)}",
                                     eventTitle = event?.name ?: "",
-                                    eventTime = event?.getFormattedStartDate() ?: ""
+                                    eventTime = event?.getFormattedStartDate() ?: "",
+                                    observation = observation
                                 ),
                                 footer = PassData.FooterData(
                                     cashierName = operatorName,
@@ -246,10 +268,13 @@ class CashPaymentFragment : Fragment() {
                 PassType.ProductGrouped -> {
                     val groupedItems = products.map { product ->
                         val quantity = cartItems[product.id] ?: 1
+                        val observation = cartObservations[product.id]
+
                         PassData.GroupedData.GroupedItem(
                             quantity = quantity,
                             name = product.name,
-                            price = "R$ ${(product.price / 100.0 * quantity).format(2)}"
+                            price = "R$ ${(product.price / 100.0 * quantity).format(2)}",
+                            observation = observation
                         )
                     }
 
@@ -274,8 +299,7 @@ class CashPaymentFragment : Fragment() {
                                 cashierName = operatorName,
                                 menuName = pos?.name ?: "POS",
                                 description = "Ficha válida por 15 dias após a emissão...",
-                                printTime = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("pt", "BR")).format(Date()
-                                ),
+                                printTime = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("pt", "BR")).format(Date())
                             )
                         )
                     )

@@ -30,7 +30,8 @@ class ShoppingCartManager @Inject constructor(
 
     data class ShoppingCart(
         val items: Map<String, Int> = emptyMap(),
-        val totalPrice: BigInteger = BigInteger.ZERO
+        val totalPrice: BigInteger = BigInteger.ZERO,
+        val observations: Map<String, String> = emptyMap()
     )
 
     private var currentCart: ShoppingCart = loadCart()
@@ -48,6 +49,21 @@ class ShoppingCartManager @Inject constructor(
         if (currentQuantity > 0) {
             updateItem(productId, currentQuantity - 1)
         }
+    }
+
+    fun getObservation(productId: String): String? = currentCart.observations[productId]
+
+    fun updateObservation(productId: String, observation: String) {
+        val observations = currentCart.observations.toMutableMap()
+        if (observation.isNotEmpty()) {
+            observations[productId] = observation
+        } else {
+            observations.remove(productId)
+        }
+
+        currentCart = currentCart.copy(observations = observations)
+        saveCart(currentCart)
+        _cartUpdates.postValue(Unit)
     }
 
 

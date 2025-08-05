@@ -51,6 +51,7 @@ class PassAdapter(
         private val productPrice: TextView = itemView.findViewById(R.id.productPrice)
         private val eventTitle: TextView = itemView.findViewById(R.id.eventTitle)
         private val eventTime: TextView = itemView.findViewById(R.id.eventTime)
+        private val productObservation: TextView = itemView.findViewById(R.id.productObservation)
 
         override fun bind(passData: PassData) {
             passData.productData?.let {
@@ -58,6 +59,14 @@ class PassAdapter(
                 productPrice.text = it.price
                 eventTitle.text = it.eventTitle
                 eventTime.text = it.eventTime
+
+                // Mostra a observação se existir
+                it.observation?.let { obs ->
+                    productObservation.text = "Obs: $obs"
+                    productObservation.visibility = View.VISIBLE
+                } ?: run {
+                    productObservation.visibility = View.GONE
+                }
             }
             bindCommonViews(passData)
         }
@@ -68,6 +77,7 @@ class PassAdapter(
         private val productPrice: TextView = itemView.findViewById(R.id.productPrice)
         private val eventTitle: TextView = itemView.findViewById(R.id.eventTitle)
         private val eventTime: TextView = itemView.findViewById(R.id.eventTime)
+        private val productObservation: TextView = itemView.findViewById(R.id.productObservation)
 
         override fun bind(passData: PassData) {
             passData.productData?.let {
@@ -75,10 +85,19 @@ class PassAdapter(
                 productPrice.text = it.price
                 eventTitle.text = it.eventTitle
                 eventTime.text = it.eventTime
+
+                // Mostra a observação se existir
+                it.observation?.let { obs ->
+                    productObservation.text = "Obs: $obs"
+                    productObservation.visibility = View.VISIBLE
+                } ?: run {
+                    productObservation.visibility = View.GONE
+                }
             }
             bindCommonViews(passData)
         }
     }
+
 
     class GroupedViewHolder(itemView: View) : PassViewHolder(itemView) {
         private val headerTitle: TextView = itemView.findViewById(R.id.headerTitle)

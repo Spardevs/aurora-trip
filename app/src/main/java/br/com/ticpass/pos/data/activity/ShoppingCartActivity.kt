@@ -1,6 +1,8 @@
 package br.com.ticpass.pos.data.activity
 
 import android.os.Bundle
+import android.widget.EditText
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,11 +20,8 @@ import javax.inject.Inject
 class ShoppingCartActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ShoppingCartAdapter
-    private lateinit var productRepository: ProductRepository
-    private lateinit var shoppingCartManager: ShoppingCartManager
-
-    @Inject
-    lateinit var injectedShoppingCartManager: ShoppingCartManager
+    @Inject lateinit var productRepository: ProductRepository
+    @Inject lateinit var shoppingCartManager: ShoppingCartManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,9 +29,14 @@ class ShoppingCartActivity : AppCompatActivity() {
 
         recyclerView = findViewById(R.id.recyclerCart)
 
-        adapter = ShoppingCartAdapter { cartItem, newQuantity ->
-            shoppingCartManager.updateItem(cartItem.product.id, newQuantity)
-        }
+        adapter = ShoppingCartAdapter(
+            onQuantityChange = { cartItem, newQuantity ->
+                shoppingCartManager.updateItem(cartItem.product.id, newQuantity)
+            },
+            onObservationClick = { cartItem ->
+                showObservationDialog(cartItem)
+            }
+        )
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
@@ -44,9 +48,32 @@ class ShoppingCartActivity : AppCompatActivity() {
         loadCartItems()
     }
 
-    override fun onBackPressed() {
-        shoppingCartManager.notifyCartUpdated()
-        super.onBackPressed()
+    private fun showObservationDialog(item: CartItem) {
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Observação do produto")
+            .setMessage("Digite uma observação para ${item.product.name}")
+            .setView(R.layout.dialog_observation)
+            .setPositiveButton("Salvar") { dialog, _ ->
+                val input = (dialog as AlertDialog).findViewById<EditText>(R.id.btObservation)
+                val observation = input?.text?.toString()?.trim() ?: ""
+                shoppingCartManager.updateObservation(item.product.id, observation)
+            }
+            .setNegativeButton("Cancelar") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setNeutralButton("Limpar") { dialog, _ ->
+                shoppingCartManager.updateObservation(item.product.id, "")
+            }
+            .create()
+
+        dialog.setOnShowListener {
+            val currentObservation = shoppingCartManager.getObservation(item.product.id)
+            val input = dialog.findViewById<EditText>(R.id.btObservation)
+            input?.setText(currentObservation)
+            input?.requestFocus()
+        }
+
+        dialog.show()
     }
 
     private fun loadCartItems() {
@@ -56,10 +83,11 @@ class ShoppingCartActivity : AppCompatActivity() {
 
             cart.items.forEach { (productId, quantity) ->
                 val product = withContext(Dispatchers.IO) {
-                    productRepository.getById(productId.toString())
+                    productRepository.getById(productId)
                 }
                 product?.let {
-                    cartItems.add(CartItem(it, quantity))
+                    val observation = cart.observations[productId]
+                    cartItems.add(CartItem(it, quantity, observation))
                 }
             }
 
@@ -67,23 +95,9 @@ class ShoppingCartActivity : AppCompatActivity() {
         }
     }
 
-
-    private suspend fun attCartItems(): List<CartItem> {
-        val map: Map<String, Int> = shoppingCartManager.getAllItems(this@ShoppingCartActivity)
-
-        return map.mapNotNull { (productId, quantity) ->
-            val entity = productRepository.getById(productId.toString())
-            entity?.let { CartItem(it, quantity) }
-        }
-    }
-    private suspend fun getCartItems(): List<CartItem> {
-        val itemsMap = shoppingCartManager.getAllItems(this@ShoppingCartActivity)
-        return itemsMap.mapNotNull { (productId, quantity) ->
-            val product = withContext(Dispatchers.IO) {
-                productRepository.getById(productId.toString())
-            }
-            product?.let { CartItem(it, quantity) }
-        }
+    override fun onBackPressed() {
+        shoppingCartManager.notifyCartUpdated()
+        super.onBackPressed()
     }
 
 }
