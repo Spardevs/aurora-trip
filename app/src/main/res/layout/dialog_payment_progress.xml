@@ -24,6 +24,25 @@
         android:textSize="16sp"
         tools:text="Payment 1 out of 3" />
 
+    <TextView
+        android:id="@+id/text_payment_method"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textAlignment="center"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        tools:text="PIX Payment" />
+
+    <TextView
+        android:id="@+id/text_payment_amount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textAlignment="center"
+        android:textSize="14sp"
+        tools:text="R$ 25,00" />
+
     <ProgressBar
         android:id="@+id/progress_bar_dialog"
         style="@style/Widget.AppCompat.ProgressBar.Horizontal"

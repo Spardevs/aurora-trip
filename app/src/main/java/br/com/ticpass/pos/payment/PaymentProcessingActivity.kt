@@ -41,6 +41,8 @@ class PaymentProcessingActivity : AppCompatActivity() {
     private lateinit var dialogProgressTextView: TextView
     private lateinit var dialogProgressBar: ProgressBar
     private lateinit var dialogEventTextView: TextView
+    private lateinit var dialogPaymentMethodTextView: TextView
+    private lateinit var dialogPaymentAmountTextView: TextView
     private lateinit var dialogQRCodeImageView: android.widget.ImageView
     private lateinit var dialogTimeoutCountdownView: br.com.ticpass.pos.payment.view.TimeoutCountdownView
     private lateinit var dialogCancelButton: Button
@@ -90,6 +92,8 @@ class PaymentProcessingActivity : AppCompatActivity() {
         dialogProgressTextView = dialogView.findViewById(R.id.text_dialog_progress)
         dialogProgressBar = dialogView.findViewById(R.id.progress_bar_dialog)
         dialogEventTextView = dialogView.findViewById(R.id.text_dialog_event)
+        dialogPaymentMethodTextView = dialogView.findViewById(R.id.text_payment_method)
+        dialogPaymentAmountTextView = dialogView.findViewById(R.id.text_payment_amount)
         dialogQRCodeImageView = dialogView.findViewById(R.id.image_dialog_qrcode)
         dialogTimeoutCountdownView = dialogView.findViewById(R.id.timeout_countdown_view)
         dialogCancelButton = dialogView.findViewById<Button>(R.id.btn_dialog_cancel)
@@ -204,12 +208,14 @@ class PaymentProcessingActivity : AppCompatActivity() {
             dialogManager = dialogManager,
             eventHandler = eventHandler,
             queueView = queueView,
+            queueTitleTextView = queueTitleTextView,
             dialogProgressTextView = dialogProgressTextView,
             dialogProgressBar = dialogProgressBar,
             dialogEventTextView = dialogEventTextView,
+            dialogPaymentMethodTextView = dialogPaymentMethodTextView,
+            dialogPaymentAmountTextView = dialogPaymentAmountTextView,
             showProgressDialog = { showProgressDialog() },
-            hideProgressDialog = { hideProgressDialog() },
-            queueTitleTextView = queueTitleTextView
+            hideProgressDialog = { hideProgressDialog() }
         )
     }
     

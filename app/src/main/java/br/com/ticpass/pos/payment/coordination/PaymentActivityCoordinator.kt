@@ -5,17 +5,20 @@ import android.util.Log
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.lifecycle.LifecycleCoroutineScope
+import br.com.ticpass.Constants.CONVERSION_FACTOR
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.feature.payment.PaymentProcessingViewModel
 import br.com.ticpass.pos.feature.payment.state.PaymentProcessingUiState
 import br.com.ticpass.pos.payment.dialogs.PaymentDialogManager
 import br.com.ticpass.pos.payment.events.PaymentEventHandler
+import br.com.ticpass.pos.payment.models.SystemPaymentMethod
 import br.com.ticpass.pos.payment.utils.PaymentUIUtils
 import br.com.ticpass.pos.payment.view.PaymentProcessingQueueView
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.error.ProcessingErrorEventResourceMapper
 import br.com.ticpass.pos.queue.models.ProcessingState
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
+import br.com.ticpass.utils.toMoneyAsDouble
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -35,6 +38,8 @@ class PaymentActivityCoordinator(
     private val dialogProgressTextView: TextView,
     private val dialogProgressBar: ProgressBar,
     private val dialogEventTextView: TextView,
+    private val dialogPaymentMethodTextView: TextView,
+    private val dialogPaymentAmountTextView: TextView,
     private val showProgressDialog: () -> Unit,
     private val hideProgressDialog: () -> Unit
 ) {
@@ -82,6 +87,8 @@ class PaymentActivityCoordinator(
                 when (state) {
                     is ProcessingState.ItemProcessing -> {
                         updateProcessingProgress(paymentViewModel.currentIndex, paymentViewModel.fullSize)
+                        // Update payment method and amount information
+                        updatePaymentInfo(state.item)
                     }
                     is ProcessingState.ItemDone -> {
                         // Success: All payments completed
@@ -97,6 +104,8 @@ class PaymentActivityCoordinator(
                     is ProcessingState.ItemRetrying -> {
                         // Update progress for retrying state
                         updateProcessingProgress(paymentViewModel.currentIndex, paymentViewModel.fullSize)
+                        // Update payment method and amount information for retry
+                        updatePaymentInfo(state.item)
                     }
                     is ProcessingState.ItemSkipped -> {
                         // Update progress for skipped state
@@ -196,6 +205,29 @@ class PaymentActivityCoordinator(
         
         // Make sure dialog is showing for errors
         showProgressDialog()
+    }
+    
+    private fun updatePaymentInfo(item: ProcessingPaymentQueueItem) {
+        // Update payment method
+        val paymentMethodDisplayName = getPaymentMethodDisplayName(item.method)
+        dialogPaymentMethodTextView.text = paymentMethodDisplayName
+        
+        // Update payment amount (convert from cents to currency format)
+        val amountInReais = item.amount.toMoneyAsDouble()
+        val formattedAmount = String.format("R$ %.2f", amountInReais)
+        dialogPaymentAmountTextView.text = formattedAmount
+    }
+    
+    private fun getPaymentMethodDisplayName(method: SystemPaymentMethod): String {
+        return when (method) {
+            SystemPaymentMethod.CREDIT -> context.getString(R.string.enqueue_credit_payment)
+            SystemPaymentMethod.DEBIT -> context.getString(R.string.enqueue_debit_payment)
+            SystemPaymentMethod.VOUCHER -> context.getString(R.string.enqueue_voucher_payment)
+            SystemPaymentMethod.PIX -> context.getString(R.string.enqueue_pix_payment)
+            SystemPaymentMethod.MERCHANT_PIX -> context.getString(R.string.enqueue_personal_pix_payment)
+            SystemPaymentMethod.CASH -> context.getString(R.string.enqueue_cash_payment)
+            SystemPaymentMethod.LN_BITCOIN -> context.getString(R.string.enqueue_bitcoin_ln_payment)
+        }
     }
     
     private fun confirmMerchantPixKey(requestId: String) {
