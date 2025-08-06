@@ -87,7 +87,7 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
 
         try {
             scope.launch {
-                paymentProvider.abortPayment()
+                if(::paymentProvider.isInitialized) paymentProvider.abortPayment()
                 cleanupCoroutineScopes()
             }
             deferred.complete(true)
