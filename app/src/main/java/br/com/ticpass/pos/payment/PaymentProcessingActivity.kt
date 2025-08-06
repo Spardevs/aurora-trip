@@ -4,6 +4,7 @@ import android.app.AlertDialog
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.viewModels
@@ -15,6 +16,7 @@ import br.com.ticpass.pos.payment.coordination.PaymentActivityCoordinator
 import br.com.ticpass.pos.payment.dialogs.PaymentDialogManager
 import br.com.ticpass.pos.payment.events.PaymentEventHandler
 import br.com.ticpass.pos.payment.models.SystemPaymentMethod
+import br.com.ticpass.pos.payment.models.SupportedPaymentMethods
 import br.com.ticpass.pos.payment.utils.PaymentUIUtils
 import br.com.ticpass.pos.payment.view.PaymentProcessingQueueView
 import br.com.ticpass.pos.sdk.AcquirerSdk
@@ -105,35 +107,9 @@ class PaymentProcessingActivity : AppCompatActivity() {
     }
     
     private fun setupButtons() {
-        // Set up payment method buttons
-        findViewById<Button>(R.id.btn_add_credit).setOnClickListener {
-            enqueuePayment(SystemPaymentMethod.CREDIT)
-        }
+        // Generate payment method buttons dynamically based on supported methods
+        generatePaymentMethodButtons()
         
-        findViewById<Button>(R.id.btn_add_debit).setOnClickListener {
-            enqueuePayment(SystemPaymentMethod.DEBIT)
-        }
-        
-        findViewById<Button>(R.id.btn_add_pix).setOnClickListener {
-            enqueuePayment(SystemPaymentMethod.PIX)
-        }
-
-        findViewById<Button>(R.id.btn_add_voucher).setOnClickListener {
-            enqueuePayment(SystemPaymentMethod.VOUCHER)
-        }
-
-        findViewById<Button>(R.id.btn_add_bitcoin_ln).setOnClickListener {
-            enqueuePayment(SystemPaymentMethod.LN_BITCOIN)
-        }
-
-        findViewById<Button>(R.id.btn_add_merchant_pix).setOnClickListener {
-            enqueuePayment(SystemPaymentMethod.MERCHANT_PIX)
-        }
-
-        findViewById<Button>(R.id.btn_add_cash).setOnClickListener {
-            enqueuePayment(SystemPaymentMethod.CASH)
-        }
-
         // Set up control buttons
         findViewById<Button>(R.id.btn_start_processing).setOnClickListener {
             paymentViewModel.startProcessing()
@@ -142,6 +118,69 @@ class PaymentProcessingActivity : AppCompatActivity() {
         // Cancel all payments button
         findViewById<View>(R.id.clear_list).setOnClickListener {
             paymentViewModel.cancelAllPayments()
+        }
+    }
+    
+    private fun generatePaymentMethodButtons() {
+        val container = findViewById<LinearLayout>(R.id.payment_methods_container)
+        val supportedMethods = SupportedPaymentMethods.methods
+        
+        // Clear any existing buttons
+        container.removeAllViews()
+        
+        // Create buttons in rows of 2
+        val buttonsPerRow = 2
+        var currentRow: LinearLayout? = null
+        
+        supportedMethods.forEachIndexed { index, method ->
+            // Create new row if needed
+            if (index % buttonsPerRow == 0) {
+                currentRow = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        if (index > 0) topMargin = resources.getDimensionPixelSize(R.dimen.button_row_margin)
+                    }
+                }
+                container.addView(currentRow)
+            }
+            
+            // Create button for payment method
+            val button = Button(this).apply {
+                text = getPaymentMethodDisplayName(method)
+                layoutParams = LinearLayout.LayoutParams(
+                    0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1f
+                ).apply {
+                    // Add margins between buttons
+                    val margin = resources.getDimensionPixelSize(R.dimen.button_margin)
+                    if (index % buttonsPerRow == 0) {
+                        rightMargin = margin / 2
+                    } else {
+                        leftMargin = margin / 2
+                    }
+                }
+                setOnClickListener {
+                    enqueuePayment(method)
+                }
+            }
+            
+            currentRow?.addView(button)
+        }
+    }
+    
+    private fun getPaymentMethodDisplayName(method: SystemPaymentMethod): String {
+        return when (method) {
+            SystemPaymentMethod.CREDIT -> getString(R.string.enqueue_credit_payment)
+            SystemPaymentMethod.DEBIT -> getString(R.string.enqueue_debit_payment)
+            SystemPaymentMethod.VOUCHER -> getString(R.string.enqueue_voucher_payment)
+            SystemPaymentMethod.PIX -> getString(R.string.enqueue_pix_payment)
+            SystemPaymentMethod.MERCHANT_PIX -> getString(R.string.enqueue_personal_pix_payment)
+            SystemPaymentMethod.CASH -> getString(R.string.enqueue_cash_payment)
+            SystemPaymentMethod.LN_BITCOIN -> getString(R.string.enqueue_bitcoin_ln_payment)
         }
     }
     

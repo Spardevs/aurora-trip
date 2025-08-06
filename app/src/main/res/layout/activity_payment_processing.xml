@@ -45,83 +45,12 @@
                     android:text="@string/transactionless_mode"
                     android:layout_marginBottom="8dp" />
 
+                <!-- Dynamic Payment Method Buttons Container -->
                 <LinearLayout
+                    android:id="@+id/payment_methods_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <Button
-                        android:id="@+id/btn_add_credit"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="4dp"
-                        android:text="@string/enqueue_credit_payment" />
-
-                    <Button
-                        android:id="@+id/btn_add_debit"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="4dp"
-                        android:layout_marginEnd="4dp"
-                        android:text="@string/enqueue_debit_payment" />
-                </LinearLayout>
-                
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="8dp">
-                    
-                    <Button
-                        android:id="@+id/btn_add_voucher"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="4dp"
-                        android:text="@string/enqueue_voucher_payment" />
-                        
-                    <Button
-                        android:id="@+id/btn_add_pix"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="4dp"
-                        android:layout_marginEnd="4dp"
-                        android:text="@string/enqueue_pix_payment" />
-                        
-                    <Button
-                        android:id="@+id/btn_add_merchant_pix"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="4dp"
-                        android:text="@string/enqueue_personal_pix_payment" />
-                </LinearLayout>
-                
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="8dp">
-                    
-                    <Button
-                        android:id="@+id/btn_add_cash"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="4dp"
-                        android:text="@string/enqueue_cash_payment" />
-                        
-                    <Button
-                        android:id="@+id/btn_add_bitcoin_ln"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="4dp"
-                        android:text="@string/enqueue_bitcoin_ln_payment" />
-                </LinearLayout>
+                    android:orientation="vertical" />
 
             </LinearLayout>
 
