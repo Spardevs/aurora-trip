@@ -26,6 +26,8 @@
     </plurals>
     <string name="payment_form_title" translatable="false">"Payment form"</string>
     <string name="confirm_payment">Confirm</string>
+    <string name="menu_total">Total</string>
+    <string name="menu_opening">Opening</string>
     <string name="operator_name">Operator</string>
     <string name="navigation_drawer_open">Open menu</string>
     <string name="navigation_drawer_close">Close menu</string>
