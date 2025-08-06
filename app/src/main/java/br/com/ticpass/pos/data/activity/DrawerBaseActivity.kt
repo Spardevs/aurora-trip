@@ -44,6 +44,10 @@ abstract class DrawerBaseActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_drawer_base)
 
+        drawerLayout = findViewById(R.id.drawer_layout)
+        drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+        drawerLayout.drawerElevation = 0f
+
         val db = AppDatabase.getInstance(this)
 
         posRepository = PosRepository(db.posDao())
@@ -52,7 +56,6 @@ abstract class DrawerBaseActivity : AppCompatActivity() {
         productsRepository = ProductRepository(db.productDao())
         categoryRepository = CategoryRepository(db.categoryDao())
 
-        drawerLayout = findViewById(R.id.drawer_layout)
         navView      = findViewById(R.id.nav_view)
         val toolbar  = findViewById< MaterialToolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
