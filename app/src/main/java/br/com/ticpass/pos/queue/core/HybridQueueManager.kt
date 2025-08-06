@@ -132,33 +132,42 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                 
                 // Check if we need to confirm before processing the next item
                 if (startMode == ProcessorStartMode.CONFIRMATION) {
-                    val nextItemIndex = inMemoryQueue.indexOf(nextItem)
+                    try {
+                        val nextItemIndex = inMemoryQueue.indexOf(nextItem)
 
-                    // Use generic confirmation request - let the UI layer interpret item-specific data
-                    val confirmRequest = QueueInputRequest.CONFIRM_NEXT_PROCESSOR(
-                        currentItemIndex = nextItemIndex,
-                        totalItems = inMemoryQueue.size,
-                        currentItemId = nextItem.id,
-                        nextItemId = if (nextItemIndex < inMemoryQueue.size - 1) inMemoryQueue[nextItemIndex + 1].id else null
-                    )
-                    
-                    // Emit the confirmation request
-                    _queueInputRequests.emit(confirmRequest)
-                    
-                    // Wait for response (this will be resumed when provideQueueInput is called)
-                    val response = suspendCancellableCoroutine { continuation ->
-                        // Store the continuation to be resumed later
-                        pendingQueueInputContinuations[confirmRequest.id] = continuation
-                    }
-                    nextItem = inMemoryQueue.first()
+                        // Use generic confirmation request - let the UI layer interpret item-specific data
+                        val confirmRequest = QueueInputRequest.CONFIRM_NEXT_PROCESSOR(
+                            currentItemIndex = nextItemIndex,
+                            totalItems = inMemoryQueue.size,
+                            currentItemId = nextItem.id,
+                            nextItemId = if (nextItemIndex < inMemoryQueue.size - 1) inMemoryQueue[nextItemIndex + 1].id else null
+                        )
 
-                    // If the user chose to skip, move the item to the end of the queue and continue
-                    if (response.isCanceled || response.value == false) {
-                        // Move this item to the end of the queue
-                        val skippedItem = inMemoryQueue.removeFirstOrNull()
-                        if (skippedItem != null) { inMemoryQueue.add(skippedItem) }
-                        _queueState.value = inMemoryQueue.toList()
-                        continue
+                        // Emit the confirmation request
+                        _queueInputRequests.emit(confirmRequest)
+
+                        // Wait for response (this will be resumed when provideQueueInput is called)
+                        val response = suspendCancellableCoroutine { continuation ->
+                            // Store the continuation to be resumed later
+                            pendingQueueInputContinuations[confirmRequest.id] = continuation
+                        }
+                        nextItem = inMemoryQueue.first()
+
+                        // If the user chose to skip, move the item to the end of the queue and continue
+                        if (response.isCanceled || response.value == false) {
+                            // Move this item to the end of the queue
+                            val skippedItem = inMemoryQueue.removeFirstOrNull()
+                            if (skippedItem != null) { inMemoryQueue.add(skippedItem) }
+                            _queueState.value = inMemoryQueue.toList()
+                            continue
+                        }
+                    } catch (e: Exception) {
+                        Log.e("HybridQueueManager", "Error confirming item ${nextItem.id}: ${e.message}")
+
+                        _processingState.value = ProcessingState.ItemFailed(
+                            nextItem,
+                            ProcessingErrorEvent.GENERIC
+                        )
                     }
                 }
                 

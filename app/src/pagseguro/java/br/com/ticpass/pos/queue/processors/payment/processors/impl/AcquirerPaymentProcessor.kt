@@ -53,7 +53,6 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
                 _item.id
             )
 
-            // Use withContext to ensure this blocking call doesn't freeze the UI
             val payment = withContext(Dispatchers.IO) {
                 plugpag.doPayment(acquirerPaymentData)
             }
@@ -87,7 +86,6 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
      */
     override suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean {
         try {
-            // Attempt to abort any ongoing transaction
             val abortResult = withContext(Dispatchers.IO) {
                 plugpag.abort()
             }
@@ -159,11 +157,9 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
                             SystemCustomerReceiptPrinting.CONFIRMATION -> {
                                 try {
                                     scope.launch {
-                                        val userAccepted = withContext(Dispatchers.IO) {
-                                            requestUserInput(
-                                                UserInputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING()
-                                            )
-                                        }.value as? Boolean ?: true
+                                        val userAccepted = requestUserInput(
+                                            UserInputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING()
+                                        ).value as? Boolean ?: true
 
                                         if (userAccepted) onFinishActions?.doPrint(plugpag)
                                         else onFinishActions?.doNothing(plugpag)

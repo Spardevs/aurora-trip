@@ -1204,4 +1204,582 @@ sealed class ProcessingErrorEvent : BaseProcessingEvent {
      * Send for analysis the seller's email date time and terminal number.
      */
     object RESPONSE_TLV_SIZE : ProcessingErrorEvent()
+
+    /**
+     * Card read error.
+     * Unable to read card data from the card reader.
+     */
+    object CARD_READ_ERROR : ProcessingErrorEvent()
+
+    /**
+     * Card read operation was canceled.
+     * The card reading process was interrupted or canceled.
+     */
+    object CARD_READ_CANCELED : ProcessingErrorEvent()
+
+    /**
+     * Multiple cards detected during read operation.
+     * Remove extra cards and try again with a single card.
+     */
+    object CARD_READ_MULTI_ERROR : ProcessingErrorEvent()
+
+    /**
+     * Unable to read card holder information.
+     * Card data is incomplete or corrupted.
+     */
+    object CARD_HOLDER_READ_ERROR : ProcessingErrorEvent()
+
+    /**
+     * Pinpad connection not found.
+     * Check pinpad connection and try again.
+     */
+    object PINPAD_CONNECTION_NOT_FOUND : ProcessingErrorEvent()
+
+    /**
+     * Pinpad already connected.
+     * Another connection to the pinpad is already active.
+     */
+    object PINPAD_ALREADY_CONNECTED : ProcessingErrorEvent()
+
+    /**
+     * Pinpad connection was closed.
+     * The connection to the pinpad was terminated.
+     */
+    object PINPAD_CLOSED_CONNECTION : ProcessingErrorEvent()
+
+    /**
+     * Input/Output error with pinpad.
+     * Communication error occurred during pinpad operation.
+     */
+    object IO_ERROR_WITH_PINPAD : ProcessingErrorEvent()
+
+    /**
+     * Transaction application is blocked.
+     * The payment application on the card is blocked.
+     */
+    object TRANSACTION_APP_BLOCKED : ProcessingErrorEvent()
+
+    /**
+     * CVV was not provided.
+     * Card verification value is required for this transaction.
+     */
+    object CVV_NOT_PROVIDED : ProcessingErrorEvent()
+
+    /**
+     * Invalid CVV provided.
+     * The card verification value is incorrect.
+     */
+    object CVV_INVALID : ProcessingErrorEvent()
+
+    /**
+     * No transaction type specified.
+     * Transaction type must be specified to proceed.
+     */
+    object NO_TRANSACTION_TYPE : ProcessingErrorEvent()
+
+    /**
+     * Wrong transaction type selected.
+     * The selected transaction type is not valid for this operation.
+     */
+    object WRONG_TRANSACTION_TYPE : ProcessingErrorEvent()
+
+    /**
+     * Invalid application selected.
+     * The payment application on the card is not valid.
+     */
+    object INVALID_APPLICATION : ProcessingErrorEvent()
+
+    /**
+     * Invalid application index.
+     * The application index on the card is not valid.
+     */
+    object INVALID_APPLICATION_INDEX : ProcessingErrorEvent()
+
+    /**
+     * Online processing error.
+     * Error occurred during online transaction processing.
+     */
+    object ONLINE_PROCESSING_ERROR : ProcessingErrorEvent()
+
+    /**
+     * EMV processing error.
+     * Generic error during EMV chip card processing.
+     */
+    object EMV_PROCESSING_ERROR : ProcessingErrorEvent()
+
+    /**
+     * EMV card connection failed.
+     * Unable to establish connection with the EMV chip.
+     */
+    object EMV_CARD_CONNECTION_ERROR : ProcessingErrorEvent()
+
+    /**
+     * No EMV application found.
+     * No compatible payment application found on the chip card.
+     */
+    object EMV_NO_APPLICATION : ProcessingErrorEvent()
+
+    /**
+     * EMV CAPK error.
+     * Certificate Authority Public Key error during EMV processing.
+     */
+    object EMV_CAPK_ERROR : ProcessingErrorEvent()
+
+    /**
+     * EMV TLV error.
+     * Tag-Length-Value data structure error during EMV processing.
+     */
+    object EMV_TLV_ERROR : ProcessingErrorEvent()
+
+    /**
+     * EMV AID error.
+     * Application Identifier error during EMV processing.
+     */
+    object EMV_AID_ERROR : ProcessingErrorEvent()
+
+    /**
+     * PIN entry error.
+     * Error occurred during PIN entry process.
+     */
+    object PIN_ENTRY_ERROR : ProcessingErrorEvent()
+
+    /**
+     * PIN key error.
+     * Error with PIN encryption key.
+     */
+    object PIN_KEY_ERROR : ProcessingErrorEvent()
+
+    /**
+     * No PIN input provided.
+     * PIN entry was required but not provided.
+     */
+    object PIN_NO_INPUT : ProcessingErrorEvent()
+
+    /**
+     * PIN initialization error.
+     * Error occurred during PIN entry system initialization.
+     */
+    object PIN_INITIALIZATION_ERROR : ProcessingErrorEvent()
+
+    /**
+     * PIN encryption error.
+     * Error occurred during PIN encryption process.
+     */
+    object PIN_ENCRYPTION_ERROR : ProcessingErrorEvent()
+
+    /**
+     * PIN key not found.
+     * Required PIN encryption key was not found.
+     */
+    object PIN_KEY_NOT_FOUND : ProcessingErrorEvent()
+
+    /**
+     * NFC not supported.
+     * Near Field Communication is not supported on this device.
+     */
+    object NFC_NOT_SUPPORTED : ProcessingErrorEvent()
+
+    /**
+     * NFC operation aborted.
+     * The NFC operation was aborted or interrupted.
+     */
+    object NFC_OPERATION_ABORTED : ProcessingErrorEvent()
+
+    /**
+     * Wrong card type for NFC.
+     * The card type is not compatible with NFC operations.
+     */
+    object NFC_WRONG_CARD_TYPE : ProcessingErrorEvent()
+
+    /**
+     * Invalid NFC key.
+     * The NFC authentication key is invalid.
+     */
+    object NFC_INVALID_KEY : ProcessingErrorEvent()
+
+    /**
+     * NFC not authenticated.
+     * NFC authentication failed.
+     */
+    object NFC_NOT_AUTHENTICATED : ProcessingErrorEvent()
+
+    /**
+     * Invalid sector number.
+     * The specified sector number is not valid.
+     */
+    object INVALID_SECTOR_NUMBER : ProcessingErrorEvent()
+
+    /**
+     * Invalid block number.
+     * The specified block number is not valid.
+     */
+    object INVALID_BLOCK_NUMBER : ProcessingErrorEvent()
+
+    /**
+     * Invalid block format.
+     * The data block format is not valid.
+     */
+    object INVALID_BLOCK_FORMAT : ProcessingErrorEvent()
+
+    /**
+     * QR code generation error.
+     * Failed to generate QR code.
+     */
+    object QRCODE_GENERATION_ERROR : ProcessingErrorEvent()
+
+    /**
+     * QR code expired.
+     * The QR code has expired and is no longer valid.
+     */
+    object QRCODE_EXPIRED : ProcessingErrorEvent()
+
+    /**
+     * Transaction fallback initiated.
+     * Transaction is falling back to alternative processing method.
+     */
+    object TRANSACTION_FALLBACK : ProcessingErrorEvent()
+
+    /**
+     * Invalid card mode.
+     * The card mode is not valid for this transaction type.
+     */
+    object INVALID_CARD_MODE : ProcessingErrorEvent()
+
+    /**
+     * Too many cards detected.
+     * Multiple cards detected, use only one card.
+     */
+    object TOO_MANY_CARDS : ProcessingErrorEvent()
+
+    /**
+     * Device misconfigured.
+     * The device configuration is incorrect.
+     */
+    object DEVICE_MISCONFIGURED : ProcessingErrorEvent()
+
+    /**
+     * Activation error.
+     * Error occurred during device or service activation.
+     */
+    object ACTIVATION_ERROR : ProcessingErrorEvent()
+
+    /**
+     * SDK version outdated.
+     * The SDK version is outdated and needs to be updated.
+     */
+    object SDK_VERSION_OUTDATED : ProcessingErrorEvent()
+
+    /**
+     * Application name not set.
+     * Application name must be configured before use.
+     */
+    object APP_NAME_NOT_SET : ProcessingErrorEvent()
+
+    /**
+     * No active application.
+     * No application is currently active or running.
+     */
+    object NO_ACTIVE_APPLICATION : ProcessingErrorEvent()
+
+    /**
+     * Multiple provider instances running.
+     * Only one provider instance should be active at a time.
+     */
+    object MULTIPLE_PROVIDER_INSTANCES : ProcessingErrorEvent()
+
+    /**
+     * Unknown user type.
+     * The user type is not recognized or supported.
+     */
+    object UNKNOWN_USER_TYPE : ProcessingErrorEvent()
+
+    /**
+     * Transaction object is null.
+     * The transaction object is null or not initialized.
+     */
+    object TRANSACTION_OBJECT_NULL : ProcessingErrorEvent()
+
+    /**
+     * Email error.
+     * Error occurred during email operation.
+     */
+    object EMAIL_ERROR : ProcessingErrorEvent()
+
+    /**
+     * Email client error.
+     * Error with the email client configuration or operation.
+     */
+    object EMAIL_CLIENT_ERROR : ProcessingErrorEvent()
+
+    /**
+     * Email address is empty.
+     * Email address field is required but empty.
+     */
+    object EMAIL_EMPTY : ProcessingErrorEvent()
+
+    /**
+     * Email recipient is empty.
+     * Email recipient field is required but empty.
+     */
+    object EMAIL_RECIPIENT_EMPTY : ProcessingErrorEvent()
+
+    /**
+     * Data constraint error.
+     * Data does not meet required constraints.
+     */
+    object DATA_CONSTRAINT_ERROR : ProcessingErrorEvent()
+
+    /**
+     * Data integration error.
+     * Error occurred during data integration process.
+     */
+    object DATA_INTEGRATION_ERROR : ProcessingErrorEvent()
+
+    /**
+     * Switch interface error.
+     * Error occurred in the switch interface communication.
+     */
+    object SWITCH_INTERFACE_ERROR : ProcessingErrorEvent()
+
+    /**
+     * Swipe incorrect.
+     * Card was not swiped correctly, try again.
+     */
+    object SWIPE_INCORRECT : ProcessingErrorEvent()
+
+    /**
+     * Null response received.
+     * Expected response was null or empty.
+     */
+    object NULL_RESPONSE : ProcessingErrorEvent()
+
+    /**
+     * Error response received.
+     * Received an error response from the system.
+     */
+    object ERROR_RESPONSE : ProcessingErrorEvent()
+
+    /**
+     * Card was removed by user.
+     * The card was removed during processing.
+     */
+    object CARD_REMOVED_BY_USER : ProcessingErrorEvent()
+
+    /**
+     * Cannot read chip card.
+     * Unable to read data from the chip card.
+     */
+    object CHIP_CARD_READ_ERROR : ProcessingErrorEvent()
+
+    /**
+     * Generic card error.
+     * A general card-related error occurred.
+     */
+    object CARD_GENERIC_ERROR : ProcessingErrorEvent()
+
+    /**
+     * Device not compatible.
+     * The device is not compatible with the operation.
+     */
+    object DEVICE_NOT_COMPATIBLE : ProcessingErrorEvent()
+
+    /**
+     * Magnetic stripe passed but chip card detected.
+     * Card has a chip but was swiped instead of inserted.
+     */
+    object MAG_STRIPE_CHIP_DETECTED : ProcessingErrorEvent()
+
+    /**
+     * Invalid Stone code.
+     * The Stone authentication code is invalid.
+     */
+    object INVALID_STONE_CODE : ProcessingErrorEvent()
+
+    /**
+     * User model not found.
+     * The user model could not be found in the system.
+     */
+    object USER_MODEL_NOT_FOUND : ProcessingErrorEvent()
+
+    /**
+     * Invalid or unknown Stone code.
+     * The Stone code is invalid or not recognized.
+     */
+    object INVALID_OR_UNKNOWN_STONE_CODE : ProcessingErrorEvent()
+
+    /**
+     * Printer initialization error.
+     * Error occurred during printer initialization.
+     */
+    object PRINTER_INITIALIZATION_ERROR : ProcessingErrorEvent()
+
+    /**
+     * Printer unsupported format.
+     * The printer does not support the requested format.
+     */
+    object PRINTER_UNSUPPORTED_FORMAT : ProcessingErrorEvent()
+
+    /**
+     * Printer invalid data.
+     * The data provided to the printer is invalid.
+     */
+    object PRINTER_INVALID_DATA : ProcessingErrorEvent()
+
+    /**
+     * No print support.
+     * Printing is not supported on this device.
+     */
+    object NO_PRINT_SUPPORT : ProcessingErrorEvent()
+
+    /**
+     * Internal system error.
+     * An internal error occurred in the system.
+     */
+    object INTERNAL_SYSTEM_ERROR : ProcessingErrorEvent()
+
+    /**
+     * Tables not found.
+     * Required data tables were not found.
+     */
+    object TABLES_NOT_FOUND : ProcessingErrorEvent()
+
+    /**
+     * Need to load tables.
+     * Data tables need to be loaded before proceeding.
+     */
+    object NEED_LOAD_TABLES : ProcessingErrorEvent()
+
+    /**
+     * Invalid acquirer activation code.
+     * The activation code provided for the acquirer is invalid.
+     */
+    object INVALID_ACQUIRER_ACTIVATION_CODE : ProcessingErrorEvent()
+
+    /**
+     * Reversal pending.
+     * The transaction is pending reversal.
+     */
+    object REVERSAL_PENDING : ProcessingErrorEvent()
+
+    /**
+     * Transaction is pending.
+     * The transaction is currently pending and not yet completed.
+     */
+    object TRANSACTION_PENDING : ProcessingErrorEvent()
+
+    /**
+     * Transaction cancelled and awaiting reversal.
+     * The transaction was cancelled and is awaiting reversal processing.
+     */
+    object CANCELLED_AWAITING_REVERSAL : ProcessingErrorEvent()
+
+    /**
+     * Fraud suspicion detected.
+     */
+    object FRAUD_SUSPICION : ProcessingErrorEvent()
+
+    /**
+     * Check card details.
+     */
+    object CHECK_CARD_DETAILS : ProcessingErrorEvent()
+
+    /**
+     * Use credit card method.
+     */
+    object USE_CREDIT_METHOD : ProcessingErrorEvent()
+
+    /**
+     * Use debit card method.
+     */
+    object USE_DEBIT_METHOD : ProcessingErrorEvent()
+
+    /**
+     * Check special conditions.
+     */
+    object CHECK_SPECIAL_CONDITIONS : ProcessingErrorEvent()
+
+    /**
+     * Approval after identity verification is required.
+     */
+    object APPROVE_AFTER_IDENTITY_VERIFICATION : ProcessingErrorEvent()
+
+    /**
+     * Card error.
+     */
+    object UNACCEPTABLE_FEE : ProcessingErrorEvent()
+
+    /**
+     * Card with restriction.
+     */
+    object CARD_WITH_RESTRICTION : ProcessingErrorEvent()
+
+    /**
+     * Exceeded password attempts.
+     */
+    object EXCEEDED_PASSWORD_ATTEMPTS : ProcessingErrorEvent()
+
+    /**
+     * Card was lost.
+     */
+    object LOST_CARD : ProcessingErrorEvent()
+
+    /**
+     * Card was stolen.
+     */
+    object STOLEN_CARD : ProcessingErrorEvent()
+
+    /**
+     * Exceeded health value limit.
+     */
+    object EXCEEDED_HEALTH_VALUE_LIMIT : ProcessingErrorEvent()
+
+    /**
+     * Exceeded withdrawal quantity limit.
+     */
+    object EXCEEDED_WITHDRAWAL_QUANTITY_LIMIT : ProcessingErrorEvent()
+
+    /**
+     * Cutover in process.
+     */
+    object CUTOVER_IN_PROCESS : ProcessingErrorEvent()
+
+    /**
+     * Violation of law.
+     */
+    object VIOLATION_OF_LAW : ProcessingErrorEvent()
+
+    /**
+     * Reconciliation error.
+     */
+    object RECONCILIATION_ERROR : ProcessingErrorEvent()
+
+    /**
+     * Poor status destination.
+     */
+    object POOR_STATUS_DESTINATION : ProcessingErrorEvent()
+
+    /**
+     * Poor status origin.
+     */
+    object POOR_STATUS_ORIGIN : ProcessingErrorEvent()
+
+    /**
+     * Rejected key verification failed.
+     */
+    object REJECTED_KEY_VERIFICATION_FAILED : ProcessingErrorEvent()
+
+    /**
+     * Issuer unavailable.
+     */
+    object ISSUER_UNAVAILABLE : ProcessingErrorEvent()
+
+    /**
+     * Invalid life cycle.
+     */
+    object INVALID_LIFE_CYCLE : ProcessingErrorEvent()
+
+    /**
+     * Unblock the card.
+     */
+    object UNBLOCK_THE_CARD : ProcessingErrorEvent()
 }

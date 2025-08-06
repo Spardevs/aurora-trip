@@ -1,6 +1,8 @@
 package br.com.ticpass.pos.sdk
 
 import android.content.Context
+import br.com.ticpass.pos.queue.processors.factory.CustomerReceiptProvider
+import br.com.ticpass.pos.queue.processors.factory.TransactionProvider
 import br.com.ticpass.pos.sdk.nfc.BaseNFCProvider
 import br.com.ticpass.pos.sdk.nfc.NFCProvider
 import br.com.ticpass.pos.sdk.payment.BasePaymentProvider
@@ -19,7 +21,7 @@ object AcquirerSdk {
     /**
      * Stone payment provider instance
      */
-    val payment: BasePaymentProvider<UserModel>
+    val payment: BasePaymentProvider<Pair<TransactionProvider, CustomerReceiptProvider>>
         get() = PaymentProvider
 
     /**

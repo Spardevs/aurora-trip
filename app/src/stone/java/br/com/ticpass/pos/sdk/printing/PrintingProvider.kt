@@ -25,6 +25,7 @@ object PrintingProvider : BasePrintingProvider<UserModel> {
         if (!isInitialized()) {
             throw IllegalStateException("Printing provider not initialized. Call initialize() first.")
         }
-        return SdkInstance.getInstance()
+        val (userModel) =  SdkInstance.getInstance()
+        return userModel
     }
 }

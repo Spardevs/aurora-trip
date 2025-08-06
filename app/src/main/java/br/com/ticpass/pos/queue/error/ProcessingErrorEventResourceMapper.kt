@@ -11,7 +11,7 @@ object ProcessingErrorEventResourceMapper {
     /**
      * Get the string resource key for a ProcessingErrorEvent
      * @param error The ProcessingErrorEvent to map
-     * @return The string resource key (without R.string prefix)
+     * @return The string resource key corresponding to the error
      */
     fun getErrorResourceKey(error: ProcessingErrorEvent): Int {
         return when (error) {
@@ -34,6 +34,7 @@ object ProcessingErrorEventResourceMapper {
             is ProcessingErrorEvent.INVALID_TRANSACTION_PERFORM_CASH -> R.string.error_invalid_transaction_perform_cash
             is ProcessingErrorEvent.ERROR_CONFIRMING_TRANSACTION -> R.string.error_confirming_transaction
             is ProcessingErrorEvent.RESPONSE_TLV_SIZE -> R.string.error_response_tlv_size
+            is ProcessingErrorEvent.INVALID_PIX_KEY -> R.string.error_invalid_pix_key
             is ProcessingErrorEvent.INVALID_FILE -> R.string.error_invalid_file
             is ProcessingErrorEvent.ATTEMPTS_EXCEEDED -> R.string.error_attempts_exceeded
             is ProcessingErrorEvent.INSTALLMENT_NOT_ALLOWED -> R.string.error_installment_not_allowed
@@ -217,6 +218,108 @@ object ProcessingErrorEventResourceMapper {
             is ProcessingErrorEvent.INVALID_READER_SERIAL_NUMBER -> R.string.error_invalid_embedded_reader_serial
             is ProcessingErrorEvent.UNIDENTIFIED_READER_SERIAL_NUMBER -> R.string.error_reader_serial_not_identified
             is ProcessingErrorEvent.INCORRECT_ACTIVATION_CODE -> R.string.error_invalid_reader_or_activation_code
+            
+            // New ProcessingErrorEvent objects added for Stone error mapping
+            is ProcessingErrorEvent.CARD_READ_ERROR -> R.string.error_read_error
+            is ProcessingErrorEvent.CARD_READ_CANCELED -> R.string.error_operation_canceled_by_user
+            is ProcessingErrorEvent.CARD_READ_MULTI_ERROR -> R.string.error_card_read_multi_error
+            is ProcessingErrorEvent.CARD_HOLDER_READ_ERROR -> R.string.error_card_holder_read_error
+            is ProcessingErrorEvent.PINPAD_CONNECTION_NOT_FOUND -> R.string.error_connection_error_no_internet
+            is ProcessingErrorEvent.PINPAD_ALREADY_CONNECTED -> R.string.error_pinpad_already_connected
+            is ProcessingErrorEvent.PINPAD_CLOSED_CONNECTION -> R.string.error_communication_interrupted
+            is ProcessingErrorEvent.IO_ERROR_WITH_PINPAD -> R.string.error_pinpad_error
+            is ProcessingErrorEvent.TRANSACTION_APP_BLOCKED -> R.string.error_blocked_card
+            is ProcessingErrorEvent.CVV_NOT_PROVIDED -> R.string.error_cvv_not_provided
+            is ProcessingErrorEvent.CVV_INVALID -> R.string.error_invalid_card_data
+            is ProcessingErrorEvent.NO_TRANSACTION_TYPE -> R.string.error_no_transaction_type
+            is ProcessingErrorEvent.WRONG_TRANSACTION_TYPE -> R.string.error_invalid_transaction_generic
+            is ProcessingErrorEvent.INVALID_APPLICATION -> R.string.error_invalid_card_data
+            is ProcessingErrorEvent.INVALID_APPLICATION_INDEX -> R.string.error_invalid_card_data
+            is ProcessingErrorEvent.ONLINE_PROCESSING_ERROR -> R.string.error_communication_interrupted
+            is ProcessingErrorEvent.EMV_PROCESSING_ERROR -> R.string.error_chip_required
+            is ProcessingErrorEvent.EMV_CARD_CONNECTION_ERROR -> R.string.error_emv_card_connection_error
+            is ProcessingErrorEvent.EMV_NO_APPLICATION -> R.string.error_emv_no_application
+            is ProcessingErrorEvent.EMV_CAPK_ERROR -> R.string.error_emv_capk_error
+            is ProcessingErrorEvent.EMV_TLV_ERROR -> R.string.error_emv_tlv_error
+            is ProcessingErrorEvent.EMV_AID_ERROR -> R.string.error_emv_aid_error
+            is ProcessingErrorEvent.PIN_ENTRY_ERROR -> R.string.error_pin_entry_error
+            is ProcessingErrorEvent.PIN_KEY_ERROR -> R.string.error_pin_key_error
+            is ProcessingErrorEvent.PIN_NO_INPUT -> R.string.error_pin_no_input
+            is ProcessingErrorEvent.PIN_INITIALIZATION_ERROR -> R.string.error_pin_initialization_error
+            is ProcessingErrorEvent.PIN_ENCRYPTION_ERROR -> R.string.error_pin_encryption_error
+            is ProcessingErrorEvent.PIN_KEY_NOT_FOUND -> R.string.error_pin_key_not_found
+            is ProcessingErrorEvent.NFC_NOT_SUPPORTED -> R.string.error_feature_unavailable
+            is ProcessingErrorEvent.NFC_OPERATION_ABORTED -> R.string.error_operation_cancelled_retry
+            is ProcessingErrorEvent.NFC_WRONG_CARD_TYPE -> R.string.error_invalid_card_use_another
+            is ProcessingErrorEvent.NFC_INVALID_KEY -> R.string.error_nfc_invalid_key
+            is ProcessingErrorEvent.NFC_NOT_AUTHENTICATED -> R.string.error_authentication_error
+            is ProcessingErrorEvent.INVALID_SECTOR_NUMBER -> R.string.error_invalid_sector_number
+            is ProcessingErrorEvent.INVALID_BLOCK_NUMBER -> R.string.error_invalid_block_number
+            is ProcessingErrorEvent.INVALID_BLOCK_FORMAT -> R.string.error_invalid_block_format
+            is ProcessingErrorEvent.QRCODE_GENERATION_ERROR -> R.string.error_qrcode_generation_error
+            is ProcessingErrorEvent.QRCODE_EXPIRED -> R.string.error_qrcode_expired
+            is ProcessingErrorEvent.TRANSACTION_FALLBACK -> R.string.error_transaction_fallback
+            is ProcessingErrorEvent.INVALID_CARD_MODE -> R.string.error_invalid_mode
+            is ProcessingErrorEvent.TOO_MANY_CARDS -> R.string.error_too_many_cards
+            is ProcessingErrorEvent.DEVICE_MISCONFIGURED -> R.string.error_device_misconfigured
+            is ProcessingErrorEvent.ACTIVATION_ERROR -> R.string.error_activation_error
+            is ProcessingErrorEvent.SDK_VERSION_OUTDATED -> R.string.error_update_app
+            is ProcessingErrorEvent.APP_NAME_NOT_SET -> R.string.error_application_name_required
+            is ProcessingErrorEvent.NO_ACTIVE_APPLICATION -> R.string.error_no_active_application
+            is ProcessingErrorEvent.MULTIPLE_PROVIDER_INSTANCES -> R.string.error_multiple_provider_instances
+            is ProcessingErrorEvent.UNKNOWN_USER_TYPE -> R.string.error_unknown_user_type
+            is ProcessingErrorEvent.TRANSACTION_OBJECT_NULL -> R.string.error_null_transaction_result
+            is ProcessingErrorEvent.EMAIL_ERROR -> R.string.error_email_error
+            is ProcessingErrorEvent.EMAIL_CLIENT_ERROR -> R.string.error_email_client_error
+            is ProcessingErrorEvent.EMAIL_EMPTY -> R.string.error_email_empty
+            is ProcessingErrorEvent.EMAIL_RECIPIENT_EMPTY -> R.string.error_email_recipient_empty
+            is ProcessingErrorEvent.DATA_CONSTRAINT_ERROR -> R.string.error_data_constraint_error
+            is ProcessingErrorEvent.DATA_INTEGRATION_ERROR -> R.string.error_data_integration_error
+            is ProcessingErrorEvent.SWITCH_INTERFACE_ERROR -> R.string.error_switch_interface_error
+            is ProcessingErrorEvent.SWIPE_INCORRECT -> R.string.error_card_error_poorly_inserted
+            is ProcessingErrorEvent.NULL_RESPONSE -> R.string.error_null_response
+            is ProcessingErrorEvent.ERROR_RESPONSE -> R.string.error_error_response
+            is ProcessingErrorEvent.CARD_REMOVED_BY_USER -> R.string.error_card_removed_by_user
+            is ProcessingErrorEvent.CHIP_CARD_READ_ERROR -> R.string.error_chip_card_read_error
+            is ProcessingErrorEvent.CARD_GENERIC_ERROR -> R.string.error_card_generic_error
+            is ProcessingErrorEvent.DEVICE_NOT_COMPATIBLE -> R.string.error_device_not_compatible
+            is ProcessingErrorEvent.MAG_STRIPE_CHIP_DETECTED -> R.string.error_use_chip_for_transaction
+            is ProcessingErrorEvent.INVALID_ACQUIRER_ACTIVATION_CODE -> R.string.error_invalid_reader_or_activation_code
+            is ProcessingErrorEvent.INVALID_STONE_CODE -> R.string.error_invalid_reader_or_activation_code
+            is ProcessingErrorEvent.USER_MODEL_NOT_FOUND -> R.string.error_user_model_not_found
+            is ProcessingErrorEvent.INVALID_OR_UNKNOWN_STONE_CODE -> R.string.error_invalid_or_unknown_stone_code
+            is ProcessingErrorEvent.PRINTER_INITIALIZATION_ERROR -> R.string.error_printer_initialization_error
+            is ProcessingErrorEvent.PRINTER_UNSUPPORTED_FORMAT -> R.string.error_printer_unsupported_format
+            is ProcessingErrorEvent.PRINTER_INVALID_DATA -> R.string.error_printer_invalid_data
+            is ProcessingErrorEvent.NO_PRINT_SUPPORT -> R.string.error_no_print_support
+            is ProcessingErrorEvent.INTERNAL_SYSTEM_ERROR -> R.string.error_unexpected_error
+            is ProcessingErrorEvent.TABLES_NOT_FOUND -> R.string.error_tables_not_found
+            is ProcessingErrorEvent.NEED_LOAD_TABLES -> R.string.error_need_load_tables
+            is ProcessingErrorEvent.REVERSAL_PENDING -> R.string.error_reversal_pending
+            is ProcessingErrorEvent.TRANSACTION_PENDING -> R.string.error_transaction_pending
+            is ProcessingErrorEvent.CANCELLED_AWAITING_REVERSAL -> R.string.error_cancelled_awaiting_reversal
+            is ProcessingErrorEvent.FRAUD_SUSPICION -> R.string.error_fraud_suspicion
+            is ProcessingErrorEvent.CHECK_CARD_DETAILS -> R.string.error_check_card_details
+            is ProcessingErrorEvent.USE_CREDIT_METHOD -> R.string.error_use_credit_method
+            is ProcessingErrorEvent.USE_DEBIT_METHOD -> R.string.error_use_debit_method
+            is ProcessingErrorEvent.CHECK_SPECIAL_CONDITIONS -> R.string.error_check_special_conditions
+            is ProcessingErrorEvent.APPROVE_AFTER_IDENTITY_VERIFICATION -> R.string.error_approve_after_identity_verification
+            is ProcessingErrorEvent.UNACCEPTABLE_FEE -> R.string.error_unacceptable_fee
+            is ProcessingErrorEvent.CARD_WITH_RESTRICTION -> R.string.error_card_with_restriction
+            is ProcessingErrorEvent.EXCEEDED_PASSWORD_ATTEMPTS -> R.string.error_exceeded_password_attempts
+            is ProcessingErrorEvent.LOST_CARD -> R.string.error_lost_card
+            is ProcessingErrorEvent.STOLEN_CARD -> R.string.error_stolen_card
+            is ProcessingErrorEvent.EXCEEDED_HEALTH_VALUE_LIMIT -> R.string.error_exceeded_health_value_limit
+            is ProcessingErrorEvent.EXCEEDED_WITHDRAWAL_QUANTITY_LIMIT -> R.string.error_exceeded_withdrawal_quantity_limit
+            is ProcessingErrorEvent.CUTOVER_IN_PROCESS -> R.string.error_cutover_in_process
+            is ProcessingErrorEvent.VIOLATION_OF_LAW -> R.string.error_violation_of_law
+            is ProcessingErrorEvent.RECONCILIATION_ERROR -> R.string.error_reconciliation_error
+            is ProcessingErrorEvent.POOR_STATUS_DESTINATION -> R.string.error_poor_status_destination
+            is ProcessingErrorEvent.POOR_STATUS_ORIGIN -> R.string.error_poor_status_origin
+            is ProcessingErrorEvent.REJECTED_KEY_VERIFICATION_FAILED -> R.string.error_rejected_key_verification_failed
+            is ProcessingErrorEvent.ISSUER_UNAVAILABLE -> R.string.error_issuer_unavailable
+            is ProcessingErrorEvent.INVALID_LIFE_CYCLE -> R.string.error_invalid_life_cycle
+            is ProcessingErrorEvent.UNBLOCK_THE_CARD -> R.string.error_unblock_the_card
             else -> R.string.event_generic_error
         }
     }

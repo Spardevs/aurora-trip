@@ -50,7 +50,15 @@
     <string name="event_generic_error">Error occurred</string>
     <string name="event_fail">Payment failed: %1$s</string>
     <string name="event_cancelled">Processing Cancelled</string>
-    
+    <string name="event_qrcode_scan">Scan QR Code</string>
+    <string name="reversing_transaction_with_error">Reversing transaction due to error</string>
+    <string name="select_payment_method">Select Payment Method</string>
+    <string name="swipe_card_requested">Swipe your card</string>
+    <string name="switch_interface">Switch Interface</string>
+    <string name="request_in_progress">Request in progress</string>
+    <string name="partially_approved">Partially Approved</string>
+    <string name="approved_update_track_3">Approved (Track 3 Updated)</string>
+
     <!-- Customer Receipt Dialog -->
     <string name="print_customer_receipt_title">Print Customer Receipt?</string>
     <string name="print_customer_receipt_message">Would you like to print a receipt for the customer?</string>

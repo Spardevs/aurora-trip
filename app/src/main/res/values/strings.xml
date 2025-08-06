@@ -18,6 +18,11 @@
     <string name="point_to_qr_code">Point to the QR Code</string>
     <string name="login_text" translatable="false">"Landing here? Log in"</string>
     <string name='qr_code' translatable="false">"QR Code"</string>
+    
+    <!-- QR Code Scan Dialog -->
+    <string name="qrcode_scan_title">QR Code Payment</string>
+    <string name="qrcode_scan_message">Please scan the QR code below to complete the payment</string>
+    <string name="qrcode_scan_description">QR Code for payment scanning</string>
 
 
     <string name="app_name" translatable="false">"Ticpass"</string>

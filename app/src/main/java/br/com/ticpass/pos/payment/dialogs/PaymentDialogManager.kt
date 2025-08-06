@@ -297,6 +297,8 @@ class PaymentDialogManager(
         }
     }
 
+
+
     /**
      * Start the timeout countdown in a dialog if a timeout is specified.
      * 

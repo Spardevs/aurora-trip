@@ -1,13 +1,36 @@
 package br.com.ticpass.pos.queue.processors.payment.processors.impl
 
+import android.util.Log
+import br.com.stone.posandroid.providers.PosPrintReceiptProvider
+import br.com.stone.posandroid.providers.PosTransactionProvider
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
+import br.com.ticpass.pos.queue.input.UserInputRequest
 import br.com.ticpass.pos.queue.models.ProcessingResult
+import br.com.ticpass.pos.queue.processors.payment.AcquirerPaymentAction
+import br.com.ticpass.pos.queue.processors.payment.AcquirerPaymentActionCode
+import br.com.ticpass.pos.queue.processors.payment.AcquirerPaymentActionCodeError
+import br.com.ticpass.pos.queue.processors.payment.AcquirerPaymentMethod
+import br.com.ticpass.pos.queue.processors.payment.AcquirerPaymentStatusError
+import br.com.ticpass.pos.queue.processors.payment.AcquirerProcessingException
+import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
 import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
 import br.com.ticpass.pos.queue.processors.payment.processors.core.PaymentProcessorBase
+import br.com.ticpass.pos.queue.processors.payment.utils.SystemCustomerReceiptPrinting
+import br.com.ticpass.pos.sdk.AcquirerSdk
+import br.com.ticpass.utils.toMoney
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import stone.application.enums.Action
+import stone.application.enums.ErrorsEnum
+import stone.application.enums.InstalmentTransactionEnum
+import stone.application.interfaces.StoneActionCallback
+import stone.application.interfaces.StoneCallbackInterface
+import stone.database.transaction.TransactionObject
 
 /**
  * Stone Payment Processor
@@ -15,33 +38,205 @@ import kotlinx.coroutines.cancel
  */
 class AcquirerPaymentProcessor : PaymentProcessorBase() {
 
-    private val tag = "AcquirerPaymentProcessor"
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val tag = this.javaClass.simpleName
+    private val providers = AcquirerSdk.payment.getInstance()
+    private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private lateinit var transactionData: TransactionObject
+    private lateinit var paymentProvider: PosTransactionProvider
+    private lateinit var customerReceiptProvider: PosPrintReceiptProvider
+    private lateinit var _item: ProcessingPaymentQueueItem
 
-    lateinit var _item: ProcessingPaymentQueueItem
-    
     override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
         try {
-            return ProcessingResult.Success(
-                atk = "",
-                txId =  ""
-            )
+            _item = item
+            val (payment, customerReceipt) = providers
+            val commission = (_item.amount * _item.commission).toMoney()
+
+            transactionData = TransactionObject()
+            transactionData.typeOfTransaction = AcquirerPaymentMethod.translate(_item.method)
+            transactionData.instalmentTransaction = InstalmentTransactionEnum.ONE_INSTALMENT
+            transactionData.amount = (commission + _item.amount).toString()
+            transactionData.isCapture = true
+            transactionData.externalId = _item.id
+
+            paymentProvider = payment(transactionData)
+            customerReceiptProvider = customerReceipt(transactionData)
+
+            val result = execTransaction()
+            if(result is ProcessingResult.Success) printCustomerReceipt()
+
+            cleanupCoroutineScopes()
+
+            return result
         }
         catch (exception: Exception) {
+            if (exception is AcquirerProcessingException) {
+                return ProcessingResult.Error(exception.event)
+            }
+
             return ProcessingResult.Error(ProcessingErrorEvent.GENERIC)
         }
-        finally {
-            cleanupCoroutineScopes()
+    }
+
+    /**
+     * Stone-specific abort logic
+     * Cancels any ongoing payment transaction
+     */
+    override suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean {
+        val deferred = CompletableDeferred<Boolean>()
+
+        try {
+            scope.launch {
+                paymentProvider.abortPayment()
+                cleanupCoroutineScopes()
+            }
+            deferred.complete(true)
+        }
+        catch (exception: Exception) { deferred.complete(false) }
+
+        return deferred.await()
+    }
+
+    /**
+     * Cancels all coroutines in the current scope and creates a new scope.
+     * This ensures that any ongoing operations are properly terminated and
+     * resources are released, while maintaining the processor ready for
+     * future payment operations.
+     */
+    private fun cleanupCoroutineScopes() {
+        scope.cancel()
+        scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    }
+
+    /**
+     * Initializes the transaction with provider.
+     * Sets up the connection callback to handle progress, success and error cases.
+     *
+     * @return ProcessingResult indicating success or error.
+     */
+    private suspend fun execTransaction(): ProcessingResult = withContext(Dispatchers.IO) {
+        val deferred = CompletableDeferred<ProcessingResult>()
+        
+        paymentProvider.setConnectionCallback(object : StoneActionCallback {
+            override fun onSuccess() {
+                try {
+                    scope.launch {
+                        val result = handleTransactionDone()
+                        deferred.complete(result)
+                    }
+                }
+                catch (e: Exception) {
+                    val exception = if (e is AcquirerProcessingException) ProcessingResult.Error(e.event)
+                    else ProcessingResult.Error(ProcessingErrorEvent.GENERIC)
+
+                    deferred.complete(exception)
+                }
+            }
+
+            override fun onError() {
+                try {
+                    val error = paymentProvider.listOfErrors?.last() ?: ErrorsEnum.UNKNOWN_ERROR
+                    throw AcquirerProcessingException(error)
+                }
+                catch (e: Exception) {
+                    val exception = if (e is AcquirerProcessingException) ProcessingResult.Error(e.event)
+                    else ProcessingResult.Error(ProcessingErrorEvent.GENERIC)
+
+                    deferred.complete(exception)
+                }
+            }
+
+            override fun onStatusChanged(action: Action) {
+                val event = AcquirerPaymentAction.translate(action)
+
+                val processedEvent = when(event) {
+                    is ProcessingPaymentEvent.QRCODE_SCAN -> {
+                        val qrCode = transactionData.qrCode
+                        ProcessingPaymentEvent.QRCODE_SCAN(qrCode, 90000L)
+                    }
+                    else -> { event }
+                }
+
+                _events.tryEmit(processedEvent)
+            }
+        })
+
+        paymentProvider.execute()
+        return@withContext deferred.await()
+    }
+
+    /**
+     * Handles the transaction completion by checking the status and errors.
+     * Emits the appropriate event and returns the processing result.
+     *
+     * @return ProcessingResult indicating success or error.
+     */
+    private fun handleTransactionDone(): ProcessingResult {
+        try {
+            val status = paymentProvider.transactionStatus
+            val listOfErrors = paymentProvider.listOfErrors ?: emptyList()
+            val isError = listOfErrors.isNotEmpty() || AcquirerPaymentStatusError.isError(status)
+            val nullableActionCode = transactionData.actionCode == null
+
+            if (isError) {
+                val errorEvent = AcquirerPaymentActionCodeError.translate(transactionData.actionCode)
+                throw AcquirerProcessingException(errorEvent)
+            }
+
+            // sometimes the action code is null (bug?), so we need to handle it
+            val successEvent = if (nullableActionCode) ProcessingPaymentEvent.APPROVAL_SUCCEEDED
+            else AcquirerPaymentActionCode.translate(transactionData.actionCode)
+
+            _events.tryEmit(successEvent)
+
+            return ProcessingResult.Success(
+                atk = transactionData.acquirerTransactionKey,
+                txId = ""
+            )
+        }
+        catch (e: Exception) {
+            Log.d(tag, "Payment processed with result: ${e.toString()}")
+            val exception = if (e is AcquirerProcessingException) { ProcessingResult.Error(e.event) }
+            else { ProcessingResult.Error(ProcessingErrorEvent.GENERIC) }
+
+            return exception
         }
     }
 
-    override suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean {
-        // TODO
-        return true
+    /**
+     * Wrapper function to handle the printing of customer receipt
+     * based on user demand or system configuration.
+     */
+    private suspend fun printCustomerReceipt(): Unit = withContext(Dispatchers.IO + SupervisorJob()) {
+        when(_item.customerReceiptPrinting) {
+            SystemCustomerReceiptPrinting.CONFIRMATION -> {
+                val userAccepted = requestUserInput(
+                    UserInputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING()
+                ).value as? Boolean ?: true
+
+                if (userAccepted) doPrintCustomerReceipt()
+            }
+            SystemCustomerReceiptPrinting.AUTO -> {
+                doPrintCustomerReceipt()
+            }
+            SystemCustomerReceiptPrinting.NONE -> {}
+        }
     }
 
-    private fun cleanupCoroutineScopes() {
-        scope.cancel()
-    }
+    private suspend fun doPrintCustomerReceipt(): Boolean {
+        val deferred = CompletableDeferred<Boolean>()
+        
+        customerReceiptProvider.connectionCallback = object : StoneCallbackInterface {
+            override fun onSuccess() {
+                deferred.complete(true)
+            }
 
+            override fun onError() {
+                deferred.complete(false)
+            }
+        }
+
+        customerReceiptProvider.execute()
+        return deferred.await()
+    }
 }

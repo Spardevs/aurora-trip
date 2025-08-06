@@ -1,6 +1,8 @@
 package br.com.ticpass.pos.queue.processors.payment.models
 
+import android.graphics.Bitmap
 import br.com.ticpass.pos.queue.core.BaseProcessingEvent
+import androidx.core.graphics.createBitmap
 
 /**
  * Payment-specific events emitted during payment processing
@@ -165,4 +167,52 @@ sealed class ProcessingPaymentEvent : BaseProcessingEvent {
      * Payment process was canceled by user or system.
      */
     object CANCELLED : ProcessingPaymentEvent()
+
+    /**
+     * User should swipe the card.
+     */
+    object SWIPE_CARD_REQUESTED : ProcessingPaymentEvent()
+
+    /**
+     * User should scan the QR code (usually PIX).
+     */
+    data class QRCODE_SCAN(
+        val qrCode: Bitmap = createBitmap(1, 1, Bitmap.Config.ALPHA_8),
+        val timeoutMs: Long = 30000L,
+    ) : ProcessingPaymentEvent()
+
+    /**
+     * Transaction with error is being reversed.
+     */
+    object REVERSING_TRANSACTION_WITH_ERROR : ProcessingPaymentEvent()
+
+    /**
+     * Selection of payment method is required.
+     */
+    object SELECT_PAYMENT_METHOD : ProcessingPaymentEvent()
+
+    /**
+     * Switch payment interface.
+     */
+    object SWITCH_INTERFACE : ProcessingPaymentEvent()
+
+    /**
+     * Payment request is in progress.
+     */
+    object REQUEST_IN_PROGRESS : ProcessingPaymentEvent()
+
+    /**
+     * Transaction has been partially approved.
+     */
+    object PARTIALLY_APPROVED : ProcessingPaymentEvent()
+
+    /**
+     * Transaction has been approved with updated track 3 data.
+     */
+    object APPROVED_UPDATE_TRACK_3 : ProcessingPaymentEvent()
+
+    /**
+     * Card is approved for VIP.
+     */
+    object APPROVED_VIP : ProcessingPaymentEvent()
 }

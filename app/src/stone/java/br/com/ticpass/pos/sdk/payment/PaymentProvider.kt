@@ -1,14 +1,17 @@
 package br.com.ticpass.pos.sdk.payment
 
 import android.content.Context
+import br.com.ticpass.pos.queue.processors.factory.CustomerReceiptProviderFactory
+import br.com.ticpass.pos.queue.processors.factory.CustomerReceiptProvider
+import br.com.ticpass.pos.queue.processors.factory.TransactionProvider
+import br.com.ticpass.pos.queue.processors.factory.TransactionProviderFactory
 import br.com.ticpass.pos.sdk.SdkInstance
-import stone.user.UserModel
 
 /**
  * Stone-specific implementation of PaymentProvider
  * This file overrides the base implementation by providing a Stone-specific provider
  */
-object PaymentProvider : BasePaymentProvider<UserModel> {
+object PaymentProvider : BasePaymentProvider<Pair<TransactionProvider, CustomerReceiptProvider>> {
     private var initialized = false
     
     override fun isInitialized(): Boolean = initialized
@@ -21,10 +24,17 @@ object PaymentProvider : BasePaymentProvider<UserModel> {
         }
     }
     
-    override fun getInstance(): UserModel {
+    override fun getInstance(): Pair<TransactionProvider, CustomerReceiptProvider> {
         if (!isInitialized()) {
             throw IllegalStateException("Payment provider not initialized. Call initialize() first.")
         }
-        return SdkInstance.getInstance()
+        val (userModel, context) =  SdkInstance.getInstance()
+        val transactionFactory = TransactionProviderFactory(context, userModel)
+        val customerReceiptFactory = CustomerReceiptProviderFactory(context)
+
+        return Pair(
+            transactionFactory.create(),
+            customerReceiptFactory.create()
+        )
     }
 }

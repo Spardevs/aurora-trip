@@ -39,6 +39,8 @@ class PaymentProcessingActivity : AppCompatActivity() {
     private lateinit var dialogProgressTextView: TextView
     private lateinit var dialogProgressBar: ProgressBar
     private lateinit var dialogEventTextView: TextView
+    private lateinit var dialogQRCodeImageView: android.widget.ImageView
+    private lateinit var dialogTimeoutCountdownView: br.com.ticpass.pos.payment.view.TimeoutCountdownView
     private lateinit var dialogCancelButton: Button
     private lateinit var queueTitleTextView: TextView
 
@@ -86,6 +88,8 @@ class PaymentProcessingActivity : AppCompatActivity() {
         dialogProgressTextView = dialogView.findViewById(R.id.text_dialog_progress)
         dialogProgressBar = dialogView.findViewById(R.id.progress_bar_dialog)
         dialogEventTextView = dialogView.findViewById(R.id.text_dialog_event)
+        dialogQRCodeImageView = dialogView.findViewById(R.id.image_dialog_qrcode)
+        dialogTimeoutCountdownView = dialogView.findViewById(R.id.timeout_countdown_view)
         dialogCancelButton = dialogView.findViewById<Button>(R.id.btn_dialog_cancel)
         queueTitleTextView = findViewById<TextView>(R.id.text_payment_queue_title)
 
@@ -149,7 +153,8 @@ class PaymentProcessingActivity : AppCompatActivity() {
         eventHandler = PaymentEventHandler(
             context = this,
             dialogEventTextView = dialogEventTextView,
-            onPinDisplayUpdate = { /* PIN display handled by coordinator */ }
+            dialogQRCodeImageView = dialogQRCodeImageView,
+            dialogTimeoutCountdownView = dialogTimeoutCountdownView,
         )
         
         // Initialize coordinator with all dependencies

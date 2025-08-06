@@ -41,6 +41,23 @@
         android:textStyle="bold"
         tools:text="Processing transaction" />
 
+    <ImageView
+        android:id="@+id/image_dialog_qrcode"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
+        android:contentDescription="@string/qrcode_scan_description"
+        android:scaleType="fitCenter"
+        android:visibility="gone" />
+
+    <br.com.ticpass.pos.payment.view.TimeoutCountdownView
+        android:id="@+id/timeout_countdown_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:visibility="gone" />
+
     <Button
         android:id="@+id/btn_dialog_cancel"
         android:layout_width="wrap_content"

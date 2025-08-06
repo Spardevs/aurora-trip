@@ -7,10 +7,6 @@ import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
  * These events are not part of the persistent state and are delivered only once
  */
 sealed class PaymentProcessingUiEvent {
-    // Navigation events
-    object NavigateBack : PaymentProcessingUiEvent()
-    data class NavigateToPaymentDetails(val paymentId: String) : PaymentProcessingUiEvent()
-    
     // Message events
     data class ShowToast(val message: String) : PaymentProcessingUiEvent()
     data class ShowSnackbar(val message: String, val actionLabel: String? = null) : PaymentProcessingUiEvent()

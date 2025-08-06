@@ -25,6 +25,7 @@ object NFCProvider : BaseNFCProvider<UserModel> {
         if (!isInitialized()) {
             throw IllegalStateException("NFC provider not initialized. Call initialize() first.")
         }
-        return SdkInstance.getInstance()
+        val (userModel) =  SdkInstance.getInstance()
+        return userModel
     }
 }
