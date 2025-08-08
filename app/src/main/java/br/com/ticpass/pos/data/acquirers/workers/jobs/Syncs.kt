@@ -104,7 +104,7 @@ fun syncPos(
 
             val syncPos = withContext(Dispatchers.IO) {
                 val result = forYouViewModel.apiRepository.syncPos(
-                    data.event.id,
+                    data.event!!.id,
                     data.pos.id,
                     orders = data.orders,
                     payments = data.payments,
@@ -202,7 +202,7 @@ suspend fun syncEvent(
             return
         }
 
-        val event = eventsResponse?.result?.items?.find { it.id == selectedEvent.id }
+        val event = eventsResponse?.result?.items?.find { it.id == selectedEvent!!.id }
 
         if (event != null) {
             var updatedEvent = selectedEvent
@@ -223,12 +223,12 @@ suspend fun syncEvent(
 
                 val file = File(imagePath)
 
-                updatedEvent = updatedEvent.copy(
+                updatedEvent = updatedEvent!!.copy(
                     logo = file.absolutePath
                 )
             }
 
-            updatedEvent = updatedEvent.copy(
+            updatedEvent = updatedEvent!!.copy(
                 name = event.name,
                 dateStart = event.dateStart,
                 dateEnd = event.dateEnd,

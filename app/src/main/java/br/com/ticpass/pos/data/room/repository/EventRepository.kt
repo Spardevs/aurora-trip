@@ -17,23 +17,19 @@ class EventRepository @Inject constructor(
 
     suspend fun getAllEvents() = eventDao.getAllEvents()
 
-    suspend fun getSelectedEvent() = eventDao.getSelectedEvent()
-
+    suspend fun getSelectedEvent(): EventEntity? {
+        return try {
+            eventDao.getSelectedEvent().takeIf { true }
+        } catch (e: Exception) {
+            null
+        }
+    }
     suspend fun selectEvent(eventId: String) {
+        // Desmarca todos os eventos
+        eventDao.deselectAllEvents()
 
-        val oldEvent = eventDao.getSelectedEvent()
-
-        if(oldEvent != null) {
-            oldEvent?.isSelected = false
-            eventDao.updateEvent(oldEvent)
-        }
-
-        val eventToUpdate = eventDao.getEventById(eventId)
-
-        if (eventToUpdate != null) {
-            eventToUpdate.isSelected = true
-            eventDao.updateEvent(eventToUpdate)
-        }
+        // Marca o evento específico como selecionado
+        eventDao.selectEvent(eventId)
     }
 
     suspend fun updateMany(events: List<EventEntity>) {
@@ -44,15 +40,15 @@ class EventRepository @Inject constructor(
         }
     }
 
-    suspend fun upsertEvent(event: EventEntity) =
-        eventDao.upsertEvent(event)
+    suspend fun upsertEvent(event: EventEntity) = eventDao.upsertEvent(event)
+
 
     suspend fun unSelectEvent(eventId: String) {
 
         val oldEvent = eventDao.getSelectedEvent()
 
         if(oldEvent != null) {
-            oldEvent?.isSelected = false
+            oldEvent.isSelected = false
             eventDao.updateEvent(oldEvent)
         }
 
@@ -96,4 +92,6 @@ class EventRepository @Inject constructor(
                 instance ?: EventRepository(eventDao).also { instance = it }
             }
     }
+
+
 }

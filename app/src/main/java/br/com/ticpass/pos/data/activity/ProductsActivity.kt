@@ -74,12 +74,22 @@ class ProductsActivity : DrawerBaseActivity() {
     override fun openProducts() {
         startActivity(Intent(this, ProductsActivity::class.java))
     }
-
     override fun openHistory() {
          startActivity(Intent(this, HistoryActivity::class.java))
     }
-
     override fun openReport() {
          startActivity(Intent(this, ReportActivity::class.java))
+    }
+    override fun openPasses() {
+         startActivity(Intent(this, PassesActivity::class.java))
+    }
+    override fun openWithdrawal() {
+         startActivity(Intent(this, WithdrawalActivity::class.java))
+    }
+    override fun openSupport() {
+         startActivity(Intent(this, SupportActivity::class.java))
+    }
+    override fun openSettings() {
+         startActivity(Intent(this, SettingsActivity::class.java))
     }
 }

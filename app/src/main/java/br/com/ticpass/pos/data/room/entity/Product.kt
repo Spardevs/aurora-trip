@@ -34,6 +34,19 @@ data class CategoryWithProducts(
     val products: List<ProductEntity>
 )
 
+data class CategoryWithEnabledProducts(
+    @Embedded
+    val category: CategoryEntity,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "categoryId"
+    )
+    val allProducts: List<ProductEntity>
+) {
+    val enabledProducts: List<ProductEntity>
+        get() = allProducts.filter { it.isEnabled }
+}
+
 data class CartItem(
     val product: ProductEntity,
     val quantity: Int,

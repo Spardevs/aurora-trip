@@ -24,21 +24,21 @@ class ProductsViewModel @Inject constructor(
 
     fun loadCategoriesWithProducts() {
         viewModelScope.launch {
-            val catsWithProds = categoryRepo.getCategoriesWithProducts()
+            val catsWithProds = categoryRepo.getCategoriesWithEnabledProducts()
             _categories.value = catsWithProds.map { it.category.name }
             _productsByCategory.value = catsWithProds.associate { catWith ->
-                val listaUI = catWith.products.map { entity ->
+                val listaUI = catWith.enabledProducts.map { entity ->
                     Product(
-                        id        = entity.id,
-                        title     = entity.name,
-                        value     = entity.price.toBigInteger(),
-                        photo     = entity.thumbnail,
-                        stock     = entity.stock.toBigInteger(),
+                        id = entity.id,
+                        title = entity.name,
+                        value = entity.price.toBigInteger(),
+                        photo = entity.thumbnail,
+                        stock = entity.stock.toBigInteger(),
                         createdAt = "",
                         updatedAt = "",
                         deletedAt = "",
-                        fkCategory= entity.categoryId,
-                        fkEvent   = 0
+                        fkCategory = entity.categoryId,
+                        fkEvent = 0
                     )
                 }
                 catWith.category.name to listaUI

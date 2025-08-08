@@ -23,6 +23,10 @@ class PosRepository @Inject constructor(
     suspend fun updatePos(posEntity: PosEntity) =
         posDao.updatePosItem(posEntity)
 
+    suspend fun deselectAllPos() {
+        posDao.deselectAllPos()
+    }
+
     suspend fun clearAll() =
         posDao.clearPosList()
 

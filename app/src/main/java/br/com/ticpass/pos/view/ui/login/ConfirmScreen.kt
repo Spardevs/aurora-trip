@@ -68,7 +68,7 @@ class ConfirmScreen : AppCompatActivity() {
             putBoolean("user_logged", true)
         }
         lifecycleScope.launch {
-            viewModel.insertInfo(sessionPref, userPref)
+            viewModel.confirmLogin(sessionPref, userPref)
             val intent = Intent(this@ConfirmScreen, ProductsActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             }

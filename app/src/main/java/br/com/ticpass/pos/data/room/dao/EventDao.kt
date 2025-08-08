@@ -16,7 +16,7 @@ interface EventDao {
     suspend fun getAllEvents(): List<EventEntity>
 
     @Query("SELECT * FROM events WHERE isSelected = 1 LIMIT 1")
-    suspend fun getSelectedEvent(): EventEntity
+    suspend fun getSelectedEvent(): EventEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertEvent(pos: EventEntity)
@@ -36,4 +36,10 @@ interface EventDao {
 
     @Query("DELETE FROM events")
     suspend fun clearEvents()
+
+    @Query("UPDATE events SET isSelected = 0")
+    suspend fun deselectAllEvents()
+
+    @Query("UPDATE events SET isSelected = 1 WHERE id = :eventId")
+    suspend fun selectEvent(eventId: String)
 }

@@ -127,8 +127,12 @@ abstract class DrawerBaseActivity : AppCompatActivity() {
         navView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_products    -> openProducts()
+                R.id.nav_passes    -> openPasses()
                 R.id.nav_history -> openHistory()
                 R.id.nav_report -> openReport()
+                R.id.nav_withdrawal -> openWithdrawal()
+                R.id.nav_support -> openSupport()
+                R.id.nav_settings -> openSettings()
             }
             drawerLayout.closeDrawer(GravityCompat.START)
             true
@@ -240,7 +244,11 @@ abstract class DrawerBaseActivity : AppCompatActivity() {
 
     protected abstract fun openProducts()
     protected abstract fun openHistory()
+    protected abstract fun openPasses()
     protected abstract fun openReport()
+    protected abstract fun openWithdrawal()
+    protected abstract fun openSupport()
+    protected abstract fun openSettings()
 
    suspend fun logoutClearDb() {
        try {

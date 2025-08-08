@@ -14,6 +14,9 @@ interface PosDao {
     @Query("SELECT * FROM pos")
     suspend fun getAll(): List<PosEntity>
 
+    @Query("UPDATE pos SET isSelected = 0")
+    suspend fun deselectAllPos()
+
     @Query("SELECT * FROM pos WHERE isSelected = 1 LIMIT 1")
     suspend fun getSelectedPos(): PosEntity
 
