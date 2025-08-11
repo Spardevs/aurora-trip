@@ -189,6 +189,11 @@
             android:exported="false"
             android:label="Sangria" />
 
+        <activity
+            android:name=".data.activity.SupportActivity"
+            android:exported="false"
+            android:label="Fale conosco" />
+
         <meta-data
             android:name="androidx.work.WorkManagerInitializer"
             android:value="androidx.startup"
