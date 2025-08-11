@@ -184,6 +184,11 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".data.activity.WithdrawalActivity"
+            android:exported="false"
+            android:label="Sangria" />
+
         <meta-data
             android:name="androidx.work.WorkManagerInitializer"
             android:value="androidx.startup"

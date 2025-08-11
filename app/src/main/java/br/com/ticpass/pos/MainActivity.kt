@@ -255,111 +255,6 @@ class CheckDuePaymentsRunnable @Inject constructor(
     }
 }
 
-//class AlertDuePaymentsRunnable @Inject constructor(
-//    private val handler: Handler,
-//    private val cartViewModel: CartViewModel,
-//    private val forYouViewModel: ForYouViewModel,
-//): Runnable {
-//    override fun run() {
-//        val runnable = this
-//        val defaultScope = CoroutineScope(Dispatchers.Default)
-//        val exceptionHandler = CoroutineExceptionHandler { _, _ -> }
-//
-//        defaultScope.launch(exceptionHandler) {
-//            try{
-//                val authManager = AuthManager(MainActivity.appContext.dataStore)
-//
-//                val data = withContext(Dispatchers.IO) {
-//                    val membershipExp = authManager.getMembership()
-//
-//                    object {
-//                        val membershipExp = membershipExp
-//                    }
-//                }
-//
-//                if(data.membershipExp == null) return@launch
-//
-//                // check if membership is due
-//                val now = Date()
-//                val isDue = data.membershipExp?.before(now) == true
-//                val daysDue = if(isDue) (now.time - data.membershipExp?.time!!) / (1000 * 60 * 60 * 24) else 0
-//
-//                if(isDue) {
-////                    if(daysDue >= MAX_DUE_PAYMENTS_DAYS) {
-////                        // logout user
-////
-////                        return@launch
-////                    }
-//
-//                    cartViewModel.setPaymentState(
-//                        PaymentDialogState(
-//                            isDismissable = false,
-//                            isDismissed = false,
-//                            status = "Assinatura Atrasada",
-//                            color = PaymentDialogColor.ERROR,
-//                            icon = {
-//                                LottieIcon(
-//                                    resId = R.raw.error1,
-//                                    onStart = {},
-//                                    onEnd = {},
-//                                    iterations = LottieConstants.IterateForever,
-//                                    speed = 3f,
-//                                    contentScale = ContentScale.FillHeight,
-//                                    modifier = Modifier
-//                                        .heightIn(max = 250.dp)
-//                                )
-//
-//                                Column(
-//                                    verticalArrangement = Arrangement.Center,
-//                                    horizontalAlignment = Alignment.CenterHorizontally,
-//                                    modifier = Modifier
-//                                        .width(360.dp)
-//                                ) {
-//                                    Text(
-//                                        text = "Regularize sua assinatura.",
-//                                        style = MaterialTheme.typography.labelSmall,
-//                                        color = Color.LightGray,
-//                                        fontSize = 12.sp,
-//                                        textAlign = TextAlign.Center,
-//                                    )
-//                                }
-//                            },
-//                            actions = {
-//                                Box(
-//                                    modifier = Modifier
-//                                        .noRippleClickable {
-//                                            cartViewModel.setPaymentState(
-//                                                PaymentDialogState(
-//                                                    isDismissed = true,
-//                                                    color = PaymentDialogColor.ERROR,
-//                                                    status = ""
-//                                                )
-//                                            )
-//                                        }
-//                                        .padding(10.dp)
-//                                ) {
-//                                    Text(
-//                                        color = Color.LightGray,
-//                                        text = "compreendo!",
-//                                        style = MaterialTheme.typography.titleSmall
-//                                    )
-//                                }
-//                            }
-//                        )
-//                    )
-//                }
-//            }
-//            catch (e: Exception) {
-//                Log.d("duePayment", e.toString())
-//            }
-//            finally {
-//                handler.postDelayed(runnable, (ALERT_DUE_PAYMENTS_INTERVAL * 60) * 1000)
-//                // defaultScope.cancel()
-//            }
-//        }
-//    }
-//}
-
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -393,6 +288,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        appContext = applicationContext
+        activity = this
 
         if (!hasAllPermissions()) {
             startActivity(Intent(this, PermissionsActivity::class.java))
