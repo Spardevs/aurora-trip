@@ -8,7 +8,9 @@
     android:orientation="horizontal"
     android:padding="16dp"
     android:gravity="center_vertical"
-    tools:ignore="UseCompoundDrawables">
+    tools:ignore="UseCompoundDrawables"
+    android:layout_marginTop="16dp"
+    >
 
     <ImageView
         android:id="@+id/footer_logout_icon"

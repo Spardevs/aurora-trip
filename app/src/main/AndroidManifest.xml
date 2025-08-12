@@ -209,6 +209,13 @@
             android:theme="@style/FullscreenTheme"
             android:windowSoftInputMode="adjustResize"/>
 
+        <activity
+            android:windowSoftInputMode="adjustResize"
+            android:name=".data.activity.ConfigMenuProductsActivity"
+            android:theme="@style/FullscreenTheme"
+        />
+
+
         <meta-data
             android:name="androidx.work.WorkManagerInitializer"
             android:value="androidx.startup"
