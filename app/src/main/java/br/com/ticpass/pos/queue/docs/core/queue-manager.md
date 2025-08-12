@@ -25,7 +25,7 @@ The queue manager works with any queue item type and processor implementation:
 
 ```kotlin
 // Payment queue
-val paymentQueue = HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>(...)
+val paymentQueue = HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent>(...)
 
 // Print queue  
 val printQueue = HybridQueueManager<PrintQueueItem, PrintingEvent>(...)
@@ -203,7 +203,7 @@ The `HybridQueueManager` is designed to be thread-safe:
 ```kotlin
 class PaymentQueueViewModel : ViewModel() {
     private val paymentQueue = HybridQueueManager(
-        storage = ProcessingPaymentStorage(dao),
+        storage = PaymentProcessingStorage(dao),
         processor = DynamicPaymentProcessor(),
         persistenceStrategy = PersistenceStrategy.IMMEDIATE,
         startMode = ProcessorStartMode.IMMEDIATE,

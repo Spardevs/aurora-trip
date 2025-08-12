@@ -7,8 +7,8 @@ Complete usage examples for implementing payment processing with the queue syste
 ### ViewModel Implementation
 ```kotlin
 class PaymentViewModel : ViewModel() {
-    private val paymentQueue = ProcessingPaymentQueueFactory().createDynamicPaymentQueue(
-        storage = ProcessingPaymentStorage(dao),
+    private val paymentQueue = PaymentProcessingQueueFactory().createDynamicPaymentQueue(
+        storage = PaymentProcessingStorage(dao),
         persistenceStrategy = PersistenceStrategy.IMMEDIATE,
         startMode = ProcessorStartMode.IMMEDIATE,
         scope = viewModelScope
@@ -25,7 +25,7 @@ class PaymentViewModel : ViewModel() {
     }
     
     fun processPayment(amount: Double, paymentMethod: PaymentMethod) {
-        val paymentItem = ProcessingPaymentQueueItem(
+        val paymentItem = PaymentProcessingQueueItem(
             id = UUID.randomUUID().toString(),
             amount = amount,
             commission = calculateCommission(amount),
@@ -89,55 +89,55 @@ class PaymentViewModel : ViewModel() {
 
 ### Event Handling
 ```kotlin
-private fun handlePaymentEvent(event: ProcessingPaymentEvent) {
+private fun handlePaymentEvent(event: PaymentProcessingEvent) {
     _uiState.value = when (event) {
-        ProcessingPaymentEvent.START -> _uiState.value.copy(
+        PaymentProcessingEvent.START -> _uiState.value.copy(
             statusMessage = "Payment started",
             isProcessing = true,
             showCardAnimation = false
         )
         
-        ProcessingPaymentEvent.CARD_REACH_OR_INSERT -> _uiState.value.copy(
+        PaymentProcessingEvent.CARD_REACH_OR_INSERT -> _uiState.value.copy(
             statusMessage = "Please insert or tap your card",
             showCardAnimation = true
         )
         
-        ProcessingPaymentEvent.PIN_REQUESTED -> _uiState.value.copy(
+        PaymentProcessingEvent.PIN_REQUESTED -> _uiState.value.copy(
             statusMessage = "Please enter your PIN",
             showCardAnimation = false,
             showPinAnimation = true
         )
         
-        ProcessingPaymentEvent.TRANSACTION_PROCESSING -> _uiState.value.copy(
+        PaymentProcessingEvent.TRANSACTION_PROCESSING -> _uiState.value.copy(
             statusMessage = "Processing transaction...",
             showCardAnimation = false,
             showPinAnimation = false,
             showProcessingAnimation = true
         )
         
-        ProcessingPaymentEvent.APPROVAL_SUCCEEDED -> _uiState.value.copy(
+        PaymentProcessingEvent.APPROVAL_SUCCEEDED -> _uiState.value.copy(
             statusMessage = "Payment approved!",
             showProcessingAnimation = false,
             showSuccessAnimation = true
         )
         
-        ProcessingPaymentEvent.APPROVAL_DECLINED -> _uiState.value.copy(
+        PaymentProcessingEvent.APPROVAL_DECLINED -> _uiState.value.copy(
             statusMessage = "Payment declined",
             showProcessingAnimation = false,
             showErrorAnimation = true
         )
         
-        ProcessingPaymentEvent.PRINTING_RECEIPT -> _uiState.value.copy(
+        PaymentProcessingEvent.PRINTING_RECEIPT -> _uiState.value.copy(
             statusMessage = "Printing receipt...",
             showPrintingAnimation = true
         )
         
-        ProcessingPaymentEvent.TRANSACTION_DONE -> _uiState.value.copy(
+        PaymentProcessingEvent.TRANSACTION_DONE -> _uiState.value.copy(
             isProcessing = false,
             showPrintingAnimation = false
         )
         
-        ProcessingPaymentEvent.CANCELLED -> _uiState.value.copy(
+        PaymentProcessingEvent.CANCELLED -> _uiState.value.copy(
             statusMessage = "Payment cancelled",
             isProcessing = false,
             showCardAnimation = false,
@@ -566,7 +566,7 @@ class PaymentViewModelTest {
         viewModel.processPayment(100.0, PaymentMethod.CREDIT_CARD)
         
         // Then
-        verify(paymentQueue).enqueue(any<ProcessingPaymentQueueItem>())
+        verify(paymentQueue).enqueue(any<PaymentProcessingQueueItem>())
     }
     
     @Test
@@ -575,7 +575,7 @@ class PaymentViewModelTest {
         val viewModel = PaymentViewModel()
         
         // When
-        paymentEventFlow.emit(ProcessingPaymentEvent.CARD_REACH_OR_INSERT)
+        paymentEventFlow.emit(PaymentProcessingEvent.CARD_REACH_OR_INSERT)
         
         // Then
         assertEquals("Please insert or tap your card", viewModel.uiState.value.statusMessage)

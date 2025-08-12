@@ -3,9 +3,10 @@ package br.com.ticpass.pos.sdk.printing
 import br.com.ticpass.pos.sdk.AcquirerProvider
 
 /**
- * Interface for receipt printing providers
+ * Interface for printing providers
  */
 interface BasePrintingProvider<T> : AcquirerProvider {
+
     /**
      * Get the flavor-specific implementation instance
      *

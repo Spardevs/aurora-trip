@@ -7,8 +7,8 @@ import br.com.ticpass.pos.queue.core.HybridQueueManager
 import br.com.ticpass.pos.queue.input.UserInputRequest
 import br.com.ticpass.pos.queue.models.ProcessingState
 import br.com.ticpass.pos.queue.input.QueueInputRequest
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingQueueItem
 import javax.inject.Inject
 
 /**
@@ -29,14 +29,14 @@ class StateManagementUseCase @Inject constructor() {
                 updateState(PaymentProcessingUiState.Processing)
                 // Emit event that processing started for this item
                 val item = state.item
-                if (item is ProcessingPaymentQueueItem) {
+                if (item is PaymentProcessingQueueItem) {
                     emitUiEvent(PaymentProcessingUiEvent.ShowToast("Processing payment ${item.id}"))
                 }
             }
             is ProcessingState.ItemDone -> {
                 // Emit event that item was completed successfully
                 val item = state.item
-                if (item is ProcessingPaymentQueueItem) {
+                if (item is PaymentProcessingQueueItem) {
                     emitUiEvent(PaymentProcessingUiEvent.PaymentCompleted(item.id, item.amount))
                 }
             }
@@ -48,7 +48,7 @@ class StateManagementUseCase @Inject constructor() {
 
                 // Emit event that item failed
                 val item = state.item
-                if (item is ProcessingPaymentQueueItem) {
+                if (item is PaymentProcessingQueueItem) {
                     emitUiEvent(PaymentProcessingUiEvent.PaymentFailed(item.id, state.error))
                 }
             }
@@ -61,7 +61,7 @@ class StateManagementUseCase @Inject constructor() {
      */
     fun handleQueueInputRequest(
         request: QueueInputRequest,
-        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
+        paymentQueue: HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent>,
         updateState: (PaymentProcessingUiState) -> Unit
     ) {
         when (request) {
@@ -116,6 +116,8 @@ class StateManagementUseCase @Inject constructor() {
                     pixCode = request.pixCode,
                 ))
             }
+
+            else -> {}
         }
     }
 }

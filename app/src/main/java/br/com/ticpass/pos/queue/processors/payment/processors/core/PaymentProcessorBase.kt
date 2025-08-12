@@ -5,8 +5,8 @@ import br.com.ticpass.pos.queue.core.QueueProcessor
 import br.com.ticpass.pos.queue.input.UserInputRequest
 import br.com.ticpass.pos.queue.input.UserInputResponse
 import br.com.ticpass.pos.queue.models.ProcessingResult
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingQueueItem
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -18,11 +18,11 @@ import kotlinx.coroutines.withTimeoutOrNull
  * Contains common event emission functionality and input request handling
  */
 abstract class PaymentProcessorBase :
-    QueueProcessor<ProcessingPaymentQueueItem, ProcessingPaymentEvent> {
+    QueueProcessor<PaymentProcessingQueueItem, PaymentProcessingEvent> {
     
     // Shared flow for payment events
-    protected val _events = MutableSharedFlow<ProcessingPaymentEvent>(replay = 0, extraBufferCapacity = 10)
-    override val events: SharedFlow<ProcessingPaymentEvent> = _events.asSharedFlow()
+    protected val _events = MutableSharedFlow<PaymentProcessingEvent>(replay = 0, extraBufferCapacity = 10)
+    override val events: SharedFlow<PaymentProcessingEvent> = _events.asSharedFlow()
     
     // Input request/response flows
     protected val _userInputRequests = MutableSharedFlow<UserInputRequest>(replay = 0, extraBufferCapacity = 3)
@@ -34,8 +34,8 @@ abstract class PaymentProcessorBase :
     /**
      * Public processing method - delegates to protected template method
      */
-    override suspend fun process(item: ProcessingPaymentQueueItem): ProcessingResult {
-        _events.emit(ProcessingPaymentEvent.START)
+    override suspend fun process(item: PaymentProcessingQueueItem): ProcessingResult {
+        _events.emit(PaymentProcessingEvent.START)
 
         // Call implementation-specific processing
         return processPayment(item)
@@ -45,7 +45,7 @@ abstract class PaymentProcessorBase :
      * Abstract method to be implemented by concrete processors
      * Handles the actual payment processing logic
      */
-    protected abstract suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult
+    protected abstract suspend fun processPayment(item: PaymentProcessingQueueItem): ProcessingResult
     
     /**
      * Provide input to the processor (from UI)
@@ -62,9 +62,9 @@ abstract class PaymentProcessorBase :
      * @param item The item being processed that should be aborted, or null to abort any current operation
      * @return True if the processor was successfully aborted, false otherwise
      */
-    override suspend fun abort(item: ProcessingPaymentQueueItem?): Boolean {
+    override suspend fun abort(item: PaymentProcessingQueueItem?): Boolean {
         // Emit a cancellation event
-        _events.emit(ProcessingPaymentEvent.CANCELLED)
+        _events.emit(PaymentProcessingEvent.CANCELLED)
         
         // Cancel any pending input requests by emitting a cancellation response
         // This will unblock any processor waiting for input
@@ -80,7 +80,7 @@ abstract class PaymentProcessorBase :
      * Abstract method to be implemented by concrete processors
      * Handles the actual payment aborting logic
      */
-    protected abstract suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean
+    protected abstract suspend fun onAbort(item: PaymentProcessingQueueItem?): Boolean
     
     /**
      * Request input from the user and wait for response

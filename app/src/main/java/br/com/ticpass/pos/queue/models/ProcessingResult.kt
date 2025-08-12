@@ -1,16 +1,12 @@
 package br.com.ticpass.pos.queue.models
 
+import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
+
 /**
  * Processing Result
  * Represents the possible outcomes when processing a queue item
  */
 sealed class ProcessingResult {
-    class Success(
-        val atk: String,
-        val txId: String,
-    ) : ProcessingResult()
-
-    data class Error(
-        val event: br.com.ticpass.pos.queue.error.ProcessingErrorEvent
-    ) : ProcessingResult()
+    abstract class Success : ProcessingResult()
+    abstract class Error(val event: ProcessingErrorEvent) : ProcessingResult()
 }

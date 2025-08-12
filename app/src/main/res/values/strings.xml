@@ -523,4 +523,14 @@
     <!-- Payment Processing -->
     <string name="transactionless_mode">Transactionless mode</string>
     <string name="payment_queue">Payment Queue (%1$d items)</string>
+    <string name="printing_queue">Printing Queue (%1$d items)</string>
+
+    <!-- Print Processing -->
+    <string name="print_processing_title">Print Processing</string>
+    <string name="print_queue">Print Queue (%1$d items)</string>
+    <string name="print_progress_title">Print Progress</string>
+    <string name="enqueue_receipt_print">Receipt Print</string>
+    <string name="enqueue_report_print">Report Print</string>
+    <string name="enqueue_bluetooth_print">Bluetooth Print</string>
+    <string name="enqueue_custom_print">Custom Print</string>
 </resources>

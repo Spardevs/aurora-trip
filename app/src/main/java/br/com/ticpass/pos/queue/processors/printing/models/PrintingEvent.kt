@@ -3,69 +3,26 @@ package br.com.ticpass.pos.queue.processors.printing.models
 import br.com.ticpass.pos.queue.core.BaseProcessingEvent
 
 /**
- * Print-specific events emitted during print processing
+ * Printing-specific events emitted during printing processing
  */
 sealed class PrintingEvent : BaseProcessingEvent {
     /**
-     * Emitted when print job starts
+     * Printing processing has started.
      */
-    data class Started(val printId: String) : PrintingEvent()
-    
+    object START : PrintingEvent()
+
     /**
-     * Emitted when printer is connecting
+     * Printing process was canceled by user or system.
      */
-    data class ConnectingToPrinter(
-        val printId: String,
-        val printerId: String?
-    ) : PrintingEvent()
-    
+    object CANCELLED : PrintingEvent()
+
     /**
-     * Emitted when printer is connected
+     * Printing is being processed.
      */
-    data class PrinterConnected(
-        val printId: String,
-        val printerName: String,
-        val printerModel: String
-    ) : PrintingEvent()
-    
+    object PROCESSING : PrintingEvent()
+
     /**
-     * Emitted when print job is sent to printer
+     * Printing is currently in progress.
      */
-    data class PrintJobSent(
-        val printId: String,
-        val pages: Int,
-        val copies: Int
-    ) : PrintingEvent()
-    
-    /**
-     * Emitted with print progress updates
-     */
-    data class Progress(
-        val printId: String,
-        val percentComplete: Int,
-        val pagesCompleted: Int,
-        val totalPages: Int
-    ) : PrintingEvent()
-    
-    /**
-     * Emitted when out of paper
-     */
-    data class OutOfPaper(val printId: String) : PrintingEvent()
-    
-    /**
-     * Emitted when print job is completed successfully
-     */
-    data class Completed(
-        val printId: String,
-        val printJobId: String,
-        val timeElapsed: Long
-    ) : PrintingEvent()
-    
-    /**
-     * Emitted when print job fails
-     */
-    data class Failed(
-        val printId: String,
-        val error: String
-    ) : PrintingEvent()
+    object PRINTING : PrintingEvent()
 }

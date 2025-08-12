@@ -9,27 +9,27 @@ Payment processors emit events throughout the payment lifecycle to provide real-
 ## Event Hierarchy
 
 ```kotlin
-sealed class ProcessingPaymentEvent : BaseProcessingEvent {
+sealed class PaymentProcessingEvent : BaseProcessingEvent {
     // Lifecycle events
-    object START : ProcessingPaymentEvent()
-    object TRANSACTION_DONE : ProcessingPaymentEvent()
-    object CANCELLED : ProcessingPaymentEvent()
+    object START : PaymentProcessingEvent()
+    object TRANSACTION_DONE : PaymentProcessingEvent()
+    object CANCELLED : PaymentProcessingEvent()
     
     // Card interaction events
-    object CARD_REACH_OR_INSERT : ProcessingPaymentEvent()
-    object PIN_REQUESTED : ProcessingPaymentEvent()
+    object CARD_REACH_OR_INSERT : PaymentProcessingEvent()
+    object PIN_REQUESTED : PaymentProcessingEvent()
     
     // Transaction processing events
-    object TRANSACTION_PROCESSING : ProcessingPaymentEvent()
-    object APPROVAL_SUCCEEDED : ProcessingPaymentEvent()
-    object APPROVAL_DECLINED : ProcessingPaymentEvent()
+    object TRANSACTION_PROCESSING : PaymentProcessingEvent()
+    object APPROVAL_SUCCEEDED : PaymentProcessingEvent()
+    object APPROVAL_DECLINED : PaymentProcessingEvent()
     
     // Receipt printing events
-    object PRINTING_RECEIPT : ProcessingPaymentEvent()
+    object PRINTING_RECEIPT : PaymentProcessingEvent()
     
     // Error events
-    object GENERIC_ERROR : ProcessingPaymentEvent()
-    object GENERIC_SUCCESS : ProcessingPaymentEvent()
+    object GENERIC_ERROR : PaymentProcessingEvent()
+    object GENERIC_SUCCESS : PaymentProcessingEvent()
 }
 ```
 
@@ -41,7 +41,7 @@ sealed class ProcessingPaymentEvent : BaseProcessingEvent {
 Emitted when payment processing begins.
 
 ```kotlin
-object START : ProcessingPaymentEvent()
+object START : PaymentProcessingEvent()
 ```
 
 **When emitted**: At the beginning of `processPayment()`
@@ -51,7 +51,7 @@ object START : ProcessingPaymentEvent()
 Emitted when payment processing is complete (success or failure).
 
 ```kotlin
-object TRANSACTION_DONE : ProcessingPaymentEvent()
+object TRANSACTION_DONE : PaymentProcessingEvent()
 ```
 
 **When emitted**: At the end of payment processing
@@ -61,7 +61,7 @@ object TRANSACTION_DONE : ProcessingPaymentEvent()
 Emitted when payment processing is cancelled by user or system.
 
 ```kotlin
-object CANCELLED : ProcessingPaymentEvent()
+object CANCELLED : PaymentProcessingEvent()
 ```
 
 **When emitted**: When `abort()` is called or user cancels
@@ -73,7 +73,7 @@ object CANCELLED : ProcessingPaymentEvent()
 Emitted when the system is ready for card interaction.
 
 ```kotlin
-object CARD_REACH_OR_INSERT : ProcessingPaymentEvent()
+object CARD_REACH_OR_INSERT : PaymentProcessingEvent()
 ```
 
 **When emitted**: After transaction initialization, waiting for card
@@ -83,7 +83,7 @@ object CARD_REACH_OR_INSERT : ProcessingPaymentEvent()
 Emitted when PIN entry is required (debit cards).
 
 ```kotlin
-object PIN_REQUESTED : ProcessingPaymentEvent()
+object PIN_REQUESTED : PaymentProcessingEvent()
 ```
 
 **When emitted**: During debit card processing when PIN is required
@@ -95,7 +95,7 @@ object PIN_REQUESTED : ProcessingPaymentEvent()
 Emitted when the actual transaction is being processed by the acquirer.
 
 ```kotlin
-object TRANSACTION_PROCESSING : ProcessingPaymentEvent()
+object TRANSACTION_PROCESSING : PaymentProcessingEvent()
 ```
 
 **When emitted**: After card data is captured, during acquirer communication
@@ -105,7 +105,7 @@ object TRANSACTION_PROCESSING : ProcessingPaymentEvent()
 Emitted when the transaction is approved by the acquirer.
 
 ```kotlin
-object APPROVAL_SUCCEEDED : ProcessingPaymentEvent()
+object APPROVAL_SUCCEEDED : PaymentProcessingEvent()
 ```
 
 **When emitted**: When acquirer approves the transaction
@@ -115,7 +115,7 @@ object APPROVAL_SUCCEEDED : ProcessingPaymentEvent()
 Emitted when the transaction is declined by the acquirer.
 
 ```kotlin
-object APPROVAL_DECLINED : ProcessingPaymentEvent()
+object APPROVAL_DECLINED : PaymentProcessingEvent()
 ```
 
 **When emitted**: When acquirer declines the transaction
@@ -127,7 +127,7 @@ object APPROVAL_DECLINED : ProcessingPaymentEvent()
 Emitted when receipt printing is in progress.
 
 ```kotlin
-object PRINTING_RECEIPT : ProcessingPaymentEvent()
+object PRINTING_RECEIPT : PaymentProcessingEvent()
 ```
 
 **When emitted**: During customer or merchant receipt printing
@@ -139,7 +139,7 @@ object PRINTING_RECEIPT : ProcessingPaymentEvent()
 Emitted for general payment processing errors.
 
 ```kotlin
-object GENERIC_ERROR : ProcessingPaymentEvent()
+object GENERIC_ERROR : PaymentProcessingEvent()
 ```
 
 **When emitted**: When an unspecified error occurs during processing
@@ -149,7 +149,7 @@ object GENERIC_ERROR : ProcessingPaymentEvent()
 Emitted for general payment processing success.
 
 ```kotlin
-object GENERIC_SUCCESS : ProcessingPaymentEvent()
+object GENERIC_SUCCESS : PaymentProcessingEvent()
 ```
 
 **When emitted**: When payment completes successfully without specific success event
@@ -219,60 +219,60 @@ fun observePaymentEvents() {
     viewModelScope.launch {
         paymentQueue.processorEvents.collect { event ->
             when (event) {
-                ProcessingPaymentEvent.START -> {
+                PaymentProcessingEvent.START -> {
                     updateUI("Payment started")
                     showProgressIndicator(true)
                 }
                 
-                ProcessingPaymentEvent.CARD_REACH_OR_INSERT -> {
+                PaymentProcessingEvent.CARD_REACH_OR_INSERT -> {
                     updateUI("Please insert or tap your card")
                     showCardAnimation()
                 }
                 
-                ProcessingPaymentEvent.PIN_REQUESTED -> {
+                PaymentProcessingEvent.PIN_REQUESTED -> {
                     updateUI("Please enter your PIN")
                     showPinAnimation()
                 }
                 
-                ProcessingPaymentEvent.TRANSACTION_PROCESSING -> {
+                PaymentProcessingEvent.TRANSACTION_PROCESSING -> {
                     updateUI("Processing transaction...")
                     showProcessingAnimation()
                 }
                 
-                ProcessingPaymentEvent.APPROVAL_SUCCEEDED -> {
+                PaymentProcessingEvent.APPROVAL_SUCCEEDED -> {
                     updateUI("Payment approved!")
                     showSuccessAnimation()
                     playSuccessSound()
                 }
                 
-                ProcessingPaymentEvent.APPROVAL_DECLINED -> {
+                PaymentProcessingEvent.APPROVAL_DECLINED -> {
                     updateUI("Payment declined")
                     showErrorAnimation()
                     playErrorSound()
                 }
                 
-                ProcessingPaymentEvent.PRINTING_RECEIPT -> {
+                PaymentProcessingEvent.PRINTING_RECEIPT -> {
                     updateUI("Printing receipt...")
                     showPrintingAnimation()
                 }
                 
-                ProcessingPaymentEvent.TRANSACTION_DONE -> {
+                PaymentProcessingEvent.TRANSACTION_DONE -> {
                     showProgressIndicator(false)
                     // Transaction complete - show final state
                 }
                 
-                ProcessingPaymentEvent.CANCELLED -> {
+                PaymentProcessingEvent.CANCELLED -> {
                     updateUI("Payment cancelled")
                     showProgressIndicator(false)
                     resetUI()
                 }
                 
-                ProcessingPaymentEvent.GENERIC_ERROR -> {
+                PaymentProcessingEvent.GENERIC_ERROR -> {
                     updateUI("Payment error occurred")
                     showErrorAnimation()
                 }
                 
-                ProcessingPaymentEvent.GENERIC_SUCCESS -> {
+                PaymentProcessingEvent.GENERIC_SUCCESS -> {
                     updateUI("Payment completed successfully")
                     showSuccessAnimation()
                 }
@@ -299,9 +299,9 @@ class PaymentViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(PaymentUiState())
     val uiState = _uiState.asStateFlow()
     
-    private fun handlePaymentEvent(event: ProcessingPaymentEvent) {
+    private fun handlePaymentEvent(event: PaymentProcessingEvent) {
         _uiState.value = when (event) {
-            ProcessingPaymentEvent.START -> _uiState.value.copy(
+            PaymentProcessingEvent.START -> _uiState.value.copy(
                 status = "Payment started",
                 isProcessing = true,
                 showCardAnimation = false,
@@ -309,50 +309,50 @@ class PaymentViewModel : ViewModel() {
                 showErrorAnimation = false
             )
             
-            ProcessingPaymentEvent.CARD_REACH_OR_INSERT -> _uiState.value.copy(
+            PaymentProcessingEvent.CARD_REACH_OR_INSERT -> _uiState.value.copy(
                 status = "Please insert or tap your card",
                 showCardAnimation = true,
                 showPinAnimation = false,
                 showProcessingAnimation = false
             )
             
-            ProcessingPaymentEvent.PIN_REQUESTED -> _uiState.value.copy(
+            PaymentProcessingEvent.PIN_REQUESTED -> _uiState.value.copy(
                 status = "Please enter your PIN",
                 showCardAnimation = false,
                 showPinAnimation = true
             )
             
-            ProcessingPaymentEvent.TRANSACTION_PROCESSING -> _uiState.value.copy(
+            PaymentProcessingEvent.TRANSACTION_PROCESSING -> _uiState.value.copy(
                 status = "Processing transaction...",
                 showCardAnimation = false,
                 showPinAnimation = false,
                 showProcessingAnimation = true
             )
             
-            ProcessingPaymentEvent.APPROVAL_SUCCEEDED -> _uiState.value.copy(
+            PaymentProcessingEvent.APPROVAL_SUCCEEDED -> _uiState.value.copy(
                 status = "Payment approved!",
                 showProcessingAnimation = false,
                 showSuccessAnimation = true
             )
             
-            ProcessingPaymentEvent.APPROVAL_DECLINED -> _uiState.value.copy(
+            PaymentProcessingEvent.APPROVAL_DECLINED -> _uiState.value.copy(
                 status = "Payment declined",
                 showProcessingAnimation = false,
                 showErrorAnimation = true
             )
             
-            ProcessingPaymentEvent.PRINTING_RECEIPT -> _uiState.value.copy(
+            PaymentProcessingEvent.PRINTING_RECEIPT -> _uiState.value.copy(
                 status = "Printing receipt...",
                 showSuccessAnimation = false,
                 showPrintingAnimation = true
             )
             
-            ProcessingPaymentEvent.TRANSACTION_DONE -> _uiState.value.copy(
+            PaymentProcessingEvent.TRANSACTION_DONE -> _uiState.value.copy(
                 isProcessing = false,
                 showPrintingAnimation = false
             )
             
-            ProcessingPaymentEvent.CANCELLED -> _uiState.value.copy(
+            PaymentProcessingEvent.CANCELLED -> _uiState.value.copy(
                 status = "Payment cancelled",
                 isProcessing = false,
                 showCardAnimation = false,
@@ -362,13 +362,13 @@ class PaymentViewModel : ViewModel() {
                 showErrorAnimation = true
             )
             
-            ProcessingPaymentEvent.GENERIC_ERROR -> _uiState.value.copy(
+            PaymentProcessingEvent.GENERIC_ERROR -> _uiState.value.copy(
                 status = "Payment error occurred",
                 showProcessingAnimation = false,
                 showErrorAnimation = true
             )
             
-            ProcessingPaymentEvent.GENERIC_SUCCESS -> _uiState.value.copy(
+            PaymentProcessingEvent.GENERIC_SUCCESS -> _uiState.value.copy(
                 status = "Payment completed successfully",
                 showProcessingAnimation = false,
                 showSuccessAnimation = true
@@ -383,28 +383,28 @@ class PaymentViewModel : ViewModel() {
 ### 1. Event Timing
 Emit events at the right moments:
 ```kotlin
-override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
-    _events.emit(ProcessingPaymentEvent.START) // At the beginning
+override suspend fun processPayment(item: PaymentProcessingQueueItem): ProcessingResult {
+    _events.emit(PaymentProcessingEvent.START) // At the beginning
     
     try {
-        _events.emit(ProcessingPaymentEvent.CARD_REACH_OR_INSERT) // Before waiting for card
+        _events.emit(PaymentProcessingEvent.CARD_REACH_OR_INSERT) // Before waiting for card
         
         val cardData = waitForCard()
         
-        _events.emit(ProcessingPaymentEvent.TRANSACTION_PROCESSING) // Before acquirer call
+        _events.emit(PaymentProcessingEvent.TRANSACTION_PROCESSING) // Before acquirer call
         
         val result = processWithAcquirer(cardData)
         
         if (result.isApproved) {
-            _events.emit(ProcessingPaymentEvent.APPROVAL_SUCCEEDED) // Immediately after approval
+            _events.emit(PaymentProcessingEvent.APPROVAL_SUCCEEDED) // Immediately after approval
         } else {
-            _events.emit(ProcessingPaymentEvent.APPROVAL_DECLINED) // Immediately after decline
+            _events.emit(PaymentProcessingEvent.APPROVAL_DECLINED) // Immediately after decline
         }
         
         return result
         
     } finally {
-        _events.emit(ProcessingPaymentEvent.TRANSACTION_DONE) // Always at the end
+        _events.emit(PaymentProcessingEvent.TRANSACTION_DONE) // Always at the end
     }
 }
 ```
@@ -416,7 +416,7 @@ catch (e: CardReadException) {
     // Use specific error handling if available
     return ProcessingResult.Error(ProcessingErrorEvent.CARD_READ_ERROR)
 } catch (e: Exception) {
-    _events.emit(ProcessingPaymentEvent.GENERIC_ERROR)
+    _events.emit(PaymentProcessingEvent.GENERIC_ERROR)
     return ProcessingResult.Error(ProcessingErrorEvent.GENERIC_ERROR)
 }
 ```
@@ -431,7 +431,7 @@ fun observePaymentEvents() {
         .launchIn(viewModelScope)
 }
 
-private fun handleEventImmediately(event: ProcessingPaymentEvent) {
+private fun handleEventImmediately(event: PaymentProcessingEvent) {
     // Update UI state synchronously
     updateUIState(event)
     
@@ -445,7 +445,7 @@ private fun handleEventImmediately(event: ProcessingPaymentEvent) {
 ### 4. Event Logging
 Log events for debugging and analytics:
 ```kotlin
-private fun emitEvent(event: ProcessingPaymentEvent) {
+private fun emitEvent(event: PaymentProcessingEvent) {
     Log.d("PaymentProcessor", "Emitting event: $event")
     _events.emit(event)
     

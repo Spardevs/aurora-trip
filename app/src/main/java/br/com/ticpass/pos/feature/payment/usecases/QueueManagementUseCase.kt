@@ -3,9 +3,9 @@ package br.com.ticpass.pos.feature.payment.usecases
 import br.com.ticpass.pos.feature.payment.state.PaymentProcessingUiEvent
 import br.com.ticpass.pos.payment.models.SystemPaymentMethod
 import br.com.ticpass.pos.queue.core.HybridQueueManager
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent
 import br.com.ticpass.pos.feature.payment.state.PaymentProcessingSideEffect
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingQueueItem
 import java.util.UUID
 import javax.inject.Inject
 
@@ -18,7 +18,7 @@ class QueueManagementUseCase @Inject constructor() {
      * Start processing the payment queue
      */
     fun startProcessing(
-        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
+        paymentQueue: HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent>,
         emitUiEvent: (PaymentProcessingUiEvent) -> Unit
     ): PaymentProcessingSideEffect {
         emitUiEvent(PaymentProcessingUiEvent.ShowToast("Starting payment processing"))
@@ -33,10 +33,10 @@ class QueueManagementUseCase @Inject constructor() {
         commission: Int,
         method: SystemPaymentMethod,
         isTransactionless: Boolean,
-        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
+        paymentQueue: HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent>,
         emitUiEvent: (PaymentProcessingUiEvent) -> Unit
     ): PaymentProcessingSideEffect {
-        val paymentItem = ProcessingPaymentQueueItem(
+        val paymentItem = PaymentProcessingQueueItem(
             id = UUID.randomUUID().toString(),
             amount = amount,
             commission = commission,
@@ -53,7 +53,7 @@ class QueueManagementUseCase @Inject constructor() {
      */
     fun cancelPayment(
         paymentId: String,
-        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
+        paymentQueue: HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent>,
         emitUiEvent: (PaymentProcessingUiEvent) -> Unit
     ): PaymentProcessingSideEffect {
         return PaymentProcessingSideEffect.RemovePaymentItem {
@@ -69,7 +69,7 @@ class QueueManagementUseCase @Inject constructor() {
      * Cancel all payments
      */
     fun clearQueue(
-        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
+        paymentQueue: HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent>,
         emitUiEvent: (PaymentProcessingUiEvent) -> Unit
     ): PaymentProcessingSideEffect {
         emitUiEvent(PaymentProcessingUiEvent.ShowToast("All payments cancelled"))
@@ -77,7 +77,7 @@ class QueueManagementUseCase @Inject constructor() {
     }
 
     fun abortCurrentPayment(
-        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
+        paymentQueue: HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent>,
         emitUiEvent: (PaymentProcessingUiEvent) -> Unit
     ): PaymentProcessingSideEffect {
         emitUiEvent(PaymentProcessingUiEvent.ShowToast("Aborting current payment"))
@@ -90,7 +90,7 @@ class QueueManagementUseCase @Inject constructor() {
      */
     fun toggleTransactionless(
         useTransactionless: Boolean,
-        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
+        paymentQueue: HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent>,
         emitUiEvent: (PaymentProcessingUiEvent) -> Unit
     ): PaymentProcessingSideEffect {
         return PaymentProcessingSideEffect.UpdateAllProcessorTypes {

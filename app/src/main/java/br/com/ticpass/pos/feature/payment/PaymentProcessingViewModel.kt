@@ -16,11 +16,11 @@ import br.com.ticpass.pos.feature.payment.state.PaymentProcessingUiEvent
 import br.com.ticpass.pos.feature.payment.state.PaymentProcessingUiState
 import br.com.ticpass.pos.payment.models.SystemPaymentMethod
 import br.com.ticpass.pos.queue.core.QueueItem
-import br.com.ticpass.pos.queue.processors.payment.utils.ProcessingPaymentQueueFactory
-import br.com.ticpass.pos.queue.processors.payment.data.ProcessingPaymentStorage
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
+import br.com.ticpass.pos.queue.processors.payment.utils.PaymentProcessingQueueFactory
+import br.com.ticpass.pos.queue.processors.payment.data.PaymentProcessingStorage
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent
 import br.com.ticpass.pos.feature.payment.state.PaymentProcessingSideEffect
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingQueueItem
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -43,14 +43,14 @@ import kotlinx.coroutines.launch
  */
 @HiltViewModel
 class PaymentProcessingViewModel @Inject constructor(
-    paymentQueueFactory: ProcessingPaymentQueueFactory,
-    processingPaymentStorage: ProcessingPaymentStorage,
+    paymentQueueFactory: PaymentProcessingQueueFactory,
+    processingPaymentStorage: PaymentProcessingStorage,
     private val reducer: PaymentProcessingReducer
 ) : ViewModel() {
     
     // Queue Setup and Configuration
     // Initialize the queue with viewModelScope
-    private val paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent> = paymentQueueFactory.createDynamicPaymentQueue(
+    private val paymentQueue: HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent> = paymentQueueFactory.createDynamicPaymentQueue(
         storage = processingPaymentStorage,
         persistenceStrategy = PersistenceStrategy.IMMEDIATE,
         startMode = ProcessorStartMode.CONFIRMATION,
@@ -77,7 +77,7 @@ class PaymentProcessingViewModel @Inject constructor(
     val enqueuedSize = paymentQueue.enqueuedSize
     val currentIndex = paymentQueue.currentIndex
     val processingState = paymentQueue.processingState
-    val processingPaymentEvents: SharedFlow<ProcessingPaymentEvent> = paymentQueue.processorEvents
+    val processingPaymentEvents: SharedFlow<PaymentProcessingEvent> = paymentQueue.processorEvents
     
     // UI State Management
     // UI Events flow for one-time events

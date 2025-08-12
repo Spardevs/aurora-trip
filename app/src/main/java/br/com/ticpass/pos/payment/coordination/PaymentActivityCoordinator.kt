@@ -17,7 +17,7 @@ import br.com.ticpass.pos.payment.view.PaymentProcessingQueueView
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.error.ProcessingErrorEventResourceMapper
 import br.com.ticpass.pos.queue.models.ProcessingState
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingQueueItem
 import br.com.ticpass.utils.toMoneyAsDouble
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -167,7 +167,7 @@ class PaymentActivityCoordinator(
         }
     }
     
-    private fun updateQueueUI(queueItems: List<ProcessingPaymentQueueItem>) {
+    private fun updateQueueUI(queueItems: List<PaymentProcessingQueueItem>) {
         queueView.updateQueue(queueItems)
         totalPayments = queueItems.size
         
@@ -207,7 +207,7 @@ class PaymentActivityCoordinator(
         showProgressDialog()
     }
     
-    private fun updatePaymentInfo(item: ProcessingPaymentQueueItem) {
+    private fun updatePaymentInfo(item: PaymentProcessingQueueItem) {
         // Update payment method
         val paymentMethodDisplayName = getPaymentMethodDisplayName(item.method)
         dialogPaymentMethodTextView.text = paymentMethodDisplayName

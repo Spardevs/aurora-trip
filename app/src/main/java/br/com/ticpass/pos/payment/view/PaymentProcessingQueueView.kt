@@ -10,7 +10,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingQueueItem
 import br.com.ticpass.utils.toMoneyAsDouble
 import java.text.NumberFormat
 import java.util.Locale
@@ -48,7 +48,7 @@ class PaymentProcessingQueueView @JvmOverloads constructor(
      *
      * @param queueItems List of payment queue items to display
      */
-    fun updateQueue(queueItems: List<ProcessingPaymentQueueItem>) {
+    fun updateQueue(queueItems: List<PaymentProcessingQueueItem>) {
         queueAdapter.updateItems(queueItems)
     }
 
@@ -65,7 +65,7 @@ class PaymentProcessingQueueView @JvmOverloads constructor(
      * Adapter for the payment queue RecyclerView
      */
     private inner class PaymentQueueAdapter(
-        private var items: List<ProcessingPaymentQueueItem>,
+        private var items: List<PaymentProcessingQueueItem>,
         private val onCancelClick: (String) -> Unit
     ) : RecyclerView.Adapter<PaymentQueueAdapter.ViewHolder>() {
 
@@ -95,7 +95,7 @@ class PaymentProcessingQueueView @JvmOverloads constructor(
 
         override fun getItemCount() = items.size
 
-        fun updateItems(newItems: List<ProcessingPaymentQueueItem>) {
+        fun updateItems(newItems: List<PaymentProcessingQueueItem>) {
             this.items = newItems
             notifyDataSetChanged()
         }

@@ -12,7 +12,7 @@ import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPag
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagEventData
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagEventListener
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagPaymentData
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingQueueItem
 import br.com.ticpass.pos.queue.processors.payment.processors.core.PaymentProcessorBase
 import br.com.ticpass.pos.queue.processors.payment.utils.SystemCustomerReceiptPrinting
 import br.com.ticpass.utils.toMoney
@@ -22,9 +22,11 @@ import br.com.uol.pagseguro.plugpagservice.wrapper.listeners.PlugPagPrintActionL
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import br.com.ticpass.pos.queue.models.PaymentError
+import br.com.ticpass.pos.queue.models.PaymentSuccess
+import kotlinx.coroutines.cancel
 
 /**
  * PagSeguro Payment Processor
@@ -35,9 +37,9 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
     private val plugpag = AcquirerSdk.payment.getInstance()
     private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    lateinit var _item: ProcessingPaymentQueueItem
+    lateinit var _item: PaymentProcessingQueueItem
     
-    override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
+    override suspend fun processPayment(item: PaymentProcessingQueueItem): ProcessingResult {
         try {
             _item = item
             setPaymentListener()
@@ -66,17 +68,16 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
             clearPaymentListener()
             cleanupCoroutineScopes()
 
-            return ProcessingResult.Success(
+            return PaymentSuccess(
                 atk = payment.transactionCode ?: "",
                 txId = payment.transactionId ?: "",
             )
         }
+        catch (exception: AcquirerProcessingException) {
+            return PaymentError(exception.event)
+        }
         catch (exception: Exception) {
-            if (exception is AcquirerProcessingException) {
-                return ProcessingResult.Error(exception.event)
-            }
-
-            return ProcessingResult.Error(ProcessingErrorEvent.GENERIC)
+            return PaymentError(ProcessingErrorEvent.GENERIC)
         }
     }
     
@@ -84,7 +85,7 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
      * PagSeguro-specific abort logic
      * Cancels any ongoing payment transaction and cleans up resources
      */
-    override suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean {
+    override suspend fun onAbort(item: PaymentProcessingQueueItem?): Boolean {
         try {
             val abortResult = withContext(Dispatchers.IO) {
                 plugpag.abort()
@@ -114,6 +115,10 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
         scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
 
+    /**
+     * Sets the payment event listener to handle payment events.
+     * This listener will emit events to the _events channel.
+     */
     private fun setPaymentListener() {
         var isOver = false
 
@@ -130,6 +135,11 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
         plugpag.setEventListener(eventListener)
     }
 
+    /**
+     * Clears the payment event listener to stop receiving events.
+     * This is important to avoid memory leaks and ensure that the
+     * listener does not receive further events after the payment process is complete.
+     */
     private fun clearPaymentListener() {
         val eventListener = object : PlugPagEventListener {
             override fun onEvent(data: PlugPagEventData) {
@@ -139,6 +149,11 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
         plugpag.setEventListener(eventListener)
     }
 
+    /**
+     * Sets the customer receipt listener to handle customer receipt printing.
+     * This listener will prompt the user for confirmation before printing the receipt
+     * based on the configured SystemCustomerReceiptPrinting setting.
+     */
     private fun setCustomerReceiptListener() {
         scope.launch {
             plugpag.setPrintActionListener(

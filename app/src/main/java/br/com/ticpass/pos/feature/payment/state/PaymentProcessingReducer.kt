@@ -1,8 +1,8 @@
 package br.com.ticpass.pos.feature.payment.state
 
 import br.com.ticpass.pos.queue.core.HybridQueueManager
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingQueueItem
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent
 import br.com.ticpass.pos.feature.payment.usecases.ErrorHandlingUseCase
 import br.com.ticpass.pos.feature.payment.usecases.ConfirmationUseCase
 import br.com.ticpass.pos.feature.payment.usecases.QueueManagementUseCase
@@ -41,7 +41,7 @@ class PaymentProcessingReducer @Inject constructor(
      */
     fun reduce(
         action: PaymentProcessingAction,
-        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>
+        paymentQueue: HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent>
     ): PaymentProcessingSideEffect? {
         return when (action) {
             // Queue management actions
@@ -77,7 +77,7 @@ class PaymentProcessingReducer @Inject constructor(
                 confirmationUseCase.confirmProcessor(
                     requestId = action.requestId,
                     queue = paymentQueue,
-                    modifiedItem = action.modifiedItem as ProcessingPaymentQueueItem,
+                    modifiedItem = action.modifiedItem as PaymentProcessingQueueItem,
                     updateState = updateState
                 )
             }

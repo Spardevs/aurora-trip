@@ -1,12 +1,12 @@
 package br.com.ticpass.pos.queue.processors.payment.processors.core
 
-import android.util.Log
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.input.UserInputRequest
 import br.com.ticpass.pos.queue.input.UserInputResponse
+import br.com.ticpass.pos.queue.models.PaymentError
 import br.com.ticpass.pos.queue.models.ProcessingResult
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingQueueItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -27,18 +27,18 @@ class DynamicPaymentProcessor(
     // Keep track of the current delegate processor to forward input responses
     private var currentDelegateProcessor: PaymentProcessorBase? = null
     
-    override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
+    override suspend fun processPayment(item: PaymentProcessingQueueItem): ProcessingResult {
         // Get the processor based on the item's processor type
         val processorType = PaymentMethodProcessorMapper.getProcessorTypeForMethod(item.method, item.isTransactionless)
         val processor = processorMap[processorType] ?:
                         processorMap[PaymentProcessorType.ACQUIRER] ?: // Fallback to acquirer
-                        return ProcessingResult.Error(ProcessingErrorEvent.PROCESSOR_NOT_FOUND)
+                        return PaymentError(ProcessingErrorEvent.PROCESSOR_NOT_FOUND)
         
         // Store the current delegate processor to forward input responses
         currentDelegateProcessor = processor
         
         // Forward the start event from the base processor
-        _events.emit(ProcessingPaymentEvent.START)
+        _events.emit(PaymentProcessingEvent.START)
         
         // Collect events and input requests from the delegate processor and re-emit them
         val processorEvents = processor.events
@@ -61,7 +61,7 @@ class DynamicPaymentProcessor(
         }
     }
 
-    override suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean {
+    override suspend fun onAbort(item: PaymentProcessingQueueItem?): Boolean {
         // Get the processor based on the item's processor type
         val processorType =
             item?.let { PaymentMethodProcessorMapper.getProcessorTypeForMethod(it.method, item.isTransactionless) }
@@ -70,7 +70,7 @@ class DynamicPaymentProcessor(
                         return false
 
         // Forward the start event from the base processor
-        _events.emit(ProcessingPaymentEvent.CANCELLED)
+        _events.emit(PaymentProcessingEvent.CANCELLED)
 
         // Collect events and input requests from the delegate processor and re-emit them
         val processorEvents = processor.events
@@ -93,13 +93,13 @@ class DynamicPaymentProcessor(
      * Launch a coroutine that forwards events from the delegate processor to this processor's event flow
      * This prevents event duplication (START event)
      */
-    private fun launchEventForwarding(sourceEvents: SharedFlow<ProcessingPaymentEvent>): Job {
+    private fun launchEventForwarding(sourceEvents: SharedFlow<PaymentProcessingEvent>): Job {
         // Use a safe scope rather than GlobalScope
         val scope = CoroutineScope(Dispatchers.Default)
         return scope.launch {
             sourceEvents.collect { event ->
                 // Avoid duplicating the START event that we already emitted
-                if (event !is ProcessingPaymentEvent.START) {
+                if (event !is PaymentProcessingEvent.START) {
                     _events.emit(event)
                 }
             }

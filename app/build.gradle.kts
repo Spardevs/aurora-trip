@@ -319,7 +319,6 @@ dependencies {
     annotationProcessor("com.github.bumptech.glide:compiler:4.12.0")
     implementation("androidx.work:work-runtime-ktx:2.7.1")
 
-
     // PagSeguro
     "pagseguroImplementation"(libs.plugpagservice.wrapper)
     "pagseguroImplementation"(libs.reactivex.java)

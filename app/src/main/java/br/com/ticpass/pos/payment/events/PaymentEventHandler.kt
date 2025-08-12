@@ -12,8 +12,8 @@ import br.com.ticpass.pos.R
 import br.com.ticpass.pos.feature.payment.state.PaymentProcessingUiEvent
 import br.com.ticpass.pos.payment.utils.PaymentUIUtils
 import br.com.ticpass.pos.payment.view.TimeoutCountdownView
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEventResourceMapper
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEventResourceMapper
 import com.google.android.material.snackbar.Snackbar
 
 /**
@@ -34,15 +34,15 @@ class PaymentEventHandler(
      * Handle payment processor events.
      * @param event The payment processor event to handle
      */
-    fun handlePaymentEvent(event: ProcessingPaymentEvent) {
+    fun handlePaymentEvent(event: PaymentProcessingEvent) {
         when (event) {
-            is ProcessingPaymentEvent.CARD_INSERTED,
-               ProcessingPaymentEvent.CARD_REMOVAL_SUCCEEDED -> { clearPinDigits() }
+            is PaymentProcessingEvent.CARD_INSERTED,
+               PaymentProcessingEvent.CARD_REMOVAL_SUCCEEDED -> { clearPinDigits() }
 
-            is ProcessingPaymentEvent.PIN_DIGIT_INPUT -> {
+            is PaymentProcessingEvent.PIN_DIGIT_INPUT -> {
                 pinDigits.add(1) // Add a digit placeholder
             }
-            is ProcessingPaymentEvent.PIN_DIGIT_REMOVED -> {
+            is PaymentProcessingEvent.PIN_DIGIT_REMOVED -> {
                 if (pinDigits.isNotEmpty()) {
                     pinDigits.removeAt(pinDigits.lastIndex) // Remove last digit
                 } else {
@@ -51,26 +51,26 @@ class PaymentEventHandler(
                     clearPinDigits()
                 }
             }
-            is ProcessingPaymentEvent.PIN_REQUESTED -> {
+            is PaymentProcessingEvent.PIN_REQUESTED -> {
                 // Reset PIN digits when a new PIN is requested
                 clearPinDigits()
             }
-            is ProcessingPaymentEvent.PIN_OK -> {
+            is PaymentProcessingEvent.PIN_OK -> {
                 // Clear PIN digits when PIN is confirmed
                 clearPinDigits()
             }
-            is ProcessingPaymentEvent.QRCODE_SCAN -> {
+            is PaymentProcessingEvent.QRCODE_SCAN -> {
                 // Show QR code in the unified dialog
                 showQRCodeInDialog(event.qrCode, event.timeoutMs)
                 return // Don't update dialog text for QR code events
             }
             // Events that indicate QR code scanning is complete - hide QR code
-            is ProcessingPaymentEvent.TRANSACTION_DONE,
-            ProcessingPaymentEvent.APPROVAL_SUCCEEDED,
-            ProcessingPaymentEvent.APPROVAL_DECLINED,
-            ProcessingPaymentEvent.CANCELLED,
-            ProcessingPaymentEvent.GENERIC_SUCCESS,
-            ProcessingPaymentEvent.GENERIC_ERROR -> {
+            is PaymentProcessingEvent.TRANSACTION_DONE,
+            PaymentProcessingEvent.APPROVAL_SUCCEEDED,
+            PaymentProcessingEvent.APPROVAL_DECLINED,
+            PaymentProcessingEvent.CANCELLED,
+            PaymentProcessingEvent.GENERIC_SUCCESS,
+            PaymentProcessingEvent.GENERIC_ERROR -> {
                 // Hide QR code and timeout if showing
                 hideQRCodeFromDialog()
             }
@@ -191,13 +191,13 @@ class PaymentEventHandler(
      * @param event The payment processor event
      * @return Localized event message string
      */
-    private fun getEventMessage(event: ProcessingPaymentEvent): String {
-        val resourceKey = ProcessingPaymentEventResourceMapper.getErrorResourceKey(event)
+    private fun getEventMessage(event: PaymentProcessingEvent): String {
+        val resourceKey = PaymentProcessingEventResourceMapper.getErrorResourceKey(event)
         var message = context.getString(resourceKey)
 
         when (event) {
-            is ProcessingPaymentEvent.PIN_DIGIT_INPUT,
-               ProcessingPaymentEvent.PIN_DIGIT_REMOVED -> {
+            is PaymentProcessingEvent.PIN_DIGIT_INPUT,
+               PaymentProcessingEvent.PIN_DIGIT_REMOVED -> {
                 val pinDisplay = PaymentUIUtils.formatPinDisplay(pinDigits)
                 message += " $pinDisplay"
             }

@@ -218,7 +218,7 @@
     <string name="error_printing_unfinished">Print incomplete.</string>
     <string name="error_font_library_not_installed">Font library missing.</string>
     <string name="error_data_package_too_long">Data too long.</string>
-    <string name="error_print_file_not_found">Print file missing.</string>
+    <string name="error_print_file_not_found">Print file has not been found.</string>
     <string name="error_sdk_print_unavailable">SDK unavailable.</string>
     <string name="error_invalid_file">Invalid file.</string>
     <string name="error_invalid_pix_key">Invalid PIX key.</string>

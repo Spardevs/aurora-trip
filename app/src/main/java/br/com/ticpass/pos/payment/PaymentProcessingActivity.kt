@@ -15,8 +15,8 @@ import br.com.ticpass.pos.feature.payment.PaymentProcessingViewModel
 import br.com.ticpass.pos.payment.coordination.PaymentActivityCoordinator
 import br.com.ticpass.pos.payment.dialogs.PaymentDialogManager
 import br.com.ticpass.pos.payment.events.PaymentEventHandler
-import br.com.ticpass.pos.payment.models.SystemPaymentMethod
 import br.com.ticpass.pos.payment.models.SupportedPaymentMethods
+import br.com.ticpass.pos.payment.models.SystemPaymentMethod
 import br.com.ticpass.pos.payment.utils.PaymentUIUtils
 import br.com.ticpass.pos.payment.view.PaymentProcessingQueueView
 import br.com.ticpass.pos.sdk.AcquirerSdk
@@ -73,7 +73,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
         queueView.onPaymentCanceled = { paymentId ->
             paymentViewModel.cancelPayment(paymentId)
         }
-        
+
         // Set up transactionless checkbox listener
         val transactionlessCheckbox = findViewById<android.widget.CheckBox>(R.id.checkbox_transactionless)
         transactionlessCheckbox.setOnCheckedChangeListener { _, isChecked ->

@@ -44,8 +44,10 @@ import br.com.ticpass.pos.data.room.dao.VoucherExchangeProductDao
 import br.com.ticpass.pos.data.room.entity.VoucherExchangeProductEntity
 import br.com.ticpass.pos.data.room.dao.VoucherRedemptionDao
 import br.com.ticpass.pos.data.room.entity.VoucherRedemptionEntity
-import br.com.ticpass.pos.queue.processors.payment.data.ProcessingPaymentQueueDao
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEntity
+import br.com.ticpass.pos.queue.processors.payment.data.PaymentProcessingQueueDao
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEntity
+import br.com.ticpass.pos.queue.processors.printing.data.PrintingQueueDao
+import br.com.ticpass.pos.queue.processors.printing.models.PrintingEntity
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -82,9 +84,10 @@ import java.io.File
         ConsumptionEntity::class,
         PassEntity::class,
         _CartOrderLineEntity::class,
-        ProcessingPaymentEntity::class,
+        PaymentProcessingEntity::class,
+        PrintingEntity::class,
     ],
-    version = 8,
+    version = 9,
     exportSchema = true,
     autoMigrations = [
         AutoMigration (from = 1, to = 2),
@@ -94,6 +97,7 @@ import java.io.File
         AutoMigration (from = 5, to = 6),
         AutoMigration (from = 6, to = 7),
         AutoMigration (from = 7, to = 8),
+        AutoMigration (from = 8, to = 9),
     ]
 )
     @TypeConverters()
@@ -114,7 +118,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun consumptionDao(): ConsumptionDao
     abstract fun passDao(): PassDao
     abstract fun cartOrderLineDao(): CartOrderLineDao
-    abstract fun processingPaymentQueueDao(): ProcessingPaymentQueueDao
+    abstract fun processingPaymentQueueDao(): PaymentProcessingQueueDao
+    abstract fun printingQueueDao(): PrintingQueueDao
 
     override fun clearAllTables() {
         val database = Room.databaseBuilder(MainActivity.appContext, AppDatabase::class.java, MAIN_DATABASE_NAME)

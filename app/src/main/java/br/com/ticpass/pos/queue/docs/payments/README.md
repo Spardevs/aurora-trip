@@ -6,15 +6,15 @@ Payment-specific implementation of the generic queue management system, designed
 
 ```kotlin
 // Create a payment queue
-val paymentQueue = ProcessingPaymentQueueFactory().createDynamicPaymentQueue(
-    storage = ProcessingPaymentStorage(dao),
+val paymentQueue = PaymentProcessingQueueFactory().createDynamicPaymentQueue(
+    storage = PaymentProcessingStorage(dao),
     persistenceStrategy = PersistenceStrategy.IMMEDIATE,
     startMode = ProcessorStartMode.IMMEDIATE,
     scope = viewModelScope
 )
 
 // Enqueue a payment
-val paymentItem = ProcessingPaymentQueueItem(
+val paymentItem = PaymentProcessingQueueItem(
     id = UUID.randomUUID().toString(),
     amount = 100.0,
     commission = 5.0,
@@ -26,11 +26,11 @@ paymentQueue.enqueue(paymentItem)
 // Observe payment events
 paymentQueue.processorEvents.collect { event ->
     when (event) {
-        ProcessingPaymentEvent.START -> { /* Payment started */ }
-        ProcessingPaymentEvent.CARD_REACH_OR_INSERT -> { /* Show card prompt */ }
-        ProcessingPaymentEvent.TRANSACTION_PROCESSING -> { /* Show processing */ }
-        ProcessingPaymentEvent.APPROVAL_SUCCEEDED -> { /* Payment approved */ }
-        ProcessingPaymentEvent.APPROVAL_DECLINED -> { /* Payment declined */ }
+        PaymentProcessingEvent.START -> { /* Payment started */ }
+        PaymentProcessingEvent.CARD_REACH_OR_INSERT -> { /* Show card prompt */ }
+        PaymentProcessingEvent.TRANSACTION_PROCESSING -> { /* Show processing */ }
+        PaymentProcessingEvent.APPROVAL_SUCCEEDED -> { /* Payment approved */ }
+        PaymentProcessingEvent.APPROVAL_DECLINED -> { /* Payment declined */ }
         // Handle other events...
     }
 }
@@ -38,11 +38,11 @@ paymentQueue.processorEvents.collect { event ->
 
 ## Payment Queue Components
 
-### ProcessingPaymentQueueItem
+### PaymentProcessingQueueItem
 Payment-specific queue item implementation:
 
 ```kotlin
-data class ProcessingPaymentQueueItem(
+data class PaymentProcessingQueueItem(
     override val id: String,
     override val priority: Int = 0,
     override var status: QueueItemStatus = QueueItemStatus.PENDING,
@@ -93,15 +93,15 @@ class CashPaymentProcessor : PaymentProcessorBase() {
 Payment processors emit specific events during processing:
 
 ```kotlin
-sealed class ProcessingPaymentEvent : BaseProcessingEvent {
-    object START : ProcessingPaymentEvent()
-    object CARD_REACH_OR_INSERT : ProcessingPaymentEvent()
-    object TRANSACTION_PROCESSING : ProcessingPaymentEvent()
-    object APPROVAL_SUCCEEDED : ProcessingPaymentEvent()
-    object APPROVAL_DECLINED : ProcessingPaymentEvent()
-    object TRANSACTION_DONE : ProcessingPaymentEvent()
-    object PIN_REQUESTED : ProcessingPaymentEvent()
-    object CANCELLED : ProcessingPaymentEvent()
+sealed class PaymentProcessingEvent : BaseProcessingEvent {
+    object START : PaymentProcessingEvent()
+    object CARD_REACH_OR_INSERT : PaymentProcessingEvent()
+    object TRANSACTION_PROCESSING : PaymentProcessingEvent()
+    object APPROVAL_SUCCEEDED : PaymentProcessingEvent()
+    object APPROVAL_DECLINED : PaymentProcessingEvent()
+    object TRANSACTION_DONE : PaymentProcessingEvent()
+    object PIN_REQUESTED : PaymentProcessingEvent()
+    object CANCELLED : PaymentProcessingEvent()
     // ... other events
 }
 ```
@@ -136,10 +136,10 @@ sealed class UserInputRequest {
 
 ```kotlin
 class PaymentViewModel : ViewModel() {
-    private val paymentQueue = ProcessingPaymentQueueFactory().createDynamicPaymentQueue(...)
+    private val paymentQueue = PaymentProcessingQueueFactory().createDynamicPaymentQueue(...)
     
     fun processPayment(amount: Double, paymentMethod: PaymentMethod) {
-        val paymentItem = ProcessingPaymentQueueItem(
+        val paymentItem = PaymentProcessingQueueItem(
             id = UUID.randomUUID().toString(),
             amount = amount,
             commission = calculateCommission(amount),
@@ -155,26 +155,26 @@ class PaymentViewModel : ViewModel() {
         viewModelScope.launch {
             paymentQueue.processorEvents.collect { event ->
                 when (event) {
-                    ProcessingPaymentEvent.START -> {
+                    PaymentProcessingEvent.START -> {
                         updateUI("Payment started")
                     }
-                    ProcessingPaymentEvent.CARD_REACH_OR_INSERT -> {
+                    PaymentProcessingEvent.CARD_REACH_OR_INSERT -> {
                         updateUI("Please insert or tap your card")
                         showCardAnimation()
                     }
-                    ProcessingPaymentEvent.TRANSACTION_PROCESSING -> {
+                    PaymentProcessingEvent.TRANSACTION_PROCESSING -> {
                         updateUI("Processing transaction...")
                         showProcessingAnimation()
                     }
-                    ProcessingPaymentEvent.APPROVAL_SUCCEEDED -> {
+                    PaymentProcessingEvent.APPROVAL_SUCCEEDED -> {
                         updateUI("Payment approved!")
                         showSuccessAnimation()
                     }
-                    ProcessingPaymentEvent.APPROVAL_DECLINED -> {
+                    PaymentProcessingEvent.APPROVAL_DECLINED -> {
                         updateUI("Payment declined")
                         showErrorAnimation()
                     }
-                    ProcessingPaymentEvent.TRANSACTION_DONE -> {
+                    PaymentProcessingEvent.TRANSACTION_DONE -> {
                         updateUI("Transaction completed")
                     }
                 }

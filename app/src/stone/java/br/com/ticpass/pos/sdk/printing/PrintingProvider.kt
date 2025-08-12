@@ -2,13 +2,15 @@ package br.com.ticpass.pos.sdk.printing
 
 import android.content.Context
 import br.com.ticpass.pos.sdk.SdkInstance
-import stone.user.UserModel
+import br.com.ticpass.pos.sdk.factory.AcquirerPrintingProvider
+import br.com.ticpass.pos.sdk.factory.AcquirerPrintingProviderFactory
+import br.com.ticpass.pos.sdk.payment.PaymentProvider
 
 /**
  * Stone-specific implementation of PrintingProvider
  * This file overrides the base implementation by providing a Stone-specific provider
  */
-object PrintingProvider : BasePrintingProvider<UserModel> {
+object PrintingProvider : BasePrintingProvider<AcquirerPrintingProvider> {
     private var initialized = false
     
     override fun isInitialized(): Boolean = initialized
@@ -21,11 +23,12 @@ object PrintingProvider : BasePrintingProvider<UserModel> {
         }
     }
     
-    override fun getInstance(): UserModel {
-        if (!isInitialized()) {
-            throw IllegalStateException("Printing provider not initialized. Call initialize() first.")
+    override fun getInstance(): AcquirerPrintingProvider {
+        if (!PaymentProvider.isInitialized()) {
+            throw IllegalStateException("Payment provider not initialized. Call initialize() first.")
         }
-        val (userModel) =  SdkInstance.getInstance()
-        return userModel
+        val (_, context) =  SdkInstance.getInstance()
+        val acquirerPrintingFactory = AcquirerPrintingProviderFactory(context)
+        return acquirerPrintingFactory.create()
     }
 }

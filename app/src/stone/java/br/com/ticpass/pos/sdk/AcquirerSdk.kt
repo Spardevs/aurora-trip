@@ -1,8 +1,9 @@
 package br.com.ticpass.pos.sdk
 
 import android.content.Context
-import br.com.ticpass.pos.queue.processors.factory.CustomerReceiptProvider
-import br.com.ticpass.pos.queue.processors.factory.TransactionProvider
+import br.com.ticpass.pos.sdk.factory.AcquirerPrintingProvider
+import br.com.ticpass.pos.sdk.factory.CustomerReceiptProvider
+import br.com.ticpass.pos.sdk.factory.TransactionProvider
 import br.com.ticpass.pos.sdk.nfc.BaseNFCProvider
 import br.com.ticpass.pos.sdk.nfc.NFCProvider
 import br.com.ticpass.pos.sdk.payment.BasePaymentProvider
@@ -10,7 +11,6 @@ import br.com.ticpass.pos.sdk.payment.PaymentProvider
 import br.com.ticpass.pos.sdk.printing.BasePrintingProvider
 import br.com.ticpass.pos.sdk.printing.PrintingProvider
 import stone.user.UserModel
-
 
 /**
  * Central access point for acquirer SDK instances
@@ -27,7 +27,7 @@ object AcquirerSdk {
     /**
      * Stone printing provider instance
      */
-    val printing: BasePrintingProvider<UserModel>
+    val printing: BasePrintingProvider<AcquirerPrintingProvider>
         get() = PrintingProvider
 
     /**

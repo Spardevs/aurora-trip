@@ -7,9 +7,9 @@ import br.com.ticpass.pos.queue.core.HybridQueueManager
 import br.com.ticpass.pos.queue.input.UserInputResponse
 import br.com.ticpass.pos.queue.input.QueueInputResponse
 import br.com.ticpass.pos.queue.core.QueueItem
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent
 import br.com.ticpass.pos.feature.payment.state.PaymentProcessingSideEffect
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingQueueItem
 import javax.inject.Inject
 
 /**
@@ -39,7 +39,7 @@ class ConfirmationUseCase @Inject constructor() {
      */
     fun skipProcessor(
         requestId: String,
-        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>
+        paymentQueue: HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent>
     ): PaymentProcessingSideEffect {
         return PaymentProcessingSideEffect.ProvideQueueInput {
             paymentQueue.provideQueueInput(QueueInputResponse.skip(requestId))
@@ -52,7 +52,7 @@ class ConfirmationUseCase @Inject constructor() {
      */
     fun skipProcessorOnError(
         requestId: String,
-        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>
+        paymentQueue: HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent>
     ): PaymentProcessingSideEffect {
         return PaymentProcessingSideEffect.ProvideQueueInput {
             paymentQueue.provideQueueInput(QueueInputResponse.onErrorSkip(requestId))
@@ -65,7 +65,7 @@ class ConfirmationUseCase @Inject constructor() {
     fun confirmCustomerReceiptPrinting(
         requestId: String,
         shouldPrint: Boolean,
-        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
+        paymentQueue: HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent>,
         updateState: (PaymentProcessingUiState) -> Unit
     ): PaymentProcessingSideEffect {
         updateState(PaymentProcessingUiState.Processing)
@@ -81,7 +81,7 @@ class ConfirmationUseCase @Inject constructor() {
     fun confirmMerchantPixKey(
         requestId: String,
         pixKey: String,
-        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
+        paymentQueue: HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent>,
         updateState: (PaymentProcessingUiState) -> Unit
     ): PaymentProcessingSideEffect {
         updateState(PaymentProcessingUiState.Processing)
@@ -99,7 +99,7 @@ class ConfirmationUseCase @Inject constructor() {
     fun confirmMerchantPixHasBeenPaid(
         requestId: String,
         didPay: Boolean,
-        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
+        paymentQueue: HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent>,
         updateState: (PaymentProcessingUiState) -> Unit
     ): PaymentProcessingSideEffect {
         updateState(PaymentProcessingUiState.Processing)

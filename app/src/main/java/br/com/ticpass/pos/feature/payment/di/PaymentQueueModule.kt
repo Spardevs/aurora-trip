@@ -1,8 +1,8 @@
 package br.com.ticpass.pos.feature.payment.di
 
-import br.com.ticpass.pos.queue.processors.payment.data.ProcessingPaymentStorage
-import br.com.ticpass.pos.queue.processors.payment.data.ProcessingPaymentQueueDao
-import br.com.ticpass.pos.queue.processors.payment.utils.ProcessingPaymentQueueFactory
+import br.com.ticpass.pos.queue.processors.payment.data.PaymentProcessingStorage
+import br.com.ticpass.pos.queue.processors.payment.data.PaymentProcessingQueueDao
+import br.com.ticpass.pos.queue.processors.payment.utils.PaymentProcessingQueueFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,10 +17,10 @@ object StorageModule {
 
     @Provides
     @Singleton
-    fun provideProcessingPaymentStorage(
-        dao: ProcessingPaymentQueueDao
-    ): ProcessingPaymentStorage {
-        return ProcessingPaymentStorage(dao)
+    fun providePaymentProcessingStorage(
+        dao: PaymentProcessingQueueDao
+    ): PaymentProcessingStorage {
+        return PaymentProcessingStorage(dao)
     }
 }
 
@@ -30,7 +30,7 @@ object PaymentQueueModule {
 
     @Provides
     @ViewModelScoped
-    fun provideProcessingPaymentQueueFactory(): ProcessingPaymentQueueFactory {
-        return ProcessingPaymentQueueFactory()
+    fun providePaymentProcessingQueueFactory(): PaymentProcessingQueueFactory {
+        return PaymentProcessingQueueFactory()
     }
 }

@@ -21,8 +21,8 @@ PaymentProcessorBase (abstract)
 Abstract base class that provides common functionality for all payment processors.
 
 ```kotlin
-abstract class PaymentProcessorBase : QueueProcessor<ProcessingPaymentQueueItem, ProcessingPaymentEvent> {
-    protected val _events = MutableSharedFlow<ProcessingPaymentEvent>()
+abstract class PaymentProcessorBase : QueueProcessor<PaymentProcessingQueueItem, PaymentProcessingEvent> {
+    protected val _events = MutableSharedFlow<PaymentProcessingEvent>()
     override val events = _events.asSharedFlow()
     
     protected val _userInputRequests = MutableSharedFlow<UserInputRequest>()
@@ -30,10 +30,10 @@ abstract class PaymentProcessorBase : QueueProcessor<ProcessingPaymentQueueItem,
     
     protected val _userInputResponses = MutableSharedFlow<UserInputResponse>()
     
-    abstract suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult
+    abstract suspend fun processPayment(item: PaymentProcessingQueueItem): ProcessingResult
     
-    override suspend fun process(item: ProcessingPaymentQueueItem): ProcessingResult {
-        _events.emit(ProcessingPaymentEvent.START)
+    override suspend fun process(item: PaymentProcessingQueueItem): ProcessingResult {
+        _events.emit(PaymentProcessingEvent.START)
         return processPayment(item)
     }
     
@@ -63,7 +63,7 @@ class DynamicPaymentProcessor : PaymentProcessorBase() {
     
     private var currentDelegateProcessor: PaymentProcessorBase? = null
     
-    override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
+    override suspend fun processPayment(item: PaymentProcessingQueueItem): ProcessingResult {
         currentDelegateProcessor = when (item.paymentMethod) {
             PaymentMethod.CREDIT_CARD,
             PaymentMethod.DEBIT_CARD,
@@ -91,7 +91,7 @@ class DynamicPaymentProcessor : PaymentProcessorBase() {
         _userInputResponses.emit(response)
     }
     
-    override suspend fun abort(item: ProcessingPaymentQueueItem?): Boolean {
+    override suspend fun abort(item: PaymentProcessingQueueItem?): Boolean {
         return currentDelegateProcessor?.abort(item) ?: false
     }
 }
@@ -104,13 +104,13 @@ Handles card-based payments through payment acquirers (Stone, PagSeguro, etc.).
 ```kotlin
 class AcquirerPaymentProcessor : PaymentProcessorBase() {
     
-    override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
+    override suspend fun processPayment(item: PaymentProcessingQueueItem): ProcessingResult {
         try {
             // 1. Initialize transaction
-            _events.emit(ProcessingPaymentEvent.CARD_REACH_OR_INSERT)
+            _events.emit(PaymentProcessingEvent.CARD_REACH_OR_INSERT)
             
             // 2. Process transaction through SDK
-            _events.emit(ProcessingPaymentEvent.TRANSACTION_PROCESSING)
+            _events.emit(PaymentProcessingEvent.TRANSACTION_PROCESSING)
             
             val result = when (item.paymentMethod) {
                 PaymentMethod.CREDIT_CARD -> processCreditCard(item)
@@ -122,7 +122,7 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
             // 3. Handle transaction result
             when (result.isApproved) {
                 true -> {
-                    _events.emit(ProcessingPaymentEvent.APPROVAL_SUCCEEDED)
+                    _events.emit(PaymentProcessingEvent.APPROVAL_SUCCEEDED)
                     
                     // 4. Print receipts if needed
                     if (shouldPrintCustomerReceipt()) {
@@ -135,7 +135,7 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
                         }
                     }
                     
-                    _events.emit(ProcessingPaymentEvent.TRANSACTION_DONE)
+                    _events.emit(PaymentProcessingEvent.TRANSACTION_DONE)
                     
                     return ProcessingResult.Success(
                         atk = result.authorizationCode,
@@ -143,7 +143,7 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
                     )
                 }
                 false -> {
-                    _events.emit(ProcessingPaymentEvent.APPROVAL_DECLINED)
+                    _events.emit(PaymentProcessingEvent.APPROVAL_DECLINED)
                     return ProcessingResult.Error(
                         ProcessingErrorEvent.TRANSACTION_DECLINED
                     )
@@ -151,14 +151,14 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
             }
             
         } catch (e: Exception) {
-            _events.emit(ProcessingPaymentEvent.CANCELLED)
+            _events.emit(PaymentProcessingEvent.CANCELLED)
             return ProcessingResult.Error(
                 mapExceptionToErrorEvent(e)
             )
         }
     }
     
-    private suspend fun processCreditCard(item: ProcessingPaymentQueueItem): TransactionResult {
+    private suspend fun processCreditCard(item: PaymentProcessingQueueItem): TransactionResult {
         // SDK-specific credit card processing
         return acquirerSdk.processCreditCard(
             amount = item.amount,
@@ -166,8 +166,8 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
         )
     }
     
-    private suspend fun processDebitCard(item: ProcessingPaymentQueueItem): TransactionResult {
-        _events.emit(ProcessingPaymentEvent.PIN_REQUESTED)
+    private suspend fun processDebitCard(item: PaymentProcessingQueueItem): TransactionResult {
+        _events.emit(PaymentProcessingEvent.PIN_REQUESTED)
         
         // SDK-specific debit card processing
         return acquirerSdk.processDebitCard(
@@ -175,7 +175,7 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
         )
     }
     
-    private suspend fun processPixPayment(item: ProcessingPaymentQueueItem): TransactionResult {
+    private suspend fun processPixPayment(item: PaymentProcessingQueueItem): TransactionResult {
         // Request PIX key from merchant if needed
         val pixKeyRequest = UserInputRequest.CONFIRM_MERCHANT_PIX_KEY()
         val pixKeyResponse = requestUserInput(pixKeyRequest)
@@ -205,7 +205,7 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
     
     private suspend fun printCustomerReceipt(result: TransactionResult) {
         try {
-            _events.emit(ProcessingPaymentEvent.PRINTING_RECEIPT)
+            _events.emit(PaymentProcessingEvent.PRINTING_RECEIPT)
             printingProvider.printCustomerReceipt(result)
         } catch (e: Exception) {
             Log.w("AcquirerProcessor", "Failed to print customer receipt", e)
@@ -213,8 +213,8 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
         }
     }
     
-    override suspend fun abort(item: ProcessingPaymentQueueItem?): Boolean {
-        _events.emit(ProcessingPaymentEvent.CANCELLED)
+    override suspend fun abort(item: PaymentProcessingQueueItem?): Boolean {
+        _events.emit(PaymentProcessingEvent.CANCELLED)
         return acquirerSdk.cancelTransaction()
     }
 }
@@ -227,24 +227,24 @@ Handles cash payments with optional confirmation.
 ```kotlin
 class CashPaymentProcessor : PaymentProcessorBase() {
     
-    override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
+    override suspend fun processPayment(item: PaymentProcessingQueueItem): ProcessingResult {
         try {
-            _events.emit(ProcessingPaymentEvent.START)
+            _events.emit(PaymentProcessingEvent.START)
             
             // Cash payments may require confirmation
             val confirmationRequest = UserInputRequest.CONFIRM_CUSTOMER_RECEIPT_PRINTING()
             val confirmationResponse = requestUserInput(confirmationRequest)
             
             if (confirmationResponse.isCanceled) {
-                _events.emit(ProcessingPaymentEvent.CANCELLED)
+                _events.emit(PaymentProcessingEvent.CANCELLED)
                 return ProcessingResult.Error(ProcessingErrorEvent.USER_CANCELED)
             }
             
             // Simulate cash processing
             delay(1000) // Simulate processing time
             
-            _events.emit(ProcessingPaymentEvent.APPROVAL_SUCCEEDED)
-            _events.emit(ProcessingPaymentEvent.TRANSACTION_DONE)
+            _events.emit(PaymentProcessingEvent.APPROVAL_SUCCEEDED)
+            _events.emit(PaymentProcessingEvent.TRANSACTION_DONE)
             
             return ProcessingResult.Success(
                 atk = "CASH_${System.currentTimeMillis()}",
@@ -252,15 +252,15 @@ class CashPaymentProcessor : PaymentProcessorBase() {
             )
             
         } catch (e: Exception) {
-            _events.emit(ProcessingPaymentEvent.CANCELLED)
+            _events.emit(PaymentProcessingEvent.CANCELLED)
             return ProcessingResult.Error(
                 ProcessingErrorEvent.GENERIC_ERROR
             )
         }
     }
     
-    override suspend fun abort(item: ProcessingPaymentQueueItem?): Boolean {
-        _events.emit(ProcessingPaymentEvent.CANCELLED)
+    override suspend fun abort(item: PaymentProcessingQueueItem?): Boolean {
+        _events.emit(PaymentProcessingEvent.CANCELLED)
         return true // Cash transactions can always be cancelled
     }
 }
@@ -273,37 +273,37 @@ Handles voucher/meal card payments that don't require traditional transaction pr
 ```kotlin
 class TransactionlessProcessor : PaymentProcessorBase() {
     
-    override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
+    override suspend fun processPayment(item: PaymentProcessingQueueItem): ProcessingResult {
         try {
-            _events.emit(ProcessingPaymentEvent.START)
+            _events.emit(PaymentProcessingEvent.START)
             
             // Voucher processing logic
             val voucherResult = processVoucher(item)
             
             if (voucherResult.isValid) {
-                _events.emit(ProcessingPaymentEvent.APPROVAL_SUCCEEDED)
-                _events.emit(ProcessingPaymentEvent.TRANSACTION_DONE)
+                _events.emit(PaymentProcessingEvent.APPROVAL_SUCCEEDED)
+                _events.emit(PaymentProcessingEvent.TRANSACTION_DONE)
                 
                 return ProcessingResult.Success(
                     atk = voucherResult.authCode,
                     txId = voucherResult.transactionId
                 )
             } else {
-                _events.emit(ProcessingPaymentEvent.APPROVAL_DECLINED)
+                _events.emit(PaymentProcessingEvent.APPROVAL_DECLINED)
                 return ProcessingResult.Error(
                     ProcessingErrorEvent.VOUCHER_INVALID
                 )
             }
             
         } catch (e: Exception) {
-            _events.emit(ProcessingPaymentEvent.CANCELLED)
+            _events.emit(PaymentProcessingEvent.CANCELLED)
             return ProcessingResult.Error(
                 mapExceptionToErrorEvent(e)
             )
         }
     }
     
-    private suspend fun processVoucher(item: ProcessingPaymentQueueItem): VoucherResult {
+    private suspend fun processVoucher(item: PaymentProcessingQueueItem): VoucherResult {
         // Voucher-specific processing logic
         delay(500) // Simulate processing
         
@@ -314,8 +314,8 @@ class TransactionlessProcessor : PaymentProcessorBase() {
         )
     }
     
-    override suspend fun abort(item: ProcessingPaymentQueueItem?): Boolean {
-        _events.emit(ProcessingPaymentEvent.CANCELLED)
+    override suspend fun abort(item: PaymentProcessingQueueItem?): Boolean {
+        _events.emit(PaymentProcessingEvent.CANCELLED)
         return true
     }
 }
@@ -344,18 +344,18 @@ private fun mapExceptionToErrorEvent(exception: Exception): ProcessingErrorEvent
 Always emit appropriate events during processing:
 
 ```kotlin
-override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
-    _events.emit(ProcessingPaymentEvent.START)
+override suspend fun processPayment(item: PaymentProcessingQueueItem): ProcessingResult {
+    _events.emit(PaymentProcessingEvent.START)
     
     try {
         // Processing logic...
-        _events.emit(ProcessingPaymentEvent.APPROVAL_SUCCEEDED)
+        _events.emit(PaymentProcessingEvent.APPROVAL_SUCCEEDED)
         return ProcessingResult.Success(...)
     } catch (e: Exception) {
-        _events.emit(ProcessingPaymentEvent.CANCELLED)
+        _events.emit(PaymentProcessingEvent.CANCELLED)
         return ProcessingResult.Error(...)
     } finally {
-        _events.emit(ProcessingPaymentEvent.TRANSACTION_DONE)
+        _events.emit(PaymentProcessingEvent.TRANSACTION_DONE)
     }
 }
 ```
@@ -383,7 +383,7 @@ when {
 Ensure proper cleanup in abort scenarios:
 
 ```kotlin
-override suspend fun abort(item: ProcessingPaymentQueueItem?): Boolean {
+override suspend fun abort(item: PaymentProcessingQueueItem?): Boolean {
     try {
         // Cancel any ongoing operations
         acquirerSdk.cancelTransaction()
@@ -391,7 +391,7 @@ override suspend fun abort(item: ProcessingPaymentQueueItem?): Boolean {
         // Clean up resources
         cleanup()
         
-        _events.emit(ProcessingPaymentEvent.CANCELLED)
+        _events.emit(PaymentProcessingEvent.CANCELLED)
         return true
     } catch (e: Exception) {
         Log.e("PaymentProcessor", "Failed to abort transaction", e)

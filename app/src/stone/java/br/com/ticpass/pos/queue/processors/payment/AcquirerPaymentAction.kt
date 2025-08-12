@@ -1,15 +1,15 @@
 package br.com.ticpass.pos.queue.processors.payment
 
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent
 import stone.application.enums.Action
 
-enum class AcquirerPaymentAction(val action: Action, val event: ProcessingPaymentEvent) {
+enum class AcquirerPaymentAction(val action: Action, val event: PaymentProcessingEvent) {
     /**
      * User should insert or reach the card.
      */
     CARD_REACH_OR_INSERT(
         Action.TRANSACTION_WAITING_CARD,
-        ProcessingPaymentEvent.CARD_REACH_OR_INSERT
+        PaymentProcessingEvent.CARD_REACH_OR_INSERT
     ),
 
     /**
@@ -17,7 +17,7 @@ enum class AcquirerPaymentAction(val action: Action, val event: ProcessingPaymen
      */
     TRANSACTION_WAITING_SWIPE_CARD(
         Action.TRANSACTION_WAITING_SWIPE_CARD,
-        ProcessingPaymentEvent.SWIPE_CARD_REQUESTED,
+        PaymentProcessingEvent.SWIPE_CARD_REQUESTED,
     ),
 
     /**
@@ -25,7 +25,7 @@ enum class AcquirerPaymentAction(val action: Action, val event: ProcessingPaymen
      */
     TRANSACTION_WAITING_QRCODE_SCAN(
         Action.TRANSACTION_WAITING_QRCODE_SCAN,
-        ProcessingPaymentEvent.QRCODE_SCAN(),
+        PaymentProcessingEvent.QRCODE_SCAN(),
     ),
 
     /**
@@ -33,7 +33,7 @@ enum class AcquirerPaymentAction(val action: Action, val event: ProcessingPaymen
      */
     TRANSACTION_WAITING_PASSWORD(
         Action.TRANSACTION_WAITING_PASSWORD,
-        ProcessingPaymentEvent.PIN_REQUESTED,
+        PaymentProcessingEvent.PIN_REQUESTED,
     ),
 
     /**
@@ -41,7 +41,7 @@ enum class AcquirerPaymentAction(val action: Action, val event: ProcessingPaymen
      */
     TRANSACTION_SENDING(
         Action.TRANSACTION_SENDING,
-        ProcessingPaymentEvent.TRANSACTION_PROCESSING,
+        PaymentProcessingEvent.TRANSACTION_PROCESSING,
     ),
 
     /**
@@ -49,7 +49,7 @@ enum class AcquirerPaymentAction(val action: Action, val event: ProcessingPaymen
      */
     REVERSING_TRANSACTION_WITH_ERROR(
         Action.REVERSING_TRANSACTION_WITH_ERROR,
-        ProcessingPaymentEvent.REVERSING_TRANSACTION_WITH_ERROR,
+        PaymentProcessingEvent.REVERSING_TRANSACTION_WITH_ERROR,
     ),
 
     /**
@@ -57,7 +57,7 @@ enum class AcquirerPaymentAction(val action: Action, val event: ProcessingPaymen
      */
     TRANSACTION_REMOVE_CARD(
         Action.TRANSACTION_REMOVE_CARD,
-        ProcessingPaymentEvent.CARD_REMOVAL_REQUESTING,
+        PaymentProcessingEvent.CARD_REMOVAL_REQUESTING,
     ),
 
     /**
@@ -65,7 +65,7 @@ enum class AcquirerPaymentAction(val action: Action, val event: ProcessingPaymen
      */
     TRANSACTION_CARD_REMOVED(
         Action.TRANSACTION_CARD_REMOVED,
-        ProcessingPaymentEvent.CARD_REMOVAL_SUCCEEDED,
+        PaymentProcessingEvent.CARD_REMOVAL_SUCCEEDED,
     ),
 
     /**
@@ -73,7 +73,7 @@ enum class AcquirerPaymentAction(val action: Action, val event: ProcessingPaymen
      */
     TRANSACTION_TYPE_SELECTION(
         Action.TRANSACTION_TYPE_SELECTION,
-        ProcessingPaymentEvent.SELECT_PAYMENT_METHOD,
+        PaymentProcessingEvent.SELECT_PAYMENT_METHOD,
     ),
 
     /**
@@ -81,7 +81,7 @@ enum class AcquirerPaymentAction(val action: Action, val event: ProcessingPaymen
      */
     TRANSACTION_REQUIRES_CARDHOLDER_TO_CHECK_DEVICE(
         Action.TRANSACTION_REQUIRES_CARDHOLDER_TO_CHECK_DEVICE,
-        ProcessingPaymentEvent.CARD_HOLDER_REQUESTED,
+        PaymentProcessingEvent.CARD_HOLDER_REQUESTED,
     ),
 
     /**
@@ -89,16 +89,16 @@ enum class AcquirerPaymentAction(val action: Action, val event: ProcessingPaymen
      */
     SWITCH_INTERFACE(
         Action.SWITCH_INTERFACE,
-        ProcessingPaymentEvent.SWITCH_INTERFACE,
+        PaymentProcessingEvent.SWITCH_INTERFACE,
     );
 
     companion object {
-        fun translate(action: Action): ProcessingPaymentEvent {
+        fun translate(action: Action): PaymentProcessingEvent {
             val event = entries.find { it.action == action }?.event
             return event ?: throw IllegalArgumentException("Unknown action: $action")
         }
 
-        fun translate(event: ProcessingPaymentEvent): Action {
+        fun translate(event: PaymentProcessingEvent): Action {
             val code = entries.find { it.event == event }?.action
             return code ?: throw IllegalArgumentException("Unknown event: $event")
         }

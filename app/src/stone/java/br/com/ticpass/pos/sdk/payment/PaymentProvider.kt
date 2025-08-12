@@ -1,10 +1,10 @@
 package br.com.ticpass.pos.sdk.payment
 
 import android.content.Context
-import br.com.ticpass.pos.queue.processors.factory.CustomerReceiptProviderFactory
-import br.com.ticpass.pos.queue.processors.factory.CustomerReceiptProvider
-import br.com.ticpass.pos.queue.processors.factory.TransactionProvider
-import br.com.ticpass.pos.queue.processors.factory.TransactionProviderFactory
+import br.com.ticpass.pos.sdk.factory.CustomerReceiptProviderFactory
+import br.com.ticpass.pos.sdk.factory.CustomerReceiptProvider
+import br.com.ticpass.pos.sdk.factory.TransactionProvider
+import br.com.ticpass.pos.sdk.factory.TransactionProviderFactory
 import br.com.ticpass.pos.sdk.SdkInstance
 
 /**

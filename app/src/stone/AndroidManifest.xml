@@ -22,17 +22,36 @@
         tools:replace="android:label"
         android:icon="@mipmap/ic_launcher"
     >
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+
+        </provider>
+
         <activity
             android:name="br.com.stone.sdk.android.envconfig.data.EnvironmentActivity"
             android:exported="true" />
 
-        <activity
-            android:name="br.com.ticpass.pos.payment.PaymentProcessingActivity"
-            android:exported="true">
+        <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name="br.com.ticpass.pos.payment.PaymentProcessingActivity"
+            android:exported="true"/>
+
+        <activity
+            android:name="br.com.ticpass.pos.printing.PrintingActivity"
+            android:exported="true"/>
     </application>
 </manifest>

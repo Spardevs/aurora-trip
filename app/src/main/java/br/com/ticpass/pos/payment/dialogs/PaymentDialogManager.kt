@@ -26,7 +26,7 @@ import br.com.ticpass.pos.payment.models.SystemPaymentMethod
 import br.com.ticpass.pos.payment.view.TimeoutCountdownView
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.error.ProcessingErrorEventResourceMapper
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingQueueItem
 import br.com.ticpass.utils.toMoneyAsDouble
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,7 +50,7 @@ class PaymentDialogManager(
      */
     fun showConfirmNextPaymentProcessorDialog(requestId: String) {
         // Get the current UI state to access payment details
-        val state = paymentViewModel.uiState.value as PaymentProcessingUiState.ConfirmNextProcessor<ProcessingPaymentQueueItem>
+        val state = paymentViewModel.uiState.value as PaymentProcessingUiState.ConfirmNextProcessor<PaymentProcessingQueueItem>
         val currentPayment = state.currentItem
         
         Log.d("TimeoutDebug", "showConfirmNextPaymentProcessorDialog - state.timeoutMs: ${state.timeoutMs}")

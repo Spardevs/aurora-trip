@@ -3,10 +3,12 @@ package br.com.ticpass.pos.queue.processors.payment.processors.impl
 import br.com.ticpass.pos.payment.utils.PixCodeGenerator
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.input.UserInputRequest
+import br.com.ticpass.pos.queue.models.PaymentError
+import br.com.ticpass.pos.queue.models.PaymentSuccess
 import br.com.ticpass.pos.queue.models.ProcessingResult
 import br.com.ticpass.pos.queue.processors.payment.exceptions.PaymentProcessingException
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingQueueItem
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
@@ -25,9 +27,9 @@ class MerchantPIXPaymentProcessor : PaymentProcessorBase() {
     private val isAborting = AtomicBoolean(false)
     private val pix = PixCodeGenerator()
 
-    override suspend fun processPayment(item: ProcessingPaymentQueueItem): ProcessingResult {
+    override suspend fun processPayment(item: PaymentProcessingQueueItem): ProcessingResult {
         try {
-            _events.emit(ProcessingPaymentEvent.TRANSACTION_PROCESSING)
+            _events.emit(PaymentProcessingEvent.TRANSACTION_PROCESSING)
 
             val transactionId = "BTC_LN-${UUID.randomUUID().toString().substring(0, 8)}"
             val pixKey = requestPixKey()
@@ -38,34 +40,32 @@ class MerchantPIXPaymentProcessor : PaymentProcessorBase() {
 
             val didScan = requestPixScanning(pixCode)
 
-            if(!didScan) return ProcessingResult.Error(
+            if(!didScan) return PaymentError(
                 ProcessingErrorEvent.TRANSACTION_FAILURE
             )
 
-            _events.emit(ProcessingPaymentEvent.AUTHORIZING)
+            _events.emit(PaymentProcessingEvent.AUTHORIZING)
 
             withContext(Dispatchers.IO) { delay(1500) }
 
-            _events.emit(ProcessingPaymentEvent.TRANSACTION_DONE)
+            _events.emit(PaymentProcessingEvent.TRANSACTION_DONE)
 
             withContext(Dispatchers.IO) { delay(300) }
 
-            return ProcessingResult.Success(
+            return PaymentSuccess(
                 atk = "",
                 txId = transactionId
             )
         }
-        catch (e: CancellationException) {
-            return ProcessingResult.Error(
-                ProcessingErrorEvent.OPERATION_CANCELLED
-            )
+        catch (e: PaymentProcessingException) {
+            return PaymentError(e.error)
         }
         catch (e: Exception) {
-            return ProcessingResult.Error(ProcessingErrorEvent.GENERIC)
+            return PaymentError(ProcessingErrorEvent.GENERIC)
         }
     }
 
-    override suspend fun onAbort(item: ProcessingPaymentQueueItem?): Boolean {
+    override suspend fun onAbort(item: PaymentProcessingQueueItem?): Boolean {
         return try {
             isAborting.set(true)
             true
@@ -90,9 +90,10 @@ class MerchantPIXPaymentProcessor : PaymentProcessorBase() {
 
             return pixKey
         }
+        catch (exception: PaymentProcessingException) {
+            throw exception
+        }
         catch (exception: Exception) {
-            if (exception is PaymentProcessingException) throw exception
-
             throw PaymentProcessingException(
                 ProcessingErrorEvent.GENERIC
             )
@@ -109,9 +110,10 @@ class MerchantPIXPaymentProcessor : PaymentProcessorBase() {
 
             return didScan
         }
+        catch (exception: PaymentProcessingException) {
+            throw exception
+        }
         catch (exception: Exception) {
-            if (exception is PaymentProcessingException) throw exception
-
             throw PaymentProcessingException(
                 ProcessingErrorEvent.GENERIC
             )

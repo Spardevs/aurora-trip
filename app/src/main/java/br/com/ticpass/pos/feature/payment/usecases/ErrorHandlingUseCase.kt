@@ -5,9 +5,9 @@ import br.com.ticpass.pos.feature.payment.state.PaymentProcessingUiState
 import br.com.ticpass.pos.queue.error.ErrorHandlingAction
 import br.com.ticpass.pos.queue.core.HybridQueueManager
 import br.com.ticpass.pos.queue.input.QueueInputResponse
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentEvent
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent
 import br.com.ticpass.pos.feature.payment.state.PaymentProcessingSideEffect
-import br.com.ticpass.pos.queue.processors.payment.models.ProcessingPaymentQueueItem
+import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingQueueItem
 import javax.inject.Inject
 
 /**
@@ -21,7 +21,7 @@ class ErrorHandlingUseCase @Inject constructor() {
     fun handleFailedPayment(
         requestId: String,
         action: ErrorHandlingAction,
-        paymentQueue: HybridQueueManager<ProcessingPaymentQueueItem, ProcessingPaymentEvent>,
+        paymentQueue: HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent>,
         emitUiEvent: (PaymentProcessingUiEvent) -> Unit,
         updateState: (PaymentProcessingUiState) -> Unit
     ): PaymentProcessingSideEffect {

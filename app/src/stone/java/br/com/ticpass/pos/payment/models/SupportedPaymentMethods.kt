@@ -11,6 +11,5 @@ object SupportedPaymentMethods {
         SystemPaymentMethod.PIX,
         SystemPaymentMethod.CASH,
         SystemPaymentMethod.LN_BITCOIN,
-        SystemPaymentMethod.MERCHANT_PIX,
     )
 }

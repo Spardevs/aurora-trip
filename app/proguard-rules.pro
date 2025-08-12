@@ -124,3 +124,6 @@
 -keep class * extends androidx.viewbinding.ViewBinding {
     *;
 }
+
+# Suppress warnings for Lombok Generated annotations
+-dontwarn lombok.Generated

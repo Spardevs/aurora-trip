@@ -35,6 +35,20 @@
         tools:replace="android:label"
         android:icon="@mipmap/ic_launcher"
     >
+
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+
+        </provider>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -46,30 +60,13 @@
 
             <nav-graph android:value="@navigation/mobile_navigation" />
         </activity>
-        
+
         <activity
             android:name="br.com.ticpass.pos.payment.PaymentProcessingActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-
-        <provider
-            android:authorities="br.com.ticpass.pos.amalerinha"
-            android:name="br.com.stone.posandroid.datacontainer.data.contentprovider.DataContainerProvider"
-            tools:node="remove"
-        />
+            android:exported="true"/>
 
         <activity
-            android:name="br.com.stone.posandroid.pal.hal.adapter.pinpad.processor.StonePedActivity"
-            tools:node="remove"
-        />
-
-        <activity
-            android:name="br.com.stone.posandroid.hal.sunmi.pinpad.CustomPed"
-            tools:node="remove"
-        />
+            android:name="br.com.ticpass.pos.printing.PrintingActivity"
+            android:exported="true"/>
     </application>
 </manifest>
