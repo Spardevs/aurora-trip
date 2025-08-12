@@ -45,16 +45,7 @@ class PaymentActivity : Fragment() {
         val sharedPrefs = requireContext().getSharedPreferences("ShoppingCartPrefs", Context.MODE_PRIVATE)
         viewModel = ViewModelProvider(this, PaymentViewModelFactory(sharedPrefs, shoppingCartManager))[PaymentViewModel::class.java]
 
-        setupRecyclerView()
         setupObservers()
-    }
-
-    private fun setupRecyclerView() {
-        binding.rvPaymentMethods.layoutManager = LinearLayoutManager(
-            requireContext(),
-            LinearLayoutManager.HORIZONTAL,
-            false
-        )
     }
 
     private fun setupObservers() {

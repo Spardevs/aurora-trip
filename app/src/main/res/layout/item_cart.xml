@@ -8,7 +8,8 @@
     android:layout_margin="8dp"
     card_view:cardCornerRadius="16dp"
     card_view:cardElevation="8dp"
-    android:background="@android:color/transparent">
+    android:background="@android:color/transparent"
+    app:ignore="NamespaceTypo">
 
 
     <LinearLayout

@@ -14,10 +14,18 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
     <string name="support_qr_code">In case of doubts, suggestions, or assistance, please scan the QR code above.</string>
+    <plurals name="people_count">
+        <item quantity="one">%d pessoa</item>
+        <item quantity="other">%d pessoas</item>
+    </plurals>
     <string name="cash">Money</string>
+    <string name="update_menu">Update menu</string>
+    <string name="configure_menu">Configure menu</string>
+    <string name="export_database">Export database</string>
     <string name="cash_refund">Cash refund</string>
     <string name="descount_voucher">Discount voucher</string>
     <string name="credit_card">Credit</string>
+    <string name="sync">Sync</string>
     <string name="pix">Pix</string>
     <string name="print_test">Print test</string>
     <string name="mark_consumed">Mark as consumed</string>

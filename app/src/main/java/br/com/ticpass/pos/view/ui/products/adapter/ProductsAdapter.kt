@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -31,7 +32,7 @@ class ProductsAdapter(
         holder.bind(product)
         holder.itemView.setOnClickListener {
             onProductClicked(product)
-            holder.updateBadge() // Atualiza o badge imediatamente após o clique
+            holder.updateBadge()
         }
     }
 
@@ -46,9 +47,20 @@ class ProductsAdapter(
         private var currentProduct: Product? = null
 
         init {
-            // Observar mudanças no carrinho
             shoppingCartManager.cartUpdates.observeForever {
                 currentProduct?.let { updateBadge() }
+            }
+
+            shoppingCartManager.cartUpdates.observeForever {
+                currentProduct?.let { updateBadge() }
+            }
+
+            itemView.setOnLongClickListener {
+                currentProduct?.let { product ->
+                    shoppingCartManager.updateItem(product.id, 0)
+                    Toast.makeText(itemView.context, "Itens excluidos do carrinho", Toast.LENGTH_SHORT).show()
+                    true
+                } ?: false
             }
         }
 
@@ -74,6 +86,8 @@ class ProductsAdapter(
                 }
             }
         }
+
+
 
         private fun formatCurrency(value: Double): String {
             val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))

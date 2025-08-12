@@ -1,11 +1,15 @@
 package br.com.ticpass.pos.data.activity
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MenuItem
+import android.view.View
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -54,6 +58,31 @@ data class ShoppingCart(
             } catch (e: Exception) {
                 null
             }
+        }
+    }
+
+    object SessionPrefs {
+        private const val PREFS_NAME = "SessionPrefs"
+        private const val KEY_SESSION_VALID_UNTIL = "session_valid_until"
+        private const val DEFAULT_SESSION_DURATION_MIN = 1
+
+        @SuppressLint("UseKtx")
+        fun startSession(context: Context, durationMinutes: Int = DEFAULT_SESSION_DURATION_MIN) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val validUntil = System.currentTimeMillis() + (durationMinutes * 60 * 1000)
+            prefs.edit { putLong(KEY_SESSION_VALID_UNTIL, validUntil)}
+        }
+
+        fun isSessionValid(context: Context): Boolean {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            val validUntil = prefs.getLong(KEY_SESSION_VALID_UNTIL, 0)
+            return System.currentTimeMillis() < validUntil
+        }
+
+        @SuppressLint("UseKtx")
+        fun clearSession(context: Context) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit().remove(KEY_SESSION_VALID_UNTIL).apply()
         }
     }
 }
@@ -195,16 +224,75 @@ abstract class DrawerBaseActivity : AppCompatActivity() {
     }
 
     private fun showConfirmationDialog() {
+        if (ShoppingCart.SessionPrefs.isSessionValid(this)) {
+            drawerLayout.openDrawer(GravityCompat.START)
+            return
+        }
+
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_auth_method, null)
+        val methodPanel = dialogView.findViewById<View>(R.id.method_panel)
+        val passwordPanel = dialogView.findViewById<View>(R.id.password_panel)
+        val passwordInput = dialogView.findViewById<EditText>(R.id.password_input)
+
         val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
             .setTitle("Acesso ao Menu")
-            .setMessage("Deseja acessar o menu administrativo?")
-            .setPositiveButton("Sim") { _, _ -> launchQrScanner() }
-            .setNegativeButton("Cancelar", null)
+            .setNegativeButton("Voltar") { _, _ -> }
             .create()
 
+        methodPanel.visibility = View.VISIBLE
+        passwordPanel.visibility = View.GONE
+
+        dialogView.findViewById<View>(R.id.btn_qr_code).setOnClickListener {
+            dialog.dismiss()
+            launchQrScanner()
+        }
+
+        dialogView.findViewById<View>(R.id.btn_password).setOnClickListener {
+            methodPanel.animate()
+                .alpha(0f)
+                .setDuration(300)
+                .withEndAction {
+                    methodPanel.visibility = View.GONE
+                    passwordPanel.visibility = View.VISIBLE
+                    passwordPanel.alpha = 0f
+                    passwordPanel.animate().alpha(1f).setDuration(300).start()
+                    passwordInput.requestFocus()
+                    dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.visibility = View.VISIBLE
+                }.start()
+        }
+
+        dialogView.findViewById<View>(R.id.btn_confirm_password).setOnClickListener {
+            val password = passwordInput.text.toString()
+            if (password == "1337") {
+                // Inicia a sessão ao validar a senha
+                ShoppingCart.SessionPrefs.startSession(this, 1)
+                dialog.dismiss()
+                drawerLayout.openDrawer(GravityCompat.START)
+            } else {
+                passwordInput.error = "Senha incorreta"
+                passwordInput.text.clear()
+            }
+        }
+
         dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(this, R.color.design_default_color_primary))
-            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(this, R.color.cardview_dark_background))
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.visibility = View.GONE
+
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.setOnClickListener {
+                passwordPanel.animate()
+                    .alpha(0f)
+                    .setDuration(300)
+                    .withEndAction {
+                        passwordPanel.visibility = View.GONE
+                        methodPanel.visibility = View.VISIBLE
+                        methodPanel.alpha = 0f
+                        methodPanel.animate().alpha(1f).setDuration(300).start()
+                        dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.visibility = View.GONE
+                    }.start()
+            }
+
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.setTextColor(
+                ContextCompat.getColor(this, R.color.cardview_dark_background))
         }
 
         dialog.show()
@@ -215,6 +303,7 @@ abstract class DrawerBaseActivity : AppCompatActivity() {
             RESULT_OK -> {
                 val authResponse = result.data?.getStringExtra("auth_response")
                 if (authResponse != null) {
+                    ShoppingCart.SessionPrefs.startSession(this, 1)
                     drawerLayout.openDrawer(GravityCompat.START)
                 } else {
                     Toast.makeText(this, "Autenticação falhou", Toast.LENGTH_SHORT).show()
@@ -250,7 +339,7 @@ abstract class DrawerBaseActivity : AppCompatActivity() {
     protected abstract fun openSupport()
     protected abstract fun openSettings()
 
-   suspend fun logoutClearDb() {
+    suspend fun logoutClearDb() {
        try {
            posRepository.clearAll()
            menuRepository.clearAll()

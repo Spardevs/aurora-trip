@@ -194,6 +194,21 @@
             android:exported="false"
             android:label="Fale conosco" />
 
+        <activity
+            android:name=".data.activity.SettingsActivity"
+            android:exported="false"
+            android:label="Configurações" />
+
+        <activity
+            android:name=".data.activity.SplitEqualActivity"
+            android:theme="@style/FullscreenTheme"
+            android:windowSoftInputMode="adjustResize"/>
+
+        <activity
+            android:name=".data.activity.SplitManualActivity"
+            android:theme="@style/FullscreenTheme"
+            android:windowSoftInputMode="adjustResize"/>
+
         <meta-data
             android:name="androidx.work.WorkManagerInitializer"
             android:value="androidx.startup"

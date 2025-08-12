@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    >
+
+    <LinearLayout
+        android:id="@+id/method_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Escolha o método de autenticação"
+            android:textSize="18sp"
+            android:textAlignment="center"
+            android:layout_marginBottom="16dp"/>
+
+        <Button
+            android:id="@+id/btn_qr_code"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="QR Code"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/btn_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Senha Numérica"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/password_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Digite a senha"
+            android:textSize="18sp"
+            android:textAlignment="center"
+            android:layout_marginBottom="16dp"/>
+
+        <EditText
+            android:id="@+id/password_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberPassword"
+            android:hint="****"/>
+
+        <Button
+            android:id="@+id/btn_confirm_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Confirmar"
+            android:layout_marginTop="16dp"/>
+    </LinearLayout>
+</FrameLayout>
