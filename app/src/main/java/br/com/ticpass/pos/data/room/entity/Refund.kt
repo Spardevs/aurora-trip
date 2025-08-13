@@ -8,7 +8,6 @@ import androidx.room.Relation
 import br.com.ticpass.pos.MainActivity
 import br.com.ticpass.pos.compose.utils.getCurrentDateString
 import br.com.ticpass.pos.data.room.AuthManager
-import br.com.ticpass.pos.data.room.entity.AcquisitionEntity
 import br.com.ticpass.pos.dataStore
 import br.com.ticpass.pos.compose.utils.generateRandomEAN
 import kotlinx.coroutines.CoroutineExceptionHandler

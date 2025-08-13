@@ -7,6 +7,8 @@ import br.com.ticpass.pos.sdk.payment.BasePaymentProvider
 import br.com.ticpass.pos.sdk.payment.PaymentProvider
 import br.com.ticpass.pos.sdk.printing.BasePrintingProvider
 import br.com.ticpass.pos.sdk.printing.PrintingProvider
+import br.com.ticpass.pos.sdk.refund.BaseRefundProvider
+import br.com.ticpass.pos.sdk.refund.RefundProvider
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPag
 
 /**
@@ -34,6 +36,12 @@ object AcquirerSdk {
         get() = NFCProvider
 
     /**
+     * PagSeguro Refund provider instance
+     */
+    val refund: BaseRefundProvider<PlugPag>
+        get() = RefundProvider
+
+    /**
      * Initialize all providers with their required parameters
      *
      * @param appContext The application context
@@ -43,5 +51,6 @@ object AcquirerSdk {
         payment.initialize(appContext)
         printing.initialize(appContext)
         nfc.initialize(appContext)
+        refund.initialize(appContext)
     }
 }

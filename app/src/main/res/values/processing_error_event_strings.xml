@@ -139,6 +139,7 @@
     <string name="error_operation_rejected_by_card">Card rejected.</string>
     <string name="error_telecom_provider_unavailable">Telecom unavailable.</string>
     <string name="error_host_response_timeout">Host timeout.</string>
+    <string name="error_try_again_later">Try again later.</string>
     <string name="error_transaction_failure">Transaction failed.</string>
     <string name="error_sim_card_error">SIM card error.</string>
     <string name="error_sim_card_missing">Insert SIM card.</string>

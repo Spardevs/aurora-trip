@@ -134,6 +134,7 @@ object ProcessingErrorEventResourceMapper {
             is ProcessingErrorEvent.OPERATION_REJECTED_BY_CARD -> R.string.error_operation_rejected_by_card
             is ProcessingErrorEvent.TELECOM_PROVIDER_UNAVAILABLE -> R.string.error_telecom_provider_unavailable
             is ProcessingErrorEvent.HOST_RESPONSE_TIMEOUT -> R.string.error_host_response_timeout
+            is ProcessingErrorEvent.TRY_AGAIN_LATER -> R.string.error_try_again_later
             is ProcessingErrorEvent.TRANSACTION_FAILURE -> R.string.error_transaction_failure
             is ProcessingErrorEvent.SIM_CARD_ERROR -> R.string.error_sim_card_error
             is ProcessingErrorEvent.SIM_CARD_MISSING -> R.string.error_sim_card_missing

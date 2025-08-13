@@ -48,6 +48,8 @@ import br.com.ticpass.pos.queue.processors.payment.data.PaymentProcessingQueueDa
 import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEntity
 import br.com.ticpass.pos.queue.processors.printing.data.PrintingQueueDao
 import br.com.ticpass.pos.queue.processors.printing.models.PrintingEntity
+import br.com.ticpass.pos.queue.processors.refund.data.RefundQueueDao
+import br.com.ticpass.pos.queue.processors.refund.models.RefundQueueEntity
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -86,8 +88,9 @@ import java.io.File
         _CartOrderLineEntity::class,
         PaymentProcessingEntity::class,
         PrintingEntity::class,
+        RefundQueueEntity::class,
     ],
-    version = 9,
+    version = 10,
     exportSchema = true,
     autoMigrations = [
         AutoMigration (from = 1, to = 2),
@@ -98,6 +101,7 @@ import java.io.File
         AutoMigration (from = 6, to = 7),
         AutoMigration (from = 7, to = 8),
         AutoMigration (from = 8, to = 9),
+        AutoMigration (from = 9, to = 10),
     ]
 )
     @TypeConverters()
@@ -120,6 +124,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun cartOrderLineDao(): CartOrderLineDao
     abstract fun processingPaymentQueueDao(): PaymentProcessingQueueDao
     abstract fun printingQueueDao(): PrintingQueueDao
+    abstract fun refundQueueDao(): RefundQueueDao
 
     override fun clearAllTables() {
         val database = Room.databaseBuilder(MainActivity.appContext, AppDatabase::class.java, MAIN_DATABASE_NAME)

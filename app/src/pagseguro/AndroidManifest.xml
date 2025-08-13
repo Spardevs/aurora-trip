@@ -68,5 +68,9 @@
         <activity
             android:name="br.com.ticpass.pos.printing.PrintingActivity"
             android:exported="true"/>
+
+        <activity
+            android:name="br.com.ticpass.pos.refund.RefundActivity"
+            android:exported="true"/>
     </application>
 </manifest>

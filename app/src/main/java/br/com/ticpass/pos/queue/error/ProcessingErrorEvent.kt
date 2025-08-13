@@ -783,6 +783,12 @@ sealed class ProcessingErrorEvent : BaseProcessingEvent {
     object HOST_RESPONSE_TIMEOUT : ProcessingErrorEvent()
 
     /**
+     * Try again later.
+     * Contact support if the problem persists.
+     */
+    object TRY_AGAIN_LATER : ProcessingErrorEvent()
+
+    /**
      * Telecommunication provider unavailable.
      * Try processing the transaction again.
      */

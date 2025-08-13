@@ -19,6 +19,7 @@ import br.com.ticpass.pos.data.room.dao.VoucherDao
 import br.com.ticpass.pos.data.room.dao.VoucherRedemptionDao
 import br.com.ticpass.pos.queue.processors.payment.data.PaymentProcessingQueueDao
 import br.com.ticpass.pos.queue.processors.printing.data.PrintingQueueDao
+import br.com.ticpass.pos.queue.processors.refund.data.RefundQueueDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -120,6 +121,11 @@ class DatabaseModule {
     @Provides
     fun providePrintQueueDao(appDatabase: AppDatabase): PrintingQueueDao {
         return appDatabase.printingQueueDao()
+    }
+
+    @Provides
+    fun provideRefundQueueDao(appDatabase: AppDatabase): RefundQueueDao {
+        return appDatabase.refundQueueDao()
     }
 }
 

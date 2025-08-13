@@ -68,6 +68,9 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
             clearPaymentListener()
             cleanupCoroutineScopes()
 
+            Log.d("AcquirerRefundProcessor", "Payment processed successfully: ${payment.transactionCode}")
+            Log.d("AcquirerRefundProcessor", "Payment processed successfully: ${payment.transactionId}")
+
             return PaymentSuccess(
                 atk = payment.transactionCode ?: "",
                 txId = payment.transactionId ?: "",

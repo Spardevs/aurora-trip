@@ -3,13 +3,17 @@
     <!-- Payment Processing UI Strings -->
     <string name="payment_processing_title">Payment Processing</string>
     <string name="printing_processing_title">Printing Processing</string>
+    <string name="refund_processing_title">Refund Processing</string>
     <string name="payment_progress_first">First Payment</string>
     <string name="printing_progress_first">First Printing</string>
+    <string name="refund_progress_first">First Refunding</string>
     <string name="payment_progress">Payment %1$d out of %2$d</string>
     <string name="printing_progress">Printing %1$d out of %2$d</string>
+    <string name="refund_progress">Refund %1$d out of %2$d</string>
     <string name="enqueue_credit_payment">Credit</string>
     <string name="enqueue_debit_payment">Debit</string>
     <string name="enqueue_acquirer_printing">Acquirer</string>
+    <string name="enqueue_acquirer_refund">Acquirer</string>
     <string name="enqueue_mp4200HS_printing">MP 4200 HS</string>
     <string name="enqueue_mptII_printing">MPT II</string>
     <string name="enqueue_voucher_payment">Voucher</string>
@@ -30,6 +34,9 @@
     <string name="event_transaction_processing">Processing transaction</string>
     <string name="event_printing_processing">Processing printing</string>
     <string name="event_printing">Printing</string>
+    <string name="event_refund_processing">Processing refund</string>
+    <string name="event_refund">Refunding</string>
+    <string name="event_refund_success">Refund Successful</string>
     <string name="event_authorizing">Authorizing transaction</string>
     <string name="event_card_bin_requested">Verifying card information</string>
     <string name="event_card_bin_ok">Card information verified</string>
@@ -75,8 +82,10 @@
     <string name="confirm_next_processor_title">Continue to Next Payment?</string>
     <string name="next_payment_progress_first">Ready for first payment?</string>
     <string name="next_printing_progress_first">Ready for first printing?</string>
+    <string name="next_refund_progress_first">Ready for first refund?</string>
     <string name="next_payment_progress">Ready for payment %1$d of %2$d?</string>
     <string name="next_printing_progress">Ready for printing %1$d of %2$d?</string>
+    <string name="next_refund_progress">Ready for refund %1$d of %2$d?</string>
     <string name="proceed">Proceed</string>
     <string name="skip">Skip</string>
     <string name="yes">Yes</string>
@@ -87,13 +96,16 @@
     <string name="payment_amount_hint">Enter amount</string>
     <string name="payment_method">Payment Method</string>
     <string name="printing_method">Printing Method</string>
+    <string name="refund_method">Refund Method</string>
     <string name="processor_type">Processor Type</string>
     <string name="edit_payment_note">You can modify payment details before proceeding</string>
     <string name="edit_printing_note">You can modify printing details before proceeding</string>
+    <string name="edit_refund_note">You can modify refund details before proceeding</string>
 
     <string name="error_retry_title">Payment Error</string>
     <string name="error_retry_description">Choose how to handle this payment error:</string>
     <string name="error_printing_retry_description">Choose how to handle this printing error:</string>
+    <string name="error_refund_retry_description">Choose how to handle this refund error:</string>
     <string name="retry">Retry</string>
     <string name="abort">Abort</string>
     <string name="abort_all">Abort All Payments</string>

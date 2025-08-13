@@ -2,6 +2,7 @@ package br.com.ticpass.pos.sdk
 
 import android.content.Context
 import br.com.ticpass.pos.sdk.factory.AcquirerPrintingProvider
+import br.com.ticpass.pos.sdk.factory.AcquirerRefundProvider
 import br.com.ticpass.pos.sdk.factory.CustomerReceiptProvider
 import br.com.ticpass.pos.sdk.factory.TransactionProvider
 import br.com.ticpass.pos.sdk.nfc.BaseNFCProvider
@@ -10,6 +11,9 @@ import br.com.ticpass.pos.sdk.payment.BasePaymentProvider
 import br.com.ticpass.pos.sdk.payment.PaymentProvider
 import br.com.ticpass.pos.sdk.printing.BasePrintingProvider
 import br.com.ticpass.pos.sdk.printing.PrintingProvider
+import br.com.ticpass.pos.sdk.refund.BaseRefundProvider
+import br.com.ticpass.pos.sdk.refund.RefundProvider
+import stone.database.transaction.TransactionObject
 import stone.user.UserModel
 
 /**
@@ -37,6 +41,12 @@ object AcquirerSdk {
         get() = NFCProvider
 
     /**
+     * Stone refund provider instance
+     */
+    val refund: BaseRefundProvider<AcquirerRefundProvider>
+        get() = RefundProvider
+
+    /**
      * Initialize all providers with their required parameters
      *
      * @param appContext The application context
@@ -46,5 +56,6 @@ object AcquirerSdk {
         payment.initialize(appContext)
         printing.initialize(appContext)
         nfc.initialize(appContext)
+        refund.initialize(appContext)
     }
 }

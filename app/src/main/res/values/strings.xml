@@ -23,6 +23,7 @@
     <string name="qrcode_scan_title">QR Code Payment</string>
     <string name="qrcode_scan_message">Please scan the QR code below to complete the payment</string>
     <string name="qrcode_scan_description">QR Code for payment scanning</string>
+    <string name="is_qrcode_transaction">Is QR Code transaction</string>
 
 
     <string name="app_name" translatable="false">"Ticpass"</string>
@@ -524,6 +525,7 @@
     <string name="transactionless_mode">Transactionless mode</string>
     <string name="payment_queue">Payment Queue (%1$d items)</string>
     <string name="printing_queue">Printing Queue (%1$d items)</string>
+    <string name="refund_queue">Refund Queue (%1$d items)</string>
 
     <!-- Print Processing -->
     <string name="print_processing_title">Print Processing</string>
