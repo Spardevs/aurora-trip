@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.view.ui.products.adapter
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +12,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.api.Product
+import br.com.ticpass.pos.util.ThumbnailManager
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
 import com.bumptech.glide.Glide
 import java.text.NumberFormat
@@ -63,18 +65,33 @@ class ProductsAdapter(
                 } ?: false
             }
         }
-
         fun bind(product: Product) {
             currentProduct = product
             nameTextView.text = product.title
             priceTextView.text = formatCurrency(product.value.toDouble())
             updateBadge()
 
-            Glide.with(itemView.context)
-                .load(product.photo)
-                .into(imageView)
+            if (product.photo.isNotEmpty()) {
+                Glide.with(itemView.context)
+                    .load(product.photo)
+                    .placeholder(R.drawable.placeholder_image) // Placeholder padrão
+                    .error(loadThumbnail(itemView.context, product.id))
+                    .into(imageView)
+            } else {
+                loadThumbnail(itemView.context, product.id)
+            }
         }
-
+        private fun loadThumbnail(context: Context, productId: String) {
+            val thumbnailFile = ThumbnailManager.getThumbnailFile(context, productId)
+            if (thumbnailFile != null && thumbnailFile.exists()) {
+                Glide.with(context)
+                    .load(thumbnailFile)
+                    .placeholder(R.drawable.placeholder_image)
+                    .into(imageView)
+            } else {
+                imageView.setImageResource(R.drawable.placeholder_image)
+            }
+        }
         fun updateBadge() {
             currentProduct?.let { product ->
                 val quantity = shoppingCartManager.getCart().items[product.id] ?: 0
@@ -86,9 +103,6 @@ class ProductsAdapter(
                 }
             }
         }
-
-
-
         private fun formatCurrency(value: Double): String {
             val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
             return format.format(value)

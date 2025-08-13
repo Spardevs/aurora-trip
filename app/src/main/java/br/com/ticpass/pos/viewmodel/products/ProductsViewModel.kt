@@ -1,6 +1,5 @@
 package br.com.ticpass.pos.viewmodel.products
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -29,7 +28,7 @@ class ProductsViewModel @Inject constructor(
             _productsByCategory.value = catsWithProds.associate { catWith ->
                 val listaUI = catWith.enabledProducts.map { entity ->
                     Product(
-                        id = entity.id,
+                        id = entity.id.toString(),
                         title = entity.name,
                         value = entity.price.toBigInteger(),
                         photo = entity.thumbnail,
