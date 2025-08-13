@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class ShoppingCartActivity : AppCompatActivity() {
+class ShoppingCartActivity : BaseActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ShoppingCartAdapter
     @Inject lateinit var productRepository: ProductRepository

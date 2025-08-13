@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
+import br.com.ticpass.pos.data.activity.BaseActivity
 import br.com.ticpass.pos.data.api.APIRepository
 import br.com.ticpass.pos.data.api.PosItem
 import br.com.ticpass.pos.data.model.Menu
@@ -20,7 +21,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class PosScreen : AppCompatActivity() {
+class PosScreen : BaseActivity() {
 
     @Inject lateinit var apiRepository: APIRepository
 

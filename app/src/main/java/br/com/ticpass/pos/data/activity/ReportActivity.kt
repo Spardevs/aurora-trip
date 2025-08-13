@@ -11,7 +11,7 @@ import br.com.ticpass.pos.viewmodel.report.ReportViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class ReportActivity : AppCompatActivity() {
+class ReportActivity : BaseActivity() {
     private lateinit var binding: ActivityReportBinding
     private val viewModel: ReportViewModel by viewModels()
 

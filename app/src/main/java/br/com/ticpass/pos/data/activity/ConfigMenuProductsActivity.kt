@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class ConfigMenuProductsActivity : AppCompatActivity() {
+class ConfigMenuProductsActivity : BaseActivity() {
 
     private lateinit var binding: ActivityConfigMenuProductsBinding
     private val viewModel: ConfigMenuProductsViewModel by viewModels()

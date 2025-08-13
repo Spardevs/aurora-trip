@@ -12,7 +12,7 @@ import br.com.ticpass.pos.util.getSavedPasses
 import br.com.ticpass.pos.util.clearSavedPasses
 import java.io.File
 
-class HistoryActivity : AppCompatActivity() {
+class HistoryActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,8 +27,6 @@ class HistoryActivity : AppCompatActivity() {
             val expandedPasses = getSavedPasses(this@HistoryActivity, PassType.ProductExpanded)
             val groupedPasses = getSavedPasses(this@HistoryActivity, PassType.ProductGrouped)
 
-            // You can process these files as needed
-            // For example, display them in a list or use them for voucher/refund operations
         }
 
         // Botão Voucher

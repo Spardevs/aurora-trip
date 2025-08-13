@@ -5,7 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.util.saveVoucherAsBitmap
 
-class VoucherActivity : AppCompatActivity() {
+class VoucherActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.printer_voucher)

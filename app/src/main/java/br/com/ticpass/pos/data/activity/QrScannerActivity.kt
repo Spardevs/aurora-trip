@@ -55,7 +55,7 @@ private val initialScanStatus = ScanStatus(
     1f,
 )
 @AndroidEntryPoint
-class QrScannerActivity() : AppCompatActivity(), BarcodeCallback {
+class QrScannerActivity() : BaseActivity(), BarcodeCallback {
     @Inject
     lateinit var apiRepository: APIRepository
 

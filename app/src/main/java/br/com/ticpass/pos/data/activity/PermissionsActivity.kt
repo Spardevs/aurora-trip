@@ -1,20 +1,20 @@
-package br.com.ticpass.pos.view.ui.permissions
+package br.com.ticpass.pos.data.activity
 
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.data.activity.ProductsActivity
 import android.Manifest
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import br.com.ticpass.pos.view.ui.login.LoginScreen
 
-class PermissionsActivity : AppCompatActivity() {
+class PermissionsActivity : BaseActivity() {
 
     // Launcher que vai pedir múltiplas permissões de runtime
     private val permissionsLauncher =
@@ -66,8 +66,8 @@ class PermissionsActivity : AppCompatActivity() {
             .setPositiveButton("Abrir Configurações") { _, _ ->
                 ActivityCompat.startActivityForResult(
                     this,
-                    Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                        .setData(android.net.Uri.fromParts("package", packageName, null)),
+                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                        .setData(Uri.fromParts("package", packageName, null)),
                     0,
                     null
                 )

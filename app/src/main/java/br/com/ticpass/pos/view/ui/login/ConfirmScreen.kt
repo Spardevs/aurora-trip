@@ -18,11 +18,12 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.content.edit
 import androidx.lifecycle.lifecycleScope
+import br.com.ticpass.pos.data.activity.BaseActivity
 import br.com.ticpass.pos.data.activity.ProductsActivity
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class ConfirmScreen : AppCompatActivity() {
+class ConfirmScreen : BaseActivity() {
     private val viewModel: LoginConfirmViewModel by viewModels()
 
     companion object {

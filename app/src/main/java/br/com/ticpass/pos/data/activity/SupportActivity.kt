@@ -1,10 +1,9 @@
 package br.com.ticpass.pos.data.activity
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import br.com.ticpass.pos.databinding.ActivitySupportBinding
 
-class SupportActivity : AppCompatActivity() {
+class SupportActivity : BaseActivity() {
 
     private lateinit var binding: ActivitySupportBinding
 

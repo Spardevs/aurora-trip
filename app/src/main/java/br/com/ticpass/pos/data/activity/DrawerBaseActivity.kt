@@ -88,7 +88,7 @@ data class ShoppingCart(
 }
 
 @AndroidEntryPoint
-abstract class DrawerBaseActivity : AppCompatActivity() {
+abstract class DrawerBaseActivity : BaseActivity() {
     protected lateinit var drawerLayout: DrawerLayout
     protected lateinit var navView: NavigationView
 

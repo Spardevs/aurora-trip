@@ -12,7 +12,7 @@ import br.com.ticpass.pos.databinding.ActivitySplitManualBinding
 import java.text.NumberFormat
 import java.util.Locale
 
-class SplitManualActivity : AppCompatActivity() {
+class SplitManualActivity : BaseActivity() {
     private lateinit var binding: ActivitySplitManualBinding
     private lateinit var sharedPrefs: SharedPreferences
     private var totalPrice: Double = 0.0

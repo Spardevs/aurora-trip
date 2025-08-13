@@ -16,7 +16,7 @@ import br.com.ticpass.pos.R
 import java.util.*
 
 @AndroidEntryPoint
-class WithdrawalActivity : AppCompatActivity() {
+class WithdrawalActivity : BaseActivity() {
 
     private lateinit var binding: ActivityWithdrawalBinding
     private val viewModel: WithdrawalViewModel by viewModels()

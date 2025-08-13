@@ -19,7 +19,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class PassesActivity : AppCompatActivity() {
+class PassesActivity : BaseActivity() {
 
     private var isPrintingEnabled = true
     private var currentFormat: FormatType = FormatType.DEFAULT

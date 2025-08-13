@@ -106,7 +106,7 @@
         </provider>
 
         <activity
-            android:name=".view.ui.permissions.PermissionsActivity"
+            android:name=".data.activity.PermissionsActivity"
             android:exported="false"/>
 
         <activity

@@ -4,13 +4,14 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import br.com.ticpass.pos.R
+import br.com.ticpass.pos.data.activity.BaseActivity
 import br.com.ticpass.pos.view.fragments.payment.CashPaymentFragment
 import br.com.ticpass.pos.view.fragments.payment.CreditCardPaymentFragment
 import br.com.ticpass.pos.view.fragments.payment.DebitCardPaymentFragment
 import br.com.ticpass.pos.view.fragments.payment.PixPaymentFragment
 import java.util.Locale
 
-class PaymentScreen : AppCompatActivity() {
+class PaymentScreen : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_payment)

@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
+import br.com.ticpass.pos.data.activity.BaseActivity
 import br.com.ticpass.pos.data.activity.PaymentActivity
 import br.com.ticpass.pos.data.activity.SplitEqualActivity
 import br.com.ticpass.pos.data.activity.SplitManualActivity
@@ -38,7 +39,7 @@ import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class ShoppingCartScreen : AppCompatActivity() {
+class ShoppingCartScreen : BaseActivity() {
     @Inject lateinit var productRepository: ProductRepository
     @Inject lateinit var shoppingCartManager: ShoppingCartManager
 

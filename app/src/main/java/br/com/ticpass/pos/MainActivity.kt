@@ -17,16 +17,23 @@ package br.com.ticpass.pos
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.Location
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
+import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.preferencesDataStore
 import br.com.ticpass.pos.view.ui.login.LoginScreen
@@ -40,11 +47,15 @@ import br.com.ticpass.Constants.REMOVE_OLD_RECORDS_INTERVAL
 import br.com.ticpass.Constants.TELEMETRY_INTERVAL
 import br.com.ticpass.pos.data.acquirers.workers.jobs.syncEvent
 import br.com.ticpass.pos.data.acquirers.workers.jobs.syncPos
+import br.com.ticpass.pos.data.activity.BaseActivity
 import br.com.ticpass.pos.data.activity.ProductsActivity
 import br.com.ticpass.pos.data.event.ForYouViewModel
 import br.com.ticpass.pos.data.room.AuthManager
 import br.com.ticpass.pos.data.room.service.GPSService
-import br.com.ticpass.pos.view.ui.permissions.PermissionsActivity
+import br.com.ticpass.pos.util.ConnectionStatusBar
+import br.com.ticpass.pos.data.activity.PermissionsActivity
+import br.com.ticpass.pos.util.ConnectivityMonitor
+import com.google.android.material.snackbar.Snackbar
 import com.topjohnwu.superuser.internal.UiThreadHandler.handler
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -255,9 +266,8 @@ class CheckDuePaymentsRunnable @Inject constructor(
     }
 }
 
-
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
     private val forYouViewModel: ForYouViewModel by viewModels()
 
     private var gpsTaskRunnable: MyGPSTaskRunnable? = null
@@ -267,6 +277,9 @@ class MainActivity : AppCompatActivity() {
     private var syncEventTaskRunnable: SyncEventTaskRunnable? = null
     private var checkDuePaymentsRunnable: CheckDuePaymentsRunnable? = null
 //    private var alertDuePaymentsRunnable: AlertDuePaymentsRunnable? = null
+
+    private var connectivityMonitor: ConnectivityMonitor? = null
+    private var connectionStatusBar: ConnectionStatusBar? = null
 
 
     companion object {
@@ -292,6 +305,9 @@ class MainActivity : AppCompatActivity() {
         appContext = applicationContext
         activity = this
 
+        connectionStatusBar = ConnectionStatusBar(this)
+
+
         if (!hasAllPermissions()) {
             startActivity(Intent(this, PermissionsActivity::class.java))
             finish()
@@ -315,6 +331,27 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
+
+        connectivityMonitor = ConnectivityMonitor(appContext, handler).apply {
+            onConnectionChanged = { isConnected ->
+                connectionStatusBar?.show(isConnected)
+                Log.d("NetworkStatus", "Connection changed: $isConnected")
+                connectionStatusBar?.show(isConnected)
+
+                // Atualiza outros componentes conforme necessário
+                if (isConnected) {
+                    // Reconectado - pode sincronizar dados pendentes
+                    handler.post {
+                        Toast.makeText(appContext, "Conectado à internet", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    // Desconectado
+                    handler.post {
+                        Toast.makeText(appContext, "Sem conexão com a internet", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
 
 //        val appName = getAppName(this)
 //        when(BuildConfig.FLAVOR) {
@@ -344,15 +381,38 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    fun Application.getCurrentActivity(): Activity? {
+        var currentActivity: Activity? = null
+
+        registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+            override fun onActivityStarted(activity: Activity) {}
+            override fun onActivityResumed(activity: Activity) {
+                currentActivity = activity
+            }
+            override fun onActivityPaused(activity: Activity) {
+                if (currentActivity == activity) {
+                    currentActivity = null
+                }
+            }
+            override fun onActivityStopped(activity: Activity) {}
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+            override fun onActivityDestroyed(activity: Activity) {}
+        })
+
+        return currentActivity
+    }
     override fun onStop() {
         super.onStop()
-
+        connectivityMonitor?.cleanup()
+        connectionStatusBar?.dismiss()
         handler.removeCallbacksAndMessages(null)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-
+        connectivityMonitor?.cleanup()
+        connectionStatusBar?.dismiss()
         handler.removeCallbacksAndMessages(null)
     }
 

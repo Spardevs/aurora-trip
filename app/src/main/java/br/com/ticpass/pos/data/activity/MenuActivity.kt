@@ -19,7 +19,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class MenuActivity : AppCompatActivity() {
+class MenuActivity : BaseActivity() {
     @Inject lateinit var apiRepository: APIRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {

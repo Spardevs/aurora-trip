@@ -11,7 +11,7 @@ import com.google.android.material.slider.Slider
 import java.text.NumberFormat
 import java.util.Locale
 
-class SplitEqualActivity : AppCompatActivity() {
+class SplitEqualActivity : BaseActivity() {
     private lateinit var binding: ActivitySplitEqualBinding
     private lateinit var sharedPrefs: SharedPreferences
     private var totalPrice: Double = 0.0
