@@ -44,7 +44,7 @@ class ConnectionStatusBar(private val context: Context) {
 
                 currentActivity?.let { activity ->
                     val rootView = activity.findViewById<ViewGroup>(android.R.id.content)
-                    snackbar = Snackbar.make(rootView, message, 7000)
+                    snackbar = Snackbar.make(rootView, message, 5000)
 
                     val snackbarView = snackbar?.view
                     snackbarView?.apply {
