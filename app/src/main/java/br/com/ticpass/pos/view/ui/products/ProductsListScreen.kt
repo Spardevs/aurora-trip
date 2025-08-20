@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.GridLayout
@@ -149,6 +150,8 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
     }
 
     private fun setupSwipeRefresh() {
+        Log.d("ProductsListScreen", "Configurando SwipeRefreshLayout")
+
         swipeRefreshLayout.setColorSchemeResources(
             R.color.design_default_color_primary,
             R.color.design_default_color_primary_dark,
@@ -156,34 +159,53 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         )
 
         swipeRefreshLayout.setOnRefreshListener {
+            Log.d("ProductsListScreen", "OnRefreshListener acionado")
             refreshData()
         }
 
         swipeRefreshLayout.setDistanceToTriggerSync(120)
     }
 
+    // ProductsListScreen.kt - Na função refreshData()
     private fun refreshData() {
+        Log.d("ProductsListScreen", "=== PULL-TO-REFRESH ACIONADO ===")
+
+        // Verificar quais shared preferences estamos usando
+        Log.d("ProductsListScreen", "Session prefs: ${sessionPrefs.all}")
+        Log.d("ProductsListScreen", "User prefs: ${userPrefs.all}")
+
         val eventId = refreshViewModel.getEventIdFromPrefs(sessionPrefs)
         val authToken = refreshViewModel.getAuthTokenFromPrefs(userPrefs)
 
+        Log.d("ProductsListScreen", "Event ID obtido: '$eventId'")
+        Log.d("ProductsListScreen", "Auth Token obtido: ${authToken.isNotEmpty()}")
+
         if (eventId.isNotEmpty() && authToken.isNotEmpty()) {
+            Log.d("ProductsListScreen", "Dados válidos, iniciando refresh...")
             viewLifecycleOwner.lifecycleScope.launch {
-                val success = refreshViewModel.refreshProducts(eventId, authToken)
-                if (success) {
-                    productsViewModel.loadCategoriesWithProducts()
-                    Toast.makeText(requireContext(), "Produtos atualizados", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(requireContext(), "Erro ao atualizar produtos", Toast.LENGTH_SHORT).show()
+                try {
+                    Log.d("ProductsListScreen", "Chamando refreshViewModel.refreshProducts...")
+                    val success = refreshViewModel.refreshProducts(eventId, authToken)
+                    if (success) {
+                        Log.d("ProductsListScreen", "Refresh bem-sucedido!")
+                        productsViewModel.loadCategoriesWithProducts()
+                        Toast.makeText(requireContext(), "Produtos atualizados", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Log.d("ProductsListScreen", "Refresh falhou!")
+                        Toast.makeText(requireContext(), "Erro ao atualizar produtos", Toast.LENGTH_SHORT).show()
+                        swipeRefreshLayout.isRefreshing = false
+                    }
+                } catch (e: Exception) {
+                    Log.e("ProductsListScreen", "Erro durante o refresh", e)
+                    Toast.makeText(requireContext(), "Erro: ${e.message}", Toast.LENGTH_SHORT).show()
                     swipeRefreshLayout.isRefreshing = false
-                    // REMOVIDO: tvError.visibility = View.VISIBLE
-                    // REMOVIDO: tvError.text = "Erro ao atualizar. Toque para tentar novamente."
                 }
             }
         } else {
+            Log.d("ProductsListScreen", "Dados incompletos! EventID: ${eventId.isNotEmpty()}, AuthToken: ${authToken.isNotEmpty()}")
             productsViewModel.loadCategoriesWithProducts()
             swipeRefreshLayout.isRefreshing = false
-            // REMOVIDO: tvError.visibility = View.VISIBLE
-            // REMOVIDO: tvError.text = "Sessão expirada. Faça login novamente."
+            Toast.makeText(requireContext(), "Sessão expirada. Faça login novamente.", Toast.LENGTH_SHORT).show()
         }
     }
 
