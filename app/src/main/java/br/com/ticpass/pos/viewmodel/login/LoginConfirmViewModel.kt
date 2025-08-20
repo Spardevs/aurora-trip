@@ -114,7 +114,7 @@ class LoginConfirmViewModel @Inject constructor(
         )
     }
 
-    private suspend fun fetchAndInsertProducts(
+    suspend fun fetchAndInsertProducts(
         sessionPref: SharedPreferences,
         userPref: SharedPreferences,
         eventId: String

@@ -1,14 +1,13 @@
+// ProductsListScreen.kt
 package br.com.ticpass.pos.view.ui.products
 
 import android.annotation.SuppressLint
-import android.app.Activity
-import androidx.appcompat.app.AlertDialog
+import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
-import android.graphics.Rect
+import android.content.SharedPreferences
 import android.os.Bundle
-import android.view.GestureDetector
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.widget.GridLayout
 import android.widget.ImageButton
@@ -17,44 +16,30 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.tabs.TabLayout
+import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.viewpager2.widget.ViewPager2
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.activity.SplitEqualActivity
 import br.com.ticpass.pos.data.activity.SplitManualActivity
+import br.com.ticpass.pos.data.api.Product
 import br.com.ticpass.pos.view.ui.payment.PaymentScreen
-import br.com.ticpass.pos.view.ui.products.adapter.ProductsAdapter
+import br.com.ticpass.pos.view.ui.products.adapter.CategoriesPagerAdapter
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
 import br.com.ticpass.pos.viewmodel.payment.PaymentMethod
 import br.com.ticpass.pos.viewmodel.products.ProductsViewModel
+import br.com.ticpass.pos.viewmodel.products.ProductsRefreshViewModel
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 import javax.inject.Inject
-import kotlin.math.abs
-
 
 @AndroidEntryPoint
 class ProductsListScreen : Fragment(R.layout.fragment_products) {
-    private val viewModel: ProductsViewModel by viewModels()
-    @Inject lateinit var shoppingCartManager: ShoppingCartManager
-    private lateinit var tabLayout: TabLayout
-    private lateinit var recycler: RecyclerView
-
-    private lateinit var gestureDetector: GestureDetector
-
-    private lateinit var paymentSheet: View
-
-    private lateinit var adapter: ProductsAdapter
-
-    class HorizontalSpaceItemDecoration(private val space: Int) : RecyclerView.ItemDecoration() {
-        override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
-            if (parent.getChildAdapterPosition(view) != 0) {
-                outRect.left = space
-            }
-        }
-    }
 
     companion object {
         const val REQUEST_CART_UPDATE = 1001
@@ -62,60 +47,144 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         private const val SPLIT_MANUAL_REQUEST = 1003
     }
 
-    @SuppressLint("NotifyDataSetChanged", "ClickableViewAccessibility")
+    private val productsViewModel: ProductsViewModel by viewModels()
+    private val refreshViewModel: ProductsRefreshViewModel by viewModels()
+
+    @Inject
+    lateinit var shoppingCartManager: ShoppingCartManager
+
+    private lateinit var tabLayout: TabLayout
+    private lateinit var viewPager: ViewPager2
+    private lateinit var pagerAdapter: CategoriesPagerAdapter
+    private lateinit var paymentSheet: View
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    // REMOVIDO: private lateinit var tvError: TextView
+
+    // Preferências
+    private lateinit var sessionPrefs: SharedPreferences
+    private lateinit var userPrefs: SharedPreferences
+
+    // Observers
+    private var cartUpdatesObserver: Observer<Any>? = null
+    private var loadingObserver: Observer<Boolean>? = null
+    private var categoriesObserver: Observer<List<String>>? = null
+    private var productsObserver: Observer<Map<String, List<Product>>>? = null
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        // Inicializar as preferências
+        sessionPrefs = context.getSharedPreferences("session_prefs", Context.MODE_PRIVATE)
+        userPrefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout)
         tabLayout = view.findViewById(R.id.tabCategories)
-        recycler = view.findViewById(R.id.rvProducts)
+        viewPager = view.findViewById(R.id.viewPager)
         paymentSheet = view.findViewById(R.id.paymentSheet)
+        // REMOVIDO: tvError = view.findViewById(R.id.tvError)
 
-        gestureDetector = GestureDetector(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
-            override fun onFling(
-                e1: MotionEvent?,
-                e2: MotionEvent,
-                velocityX: Float,
-                velocityY: Float
-            ): Boolean {
-                if (e1 == null) return false
-
-                val diffX = e2.x - e1.x
-                val diffY = e2.y - e1.y
-
-                if (abs(diffX) > abs(diffY) && abs(diffX) > 100 && abs(velocityX) > 100) {
-                    if (diffX > 0) {
-                        moveToPreviousCategory()
-                    } else {
-                        moveToNextCategory()
-                    }
-                    return true
-                }
-                return false
-            }
-        })
-
-        recycler.setOnTouchListener { v, event ->
-            gestureDetector.onTouchEvent(event)
-            v.performClick()
-            false
-        }
-
-
-        adapter = ProductsAdapter(shoppingCartManager) { product ->
-            shoppingCartManager.addItem(product.id)
-            updatePaymentVisibility()
-        }
-
-        recycler.layoutManager = GridLayoutManager(requireContext(), 3)
-        recycler.adapter = adapter
-
-        shoppingCartManager.cartUpdates.observe(viewLifecycleOwner) {
-            updatePaymentVisibility()
-            adapter.notifyDataSetChanged()
-        }
-
+        setupSwipeRefresh()
         setupTabLayout()
+
+        cartUpdatesObserver = Observer<Any> {
+            updatePaymentVisibility()
+        }
+        shoppingCartManager.cartUpdates.observe(viewLifecycleOwner, cartUpdatesObserver!!)
+
+        viewPager.offscreenPageLimit = 1
+
+        setupViewPager()
         setupPaymentMethods()
+
+        loadingObserver = Observer<Boolean> { isLoading ->
+            swipeRefreshLayout.isRefreshing = isLoading
+            // REMOVIDO: if (isLoading) {
+            // REMOVIDO:     tvError.visibility = View.GONE
+            // REMOVIDO: }
+        }
+        productsViewModel.isLoading.observe(viewLifecycleOwner, loadingObserver!!)
+
+        // Carregar dados iniciais
+        loadInitialData()
+        updatePaymentVisibility()
+    }
+
+    private fun setupTabLayout() {
+        tabLayout.tabMode = TabLayout.MODE_SCROLLABLE
+        tabLayout.tabGravity = TabLayout.GRAVITY_CENTER
+        tabLayout.isTabIndicatorFullWidth = false
+    }
+
+    private fun setupViewPager() {
+        // Remover observers antigos se existirem
+        categoriesObserver?.let { productsViewModel.categories.removeObserver(it) }
+        productsObserver?.let { productsViewModel.productsByCategory.removeObserver(it) }
+
+        categoriesObserver = Observer<List<String>> { categories ->
+            productsObserver = Observer<Map<String, List<Product>>> { productsMap ->
+                pagerAdapter = CategoriesPagerAdapter(
+                    requireActivity(),
+                    categories,
+                    productsMap
+                )
+                viewPager.adapter = pagerAdapter
+
+                TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+                    tab.text = categories[position]
+                }.attach()
+
+                swipeRefreshLayout.isRefreshing = false
+            }
+            productsViewModel.productsByCategory.observe(viewLifecycleOwner, productsObserver!!)
+        }
+        productsViewModel.categories.observe(viewLifecycleOwner, categoriesObserver!!)
+    }
+
+    private fun loadInitialData() {
+        productsViewModel.loadCategoriesWithProducts()
+    }
+
+    private fun setupSwipeRefresh() {
+        swipeRefreshLayout.setColorSchemeResources(
+            R.color.design_default_color_primary,
+            R.color.design_default_color_primary_dark,
+            R.color.design_default_color_primary_variant
+        )
+
+        swipeRefreshLayout.setOnRefreshListener {
+            refreshData()
+        }
+
+        swipeRefreshLayout.setDistanceToTriggerSync(120)
+    }
+
+    private fun refreshData() {
+        val eventId = refreshViewModel.getEventIdFromPrefs(sessionPrefs)
+        val authToken = refreshViewModel.getAuthTokenFromPrefs(userPrefs)
+
+        if (eventId.isNotEmpty() && authToken.isNotEmpty()) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val success = refreshViewModel.refreshProducts(eventId, authToken)
+                if (success) {
+                    productsViewModel.loadCategoriesWithProducts()
+                    Toast.makeText(requireContext(), "Produtos atualizados", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(requireContext(), "Erro ao atualizar produtos", Toast.LENGTH_SHORT).show()
+                    swipeRefreshLayout.isRefreshing = false
+                    // REMOVIDO: tvError.visibility = View.VISIBLE
+                    // REMOVIDO: tvError.text = "Erro ao atualizar. Toque para tentar novamente."
+                }
+            }
+        } else {
+            productsViewModel.loadCategoriesWithProducts()
+            swipeRefreshLayout.isRefreshing = false
+            // REMOVIDO: tvError.visibility = View.VISIBLE
+            // REMOVIDO: tvError.text = "Sessão expirada. Faça login novamente."
+        }
     }
 
     private fun updatePaymentVisibility() {
@@ -134,7 +203,7 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         }
 
         paymentSheet.findViewById<ImageButton>(R.id.btnClearAll).setOnClickListener {
-            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            AlertDialog.Builder(requireContext())
                 .setTitle("Limpar carrinho")
                 .setMessage("Deseja remover todos os itens do carrinho?")
                 .setPositiveButton("Sim") { dialog, _ ->
@@ -148,13 +217,13 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
                 .show()
         }
     }
+
     private fun updatePaymentInfo(cart: ShoppingCartManager.ShoppingCart) {
         paymentSheet.findViewById<TextView>(R.id.tv_items_count).text =
             "${cart.items.values.sum()} itens"
 
         paymentSheet.findViewById<TextView>(R.id.tv_total_price).text =
             formatCurrency(cart.totalPrice.toDouble())
-
     }
 
     private val paymentMethods = listOf(
@@ -194,110 +263,48 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         }
     }
 
-    private fun setupTabLayout() {
-        viewModel.categories.observe(viewLifecycleOwner) { categories ->
-            tabLayout.removeAllTabs()
-            categories.forEach { tabLayout.addTab(tabLayout.newTab().setText(it)) }
-            if (categories.isNotEmpty()) onCategorySelected(categories[0])
-        }
-
-        viewModel.productsByCategory.observe(viewLifecycleOwner) { productsMap ->
-            val selectedTab = tabLayout.selectedTabPosition
-            val category = viewModel.categories.value?.getOrNull(selectedTab)
-            adapter.submitList(category?.let { productsMap[it] } ?: emptyList())
-        }
-
-        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab) {
-                onCategorySelected(tab.text.toString())
-            }
-            override fun onTabUnselected(tab: TabLayout.Tab) {}
-            override fun onTabReselected(tab: TabLayout.Tab) {}
-        })
-    }
-
     private fun formatCurrency(value: Double): String {
         val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
         return format.format(value)
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     override fun onResume() {
         super.onResume()
-        viewModel.loadCategoriesWithProducts()
-        adapter.notifyDataSetChanged()
         updatePaymentVisibility()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
 
-
-    @SuppressLint("NotifyDataSetChanged")
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == REQUEST_CART_UPDATE) {
-            adapter.notifyDataSetChanged()
+        // Remover todos os observers
+        cartUpdatesObserver?.let {
+            shoppingCartManager.cartUpdates.removeObserver(it)
         }
 
-        if (resultCode == Activity.RESULT_OK) {
-            when (requestCode) {
-                SPLIT_EQUAL_REQUEST -> {
-                    val dividedValue = data?.getDoubleExtra("divided_value", 0.0) ?: 0.0
-                    val peopleCount = data?.getIntExtra("people_count", 1) ?: 1
-                    showDivisionResult(dividedValue, peopleCount)
-                }
-                SPLIT_MANUAL_REQUEST -> {
-                    val subtractedValues = data?.getDoubleArrayExtra("subtracted_values")?.toList() ?: emptyList()
-                    val remainingValue = data?.getDoubleExtra("remaining_value", 0.0) ?: 0.0
-
-                    val message = buildString {
-                        append("Valores subtraídos:\n")
-                        subtractedValues.forEachIndexed { index, value ->
-                            append("${index + 1}. ${formatCurrency(value)}\n")
-                        }
-                        append("\nValor restante: ${formatCurrency(remainingValue)}")
-                    }
-
-                    AlertDialog.Builder(requireContext())
-                        .setTitle("Divisão manual realizada")
-                        .setMessage(message)
-                        .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
-                        .show()
-                }
-            }
+        loadingObserver?.let {
+            productsViewModel.isLoading.removeObserver(it)
         }
-    }
 
-
-    private fun onCategorySelected(cat: String) {
-        adapter.submitList(viewModel.productsByCategory.value?.get(cat) ?: emptyList())
-    }
-
-    private fun moveToNextCategory() {
-        viewModel.categories.value?.let { categories ->
-            val currentPos = tabLayout.selectedTabPosition
-            if (currentPos < categories.size - 1) {
-                tabLayout.getTabAt(currentPos + 1)?.select()
-            } else {
-                tabLayout.getTabAt(0)?.select()
-            }
+        categoriesObserver?.let {
+            productsViewModel.categories.removeObserver(it)
         }
-    }
 
-    private fun moveToPreviousCategory() {
-        viewModel.categories.value?.let { categories ->
-            val currentPos = tabLayout.selectedTabPosition
-            if (currentPos > 0) {
-                tabLayout.getTabAt(currentPos - 1)?.select()
-            } else {
-                tabLayout.getTabAt(categories.size - 1)?.select()
-            }
+        productsObserver?.let {
+            productsViewModel.productsByCategory.removeObserver(it)
         }
+
+        // Limpar referências
+        cartUpdatesObserver = null
+        loadingObserver = null
+        categoriesObserver = null
+        productsObserver = null
+
+        // Limpar adapter do ViewPager
+        viewPager.adapter = null
     }
 
     private fun showSplitBillDialog() {
-        AlertDialog.Builder(requireContext()) // Use requireContext() instead of this
+        AlertDialog.Builder(requireContext())
             .setTitle("Dividir conta")
             .setMessage("Como deseja dividir?")
             .setPositiveButton("Partes iguais") { dialog, _ ->
@@ -310,17 +317,4 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
             }
             .show()
     }
-
-    private fun showDivisionResult(dividedValue: Double, peopleCount: Int) {
-        val message = "Dividido em $peopleCount partes\n" +
-                "Valor por parte: ${formatCurrency(dividedValue)}"
-
-        AlertDialog.Builder(requireContext())
-            .setTitle("Divisão realizada")
-            .setMessage(message)
-            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
-            .show()
-    }
-
 }
-

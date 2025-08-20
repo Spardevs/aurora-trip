@@ -14,35 +14,50 @@ import javax.inject.Inject
 class ProductsViewModel @Inject constructor(
     private val categoryRepo: CategoryRepository
 ) : ViewModel() {
-
     private val _categories = MutableLiveData<List<String>>()
     val categories: LiveData<List<String>> = _categories
-
     private val _productsByCategory = MutableLiveData<Map<String, List<Product>>>()
     val productsByCategory: LiveData<Map<String, List<Product>>> = _productsByCategory
+    private val _isLoading = MutableLiveData<Boolean>(false)
+    val isLoading: LiveData<Boolean> = _isLoading
+    private var allProductsList: List<Product> = emptyList()
+
 
     fun loadCategoriesWithProducts() {
+        _isLoading.value = true
         viewModelScope.launch {
-            val catsWithProds = categoryRepo.getCategoriesWithEnabledProducts()
-            _categories.value = catsWithProds.map { it.category.name }
-            _productsByCategory.value = catsWithProds.associate { catWith ->
-                val listaUI = catWith.enabledProducts.map { entity ->
-                    Product(
-                        id = entity.id.toString(),
-                        title = entity.name,
-                        value = entity.price.toBigInteger(),
-                        photo = entity.thumbnail,
-                        stock = entity.stock.toBigInteger(),
-                        createdAt = "",
-                        updatedAt = "",
-                        deletedAt = "",
-                        fkCategory = entity.categoryId,
-                        fkEvent = 0
-                    )
+            try {
+                val catsWithProds = categoryRepo.getCategoriesWithEnabledProducts()
+                allProductsList = catsWithProds.flatMap { catWith ->
+                    catWith.enabledProducts.map { entity ->
+                        Product(
+                            id = entity.id.toString(),
+                            title = entity.name,
+                            value = entity.price.toBigInteger(),
+                            photo = entity.thumbnail,
+                            stock = entity.stock.toBigInteger(),
+                            createdAt = "",
+                            updatedAt = "",
+                            deletedAt = "",
+                            fkCategory = entity.categoryId,
+                            fkEvent = 0
+                        )
+                    }
                 }
-                catWith.category.name to listaUI
+                val allCategories = listOf("Todos") + catsWithProds.map { it.category.name }
+                _categories.value = allCategories
+                val productsMap = mutableMapOf<String, List<Product>>()
+                productsMap["Todos"] = allProductsList
+                catsWithProds.forEach { catWith ->
+                    val categoryProducts = allProductsList.filter { it.fkCategory == catWith.category.id }
+                    productsMap[catWith.category.name] = categoryProducts
+                }
+                _productsByCategory.value = productsMap
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
             }
         }
     }
 }
-

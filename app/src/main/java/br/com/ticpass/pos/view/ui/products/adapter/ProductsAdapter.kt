@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.view.ui.products.adapter
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
@@ -23,6 +24,9 @@ class ProductsAdapter(
     private val onProductClicked: (Product) -> Unit
 ) : ListAdapter<Product, ProductsAdapter.ProductViewHolder>(ProductDiffCallback()) {
 
+    // Lista para controlar os observers dos ViewHolders
+    private val viewHolderObservers = mutableMapOf<Int, String>()
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_products, parent, false)
@@ -32,10 +36,34 @@ class ProductsAdapter(
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
         val product = getItem(position)
         holder.bind(product)
+
+        // Configurar observer seguro
+        val observerId = holder.setupCartObserver()
+        viewHolderObservers[holder.hashCode()] = observerId
+
         holder.itemView.setOnClickListener {
             onProductClicked(product)
             holder.updateBadge()
         }
+    }
+
+    override fun onViewRecycled(holder: ProductViewHolder) {
+        super.onViewRecycled(holder)
+        holder.clearObservers()
+        // Remover da lista de controle
+        viewHolderObservers.remove(holder.hashCode())?.let { observerId ->
+            shoppingCartManager.removeSafeObserver(observerId)
+        }
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun clearAll() {
+        // Limpar todos os observers dos ViewHolders
+        viewHolderObservers.values.forEach { observerId ->
+            shoppingCartManager.removeSafeObserver(observerId)
+        }
+        viewHolderObservers.clear()
+        notifyDataSetChanged()
     }
 
     inner class ProductViewHolder(
@@ -47,16 +75,9 @@ class ProductsAdapter(
         private val imageView: ImageView = itemView.findViewById(R.id.productImage)
         private val badgeTextView: TextView = itemView.findViewById(R.id.productBadge)
         private var currentProduct: Product? = null
+        private var observerId: String? = null
 
         init {
-            shoppingCartManager.cartUpdates.observeForever {
-                currentProduct?.let { updateBadge() }
-            }
-
-            shoppingCartManager.cartUpdates.observeForever {
-                currentProduct?.let { updateBadge() }
-            }
-
             itemView.setOnLongClickListener {
                 currentProduct?.let { product ->
                     shoppingCartManager.updateItem(product.id, 0)
@@ -65,6 +86,15 @@ class ProductsAdapter(
                 } ?: false
             }
         }
+
+        fun setupCartObserver(): String {
+            val observer = androidx.lifecycle.Observer<Any> {
+                updateBadge()
+            }
+            observerId = shoppingCartManager.observeForeverSafe(observer)
+            return observerId!!
+        }
+
         fun bind(product: Product) {
             currentProduct = product
             nameTextView.text = product.title
@@ -74,13 +104,14 @@ class ProductsAdapter(
             if (product.photo.isNotEmpty()) {
                 Glide.with(itemView.context)
                     .load(product.photo)
-                    .placeholder(R.drawable.placeholder_image) // Placeholder padrão
+                    .placeholder(R.drawable.placeholder_image)
                     .error(loadThumbnail(itemView.context, product.id))
                     .into(imageView)
             } else {
                 loadThumbnail(itemView.context, product.id)
             }
         }
+
         private fun loadThumbnail(context: Context, productId: String) {
             val thumbnailFile = ThumbnailManager.getThumbnailFile(context, productId)
             if (thumbnailFile != null && thumbnailFile.exists()) {
@@ -92,6 +123,7 @@ class ProductsAdapter(
                 imageView.setImageResource(R.drawable.placeholder_image)
             }
         }
+
         fun updateBadge() {
             currentProduct?.let { product ->
                 val quantity = shoppingCartManager.getCart().items[product.id] ?: 0
@@ -103,10 +135,23 @@ class ProductsAdapter(
                 }
             }
         }
+
+        fun clearObservers() {
+            observerId?.let {
+                shoppingCartManager.removeSafeObserver(it)
+                observerId = null
+            }
+            currentProduct = null
+        }
+
         private fun formatCurrency(value: Double): String {
             val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
             return format.format(value)
         }
+    }
+
+    fun updateProducts(newProducts: List<Product>) {
+        submitList(newProducts)
     }
 
     class ProductDiffCallback : DiffUtil.ItemCallback<Product>() {

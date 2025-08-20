@@ -7,6 +7,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
+import androidx.lifecycle.Observer
 import dagger.hilt.android.AndroidEntryPoint
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.view.ui.products.ProductsListScreen
@@ -19,8 +20,12 @@ class ProductsActivity : DrawerBaseActivity() {
     private lateinit var cartBadge: TextView
     private lateinit var cartMenuItem: MenuItem
 
+
     @Inject
     lateinit var shoppingCartManager: ShoppingCartManager
+
+    private var cartUpdatesObserver: Observer<Any>? = null
+    private var observerId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,9 +51,11 @@ class ProductsActivity : DrawerBaseActivity() {
 
         updateCartBadge()
 
-        shoppingCartManager.cartUpdates.observe(this) {
+        // Usar observer seguro
+        val observer = Observer<Any> {
             updateCartBadge()
         }
+        observerId = shoppingCartManager.observeForeverSafe(observer)
 
         return true
     }
@@ -63,13 +70,21 @@ class ProductsActivity : DrawerBaseActivity() {
         }
     }
 
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == ProductsListScreen.REQUEST_CART_UPDATE) {
             updateCartBadge()
         }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        observerId?.let {
+            shoppingCartManager.removeSafeObserver(it)
+        }
+        observerId = null
+    }
+
 
     override fun openProducts() {
         startActivity(Intent(this, ProductsActivity::class.java))
