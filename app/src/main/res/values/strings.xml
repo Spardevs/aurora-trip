@@ -525,6 +525,7 @@
     <string name="transactionless_mode">Transactionless mode</string>
     <string name="payment_queue">Payment Queue (%1$d items)</string>
     <string name="printing_queue">Printing Queue (%1$d items)</string>
+    <string name="nfc_queue">NFC Queue (%1$d items)</string>
     <string name="refund_queue">Refund Queue (%1$d items)</string>
 
     <!-- Print Processing -->
@@ -535,4 +536,29 @@
     <string name="enqueue_report_print">Report Print</string>
     <string name="enqueue_bluetooth_print">Bluetooth Print</string>
     <string name="enqueue_custom_print">Custom Print</string>
+
+    <!-- NFC PIN Authentication -->
+    <string name="nfc_pin_auth_title">Enter Your PIN</string>
+    <string name="nfc_pin_auth_subtitle">Please enter your 4-digit PIN to authenticate</string>
+    <string name="nfc_pin_hint">PIN</string>
+    <string name="nfc_pin_attempts_remaining">%1$d attempts remaining</string>
+    <string name="nfc_pin_error_wrong">Incorrect PIN. Please try again.</string>
+    <string name="nfc_pin_error_max_attempts">Maximum attempts reached. Authentication failed.</string>
+
+    <!-- NFC Customer Data -->
+    <string name="nfc_customer_data_title">Customer Information</string>
+    <string name="nfc_customer_data_subtitle">Enter customer details (all fields are optional)</string>
+    <string name="nfc_customer_name_hint">Name</string>
+    <string name="nfc_customer_cpf_hint">CPF (Optional)</string>
+    <string name="nfc_customer_phone_hint">Phone (Optional)</string>
+    <string name="nfc_customer_error_invalid_cpf">Invalid CPF format</string>
+    <string name="nfc_customer_error_invalid_phone">Invalid phone number format</string>
+    <string name="nfc_customer_error_name_too_long">Name must be 30 characters or less</string>
+
+    <!-- NFC PIN Memorization -->
+    <string name="nfc_pin_memorization_title">Memorize Your PIN</string>
+    <string name="nfc_pin_memorization_description">Please memorize this PIN. You will need it to authenticate when using your NFC tag for orders.</string>
+    <string name="nfc_pin_memorization_warning">⚠️ This card is for individual use only and should not be shared with others.</string>
+    <string name="nfc_pin_memorization_pin_label">Your PIN:</string>
+    <string name="nfc_pin_memorization_button">I did memorize it!</string>
 </resources>

@@ -1,6 +1,7 @@
 package br.com.ticpass.pos.sdk
 
 import android.content.Context
+import br.com.ticpass.pos.sdk.factory.AcquirerNFCProvider
 import br.com.ticpass.pos.sdk.factory.AcquirerPrintingProvider
 import br.com.ticpass.pos.sdk.factory.AcquirerRefundProvider
 import br.com.ticpass.pos.sdk.factory.CustomerReceiptProvider
@@ -13,8 +14,6 @@ import br.com.ticpass.pos.sdk.printing.BasePrintingProvider
 import br.com.ticpass.pos.sdk.printing.PrintingProvider
 import br.com.ticpass.pos.sdk.refund.BaseRefundProvider
 import br.com.ticpass.pos.sdk.refund.RefundProvider
-import stone.database.transaction.TransactionObject
-import stone.user.UserModel
 
 /**
  * Central access point for acquirer SDK instances
@@ -37,7 +36,7 @@ object AcquirerSdk {
     /**
      * Stone NFC provider instance
      */
-    val nfc: BaseNFCProvider<UserModel>
+    val nfc: BaseNFCProvider<AcquirerNFCProvider>
         get() = NFCProvider
 
     /**

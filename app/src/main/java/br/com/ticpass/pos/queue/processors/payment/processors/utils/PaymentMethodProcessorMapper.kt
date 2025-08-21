@@ -24,7 +24,7 @@ object PaymentMethodProcessorMapper {
     /**
      * Get the appropriate processor type for a payment method
      * @param method The payment method
-     * @return The corresponding processor type, or ACQUIRER if not found
+     * @return The corresponding processor type, or READ if not found
      */
     fun getProcessorTypeForMethod(
         method: SystemPaymentMethod,

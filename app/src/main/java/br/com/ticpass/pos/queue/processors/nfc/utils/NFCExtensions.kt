@@ -1,0 +1,67 @@
+package br.com.ticpass.pos.queue.processors.nfc.utils
+
+import br.com.ticpass.pos.queue.core.QueueItemStatus
+import br.com.ticpass.pos.queue.processors.nfc.models.NFCBruteForce
+import br.com.ticpass.pos.queue.processors.nfc.models.NFCQueueEntity
+import br.com.ticpass.pos.queue.processors.nfc.models.NFCQueueItem
+import br.com.ticpass.pos.queue.processors.nfc.processors.models.NFCProcessorType
+import kotlinx.serialization.json.Json
+
+/**
+ * Extension functions for converting between NFCQueueEntity and NFCQueueItem
+ */
+
+/**
+ * Convert NFCQueueItem to NFCQueueEntity
+ */
+fun NFCQueueItem.toEntity(): NFCQueueEntity {
+    return when (this) {
+        is NFCQueueItem.CustomerAuthOperation -> NFCQueueEntity(
+            id = id,
+            priority = priority,
+            status = status.toString(),
+            processorType = NFCProcessorType.CUSTOMER_AUTH,
+        )
+        is NFCQueueItem.TagFormatOperation -> NFCQueueEntity(
+            id = id,
+            priority = priority,
+            status = status.toString(),
+            processorType = NFCProcessorType.TAG_FORMAT,
+            bruteForce = bruteForce,
+        )
+        is NFCQueueItem.CustomerSetupOperation -> NFCQueueEntity(
+            id = id,
+            priority = priority,
+            status = status.toString(),
+            processorType = NFCProcessorType.CUSTOMER_SETUP,
+            timeout = timeout
+        )
+    }
+}
+
+/**
+ * Convert NFCQueueEntity to NFCQueueItem
+ */
+fun NFCQueueEntity.toQueueItem(): NFCQueueItem {
+    val queueStatus = QueueItemStatus.valueOf(status.uppercase())
+    
+    return when (processorType) {
+        NFCProcessorType.CUSTOMER_AUTH -> NFCQueueItem.CustomerAuthOperation(
+            id = id,
+            priority = priority,
+            status = queueStatus,
+        )
+        NFCProcessorType.TAG_FORMAT -> NFCQueueItem.TagFormatOperation(
+            id = id,
+            priority = priority,
+            status = queueStatus,
+            bruteForce = bruteForce ?: NFCBruteForce.MOST_LIKELY,
+        )
+        NFCProcessorType.CUSTOMER_SETUP -> NFCQueueItem.CustomerSetupOperation(
+            id = id,
+            priority = priority,
+            status = queueStatus,
+            timeout = timeout ?: 30000L
+        )
+    }
+}

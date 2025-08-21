@@ -2,13 +2,14 @@ package br.com.ticpass.pos.sdk.nfc
 
 import android.content.Context
 import br.com.ticpass.pos.sdk.SdkInstance
-import stone.user.UserModel
+import br.com.ticpass.pos.sdk.factory.AcquirerNFCProvider
+import br.com.ticpass.pos.sdk.factory.AcquirerNFCProviderFactory
 
 /**
  * Stone-specific implementation of NFCProvider
  * This file overrides the base implementation by providing a Stone-specific provider
  */
-object NFCProvider : BaseNFCProvider<UserModel> {
+object NFCProvider : BaseNFCProvider<AcquirerNFCProvider> {
     private var initialized = false
     
     override fun isInitialized(): Boolean = initialized
@@ -21,11 +22,12 @@ object NFCProvider : BaseNFCProvider<UserModel> {
         }
     }
     
-    override fun getInstance(): UserModel {
+    override fun getInstance(): AcquirerNFCProvider {
         if (!isInitialized()) {
             throw IllegalStateException("NFC provider not initialized. Call initialize() first.")
         }
-        val (userModel) =  SdkInstance.getInstance()
-        return userModel
+        val (_, context) =  SdkInstance.getInstance()
+        val acquirerNFCFactory = AcquirerNFCProviderFactory(context)
+        return acquirerNFCFactory.create()
     }
 }

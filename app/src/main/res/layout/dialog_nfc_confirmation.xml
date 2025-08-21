@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- NFC Information Header -->
+    <TextView
+        android:id="@+id/text_nfc_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/next_nfc_progress"
+        android:textSize="16sp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- NFC Method Field -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/nfc_method"
+        android:textStyle="bold" />
+
+    <Spinner
+        android:id="@+id/spinner_nfc_method"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Processor type is automatically selected based on nfc method -->
+
+    <!-- Note about editing -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/edit_nfc_note"
+        android:textStyle="italic"
+        android:textSize="12sp"
+        android:layout_marginTop="8dp" />
+        
+    <!-- Timeout Countdown View -->
+    <br.com.ticpass.pos.nfc.view.TimeoutCountdownView
+        android:id="@+id/timeout_countdown_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp" />
+
+</LinearLayout>

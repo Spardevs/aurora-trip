@@ -43,4 +43,39 @@ sealed class UserInputRequest {
         override val id: String = UUID.randomUUID().toString(),
         override val timeoutMs: Long = 5_000L, // 5 seconds default timeout
     ) : UserInputRequest()
+
+    /**
+     * Request to confirm NFC keys
+     */
+    data class CONFIRM_NFC_KEYS(
+        override val id: String = UUID.randomUUID().toString(),
+        override val timeoutMs: Long = 5_000L, // 5 seconds default timeout
+    ) : UserInputRequest()
+
+    /**
+     * Request to confirm NFC tag authentication with a PIN
+     * @param pin The PIN to be used for NFC tag authentication
+     */
+    data class CONFIRM_NFC_TAG_AUTH(
+        override val id: String = UUID.randomUUID().toString(),
+        override val timeoutMs: Long = 30_000L, // 30 seconds default timeout
+        val pin: String
+    ) : UserInputRequest()
+
+    /**
+     * Request to confirm NFC tag customer data
+     */
+    data class CONFIRM_NFC_TAG_CUSTOMER_DATA(
+        override val id: String = UUID.randomUUID().toString(),
+        override val timeoutMs: Long = 300_000L, // 300 seconds default timeout
+    ) : UserInputRequest()
+
+    /**
+     * Request to customer confirm they've saved the NFC tag PIN
+     */
+    data class CONFIRM_NFC_TAG_CUSTOMER_SAVE_PIN(
+        override val id: String = UUID.randomUUID().toString(),
+        override val timeoutMs: Long = 90_000L, // 90 seconds default timeout
+        val pin: String
+    ) : UserInputRequest()
 }

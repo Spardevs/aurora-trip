@@ -96,7 +96,7 @@ class RootInstaller @Inject constructor(
             val sessionId = sessionIdMatcher.group(1)?.toInt()
             if (Shell.getShell().isRoot && sessionId != null) {
                 for (file in getFiles(packageName, versionCode, sharedLibPkgName)) {
-                    Shell.cmd("cat \"${file.absoluteFile}\" | pm install-write -S ${file.length()} $sessionId \"${file.name}\"")
+                    Shell.cmd("cat \"${file.absoluteFile}\" | pm install-WRITE -S ${file.length()} $sessionId \"${file.name}\"")
                         .exec()
                 }
 

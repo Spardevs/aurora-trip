@@ -66,6 +66,8 @@ android {
         buildConfigField("String", "PACKAGE_CLOUD_READ_TOKEN", "\"" + AppConfig.packageCloudReadToken + "\"")
         buildConfigField("String", "CONVERSION_FACTOR", "\"" + AppConfig.conversionFactor + "\"")
         buildConfigField("String", "APP_NAME", "\"${AppConfig.appName}\"")
+        buildConfigField("String", "NFC_KEY_TYPE_A", "\"${AppConfig.nfcKeyTypeA}\"")
+        buildConfigField("String", "NFC_KEY_TYPE_B", "\"${AppConfig.nfcKeyTypeB}\"")
 
         missingDimensionStrategy("device", "vanilla")
         javaCompileOptions {

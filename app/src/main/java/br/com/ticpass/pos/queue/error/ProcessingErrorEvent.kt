@@ -8,9 +8,61 @@ import br.com.ticpass.pos.queue.core.BaseProcessingEvent
 sealed class ProcessingErrorEvent : BaseProcessingEvent {
 
     /**
+     * NFC tag not found.
+     */
+    object NFC_TAG_NOT_FOUND : ProcessingErrorEvent()
+
+    /**
+     * Error reading NFC tag customer data.
+     */
+    object NFC_READING_TAG_CUSTOMER_DATA_ERROR : ProcessingErrorEvent()
+
+    /**
+     * Error processing NFC tag customer data.
+     */
+    object NFC_PROCESSING_TAG_CUSTOMER_DATA_ERROR : ProcessingErrorEvent()
+
+    /**
+     * NFC tag customer PIN incorrect.
+     */
+    object NFC_TAG_CUSTOMER_PIN_INCORRECT : ProcessingErrorEvent()
+
+    /**
      * Merchant invalid PIX key.
      */
     object INVALID_PIX_KEY : ProcessingErrorEvent()
+
+    /**
+     * NFC tag invalid keys.
+     */
+    object NFC_TAG_INVALID_KEYS : ProcessingErrorEvent()
+
+    /**
+     * NFC missing keys.
+     */
+    object NFC_TAG_MISSING_KEYS : ProcessingErrorEvent()
+
+    /**
+     * NFC tag invalid key length.
+     * Check if the key length is correct.
+     */
+    object NFC_TAG_INVALID_KEY_LENGTH : ProcessingErrorEvent()
+
+    /**
+     * NFC write error.
+     * Check if the tag is writable and try again.
+     */
+    object NFC_WRITE_ERROR : ProcessingErrorEvent()
+
+    /**
+     * NFC read error.
+     */
+    object NFC_READ_ERROR : ProcessingErrorEvent()
+
+    /**
+     * NFC tag invalid key format.
+     */
+    object NFC_TAG_INVALID_KEY_FORMAT : ProcessingErrorEvent()
 
     /**
      * Processor not found.
@@ -381,6 +433,16 @@ sealed class ProcessingErrorEvent : BaseProcessingEvent {
      * Use chip instead of contactless.
      */
     object CARD_REACH_NOT_ALLOWED : ProcessingErrorEvent()
+
+    /**
+     * NFC tag reach timed out.
+     */
+    object NFC_TAG_REACH_TIMEOUT : ProcessingErrorEvent()
+
+    /**
+     * NFC unsupported card model.
+     */
+    object NFC_UNSUPPORTED_TAG_MODEL : ProcessingErrorEvent()
 
     /**
      * Card not accepted.

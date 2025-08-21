@@ -180,7 +180,7 @@ class ExportWorker @AssistedInject constructor(
     /**
      * Bundles all the given APKs to a zip file
      * @param fileList List of APKs to add to the zip
-     * @param uri [Uri] of the file to write the APKs
+     * @param uri [Uri] of the file to WRITE the APKs
      */
     private fun bundleAllAPKs(fileList: List<File>, uri: Uri) {
         ZipOutputStream(context.contentResolver.openOutputStream(uri)).use { zipOutput ->

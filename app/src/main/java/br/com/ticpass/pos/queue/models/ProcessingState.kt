@@ -37,7 +37,10 @@ sealed class ProcessingState<T : QueueItem> {
     /**
      * An item has been successfully processed
      */
-    class ItemDone<T : QueueItem>(val item: T) : ProcessingState<T>()
+    class ItemDone<T : QueueItem>(
+        val item: T, 
+        val result: ProcessingResult.Success
+    ) : ProcessingState<T>()
 
     /**
      * An item has been aborted and will not be processed for now

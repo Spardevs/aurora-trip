@@ -3,6 +3,8 @@
     <!-- Error strings for missing ProcessingErrorEvent types -->
     <string name="error_remove_card_before_proceeding">Remove card before proceeding.</string>
     <string name="error_card_reach_not_allowed">Card reaching is not allowed, use chip instead. </string>
+    <string name="error_nfc_tag_reach_timeout">NFC tag reaching timed out. </string>
+    <string name="error_nfc_unsupported_tag_model">Unsupported NFC tag model.</string>
     <string name="error_processor_not_found">Processor not found!</string>
     <string name="error_invalid_transaction_buffer">Invalid buffer!</string>
     <string name="error_invalid_card_use_another">Card not accepted!</string>
@@ -21,6 +23,10 @@
     <string name="error_invalid_transaction_perform_cash">Use cash instead!</string>
     <string name="error_confirming_transaction">Confirm error!</string>
     <string name="error_response_tlv_size">TLV size error!</string>
+    <string name="error_nfc_reading_tag_customer_data">Error reading customer data from NFC tag.</string>
+    <string name="error_nfc_tag_not_found">NFC tag not found.</string>
+    <string name="error_nfc_processing_tag_customer_data">Error processing customer data from NFC tag.</string>
+    <string name="error_nfc_tag_customer_pin_incorrect">Incorrect PIN on NFC tag.</string>
     <string name="error_invalid_masterdebit_transaction">Use debit, not credit.</string>
     <string name="error_invalid_transaction_generic">Invalid transaction.</string>
     <string name="error_attempts_exceeded">Attempts exceeded, try again later.</string>
@@ -223,6 +229,12 @@
     <string name="error_sdk_print_unavailable">SDK unavailable.</string>
     <string name="error_invalid_file">Invalid file.</string>
     <string name="error_invalid_pix_key">Invalid PIX key.</string>
+    <string name="error_nfc_tag_missing_keys">NFC tag missing keys.</string>
+    <string name="error_nfc_tag_invalid_keys">NFC tag keys invalid.</string>
+    <string name="error_nfc_tag_invalid_key_format">NFC tag key format invalid.</string>
+    <string name="error_nfc_tag_invalid_key_length">NFC tag key length invalid.</string>
+    <string name="error_nfc_write_error">NFC write error.</string>
+    <string name="error_nfc_read_error">NFC read error.</string>
     <string name="error_image_processing_failed">Image processing failed.</string>
     
     <!-- Additional error strings for new ProcessingErrorEvent objects -->

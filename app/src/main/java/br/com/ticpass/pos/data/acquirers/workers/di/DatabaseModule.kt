@@ -17,6 +17,7 @@ import br.com.ticpass.pos.data.room.dao.RefundDao
 import br.com.ticpass.pos.data.room.dao.CashierDao
 import br.com.ticpass.pos.data.room.dao.VoucherDao
 import br.com.ticpass.pos.data.room.dao.VoucherRedemptionDao
+import br.com.ticpass.pos.queue.processors.nfc.data.NFCQueueDao
 import br.com.ticpass.pos.queue.processors.payment.data.PaymentProcessingQueueDao
 import br.com.ticpass.pos.queue.processors.printing.data.PrintingQueueDao
 import br.com.ticpass.pos.queue.processors.refund.data.RefundQueueDao
@@ -126,6 +127,11 @@ class DatabaseModule {
     @Provides
     fun provideRefundQueueDao(appDatabase: AppDatabase): RefundQueueDao {
         return appDatabase.refundQueueDao()
+    }
+
+    @Provides
+    fun provideNFCQueueDao(appDatabase: AppDatabase): NFCQueueDao {
+        return appDatabase.nfcQueueDao()
     }
 }
 

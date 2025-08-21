@@ -4,14 +4,6 @@ package br.com.ticpass.pos.data.api
 import android.util.Log
 import br.com.ticpass.Constants.API_HOST
 import br.com.ticpass.Constants.API_TIMEOUT_SECONDS
-import br.com.ticpass.pos.data.api.APITestResponse
-import br.com.ticpass.pos.data.api.GetEventProductsResponse
-import br.com.ticpass.pos.data.api.GetEventsResponse
-import br.com.ticpass.pos.data.api.GetMembershipResponse
-import br.com.ticpass.pos.data.api.GetPosListResponse
-import br.com.ticpass.pos.data.api.PatchPingDeviceResponse
-import br.com.ticpass.pos.data.api.PatchPosResponse
-import br.com.ticpass.pos.data.api.SyncPosResponse
 import com.google.gson.annotations.SerializedName
 import okhttp3.OkHttpClient
 import okhttp3.ResponseBody

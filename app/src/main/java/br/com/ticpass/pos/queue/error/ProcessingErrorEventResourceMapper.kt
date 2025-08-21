@@ -17,6 +17,8 @@ object ProcessingErrorEventResourceMapper {
         return when (error) {
             is ProcessingErrorEvent.REMOVE_CARD_BEFORE_PROCEEDING -> R.string.error_remove_card_before_proceeding
             is ProcessingErrorEvent.CARD_REACH_NOT_ALLOWED -> R.string.error_card_reach_not_allowed
+            is ProcessingErrorEvent.NFC_TAG_REACH_TIMEOUT -> R.string.error_nfc_tag_reach_timeout
+            is ProcessingErrorEvent.NFC_UNSUPPORTED_TAG_MODEL -> R.string.error_nfc_unsupported_tag_model
             is ProcessingErrorEvent.PROCESSOR_NOT_FOUND -> R.string.error_processor_not_found
             is ProcessingErrorEvent.INVALID_TRANSACTION_BUFFER -> R.string.error_invalid_transaction_buffer
             is ProcessingErrorEvent.INVALID_CARD_USE_ANOTHER -> R.string.error_invalid_card_use_another
@@ -34,7 +36,17 @@ object ProcessingErrorEventResourceMapper {
             is ProcessingErrorEvent.INVALID_TRANSACTION_PERFORM_CASH -> R.string.error_invalid_transaction_perform_cash
             is ProcessingErrorEvent.ERROR_CONFIRMING_TRANSACTION -> R.string.error_confirming_transaction
             is ProcessingErrorEvent.RESPONSE_TLV_SIZE -> R.string.error_response_tlv_size
+            is ProcessingErrorEvent.NFC_READING_TAG_CUSTOMER_DATA_ERROR -> R.string.error_nfc_reading_tag_customer_data
+            is ProcessingErrorEvent.NFC_TAG_NOT_FOUND -> R.string.error_nfc_tag_not_found
+            is ProcessingErrorEvent.NFC_PROCESSING_TAG_CUSTOMER_DATA_ERROR -> R.string.error_nfc_processing_tag_customer_data
+            is ProcessingErrorEvent.NFC_TAG_CUSTOMER_PIN_INCORRECT -> R.string.error_nfc_tag_customer_pin_incorrect
             is ProcessingErrorEvent.INVALID_PIX_KEY -> R.string.error_invalid_pix_key
+            is ProcessingErrorEvent.NFC_TAG_MISSING_KEYS -> R.string.error_nfc_tag_missing_keys
+            is ProcessingErrorEvent.NFC_TAG_INVALID_KEYS -> R.string.error_nfc_tag_invalid_keys
+            is ProcessingErrorEvent.NFC_TAG_INVALID_KEY_FORMAT -> R.string.error_nfc_tag_invalid_key_format
+            is ProcessingErrorEvent.NFC_TAG_INVALID_KEY_LENGTH -> R.string.error_nfc_tag_invalid_key_length
+            is ProcessingErrorEvent.NFC_WRITE_ERROR -> R.string.error_nfc_write_error
+            is ProcessingErrorEvent.NFC_READ_ERROR -> R.string.error_nfc_read_error
             is ProcessingErrorEvent.INVALID_FILE -> R.string.error_invalid_file
             is ProcessingErrorEvent.ATTEMPTS_EXCEEDED -> R.string.error_attempts_exceeded
             is ProcessingErrorEvent.INSTALLMENT_NOT_ALLOWED -> R.string.error_installment_not_allowed

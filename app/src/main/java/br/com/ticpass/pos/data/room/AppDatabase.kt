@@ -44,6 +44,8 @@ import br.com.ticpass.pos.data.room.dao.VoucherExchangeProductDao
 import br.com.ticpass.pos.data.room.entity.VoucherExchangeProductEntity
 import br.com.ticpass.pos.data.room.dao.VoucherRedemptionDao
 import br.com.ticpass.pos.data.room.entity.VoucherRedemptionEntity
+import br.com.ticpass.pos.queue.processors.nfc.data.NFCQueueDao
+import br.com.ticpass.pos.queue.processors.nfc.models.NFCQueueEntity
 import br.com.ticpass.pos.queue.processors.payment.data.PaymentProcessingQueueDao
 import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEntity
 import br.com.ticpass.pos.queue.processors.printing.data.PrintingQueueDao
@@ -89,8 +91,9 @@ import java.io.File
         PaymentProcessingEntity::class,
         PrintingEntity::class,
         RefundQueueEntity::class,
+        NFCQueueEntity::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = true,
     autoMigrations = [
         AutoMigration (from = 1, to = 2),
@@ -102,6 +105,7 @@ import java.io.File
         AutoMigration (from = 7, to = 8),
         AutoMigration (from = 8, to = 9),
         AutoMigration (from = 9, to = 10),
+        AutoMigration (from = 10, to = 11),
     ]
 )
     @TypeConverters()
@@ -125,6 +129,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun processingPaymentQueueDao(): PaymentProcessingQueueDao
     abstract fun printingQueueDao(): PrintingQueueDao
     abstract fun refundQueueDao(): RefundQueueDao
+    abstract fun nfcQueueDao(): NFCQueueDao
 
     override fun clearAllTables() {
         val database = Room.databaseBuilder(MainActivity.appContext, AppDatabase::class.java, MAIN_DATABASE_NAME)

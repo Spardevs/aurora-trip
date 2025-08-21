@@ -35,6 +35,8 @@ object Constants {
     val MAX_DUE_PAYMENTS_DAYS = BuildConfig.MAX_DUE_PAYMENTS_DAYS.toLong()
     val CONVERSION_FACTOR = BuildConfig.CONVERSION_FACTOR.toLong()
     const val APP_NAME = BuildConfig.APP_NAME
+    const val NFC_KEY_TYPE_A = BuildConfig.NFC_KEY_TYPE_A
+    const val NFC_KEY_TYPE_B = BuildConfig.NFC_KEY_TYPE_B
 
     const val PARCEL_DOWNLOAD = "PARCEL_DOWNLOAD"
 

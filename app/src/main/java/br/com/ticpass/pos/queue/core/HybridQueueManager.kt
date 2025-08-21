@@ -193,7 +193,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
                                 }
                             }
                             
-                            if(doneItem != null) _processingState.value = ProcessingState.ItemDone(doneItem)
+                            if(doneItem != null) _processingState.value = ProcessingState.ItemDone(doneItem, result)
                         }
                         
                         is ProcessingResult.Error -> {

@@ -33,6 +33,9 @@ object AppConfig {
     val qrCodeAuthProviderId by required("STONE_QRCODE_PROVIDER_ID")
     val passReprintingMaxRetries by required("PASS_REPRINTING_MAX_RETRIES")
 
+    val nfcKeyTypeA by required("NFC_KEY_TYPE_A")
+    val nfcKeyTypeB by required("NFC_KEY_TYPE_B")
+
     val releaseStoreFile by required("RELEASE_STORE_FILE")
     val releaseStorePassword by required("RELEASE_STORE_PASSWORD")
     val releaseKeyAlias by required("RELEASE_KEY_ALIAS")

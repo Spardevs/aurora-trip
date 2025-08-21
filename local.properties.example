@@ -1,4 +1,17 @@
 # SDK location - standard Android properties
+API_MAX_RETRIES=3
+API_TIMEOUT_SECONDS=30
+
+# NFC Configuration
+NFC_KEY_TYPE_A=your_nfc_key_type_a
+NFC_KEY_TYPE_B=your_nfc_key_type_a
+
+# Sync Intervals (in milliseconds)
+API_TELEMETRY_INTERVAL=3600000
+API_EVENT_SYNC_INTERVAL=1800000
+API_CHECK_DUE_PAYMENTS_INTERVAL=86400000
+API_ALERT_DUE_PAYMENTS_INTERVAL=43200000
+API_POS_SYNC_INTERVAL=3600000
 sdk.dir=/path/to/your/android/sdk
 
 # App Configuration Properties
@@ -8,6 +21,10 @@ APP_NAME=Aurora Trip
 API_HOST=https://api.example.com
 API_MAX_RETRIES=3
 API_TIMEOUT_SECONDS=30
+
+# NFC Configuration
+NFC_KEY_TYPE_A=your_nfc_key_type_a
+NFC_KEY_TYPE_B=your_nfc_key_type_a
 
 # Sync Intervals (in milliseconds)
 API_TELEMETRY_INTERVAL=3600000
