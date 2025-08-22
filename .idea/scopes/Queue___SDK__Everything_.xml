@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="Queue + SDK (Everything)" pattern="file[Ticpass.app.main]:java/br/com/ticpass/pos/queue//*||file[Ticpass.app.main]:java/br/com/ticpass/pos/sdk//*||file[Ticpass.app.stone]:java/br/com/ticpass/pos/sdk//*||file[Ticpass.app.pagseguro]:java/br/com/ticpass/pos/sdk//*" />
+</component>

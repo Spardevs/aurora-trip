@@ -17,17 +17,58 @@ sealed class PaymentProcessingEvent : BaseProcessingEvent {
     
     // Card interaction events
     object CARD_REACH_OR_INSERT : PaymentProcessingEvent()
+    object CARD_INSERTED : PaymentProcessingEvent()
+    object CARD_REMOVAL_REQUESTING : PaymentProcessingEvent()
+    object CARD_REMOVAL_SUCCEEDED : PaymentProcessingEvent()
+    object USE_CHIP : PaymentProcessingEvent()
+    object USE_MAGNETIC_STRIPE : PaymentProcessingEvent()
+    object SWIPE_CARD_REQUESTED : PaymentProcessingEvent()
+    
+    // PIN and authentication events
     object PIN_REQUESTED : PaymentProcessingEvent()
+    object PIN_DIGIT_INPUT : PaymentProcessingEvent()
+    object PIN_DIGIT_REMOVED : PaymentProcessingEvent()
+    object PIN_OK : PaymentProcessingEvent()
+    
+    // Card validation events
+    object CARD_BIN_REQUESTED : PaymentProcessingEvent()
+    object CARD_BIN_OK : PaymentProcessingEvent()
+    object CARD_HOLDER_REQUESTED : PaymentProcessingEvent()
+    object CARD_HOLDER_OK : PaymentProcessingEvent()
+    object CVV_REQUESTED : PaymentProcessingEvent()
+    object CVV_OK : PaymentProcessingEvent()
     
     // Transaction processing events
     object TRANSACTION_PROCESSING : PaymentProcessingEvent()
+    object AUTHORIZING : PaymentProcessingEvent()
     object APPROVAL_SUCCEEDED : PaymentProcessingEvent()
     object APPROVAL_DECLINED : PaymentProcessingEvent()
+    object PARTIALLY_APPROVED : PaymentProcessingEvent()
+    object APPROVED_UPDATE_TRACK_3 : PaymentProcessingEvent()
+    object APPROVED_VIP : PaymentProcessingEvent()
     
-    // Receipt printing events
-    object PRINTING_RECEIPT : PaymentProcessingEvent()
+    // Contactless events
+    object CONTACTLESS_ON_DEVICE : PaymentProcessingEvent()
+    object CONTACTLESS_ERROR : PaymentProcessingEvent()
     
-    // Error events
+    // System events
+    object DOWNLOADING_TABLES : PaymentProcessingEvent()
+    object SAVING_TABLES : PaymentProcessingEvent()
+    object KEY_INSERTED : PaymentProcessingEvent()
+    object ACTIVATION_SUCCEEDED : PaymentProcessingEvent()
+    object SOLVING_PENDING_ISSUES : PaymentProcessingEvent()
+    object REVERSING_TRANSACTION_WITH_ERROR : PaymentProcessingEvent()
+    object SELECT_PAYMENT_METHOD : PaymentProcessingEvent()
+    object SWITCH_INTERFACE : PaymentProcessingEvent()
+    object REQUEST_IN_PROGRESS : PaymentProcessingEvent()
+    
+    // QR Code events
+    data class QRCODE_SCAN(
+        val qrCode: Bitmap,
+        val timeoutMs: Long = 30000L
+    ) : PaymentProcessingEvent()
+    
+    // Generic events
     object GENERIC_ERROR : PaymentProcessingEvent()
     object GENERIC_SUCCESS : PaymentProcessingEvent()
 }
@@ -89,6 +130,36 @@ object PIN_REQUESTED : PaymentProcessingEvent()
 **When emitted**: During debit card processing when PIN is required
 **UI Action**: Show "Please enter your PIN" message
 
+#### PIN_DIGIT_INPUT
+Emitted when user inputs a PIN digit.
+
+```kotlin
+object PIN_DIGIT_INPUT : PaymentProcessingEvent()
+```
+
+**When emitted**: Each time user presses a digit during PIN entry
+**UI Action**: Update PIN display (show asterisks)
+
+#### PIN_DIGIT_REMOVED
+Emitted when user removes a PIN digit.
+
+```kotlin
+object PIN_DIGIT_REMOVED : PaymentProcessingEvent()
+```
+
+**When emitted**: When user presses backspace during PIN entry
+**UI Action**: Remove last asterisk from PIN display
+
+#### PIN_OK
+Emitted when PIN is successfully validated.
+
+```kotlin
+object PIN_OK : PaymentProcessingEvent()
+```
+
+**When emitted**: After PIN validation succeeds
+**UI Action**: Hide PIN entry interface, show processing state
+
 ### Transaction Processing Events
 
 #### TRANSACTION_PROCESSING
@@ -121,17 +192,20 @@ object APPROVAL_DECLINED : PaymentProcessingEvent()
 **When emitted**: When acquirer declines the transaction
 **UI Action**: Show error animation, "Payment declined" message
 
-### Receipt Printing Events
+### QR Code Events
 
-#### PRINTING_RECEIPT
-Emitted when receipt printing is in progress.
+#### QRCODE_SCAN
+Emitted when QR code scanning is required (typically for PIX payments).
 
 ```kotlin
-object PRINTING_RECEIPT : PaymentProcessingEvent()
+data class QRCODE_SCAN(
+    val qrCode: Bitmap,
+    val timeoutMs: Long = 30000L
+) : PaymentProcessingEvent()
 ```
 
-**When emitted**: During customer or merchant receipt printing
-**UI Action**: Show "Printing receipt..." message
+**When emitted**: During PIX payment processing when QR code needs to be displayed
+**UI Action**: Show QR code dialog with the provided bitmap and countdown timer
 
 ### Error Events
 
@@ -157,17 +231,33 @@ object GENERIC_SUCCESS : PaymentProcessingEvent()
 
 ## Event Flow Examples
 
-### Successful Credit Card Payment
+### Successful Credit Card Payment (Chip)
 ```
 START
 ↓
 CARD_REACH_OR_INSERT
 ↓
+USE_CHIP
+↓
+CARD_INSERTED
+↓
+CARD_BIN_REQUESTED
+↓
+CARD_BIN_OK
+↓
+CARD_HOLDER_REQUESTED
+↓
+CARD_HOLDER_OK
+↓
 TRANSACTION_PROCESSING
+↓
+AUTHORIZING
 ↓
 APPROVAL_SUCCEEDED
 ↓
-PRINTING_RECEIPT (if receipt requested)
+CARD_REMOVAL_REQUESTING
+↓
+CARD_REMOVAL_SUCCEEDED
 ↓
 TRANSACTION_DONE
 ```
@@ -178,13 +268,59 @@ START
 ↓
 CARD_REACH_OR_INSERT
 ↓
+USE_CHIP
+↓
+CARD_INSERTED
+↓
+CARD_BIN_REQUESTED
+↓
+CARD_BIN_OK
+↓
 PIN_REQUESTED
+↓
+PIN_DIGIT_INPUT (multiple times)
+↓
+PIN_OK
+↓
+TRANSACTION_PROCESSING
+↓
+AUTHORIZING
+↓
+APPROVAL_SUCCEEDED
+↓
+CARD_REMOVAL_REQUESTING
+↓
+CARD_REMOVAL_SUCCEEDED
+↓
+TRANSACTION_DONE
+```
+
+### PIX Payment with QR Code
+```
+START
+↓
+QRCODE_SCAN (with QR bitmap)
 ↓
 TRANSACTION_PROCESSING
 ↓
 APPROVAL_SUCCEEDED
 ↓
-PRINTING_RECEIPT (if receipt requested)
+TRANSACTION_DONE
+```
+
+### Contactless Payment
+```
+START
+↓
+CARD_REACH_OR_INSERT
+↓
+CONTACTLESS_ON_DEVICE
+↓
+TRANSACTION_PROCESSING
+↓
+AUTHORIZING
+↓
+APPROVAL_SUCCEEDED
 ↓
 TRANSACTION_DONE
 ```
@@ -195,9 +331,19 @@ START
 ↓
 CARD_REACH_OR_INSERT
 ↓
+USE_CHIP
+↓
+CARD_INSERTED
+↓
 TRANSACTION_PROCESSING
 ↓
+AUTHORIZING
+↓
 APPROVAL_DECLINED
+↓
+CARD_REMOVAL_REQUESTING
+↓
+CARD_REMOVAL_SUCCEEDED
 ↓
 TRANSACTION_DONE
 ```

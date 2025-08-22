@@ -33,6 +33,7 @@ proguard/
 .DS_Store
 /captures
 /.idea
+!/.idea/scopes
 /.gradle*
 gradle-app.setting
 *.zip

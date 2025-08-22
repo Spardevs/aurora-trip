@@ -27,6 +27,7 @@ graph LR
         AcquirerProvider --> BasePaymentProvider
         AcquirerProvider --> BasePrintingProvider
         AcquirerProvider --> BaseNFCProvider
+        AcquirerProvider --> BaseRefundProvider
     end
     
     %% Build system and flavor-specific implementations
@@ -39,11 +40,13 @@ graph LR
             PaymentProviderPag[PaymentProvider]
             PrintingProviderPag[PrintingProvider]
             NFCProviderPag[NFCProvider]
+            RefundProviderPag[RefundProvider]
             
             SdkInstancePag -- "Singleton" --> PlugPag
             PaymentProviderPag -- "uses" --> SdkInstancePag
             PrintingProviderPag -- "uses" --> SdkInstancePag
             NFCProviderPag -- "uses" --> SdkInstancePag
+            RefundProviderPag -- "uses" --> SdkInstancePag
         end
         
         subgraph "Stone"
@@ -52,11 +55,13 @@ graph LR
             PaymentProviderStn[PaymentProvider]
             PrintingProviderStn[PrintingProvider]
             NFCProviderStn[NFCProvider]
+            RefundProviderStn[RefundProvider]
             
             SdkInstanceStn -- "Singleton" --> UserModel
             PaymentProviderStn -- "uses" --> SdkInstanceStn
             PrintingProviderStn -- "uses" --> SdkInstanceStn
             NFCProviderStn -- "uses" --> SdkInstanceStn
+            RefundProviderStn -- "uses" --> SdkInstanceStn
         end
         
         subgraph "Acquirer_n"
@@ -65,11 +70,13 @@ graph LR
             PaymentProviderN[PaymentProvider]
             PrintingProviderN[PrintingProvider]
             NFCProviderN[NFCProvider]
+            RefundProviderN[RefundProvider]
             
             SdkInstanceN -- "Singleton" --> SDK_n
             PaymentProviderN -- "uses" --> SdkInstanceN
             PrintingProviderN -- "uses" --> SdkInstanceN
             NFCProviderN -- "uses" --> SdkInstanceN
+            RefundProviderN -- "uses" --> SdkInstanceN
         end
         
         BuildFlavor --> PagSeguro
@@ -81,14 +88,17 @@ graph LR
     BasePaymentProvider --> PaymentProviderPag
     BasePrintingProvider --> PrintingProviderPag
     BaseNFCProvider --> NFCProviderPag
+    BaseRefundProvider --> RefundProviderPag
     
     BasePaymentProvider --> PaymentProviderStn
     BasePrintingProvider --> PrintingProviderStn
     BaseNFCProvider --> NFCProviderStn
+    BaseRefundProvider --> RefundProviderStn
     
     BasePaymentProvider --> PaymentProviderN
     BasePrintingProvider --> PrintingProviderN
     BaseNFCProvider --> NFCProviderN
+    BaseRefundProvider --> RefundProviderN
     
     %% App usage
     subgraph "App Usage"
@@ -123,7 +133,7 @@ graph LR
 
 1. **Interface Layer**:
    - `AcquirerProvider` - Base interface for all provider types
-   - Specific interfaces extend this base: `BasePaymentProvider<T>`, `BasePrintingProvider<T>`, `BaseNFCProvider<T>`
+   - Specific interfaces extend this base: `BasePaymentProvider<T>`, `BasePrintingProvider<T>`, `BaseNFCProvider<T>`, `BaseRefundProvider<T>`
    - Type parameter `<T>` allows flavor-specific SDK type to be enforced
 
 2. **Flavor Implementation**:
@@ -133,7 +143,7 @@ graph LR
 
 3. **Access Layer**:
    - `AcquirerSdk` - Central access point object in each flavor
-   - Exposes properties: `payment`, `printing`, `nfc` to access provider instances
+   - Exposes properties: `payment`, `printing`, `nfc`, `refund` to access provider instances
    - Each property returns a flavor-specific typed instance
 
 4. **SDK Instance Management**:
@@ -142,7 +152,7 @@ graph LR
    - Each flavor provides its own implementation (e.g., PagSeguro → PlugPag, Stone → UserModel)
 
 5. **Provider Objects**:
-   - `PaymentProvider`, `PrintingProvider`, `NFCProvider` - Singleton objects that provide type-safe access
+   - `PaymentProvider`, `PrintingProvider`, `NFCProvider`, `RefundProvider` - Singleton objects that provide type-safe access
    - Each provider maintains its own initialization state
    - All providers delegate to the shared `SdkInstance` for the actual SDK instance
 
@@ -163,20 +173,24 @@ The SDK currently includes the following files:
 - `payment/BasePaymentProvider.kt` - Generic payment provider interface with `getInstance()` method
 - `nfc/BaseNFCProvider.kt` - Generic NFC provider interface with `getInstance()` method  
 - `printing/BasePrintingProvider.kt` - Generic printing provider interface with `getInstance()` method
+- `refund/BaseRefundProvider.kt` - Generic refund provider interface with `getInstance()` method
 
 ### PagSeguro Flavor (`app/src/pagseguro/`)
-- `AcquirerSdk.kt` - Central access object returning `BasePaymentProvider<PlugPag>` instances
+- `AcquirerSdk.kt` - Central access object with typed provider instances
 - `SdkInstance.kt` - Singleton managing PlugPag SDK instance
-- `payment/PaymentProvider.kt` - PagSeguro payment implementation
-- `printing/PrintingProvider.kt` - PagSeguro printing implementation
-- `nfc/NFCProvider.kt` - PagSeguro NFC implementation
+- `payment/PaymentProvider.kt` - PagSeguro payment implementation (`BasePaymentProvider<PlugPag>`)
+- `printing/PrintingProvider.kt` - PagSeguro printing implementation (`BasePrintingProvider<PlugPag>`)
+- `nfc/NFCProvider.kt` - PagSeguro NFC implementation (`BaseNFCProvider<PlugPag>`)
+- `refund/RefundProvider.kt` - PagSeguro refund implementation (`BaseRefundProvider<PlugPag>`)
 
 ### Stone Flavor (`app/src/stone/`)
-- `AcquirerSdk.kt` - Central access object returning `BasePaymentProvider<UserModel>` instances
-- `SdkInstance.kt` - Singleton managing UserModel SDK instance
-- `payment/PaymentProvider.kt` - Stone payment implementation
-- `printing/PrintingProvider.kt` - Stone printing implementation
-- `nfc/NFCProvider.kt` - Stone NFC implementation
+- `AcquirerSdk.kt` - Central access object with typed provider instances
+- `SdkInstance.kt` - Singleton managing Stone SDK instances
+- `factory/` - Stone-specific provider factory classes
+- `payment/PaymentProvider.kt` - Stone payment implementation (`BasePaymentProvider<Pair<TransactionProvider, CustomerReceiptProvider>>`)
+- `printing/PrintingProvider.kt` - Stone printing implementation (`BasePrintingProvider<AcquirerPrintingProvider>`)
+- `nfc/NFCProvider.kt` - Stone NFC implementation (`BaseNFCProvider<AcquirerNFCProvider>`)
+- `refund/RefundProvider.kt` - Stone refund implementation (`BaseRefundProvider<AcquirerRefundProvider>`)
 
 ## Usage
 
@@ -184,20 +198,20 @@ The SDK currently includes the following files:
 // Initialize all providers with application context
 AcquirerSdk.initialize(applicationContext)
 
-// Access a provider - flavor-specific types inferred automatically
+// Access providers - flavor-specific types inferred automatically
 val paymentProvider = AcquirerSdk.payment
+val printingProvider = AcquirerSdk.printing
+val nfcProvider = AcquirerSdk.nfc
+val refundProvider = AcquirerSdk.refund
 
-// Use the provider (implementation automatically selected based on build flavor)
+// Use the providers (implementation automatically selected based on build flavor)
 if (paymentProvider.isInitialized()) {
     // Get the flavor-specific SDK instance
     val sdkInstance = paymentProvider.getInstance()
     
     // Use the flavor-specific SDK features with proper typing
-    // Example for PagSeguro:
-    // sdkInstance.doPlugPagSpecificOperation() 
-    // 
-    // Example for Stone:
-    // sdkInstance.doStoneSpecificOperation()
+    // PagSeguro: sdkInstance is PlugPag
+    // Stone: sdkInstance is Pair<TransactionProvider, CustomerReceiptProvider>
 }
 ```
 

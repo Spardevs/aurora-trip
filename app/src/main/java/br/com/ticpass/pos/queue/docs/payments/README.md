@@ -2,6 +2,8 @@
 
 Payment-specific implementation of the generic queue management system, designed for processing payment transactions with various payment methods and processors.
 
+**Supported Processors**: AcquirerPaymentProcessor (card payments), CashPaymentProcessor, TransactionlessProcessor with multi-acquirer support (PagSeguro, Stone).
+
 ## Quick Start
 
 ```kotlin
@@ -297,10 +299,10 @@ fun observeQueueInputRequests() {
 
 The system supports various payment methods:
 
-- **CREDIT_CARD**: Credit card transactions
-- **DEBIT_CARD**: Debit card transactions  
-- **PIX**: Brazilian instant payment system
-- **CASH**: Cash transactions
+- **CREDIT_CARD**: Credit card transactions via acquirer SDKs
+- **DEBIT_CARD**: Debit card transactions via acquirer SDKs
+- **PIX**: Brazilian instant payment system with QR code generation
+- **CASH**: Cash transactions with manual confirmation
 - **VOUCHER**: Voucher/meal card transactions
 
 ## Error Handling
@@ -316,10 +318,12 @@ All errors are mapped to generic `ProcessingErrorEvent` objects for consistent h
 
 ## Advanced Features
 
-- **Receipt Printing**: Automatic customer and merchant receipt printing
-- **Transaction Logging**: Comprehensive transaction audit trail
+- **Multi-Acquirer Support**: Seamless switching between PagSeguro and Stone SDKs
+- **Receipt Printing**: Automatic customer and merchant receipt printing via print queue
+- **Transaction Logging**: Comprehensive transaction audit trail with ATK/TxID tracking
 - **Multi-Processor Support**: Handle different payment types in a single queue
-- **Retry Logic**: Automatic retry for transient failures
+- **Interactive Processing**: Built-in user input handling for confirmations and PIX operations
+- **Error Recovery**: Comprehensive retry/skip/abort error handling
 - **Timeout Handling**: Configurable timeouts for user interactions
 
 ## Related Documentation

@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="NFC Processor" pattern="file[Ticpass.app.main]:java/br/com/ticpass/pos/queue/processors/nfc//*" />
+</component>

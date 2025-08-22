@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="Queue System Logic" pattern="file[Ticpass.app.main]:java/br/com/ticpass/pos/queue/core//*||file[Ticpass.app.main]:java/br/com/ticpass/pos/queue/models//*||file[Ticpass.app.main]:java/br/com/ticpass/pos/queue/config//*||file[Ticpass.app.main]:java/br/com/ticpass/pos/queue/input//*||file[Ticpass.app.main]:java/br/com/ticpass/pos/queue/error//*" />
+</component>

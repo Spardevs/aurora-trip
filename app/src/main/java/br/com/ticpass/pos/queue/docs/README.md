@@ -2,6 +2,8 @@
 
 A generic, type-safe queue management system that combines in-memory operations with optional persistence strategies.
 
+**Current Implementations**: Payment processing, NFC operations, printing jobs, and refund processing.
+
 ## Quick Start
 
 ```kotlin
@@ -86,7 +88,7 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
 - **Flexible Persistence**: Choose when and how items are persisted
 - **Interactive Processing**: Support for user input during processing
 - **Error Handling**: Comprehensive error handling with retry/skip/abort options
-- **Processor Agnostic**: Works with any queue item type
+- **Processor Agnostic**: Works with any queue item type (payments, NFC, printing, refunds)
 
 ## Configuration Options
 
@@ -146,7 +148,9 @@ sealed class UserInputRequest {
 ## Implementation Examples
 
 - **Payments**: See [Payment Queue Documentation](payments/README.md)
+- **NFC Operations**: See [NFC Queue Documentation](nfc/README.md)
 - **Printing**: See [Print Queue Documentation](printing/README.md)
+- **Refund Processing**: See [Refund Queue Documentation](refund/README.md)
 
 ## Advanced Topics
 

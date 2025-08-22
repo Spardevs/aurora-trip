@@ -1,119 +1,104 @@
-# Ticpass
+# Point of Sale System
 
-Ticpass enables you to search and download apps from the official Google Play store. You can check app descriptions, screenshots, updates, reviews, and download the APK directly from Google Play to your device. 
+A comprehensive Android Point of Sale (POS) system built with modern architecture patterns, supporting multiple payment acquirers, NFC operations, printing, and queue-based processing.
 
-To use Ticpass, you need to have a Google Play account, and log in to your Google Play account when you first open and configure Ticpass.
-(Alternatively Ticpass also allow you to login anonymously)
+## Architecture Overview
 
-Unlike a traditional app store, Ticpass does not own, license or distribute any apps. All the apps, app descriptions, screenshots and other content in Ticpass are directly accessed, downloaded and/or displayed from Google Play. 
+The application is built using:
+- **Multi-flavor architecture** supporting different payment acquirers (PagSeguro, Stone)
+- **Generic queue management system** for processing payments, NFC operations, printing, and refunds
+- **Modular SDK architecture** with flavor-specific implementations
+- **Reactive programming** with Kotlin Flows and Coroutines
+- **Type-safe interfaces** ensuring compile-time safety across flavors
 
-Ticpass works exactly like a door or a browser, allowing you to log in to your Google Play account and find the apps from Google Play. 
 
-*_Please note that Ticpass does not have any approval, sponsorship or authorization from Google, Google Play, any apps downloaded through Ticpass or any app developers; neither does Ticpass have any affiliation, cooperation or connection with them._*
+## Core Features
 
-[<img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" height="90">](https://f-droid.org/packages/br.com.ticpass.pos/)
-[<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="90">](https://apt.izzysoft.de/fdroid/index/apk/br.com.ticpass.pos)
+### Payment Processing
+- **Multi-acquirer support**: PagSeguro and Stone payment processors
+- **Multiple payment methods**: Card transactions, PIX, cash payments
+- **Receipt printing**: Automatic customer and merchant receipt generation
+- **Transaction management**: Queue-based processing with error handling
 
-## Features
+### NFC Operations
+- **MIFARE Classic support**: Complete tag reading and writing capabilities
+- **Comprehensive tag mapping**: Structured data extraction with sector/block details
+- **Key management**: Automatic key fallback (Key A/B) for authentication
+- **Memory analysis**: Total and used memory calculations per sector
 
-- FOSS: Has GPLv3 licence
-- Beautiful design: Built upon latest Material 3 guidelines
-- Account login: You can login with either personal or an anonymous account
-- Device & Locale spoofing: Change your device and/or locale to access geo locked apps
-- [Exodus Privacy](https://exodus-privacy.eu.org/) integration: Instantly see trackers in app
-- [Plexus](https://plexus.techlore.tech/) integration: Instantly see app compatibility without Google Play Services or with microG
-- Updates blacklisting: Ignore updates for specific apps
-- Download manager
-- Manual downloads: allows you to download older version of apps, provided
-  - The APKs are available with Google
-  - You know the version codes for older versions 
+### Queue Management System
+- **Generic processing**: Type-safe queue system for any operation type
+- **Reactive state management**: Real-time processing updates via Kotlin Flows
+- **Persistence strategies**: Configurable immediate or in-memory persistence
+- **Interactive processing**: Built-in user input handling during operations
+- **Error resilience**: Comprehensive retry/skip/abort error handling
 
-## Limitations
+### Printing System
+- **Receipt printing**: Customer and merchant receipt generation
+- **Document printing**: Support for various document types
+- **Queue-based processing**: Reliable print job management
 
-- Underlying API used is reversed engineered from PlayStore, changes on side may break it.
-- Provides only base minimum features
-  - Can not download or update paid apps.
-  - Can not update apps/games with [Play Asset Delivery](https://developer.android.com/guide/playcore/asset-delivery)
-- Multiple in-app features are not available if logged-in as Anonymous.
-  - Library
-  - Purchase History
-  - Editor's Choise
-  - Beta Programs
-  - Review Add/Update
-- Token Dispenser Server is not super reliable, downtimes are expected.  
+### Refund Processing
+- **Transaction reversals**: Complete refund processing system
+- **Error handling**: Proper error management for failed refunds 
 
-## Downloads
+## Technical Architecture
 
-Please only download the latest stable releases from one of these sources:
+### SDK Architecture
+- **Flavor-based implementation**: Build-time selection of payment acquirers
+- **Type-safe providers**: Generic interfaces with flavor-specific implementations
+- **Singleton management**: Shared SDK instances across all providers
+- **Central access point**: `AcquirerSdk` object for unified provider access
 
-- [Official Website](https://auroraoss.com/)
-- [GitLab Releases](https://gitlab.com/AuroraOSS/AuroraStore/-/releases)
-- [IzzyOnDroid](https://apt.izzysoft.de/fdroid/index/apk/br.com.ticpass.pos) (Reproducible Build)
-- [F-Droid](https://f-droid.org/packages/br.com.ticpass.pos/) (Signed by F-Droid, [more details](https://f-droid.org/docs/Signing_Process/))
-- [App Gallery](https://appgallery.huawei.com/app/C110907863) (Limited to certain countries)
+### Queue System
+- **Processor-agnostic design**: Reusable for any processing type
+- **Hybrid persistence**: Fast in-memory operations with optional storage
+- **Interactive workflows**: Built-in support for user input during processing
+- **Comprehensive error handling**: Retry, skip, and abort options
 
-You can also get latest debug builds signed with AOSP test keys for testing latest changes from our [GitLab Package Registry](https://gitlab.com/AuroraOSS/AuroraStore/-/packages/24103616).
+### Current Implementations
+- **Payment Queue**: Card transactions, PIX, cash with receipt printing
+- **NFC Queue**: MIFARE Classic tag operations with comprehensive mapping
+- **Print Queue**: Receipt and document printing management
+- **Refund Queue**: Transaction reversal processing  
 
-## Certificate Fingerprints
+## Documentation
 
-- SHA1: 94:42:75:D7:59:8B:C0:3E:48:85:06:06:42:25:A7:19:90:A2:22:02
-- SHA256: 4C:62:61:57:AD:02:BD:A3:40:1A:72:63:55:5F:68:A7:96:63:FC:3E:13:A4:D4:36:9A:12:57:09:41:AA:28:0F
+- **[Queue Management System](app/src/main/java/pos/queue/README.md)** - Complete queue system documentation
+- **[SDK Architecture](app/src/main/java/pos/sdk/README.md)** - Multi-flavor SDK implementation guide
+- **[Payment Processing](app/src/main/java/pos/queue/docs/payments/README.md)** - Payment queue documentation
+- **[Print System](app/src/main/java/pos/queue/docs/printing/README.md)** - Printing queue documentation
 
-## Support
 
-Ticpass v4 is still in on-going development! Bugs are to be expected! Any bug reports are appreciated.
-Please visit [Aurora Wiki](https://gitlab.com/AuroraOSS/AuroraStore/-/wikis/home) for FAQs.
+## Development
 
-- [Telegram](https://t.me/AuroraSupport)
-- [XDA Developers](https://forum.xda-developers.com/t/app-5-0-aurora-store-open-source-google-play-client.3739733/)
+### Build Flavors
+- **PagSeguro**: Uses PlugPag SDK for payment processing
+- **Stone**: Uses Stone SDK with UserModel for payment processing
 
-## Permissions
+### Key Technologies
+- **Kotlin**: Primary development language with coroutines
+- **Android Architecture Components**: ViewModel, LiveData, Room
+- **Dependency Injection**: Hilt for dependency management
+- **Reactive Programming**: Kotlin Flows for state management
+- **Type Safety**: Generic interfaces with compile-time safety
 
-- `android.permission.INTERNET` to download and install/update apps from the Google Play servers
-- `android.permission.ACCESS_NETWORK_STATE` to check internet availability
-- `android.permission.FOREGROUND_SERVICE` to download apps without interruption
-- `android.permission.FOREGROUND_SERVICE_DATA_SYNC` to download apps without interruption
-- `android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` to auto-update apps without interruption (optional)
-- `android.permission.MANAGE_EXTERNAL_STORAGE` to access the OBB directory to download APK expansion files for games or large apps
-- `android.permission.READ_EXTERNAL_STORAGE` to access the OBB directory to download APK expansion files for games or large apps
-- `android.permission.WRITE_EXTERNAL_STORAGE` to access the OBB directory to download APK expansion files for games or large apps
-- `android.permission.QUERY_ALL_PACKAGES` to check updates for all installed apps
-- `android.permission.REQUEST_INSTALL_PACKAGES` to install and update apps
-- `android.permission.REQUEST_DELETE_PACKAGES` to uninstall apps
-- `android.permission.ENFORCE_UPDATE_OWNERSHIP` to silently update apps
-- `android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION` to silently update apps
-- `android.permission.POST_NOTIFICATIONS` to notify user about ongoing downloads, available updates, and errors (optional)
-- `android.permission.USE_CREDENTIALS` to allow users to sign into their personal Google account via microG
+## Key Permissions
 
-## Screenshots
+- **NFC**: `android.permission.NFC` for MIFARE Classic tag operations
+- **Internet**: `android.permission.INTERNET` for payment processing and API communication
+- **Network State**: `android.permission.ACCESS_NETWORK_STATE` for connectivity checks
+- **Storage**: External storage permissions for receipt and document storage
+- **Bluetooth**: For printer connectivity and communication
 
-<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/screenshot-01.png" height="400">
-<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/screenshot-03.png" height="400">
-<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/screenshot-07.png" height="400">
-<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/screenshot-08.png" height="400">
 
-## Translations
 
-Don't see your preferred language? Click on the widget below to help translate Ticpass!
 
-<a href="https://hosted.weblate.org/engage/aurora-store/">
-  <img src="https://hosted.weblate.org/widgets/aurora-store/-/287x66-grey.png" alt="Translation status" />
-</a>
+## Architecture Benefits
 
-## Donations
-
-You can support Ticpass's development financially via options below. For more options, checkout the **About** page within the Ticpass.
-
-[![Liberapay](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/whyorean)
-<a href="https://www.paypal.com/paypalme/AuroraDev">
-  <img src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg" height="45" alt="PayPal">
-</a>
-
-## Project references
-
-Ticpass is based on these projects
-
-- [YalpStore](https://github.com/yeriomin/YalpStore)
-- [AppCrawler](https://github.com/Akdeniz/google-play-crawler)
-- [Raccoon](https://github.com/onyxbits/raccoon4)
-- [SAI](https://github.com/Aefyr/SAI)
+1. **Extensibility**: Easy to add new payment acquirers or processing types
+2. **Type Safety**: Compile-time safety prevents runtime errors
+3. **Maintainability**: Clear separation of concerns with modular design
+4. **Testability**: Each component can be independently tested
+5. **Performance**: Hybrid in-memory/persistent queue processing
+6. **Reliability**: Comprehensive error handling and recovery mechanisms

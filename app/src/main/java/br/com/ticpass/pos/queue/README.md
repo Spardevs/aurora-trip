@@ -2,6 +2,8 @@
 
 A generic, type-safe queue management system that combines in-memory operations with optional persistence strategies. Designed to handle any type of processing workflow with reactive state management and comprehensive error handling.
 
+**Current Implementations**: Payment processing, NFC operations, printing jobs, and refund processing.
+
 ## Quick Start
 
 ```kotlin
@@ -10,11 +12,14 @@ val queueManager = HybridQueueManager(
     storage = YourQueueStorage(),
     processor = YourQueueProcessor(),
     persistenceStrategy = PersistenceStrategy.IMMEDIATE,
-    startMode = ProcessorStartMode.IMMEDIATE
+    startMode = ProcessorStartMode.CONFIRMATION
 )
 
 // Enqueue items
 queueManager.enqueue(yourQueueItem)
+
+// Start processing (required - queue won't start automatically)
+queueManager.startProcessing()
 
 // Observe processing states
 queueManager.processingState.collect { state ->
@@ -41,6 +46,8 @@ The queue system is built with these core principles:
 ## Core Components
 
 ### QueueItem
+Base interface for all items that can be processed by the queue system. Provides unique identification, priority ordering, and status tracking.
+
 ```kotlin
 interface QueueItem {
     val id: String
@@ -50,6 +57,8 @@ interface QueueItem {
 ```
 
 ### QueueProcessor
+Defines the processing logic for specific queue item types. Handles the actual work, emits events, and manages user interactions during processing.
+
 ```kotlin
 interface QueueProcessor<T : QueueItem, E : BaseProcessingEvent> {
     val events: SharedFlow<E>
@@ -62,6 +71,8 @@ interface QueueProcessor<T : QueueItem, E : BaseProcessingEvent> {
 ```
 
 ### HybridQueueManager
+Core queue management class that orchestrates item processing, persistence, and state management. Combines in-memory operations with configurable persistence strategies.
+
 ```kotlin
 class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
     private val storage: QueueStorage<T>,
@@ -78,16 +89,29 @@ class HybridQueueManager<T : QueueItem, E : BaseProcessingEvent>(
 - **NEVER**: In-memory only processing
 
 ### Processor Start Modes
-- **IMMEDIATE**: Start processing when items are enqueued
-- **MANUAL**: Wait for explicit `startProcessing()` call
+- **IMMEDIATE**: No confirmation input request before processing items (startProcessing() still required)
+- **CONFIRMATION**: Wait for confirmation input request before proceeding to process each item
+
+### Processor-Agnostic Design
+The `HybridQueueManager` is completely processor-agnostic:
+- No payment-specific logic in core queue management
+- Generic confirmation flow works for any queue item type
+- Item-specific modifications handled at UseCase layer
+- Reusable for any processing type (payments, NFC, printing, refunds)
 
 ### Processing Results
 ```kotlin
 sealed class ProcessingResult {
-    class Success(val atk: String, val txId: String) : ProcessingResult()
-    data class Error(val event: ProcessingErrorEvent) : ProcessingResult()
+    abstract class Success : ProcessingResult()
+    abstract class Error(val event: ProcessingErrorEvent) : ProcessingResult()
 }
 ```
+
+**Specialized Results**: Each processor type has its own concrete implementations:
+- `PaymentProcessingResult.Success(atk, txId)`
+- `NFCProcessingResult.Success(tagData)`
+- `PrintingProcessingResult.Success()`
+- `RefundProcessingResult.Success(refundId)`
 
 ### Error Handling
 When processing fails, the system provides these options:
@@ -119,10 +143,20 @@ Complete payment processing system with card transactions, PIX, cash, and receip
 
 📖 **[Payment Queue Documentation](docs/payments/README.md)**
 
+### NFC Operations
+NFC tag reading and writing operations with MIFARE Classic support.
+
+📖 **[NFC Queue Documentation](docs/nfc/README.md)**
+
 ### Print Jobs
 Print job queue system for handling receipt and document printing.
 
 📖 **[Print Queue Documentation](docs/printing/README.md)**
+
+### Refund Processing
+Refund processing system for handling transaction reversals.
+
+📖 **[Refund Queue Documentation](docs/refunds/README.md)**
 
 ## Advanced Documentation
 
@@ -136,9 +170,11 @@ Print job queue system for handling receipt and document printing.
 - **[Payment Processors](docs/payments/processors.md)** - Payment processor implementations
 - **[Payment Events](docs/payments/events.md)** - Payment-specific events
 - **[Payment Examples](docs/payments/examples.md)** - Complete payment usage examples
+- **[NFC Operations](docs/nfc/README.md)** - NFC tag operations and utilities
+- **[Refund Processing](docs/refunds/README.md)** - Refund processor implementation
 
 ## Benefits
-
+1
 1. **Hybrid Performance**: Fast in-memory operations with optional persistence
 2. **Type Safety**: Generic interfaces prevent runtime type errors
 3. **Reactive Design**: Real-time state updates with Kotlin Flows
@@ -149,11 +185,18 @@ Print job queue system for handling receipt and document printing.
 
 ## Getting Started
 
-1. **Choose your implementation**: Start with [Payment Queue](docs/payments/README.md) or [Print Queue](docs/printing/README.md)
+1. **Choose your implementation**: Start with [Payment Queue](docs/payments/README.md), [Print Queue](docs/printing/README.md), or explore NFC/Refund processors
 2. **Read the core concepts**: Review [Generic Queue System](docs/README.md)
 3. **Implement your processor**: Follow the processor interface guidelines
 4. **Handle user input**: Use the [Input Handling Guide](docs/core/input-handling.md)
 5. **Test and iterate**: Use the comprehensive state management for debugging
+
+## Current Processor Types
+
+- **Payment**: Card transactions, PIX, cash payments with receipt printing
+- **NFC**: MIFARE Classic tag reading/writing with comprehensive tag mapping
+- **Printing**: Receipt and document printing with various printer types
+- **Refund**: Transaction reversal processing with proper error handling
 
 ## Creating New Queue Types
 
