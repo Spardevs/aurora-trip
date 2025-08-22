@@ -108,7 +108,7 @@ import java.io.File
         AutoMigration (from = 10, to = 11),
     ]
 )
-    @TypeConverters()
+@TypeConverters()
 abstract class AppDatabase : RoomDatabase() {
     abstract fun posDao(): PosDao
     abstract fun cashierDao(): CashierDao

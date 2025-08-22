@@ -17,14 +17,15 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class ProductsActivity : DrawerBaseActivity() {
-    private lateinit var cartBadge: TextView
+    private var cartBadge: TextView? = null // Change to nullable
     private lateinit var cartMenuItem: MenuItem
-
 
     @Inject
     lateinit var shoppingCartManager: ShoppingCartManager
 
-    private var cartUpdatesObserver: Observer<Any>? = null
+    private val cartUpdatesObserver = Observer<Any> {
+        updateCartBadge()
+    }
     private var observerId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,7 +42,7 @@ class ProductsActivity : DrawerBaseActivity() {
 
         cartMenuItem = menu.findItem(R.id.fab)
         val badgeLayout = LayoutInflater.from(this).inflate(R.layout.cart_badge, null)
-        cartBadge = badgeLayout.findViewById(R.id.cart_badge)
+        cartBadge = badgeLayout.findViewById(R.id.cart_badge) // Initialize here
         cartMenuItem.actionView = badgeLayout
 
         badgeLayout.setOnClickListener {
@@ -50,23 +51,30 @@ class ProductsActivity : DrawerBaseActivity() {
         }
 
         updateCartBadge()
-
-        // Usar observer seguro
-        val observer = Observer<Any> {
-            updateCartBadge()
-        }
-        observerId = shoppingCartManager.observeForeverSafe(observer)
-
         return true
+    }
+
+
+    override fun onResume() {
+        super.onResume()
+        shoppingCartManager.cartUpdates.observe(this, cartUpdatesObserver)
+        updateCartBadge()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        shoppingCartManager.cartUpdates.removeObserver(cartUpdatesObserver)
     }
 
     private fun updateCartBadge() {
         val count = shoppingCartManager.getTotalItemsCount()
-        if (count > 0) {
-            cartBadge.text = count.toString()
-            cartBadge.visibility = View.VISIBLE
-        } else {
-            cartBadge.visibility = View.GONE
+        cartBadge?.let { badge -> // Safe call with null check
+            if (count > 0) {
+                badge.text = count.toString()
+                badge.visibility = View.VISIBLE
+            } else {
+                badge.visibility = View.GONE
+            }
         }
     }
 
@@ -76,6 +84,7 @@ class ProductsActivity : DrawerBaseActivity() {
             updateCartBadge()
         }
     }
+
 
     override fun onDestroy() {
         super.onDestroy()
@@ -88,9 +97,11 @@ class ProductsActivity : DrawerBaseActivity() {
 
     override fun openProducts() {
         startActivity(Intent(this, ProductsActivity::class.java))
+        finish()
     }
     override fun openHistory() {
-         startActivity(Intent(this, HistoryActivity::class.java))
+        startActivity(Intent(this, HistoryActivity::class.java))
+        finish()
     }
     override fun openReport() {
          startActivity(Intent(this, ReportActivity::class.java))

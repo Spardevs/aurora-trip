@@ -69,7 +69,7 @@ class LoginConfirmViewModel @Inject constructor(
         return PosEntity(
             id = sessionPref.getString("pos_id", "")!!,
             name = sessionPref.getString("pos_name", "")!!,
-            cashier = "", // Atualizado depois com cashier real
+            cashier = "",
             commission = sessionPref.getLong("pos_commission", 0L),
             isClosed = false,
             isSelected = true
@@ -123,13 +123,11 @@ class LoginConfirmViewModel @Inject constructor(
         val response = apiRepository.getEventProducts(event = eventId, jwt = jwt)
 
         if (response.status == 200) {
-            // Inserir categorias
             val categories = response.result.map { cat ->
                 CategoryEntity(id = cat.id, name = cat.name)
             }
             categoryDao.insertMany(categories)
 
-            // Inserir produtos
             val products = response.result.flatMap { cat ->
                 cat.products.map { p ->
                     ProductEntity(

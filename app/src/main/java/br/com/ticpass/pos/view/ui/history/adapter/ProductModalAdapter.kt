@@ -45,16 +45,13 @@ class ProductModalAdapter(
                 val resourceId = getDrawableResourceId(itemView.context, resourceName)
 
                 if (resourceId != null) {
-                    // Usa Glide para carregar o drawable
                     Glide.with(itemView.context)
                         .load(resourceId)
                         .into(ivProductImage)
                 } else {
-                    // Imagem padrão caso não encontre
                     ivProductImage.setImageResource(R.drawable.ic_bitcoin_btc)
                 }
             } else {
-                // Se for uma URL normal, carrega normalmente
                 Glide.with(itemView.context)
                     .load(product.thumbnail)
                     .placeholder(R.drawable.ic_bitcoin_btc)

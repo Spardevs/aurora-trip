@@ -12,6 +12,7 @@ import androidx.compose.runtime.Immutable
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.api.APIRepository
 import br.com.ticpass.pos.data.api.APITestResponse
@@ -158,12 +159,11 @@ class QrScannerActivity() : BaseActivity(), BarcodeCallback {
         hash: String,
         onResult: (Result<APITestResponse>) -> Unit
     ) {
-        val defaultScope = CoroutineScope(Dispatchers.Default)
         val handler = CoroutineExceptionHandler { _, throwable ->
             onResult(Result.failure(throwable))
         }
 
-        defaultScope.launch(handler) {
+        lifecycleScope.launch(handler) {
             try {
                 val authResponse = withContext(Dispatchers.IO) {
                     val serial = getDeviceSerial(this@QrScannerActivity)

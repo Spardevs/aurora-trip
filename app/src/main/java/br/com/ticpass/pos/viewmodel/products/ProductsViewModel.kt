@@ -31,16 +31,16 @@ class ProductsViewModel @Inject constructor(
                 allProductsList = catsWithProds.flatMap { catWith ->
                     catWith.enabledProducts.map { entity ->
                         Product(
-                            id = entity.id.toString(),
+                            id = entity.id,
                             title = entity.name,
-                            value = entity.price.toBigInteger(),
-                            photo = entity.thumbnail,
-                            stock = entity.stock.toBigInteger(),
+                            value = entity.price,
+                            photo = entity.thumbnail ?: "",
+                            stock = entity.stock,
                             createdAt = "",
                             updatedAt = "",
                             deletedAt = "",
-                            fkCategory = entity.categoryId,
-                            fkEvent = 0
+                            fkCategory = entity.categoryId.toString(), // Converta para String
+                            fkEvent = "0" // Converta para String
                         )
                     }
                 }

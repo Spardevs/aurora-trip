@@ -1,4 +1,3 @@
-// ProductsRefreshViewModel.kt
 package br.com.ticpass.pos.viewmodel.products
 
 import android.content.SharedPreferences
@@ -10,6 +9,7 @@ import br.com.ticpass.pos.data.room.dao.CategoryDao
 import br.com.ticpass.pos.data.room.dao.EventDao
 import br.com.ticpass.pos.data.room.dao.ProductDao
 import br.com.ticpass.pos.data.room.entity.CategoryEntity
+import br.com.ticpass.pos.data.room.entity.EventEntity
 import br.com.ticpass.pos.data.room.entity.ProductEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -27,34 +27,24 @@ class ProductsRefreshViewModel @Inject constructor(
     suspend fun refreshProducts(eventId: String, jwt: String): Boolean {
         return withContext(Dispatchers.IO) {
             try {
-                Log.d("ProductsRefreshVM", "=== INICIANDO REFRESH ===")
-                Log.d("ProductsRefreshVM", "Event ID recebido: $eventId")
-                Log.d("ProductsRefreshVM", "JWT recebido: ${jwt.take(20)}...")
+                val events = eventDao.getAllEvents()
+                val event = events.find { it.id == eventId }
 
-                // Verificar se o evento existe no banco local
-                val event = eventDao.getEventById(eventId)
-                Log.d("ProductsRefreshVM", "Evento encontrado no BD: ${event != null}")
+                if (event == null) {
+                    Log.e("ProductsRefresh", "Event not found with ID: $eventId")
+                    return@withContext false
+                }
 
-                Log.d("ProductsRefreshVM", "Chamando API...")
                 val response = apiRepository.getEventProducts(event = eventId, jwt = jwt)
-
-                Log.d("ProductsRefreshVM", "Resposta da API - Status: ${response.status}")
-                Log.d("ProductsRefreshVM", "Número de categorias: ${response.result.size}")
-
                 if (response.status == 200) {
-                    Log.d("ProductsRefreshVM", "Limpando tabelas...")
                     val deletedProducts = productDao.clearAll()
                     val deletedCategories = categoryDao.clearAll()
-                    Log.d("ProductsRefreshVM", "Produtos removidos: $deletedProducts")
-                    Log.d("ProductsRefreshVM", "Categorias removidas: $deletedCategories")
 
                     val categories = response.result.map { cat ->
                         CategoryEntity(id = cat.id, name = cat.name)
                     }
-                    Log.d("ProductsRefreshVM", "Categorias para inserir: ${categories}")
 
                     val insertedCategories = categoryDao.insertMany(categories)
-                    Log.d("ProductsRefreshVM", "Categorias inseridas: ${insertedCategories}")
 
                     val products = response.result.flatMap { cat ->
                         cat.products.map { p ->
@@ -70,39 +60,83 @@ class ProductsRefreshViewModel @Inject constructor(
                             )
                         }
                     }
-                    Log.d("ProductsRefreshVM", "Produtos para inserir: ${products.size}")
-
                     val insertedProducts = productDao.insertMany(products)
-                    Log.d("ProductsRefreshVM", "Produtos inseridos: ${insertedProducts}")
-
-                    Log.d("ProductsRefreshVM", "=== REFRESH CONCLUÍDO COM SUCESSO ===")
                     true
                 } else {
-                    Log.d("ProductsRefreshVM", "=== ERRO NA RESPOSTA DA API: ${response.status} ===")
                     false
                 }
             } catch (e: Exception) {
-                Log.e("ProductsRefreshVM", "=== ERRO EXCEÇÃO ===", e)
+                Log.e("ProductsRefresh", "Error refreshing products: ${e.message}")
                 false
             }
         }
     }
 
-    fun getEventIdFromPrefs(sessionPref: SharedPreferences): String {
-        val allPrefs = sessionPref.all
-        Log.d("ProductsRefreshVM", "Todas as session prefs: $allPrefs")
+    suspend fun getSelectedEventId(): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val events = eventDao.getAllEvents()
+                val selectedEvent = events.find { it.isSelected }
+                selectedEvent?.id
+            } catch (e: Exception) {
+                Log.e("ProductsRefresh", "Error getting selected event: ${e.message}")
+                null
+            }
+        }
+    }
 
-        val eventId = sessionPref.getString("selected_menu_id", "") ?: ""
-        Log.d("ProductsRefreshVM", "Event ID das session prefs: '$eventId'")
-        return eventId
+    suspend fun getEventId(sessionPref: SharedPreferences): String? {
+        val selectedEventId = getSelectedEventId()
+        if (selectedEventId != null) {
+            return selectedEventId
+        }
+
+        return getEventIdFromPrefs(sessionPref).takeIf { it.isNotEmpty() }
+    }
+
+    fun getEventIdFromPrefs(sessionPref: SharedPreferences): String {
+        return sessionPref.getString("selected_menu_id", "") ?: ""
     }
 
     fun getAuthTokenFromPrefs(userPref: SharedPreferences): String {
-        val allPrefs = userPref.all
-        Log.d("ProductsRefreshVM", "Todas as user prefs: $allPrefs")
+        return userPref.getString("auth_token", "") ?: ""
+    }
 
-        val authToken = userPref.getString("auth_token", "") ?: ""
-        Log.d("ProductsRefreshVM", "Auth Token das user prefs: '${authToken.take(20)}...'")
-        return authToken
+    suspend fun refreshProductsWithSelectedEvent(
+        userPref: SharedPreferences,
+        sessionPref: SharedPreferences
+    ): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                val eventId = getSelectedEventId()
+                val jwt = getAuthTokenFromPrefs(userPref)
+
+                if (eventId == null) {
+                    Log.e("ProductsRefresh", "No event ID found in database")
+                    return@withContext false
+                }
+
+                if (jwt.isEmpty()) {
+                    Log.e("ProductsRefresh", "No auth token found")
+                    return@withContext false
+                }
+
+                Log.d("ProductsRefresh", "Refreshing products for event: $eventId")
+                return@withContext refreshProducts(eventId, jwt)
+            } catch (e: Exception) {
+                Log.e("ProductsRefresh", "Error in refreshProductsWithSelectedEvent: ${e.message}")
+                false
+            }
+        }
+    }
+    suspend fun getSelectedEvent(): EventEntity? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val events = eventDao.getAllEvents()
+                events.find { it.isSelected }
+            } catch (e: Exception) {
+                null
+            }
+        }
     }
 }

@@ -59,13 +59,10 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
     private lateinit var pagerAdapter: CategoriesPagerAdapter
     private lateinit var paymentSheet: View
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
-    // REMOVIDO: private lateinit var tvError: TextView
 
-    // Preferências
     private lateinit var sessionPrefs: SharedPreferences
     private lateinit var userPrefs: SharedPreferences
 
-    // Observers
     private var cartUpdatesObserver: Observer<Any>? = null
     private var loadingObserver: Observer<Boolean>? = null
     private var categoriesObserver: Observer<List<String>>? = null
@@ -73,9 +70,8 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        // Inicializar as preferências
-        sessionPrefs = context.getSharedPreferences("session_prefs", Context.MODE_PRIVATE)
-        userPrefs = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        sessionPrefs = context.getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE)
+        userPrefs = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -86,7 +82,6 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         tabLayout = view.findViewById(R.id.tabCategories)
         viewPager = view.findViewById(R.id.viewPager)
         paymentSheet = view.findViewById(R.id.paymentSheet)
-        // REMOVIDO: tvError = view.findViewById(R.id.tvError)
 
         setupSwipeRefresh()
         setupTabLayout()
@@ -103,13 +98,9 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
 
         loadingObserver = Observer<Boolean> { isLoading ->
             swipeRefreshLayout.isRefreshing = isLoading
-            // REMOVIDO: if (isLoading) {
-            // REMOVIDO:     tvError.visibility = View.GONE
-            // REMOVIDO: }
         }
         productsViewModel.isLoading.observe(viewLifecycleOwner, loadingObserver!!)
 
-        // Carregar dados iniciais
         loadInitialData()
         updatePaymentVisibility()
     }
@@ -150,8 +141,6 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
     }
 
     private fun setupSwipeRefresh() {
-        Log.d("ProductsListScreen", "Configurando SwipeRefreshLayout")
-
         swipeRefreshLayout.setColorSchemeResources(
             R.color.design_default_color_primary,
             R.color.design_default_color_primary_dark,
@@ -159,53 +148,51 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         )
 
         swipeRefreshLayout.setOnRefreshListener {
-            Log.d("ProductsListScreen", "OnRefreshListener acionado")
             refreshData()
         }
 
         swipeRefreshLayout.setDistanceToTriggerSync(120)
     }
 
-    // ProductsListScreen.kt - Na função refreshData()
     private fun refreshData() {
-        Log.d("ProductsListScreen", "=== PULL-TO-REFRESH ACIONADO ===")
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val authToken = refreshViewModel.getAuthTokenFromPrefs(userPrefs)
 
-        // Verificar quais shared preferences estamos usando
-        Log.d("ProductsListScreen", "Session prefs: ${sessionPrefs.all}")
-        Log.d("ProductsListScreen", "User prefs: ${userPrefs.all}")
+                Log.d("ProductsListScreen", "Auth token: $authToken")
 
-        val eventId = refreshViewModel.getEventIdFromPrefs(sessionPrefs)
-        val authToken = refreshViewModel.getAuthTokenFromPrefs(userPrefs)
+                if (authToken.isEmpty()) {
+                    Log.d("ProductsListScreen", "Auth token not found!")
+                    Toast.makeText(requireContext(), "Token de autenticação não encontrado", Toast.LENGTH_SHORT).show()
+                    swipeRefreshLayout.isRefreshing = false
+                    return@launch
+                }
 
-        Log.d("ProductsListScreen", "Event ID obtido: '$eventId'")
-        Log.d("ProductsListScreen", "Auth Token obtido: ${authToken.isNotEmpty()}")
+                val eventId = refreshViewModel.getSelectedEventId()
 
-        if (eventId.isNotEmpty() && authToken.isNotEmpty()) {
-            Log.d("ProductsListScreen", "Dados válidos, iniciando refresh...")
-            viewLifecycleOwner.lifecycleScope.launch {
-                try {
-                    Log.d("ProductsListScreen", "Chamando refreshViewModel.refreshProducts...")
-                    val success = refreshViewModel.refreshProducts(eventId, authToken)
-                    if (success) {
-                        Log.d("ProductsListScreen", "Refresh bem-sucedido!")
-                        productsViewModel.loadCategoriesWithProducts()
-                        Toast.makeText(requireContext(), "Produtos atualizados", Toast.LENGTH_SHORT).show()
-                    } else {
-                        Log.d("ProductsListScreen", "Refresh falhou!")
-                        Toast.makeText(requireContext(), "Erro ao atualizar produtos", Toast.LENGTH_SHORT).show()
-                        swipeRefreshLayout.isRefreshing = false
-                    }
-                } catch (e: Exception) {
-                    Log.e("ProductsListScreen", "Erro durante o refresh", e)
-                    Toast.makeText(requireContext(), "Erro: ${e.message}", Toast.LENGTH_SHORT).show()
+                if (eventId == null) {
+                    Log.d("ProductsListScreen", "No selected event found!")
+                    Toast.makeText(requireContext(), "Nenhum evento selecionado", Toast.LENGTH_SHORT).show()
+                    swipeRefreshLayout.isRefreshing = false
+                    return@launch
+                }
+
+                val success = refreshViewModel.refreshProducts(eventId, authToken)
+
+                if (success) {
+                    Log.d("ProductsListScreen", "Refresh bem-sucedido!")
+                    productsViewModel.loadCategoriesWithProducts()
+                    Toast.makeText(requireContext(), "Produtos atualizados", Toast.LENGTH_SHORT).show()
+                } else {
+                    Log.d("ProductsListScreen", "Refresh falhou!")
+                    Toast.makeText(requireContext(), "Erro ao atualizar produtos", Toast.LENGTH_SHORT).show()
                     swipeRefreshLayout.isRefreshing = false
                 }
+            } catch (e: Exception) {
+                Log.e("ProductsListScreen", "Erro durante o refresh", e)
+                Toast.makeText(requireContext(), "Erro: ${e.message}", Toast.LENGTH_SHORT).show()
+                swipeRefreshLayout.isRefreshing = false
             }
-        } else {
-            Log.d("ProductsListScreen", "Dados incompletos! EventID: ${eventId.isNotEmpty()}, AuthToken: ${authToken.isNotEmpty()}")
-            productsViewModel.loadCategoriesWithProducts()
-            swipeRefreshLayout.isRefreshing = false
-            Toast.makeText(requireContext(), "Sessão expirada. Faça login novamente.", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -276,8 +263,9 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
             }
 
             itemView.setOnClickListener {
-                val intent = Intent(requireContext(), PaymentScreen::class.java)
-                intent.putExtra("payment_type", method.value)
+                val intent = Intent(requireContext(), PaymentScreen::class.java).apply {
+                    putExtra("payment_type", method.value)
+                }
                 startActivity(intent)
             }
 
@@ -298,30 +286,31 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
     override fun onDestroyView() {
         super.onDestroyView()
 
-        // Remover todos os observers
         cartUpdatesObserver?.let {
             shoppingCartManager.cartUpdates.removeObserver(it)
+            cartUpdatesObserver = null
         }
 
         loadingObserver?.let {
             productsViewModel.isLoading.removeObserver(it)
+            loadingObserver = null
         }
 
         categoriesObserver?.let {
             productsViewModel.categories.removeObserver(it)
+            categoriesObserver = null
         }
 
         productsObserver?.let {
             productsViewModel.productsByCategory.removeObserver(it)
+            productsObserver = null
         }
 
-        // Limpar referências
+        viewPager.adapter = null
         cartUpdatesObserver = null
         loadingObserver = null
         categoriesObserver = null
         productsObserver = null
-
-        // Limpar adapter do ViewPager
         viewPager.adapter = null
     }
 
