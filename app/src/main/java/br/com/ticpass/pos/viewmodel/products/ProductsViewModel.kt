@@ -33,14 +33,14 @@ class ProductsViewModel @Inject constructor(
                         Product(
                             id = entity.id,
                             title = entity.name,
-                            value = entity.price,
+                            value = entity.price.toBigInteger(),
                             photo = entity.thumbnail ?: "",
-                            stock = entity.stock,
+                            stock = entity.stock.toBigInteger(),
                             createdAt = "",
                             updatedAt = "",
                             deletedAt = "",
                             fkCategory = entity.categoryId.toString(), // Converta para String
-                            fkEvent = "0" // Converta para String
+                            fkEvent = 0 // Converta para String
                         )
                     }
                 }

@@ -3,6 +3,7 @@ package br.com.ticpass.pos.data.api
 
 import android.content.Context
 import android.util.Log
+import br.com.ticpass.Constants
 import br.com.ticpass.Constants.API_HOST
 import com.google.gson.annotations.SerializedName
 import okhttp3.OkHttpClient

@@ -68,14 +68,30 @@ data class MifareAccessConditions(
             require(accessBits.size == 3) { "Access bits must be exactly 3 bytes" }
             
             val c1Bits = extractC1Bits(accessBits)
-            val c2Bits = extractC2Bits(accessBits) 
+            val c2Bits = extractC2Bits(accessBits)
             val c3Bits = extractC3Bits(accessBits)
             
             return MifareAccessConditions(
-                block0 = getDataBlockAccess(c1Bits[0], c2Bits[0], c3Bits[0]),
-                block1 = getDataBlockAccess(c1Bits[1], c2Bits[1], c3Bits[1]),
-                block2 = getDataBlockAccess(c1Bits[2], c2Bits[2], c3Bits[2]),
-                trailerBlock = getTrailerAccess(c1Bits[3], c2Bits[3], c3Bits[3])
+                block0 = getDataBlockAccess(
+                    c1Bits[0],
+                    c2Bits[0],
+                    c3Bits[0]
+                ),
+                block1 = getDataBlockAccess(
+                    c1Bits[1],
+                    c2Bits[1],
+                    c3Bits[1]
+                ),
+                block2 = getDataBlockAccess(
+                    c1Bits[2],
+                    c2Bits[2],
+                    c3Bits[2]
+                ),
+                trailerBlock = getTrailerAccess(
+                    c1Bits[3],
+                    c2Bits[3],
+                    c3Bits[3]
+                )
             )
         }
         
@@ -125,7 +141,7 @@ data class MifareAccessConditions(
         private fun getDataBlockAccess(c1: Boolean, c2: Boolean, c3: Boolean): BlockAccess {
             return when(Triple(c1, c2, c3)) {
                 Triple(false, false, false) -> BlockAccess(KeyType.BOTH, KeyType.BOTH, KeyType.BOTH, KeyType.BOTH)
-                Triple(false, true, false) -> BlockAccess(KeyType.BOTH, KeyType.NEVER, KeyType.NEVER, KeyType.NEVER)  
+                Triple(false, true, false) -> BlockAccess(KeyType.BOTH, KeyType.NEVER, KeyType.NEVER, KeyType.NEVER)
                 Triple(true, false, false) -> BlockAccess(KeyType.BOTH, KeyType.B, KeyType.NEVER, KeyType.NEVER)
                 Triple(true, true, false) -> BlockAccess(KeyType.BOTH, KeyType.B, KeyType.B, KeyType.BOTH)
                 Triple(false, false, true) -> BlockAccess(KeyType.BOTH, KeyType.NEVER, KeyType.NEVER, KeyType.BOTH)

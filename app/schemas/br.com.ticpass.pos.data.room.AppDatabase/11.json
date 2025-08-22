@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 11,
-    "identityHash": "ac1f17f34b6566655834cab4145bfd31",
+    "identityHash": "3d4c2081baa9fc77e7b8b5a98d529ddd",
     "entities": [
       {
         "tableName": "cashiers",
@@ -226,7 +226,7 @@
       },
       {
         "tableName": "products",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `thumbnail` TEXT NOT NULL, `url` TEXT NOT NULL, `category` TEXT NOT NULL, `price` INTEGER NOT NULL, `stock` INTEGER NOT NULL DEFAULT -1, `isEnabled` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `thumbnail` TEXT NOT NULL DEFAULT '', `url` TEXT NOT NULL, `categoryId` TEXT NOT NULL, `price` INTEGER NOT NULL, `stock` INTEGER NOT NULL DEFAULT -1, `isEnabled` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -244,7 +244,8 @@
             "fieldPath": "thumbnail",
             "columnName": "thumbnail",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": true,
+            "defaultValue": "''"
           },
           {
             "fieldPath": "url",
@@ -253,8 +254,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "category",
-            "columnName": "category",
+            "fieldPath": "categoryId",
+            "columnName": "categoryId",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -1153,7 +1154,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ac1f17f34b6566655834cab4145bfd31')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3d4c2081baa9fc77e7b8b5a98d529ddd')"
     ]
   }
 }
