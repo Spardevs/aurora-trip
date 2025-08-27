@@ -38,9 +38,14 @@ class CardPaymentFragment(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupUI()
         view.post {
             enqueuePayment()
         }
+    }
+
+    private fun setupUI() {
+        requireActivity().supportFragmentManager.popBackStack()
     }
 
     private fun enqueuePayment() {
@@ -50,26 +55,25 @@ class CardPaymentFragment(
                 showSuccessMessage()
             } ?: run {
                 showErrorMessage()
+                requireActivity().supportFragmentManager.popBackStack()
             }
         } catch (e: IllegalStateException) {
             Log.e("CardPaymentFragment", "Erro ao enfileirar pagamento: ${e.message}")
             showInitializationError()
+            requireActivity().supportFragmentManager.popBackStack()
         }
     }
 
     private fun showSuccessMessage() {
         Toast.makeText(requireContext(), "Pagamento adicionado à fila", Toast.LENGTH_SHORT).show()
-        requireActivity().supportFragmentManager.popBackStack()
     }
 
     private fun showErrorMessage() {
         Toast.makeText(requireContext(), "Erro ao processar pagamento", Toast.LENGTH_SHORT).show()
-        requireActivity().supportFragmentManager.popBackStack()
     }
 
     private fun showInitializationError() {
         Toast.makeText(requireContext(), "Sistema de pagamento não inicializado", Toast.LENGTH_SHORT).show()
-        requireActivity().supportFragmentManager.popBackStack()
     }
 
     companion object {
