@@ -23,8 +23,9 @@ data class ProductEntity(
     val stock: Int,
     var isEnabled: Boolean = true
 ) : Parcelable {
-    override fun toString() = name
-}
+    override fun toString(): String {
+        return "Product(id=$id, title='$name')"
+    }}
 
 data class CategoryWithProducts(
     @Embedded

@@ -9,6 +9,7 @@ import br.com.ticpass.pos.R
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
 import org.json.JSONObject
 import androidx.core.content.edit
+import br.com.ticpass.pos.payment.models.SystemPaymentMethod
 
 data class PaymentCart(
     val totalItems: Int,
@@ -20,17 +21,11 @@ class PaymentViewModel(
     private val shoppingCartManager: ShoppingCartManager
 ) : ViewModel() {
     private val _cartData = MutableLiveData<PaymentCart>()
-    val cartData: LiveData<PaymentCart> = _cartData
-
-    val cartUpdates = MutableLiveData<Unit>()
-
-    fun notifyCartUpdated() {
-        cartUpdates.postValue(Unit)
-    }
-
-
+    private val paymentQueue = mutableListOf<SystemPaymentMethod>()
+    private val _paymentTrigger = MutableLiveData<SystemPaymentMethod?>()
+    private val _queueLiveData = MutableLiveData<List<SystemPaymentMethod>>(emptyList())
+    val queueLiveData: LiveData<List<SystemPaymentMethod>> = _queueLiveData
     private val _paymentMethods = MutableLiveData<List<PaymentMethod>>()
-    val paymentMethods: LiveData<List<PaymentMethod>> = _paymentMethods
 
     init {
         loadCartData()
@@ -72,7 +67,12 @@ class PaymentViewModel(
         shoppingCartManager.clearCart()
         loadCartData()
     }
+
+    fun getCurrentPaymentValue(): SystemPaymentMethod? {
+        return _paymentTrigger.value
+    }
 }
+
 
 data class PaymentMethod(
     val name: String,

@@ -1,6 +1,8 @@
 package br.com.ticpass.pos.data.api
 
+import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import kotlinx.parcelize.Parcelize
 import java.math.BigInteger
 
 data class APITestResponse(
@@ -134,6 +136,7 @@ data class Category(
     @SerializedName("products") val products: List<Product>
 )
 
+@Parcelize
 data class Product(
     @SerializedName("id") val id: String,
     @SerializedName("photo") val photo: String,
@@ -145,7 +148,7 @@ data class Product(
     @SerializedName("deleted_at") val deletedAt: String?,
     @SerializedName("fk_category") val fkCategory: String,
     @SerializedName("fk_event") val fkEvent: Int
-)
+) : Parcelable
 
 data class PatchPosResponse(
     @SerializedName("status") val status: Int,

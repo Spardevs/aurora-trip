@@ -4,6 +4,7 @@ import android.app.Application
 import android.os.Handler
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import br.com.ticpass.pos.sdk.payment.PaymentProvider
 import br.com.ticpass.pos.util.ConnectivityMonitor
 import br.com.ticpass.pos.util.ConnectionStatusBar
 import dagger.hilt.android.HiltAndroidApp
@@ -26,6 +27,7 @@ class MainApplication : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        PaymentProvider.initialize(this)
 
         connectionStatusBar = ConnectionStatusBar(applicationContext)
         connectivityMonitor = ConnectivityMonitor(applicationContext, Handler(mainLooper)).apply {

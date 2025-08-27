@@ -240,7 +240,8 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         PaymentMethod("Crédito", R.drawable.credit, "credit_card"),
         PaymentMethod("Débito", R.drawable.debit, "debit_card"),
         PaymentMethod("VR", R.drawable.vr, "vr"),
-        PaymentMethod("Pix", R.drawable.pix,  "pix")
+        PaymentMethod("Pix", R.drawable.pix,  "pix"),
+        PaymentMethod("Debug", R.drawable.icon,  "debug")
     )
 
     private fun setupPaymentMethods() {

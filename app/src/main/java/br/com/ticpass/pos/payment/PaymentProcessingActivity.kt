@@ -2,6 +2,7 @@ package br.com.ticpass.pos.payment
 
 import android.app.AlertDialog
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
@@ -11,6 +12,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
+import br.com.ticpass.pos.data.activity.BaseActivity
 import br.com.ticpass.pos.feature.payment.PaymentProcessingViewModel
 import br.com.ticpass.pos.payment.coordination.PaymentActivityCoordinator
 import br.com.ticpass.pos.payment.dialogs.PaymentDialogManager
@@ -23,10 +25,10 @@ import br.com.ticpass.pos.sdk.AcquirerSdk
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class PaymentProcessingActivity : AppCompatActivity() {
+class PaymentProcessingActivity : AppCompatActivity(), PaymentEnqueuer {
     
     // ViewModel injected via Hilt
-    private val paymentViewModel: PaymentProcessingViewModel by viewModels()
+    override val paymentViewModel: PaymentProcessingViewModel by viewModels()
     
     // Specialized components for handling different responsibilities
     private lateinit var dialogManager: PaymentDialogManager
@@ -124,20 +126,17 @@ class PaymentProcessingActivity : AppCompatActivity() {
             paymentViewModel.cancelAllPayments()
         }
     }
-    
+
     private fun generatePaymentMethodButtons() {
         val container = findViewById<LinearLayout>(R.id.payment_methods_container)
         val supportedMethods = SupportedPaymentMethods.methods
-        
-        // Clear any existing buttons
+
         container.removeAllViews()
-        
-        // Create buttons in rows of 2
+
         val buttonsPerRow = 2
         var currentRow: LinearLayout? = null
-        
+
         supportedMethods.forEachIndexed { index, method ->
-            // Create new row if needed
             if (index % buttonsPerRow == 0) {
                 currentRow = LinearLayout(this).apply {
                     orientation = LinearLayout.HORIZONTAL
@@ -150,8 +149,7 @@ class PaymentProcessingActivity : AppCompatActivity() {
                 }
                 container.addView(currentRow)
             }
-            
-            // Create button for payment method
+
             val button = Button(this).apply {
                 text = getPaymentMethodDisplayName(method)
                 layoutParams = LinearLayout.LayoutParams(
@@ -159,7 +157,6 @@ class PaymentProcessingActivity : AppCompatActivity() {
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     1f
                 ).apply {
-                    // Add margins between buttons
                     val margin = resources.getDimensionPixelSize(R.dimen.button_margin)
                     if (index % buttonsPerRow == 0) {
                         rightMargin = margin / 2
@@ -168,14 +165,14 @@ class PaymentProcessingActivity : AppCompatActivity() {
                     }
                 }
                 setOnClickListener {
-                    enqueuePayment(method)
+                    enqueuePayment(method) // ✅ agora funciona
                 }
             }
-            
+
             currentRow?.addView(button)
         }
     }
-    
+
     private fun getPaymentMethodDisplayName(method: SystemPaymentMethod): String {
         return when (method) {
             SystemPaymentMethod.CREDIT -> getString(R.string.enqueue_credit_payment)
@@ -230,11 +227,8 @@ class PaymentProcessingActivity : AppCompatActivity() {
             progressDialog?.dismiss()
         }
     }
-    
-    /**
-     * Enqueue a payment with the specified method and processor type
-     */
-    private fun enqueuePayment(method: SystemPaymentMethod) {
+
+    override fun enqueuePayment(method: SystemPaymentMethod) {
         val transactionlessCheckbox = findViewById<android.widget.CheckBox>(R.id.checkbox_transactionless)
         val isTransactionlessEnabled = PaymentUIUtils.isTransactionlessModeEnabled(transactionlessCheckbox)
 
@@ -242,7 +236,27 @@ class PaymentProcessingActivity : AppCompatActivity() {
             method = method,
             isTransactionlessEnabled = isTransactionlessEnabled
         )
-        
+
+        paymentViewModel.enqueuePayment(
+            amount = paymentData.amount,
+            commission = paymentData.commission,
+            method = paymentData.method,
+            isTransactionless = paymentData.isTransactionless
+        )
+    }
+}
+
+interface PaymentEnqueuer {
+    val paymentViewModel: PaymentProcessingViewModel
+    fun enqueuePayment(method: SystemPaymentMethod) {
+        Log.d("PaymentEnqueuer", "Enqueueing payment for method: $method")
+        val paymentData = PaymentUIUtils.createPaymentData(
+            method = method,
+            isTransactionlessEnabled = false,
+            amount = 100,
+            commission = 0
+        )
+
         paymentViewModel.enqueuePayment(
             amount = paymentData.amount,
             commission = paymentData.commission,

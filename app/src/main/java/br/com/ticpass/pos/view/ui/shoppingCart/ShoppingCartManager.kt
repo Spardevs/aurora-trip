@@ -22,8 +22,8 @@ class ShoppingCartManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
 
-    private val _cartUpdates = MutableLiveData<Any>()
-    val cartUpdates: LiveData<Any> = _cartUpdates
+    private val _cartUpdates = MutableLiveData<Unit>()
+    val cartUpdates: LiveData<Unit> = _cartUpdates
     private val gson = Gson()
     private val shoppingCartPrefsName = "ShoppingCartPrefs"
     private val shoppingCartKey = "shopping_cart_data"
@@ -31,13 +31,12 @@ class ShoppingCartManager @Inject constructor(
         context.getSharedPreferences(shoppingCartPrefsName, Context.MODE_PRIVATE)
     }
 
-    // Usar WeakReference para evitar vazamentos
     private val observerMap = mutableMapOf<String, WeakReference<androidx.lifecycle.Observer<Any>>>()
 
     data class ShoppingCart(
-        val items: Map<String, Int> = emptyMap(),
+        val items: Map<String, Int> = emptyMap(), // productId to quantity
         val totalPrice: BigInteger = BigInteger.ZERO,
-        val observations: Map<String, String> = emptyMap()
+        val observations: Map<String, String> = emptyMap() // productId to observation
     )
 
     private var currentCart: ShoppingCart = loadCart()

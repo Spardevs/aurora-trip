@@ -21,6 +21,7 @@ import br.com.ticpass.pos.queue.processors.payment.data.PaymentProcessingStorage
 import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent
 import br.com.ticpass.pos.feature.payment.state.PaymentProcessingSideEffect
 import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingQueueItem
+import br.com.ticpass.pos.sdk.payment.PaymentProvider
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -47,6 +48,12 @@ class PaymentProcessingViewModel @Inject constructor(
     processingPaymentStorage: PaymentProcessingStorage,
     private val reducer: PaymentProcessingReducer
 ) : ViewModel() {
+
+    init {
+        if (!PaymentProvider.isInitialized()) {
+            throw IllegalStateException("PaymentProvider must be initialized before using PaymentProcessingViewModel")
+        }
+    }
     
     // Queue Setup and Configuration
     // Initialize the queue with viewModelScope

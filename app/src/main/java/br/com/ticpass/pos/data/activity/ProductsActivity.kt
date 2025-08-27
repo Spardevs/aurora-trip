@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class ProductsActivity : DrawerBaseActivity() {
-    private var cartBadge: TextView? = null // Change to nullable
+    private var cartBadge: TextView? = null
     private lateinit var cartMenuItem: MenuItem
 
     @Inject

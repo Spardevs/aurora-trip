@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import br.com.ticpass.pos.R
+import br.com.ticpass.pos.data.room.repository.PaymentRepository
 import br.com.ticpass.pos.databinding.PaymentSheetBinding
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
 import br.com.ticpass.pos.viewmodel.payment.PaymentViewModel
@@ -43,8 +44,10 @@ class PaymentActivity : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val sharedPrefs = requireContext().getSharedPreferences("ShoppingCartPrefs", Context.MODE_PRIVATE)
-        viewModel = ViewModelProvider(this, PaymentViewModelFactory(sharedPrefs, shoppingCartManager))[PaymentViewModel::class.java]
-
+        viewModel = ViewModelProvider(
+            this,
+            PaymentViewModelFactory(sharedPrefs, shoppingCartManager)
+        )[PaymentViewModel::class.java]
         setupObservers()
     }
 
@@ -85,3 +88,4 @@ class PaymentViewModelFactory(
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
+
