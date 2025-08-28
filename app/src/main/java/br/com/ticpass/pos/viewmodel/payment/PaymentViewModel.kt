@@ -58,7 +58,8 @@ class PaymentViewModel(
             PaymentMethod("Cartão de Crédito", R.drawable.credit),
             PaymentMethod("Pix", R.drawable.pix),
             PaymentMethod("Vale Refeição", R.drawable.vr),
-            PaymentMethod("Cartão de Débito", R.drawable.debit)
+            PaymentMethod("Cartão de Débito", R.drawable.debit),
+            PaymentMethod("Debug", R.drawable.icon)
         )
         _paymentMethods.postValue(methods)
     }

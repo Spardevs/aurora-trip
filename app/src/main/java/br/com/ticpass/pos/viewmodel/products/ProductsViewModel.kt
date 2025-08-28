@@ -8,7 +8,6 @@ import br.com.ticpass.pos.data.api.Product
 import br.com.ticpass.pos.data.room.repository.CategoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import java.math.BigInteger
 import javax.inject.Inject
 
 @HiltViewModel
@@ -34,9 +33,9 @@ class ProductsViewModel @Inject constructor(
                         Product(
                             id = entity.id,
                             title = entity.name,
-                            value = BigInteger.valueOf(entity.price),
+                            value = entity.price,
                             photo = entity.thumbnail,
-                            stock = BigInteger.valueOf(entity.stock.toLong()),
+                            stock = entity.stock.toLong(),
                             createdAt = "",
                             updatedAt = "",
                             deletedAt = "",

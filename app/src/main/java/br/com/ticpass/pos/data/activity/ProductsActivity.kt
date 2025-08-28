@@ -42,12 +42,16 @@ class ProductsActivity : DrawerBaseActivity() {
 
         cartMenuItem = menu.findItem(R.id.fab)
         val badgeLayout = LayoutInflater.from(this).inflate(R.layout.cart_badge, null)
-        cartBadge = badgeLayout.findViewById(R.id.cart_badge) // Initialize here
+        cartBadge = badgeLayout.findViewById(R.id.cart_badge)
         cartMenuItem.actionView = badgeLayout
 
         badgeLayout.setOnClickListener {
             val intent = Intent(this, ShoppingCartScreen::class.java)
             startActivityForResult(intent, ProductsListScreen.REQUEST_CART_UPDATE)
+        }
+
+        shoppingCartManager.cartUpdates.observe(this) {
+            updateCartBadge()
         }
 
         updateCartBadge()
@@ -68,7 +72,7 @@ class ProductsActivity : DrawerBaseActivity() {
 
     private fun updateCartBadge() {
         val count = shoppingCartManager.getTotalItemsCount()
-        cartBadge?.let { badge -> // Safe call with null check
+        cartBadge?.let { badge ->
             if (count > 0) {
                 badge.text = count.toString()
                 badge.visibility = View.VISIBLE

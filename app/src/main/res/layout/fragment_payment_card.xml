@@ -28,7 +28,7 @@
             android:id="@+id/payment_form"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Crédito"
+            android:text="Cartão"
             android:textColor="@android:color/white"
             android:textSize="18sp" />
 
@@ -56,14 +56,13 @@
             android:text="Aguardando pagamento"
             android:textColor="@android:color/white"
             android:textSize="16sp"
-            android:textAlignment="center"
-            />
+            android:textAlignment="center" />
 
         <TextView
             android:id="@+id/payment_info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Aproxime, insira ou passe o cartão"
+            android:text="Aproxime, insira ou passe o cartão"
             android:textStyle="bold"
             android:textColor="@android:color/white"
             android:textAlignment="center"
@@ -81,9 +80,6 @@
         android:textColor="@android:color/white"
         android:textSize="16sp"
         app:strokeWidth="2dp"
-        app:strokeColor="@android:color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:strokeColor="@android:color/white" />
 
 </LinearLayout>

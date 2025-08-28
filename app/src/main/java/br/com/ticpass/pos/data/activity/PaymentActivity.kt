@@ -26,6 +26,7 @@ import javax.inject.Inject
 class PaymentActivity : Fragment() {
 
     private lateinit var viewModel: PaymentViewModel
+
     private lateinit var binding: PaymentSheetBinding
 
     @Inject
