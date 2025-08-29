@@ -165,7 +165,7 @@ class PaymentProcessingActivity : AppCompatActivity(), PaymentEnqueuer {
                     }
                 }
                 setOnClickListener {
-                    enqueuePayment(method) // ✅ agora funciona
+                    enqueuePayment(method)
                 }
             }
 

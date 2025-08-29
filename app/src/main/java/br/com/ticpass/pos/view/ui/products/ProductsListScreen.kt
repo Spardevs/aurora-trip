@@ -1,4 +1,3 @@
-// ProductsListScreen.kt
 package br.com.ticpass.pos.view.ui.products
 
 import android.annotation.SuppressLint
@@ -112,7 +111,6 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
     }
 
     private fun setupViewPager() {
-        // Remover observers antigos se existirem
         categoriesObserver?.let { productsViewModel.categories.removeObserver(it) }
         productsObserver?.let { productsViewModel.productsByCategory.removeObserver(it) }
 
