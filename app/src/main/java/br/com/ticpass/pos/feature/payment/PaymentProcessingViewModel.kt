@@ -34,7 +34,7 @@ import kotlinx.coroutines.launch
 /**
  * Payment Processing ViewModel
  * Example ViewModel that demonstrates handling input requests from payment processors
- * 
+ *
  * This ViewModel uses a modular architecture with:
  * - Actions: Represent user interactions and events
  * - Reducer: Handles state transitions and side effects
@@ -44,26 +44,46 @@ import kotlinx.coroutines.launch
  */
 @HiltViewModel
 class PaymentProcessingViewModel @Inject constructor(
-    paymentQueueFactory: PaymentProcessingQueueFactory,
-    processingPaymentStorage: PaymentProcessingStorage,
+    private val paymentQueueFactory: PaymentProcessingQueueFactory,
+    private val processingPaymentStorage: PaymentProcessingStorage,
     private val reducer: PaymentProcessingReducer
 ) : ViewModel() {
+
+    sealed class PaymentState {
+        object Idle : PaymentState()
+        object Processing : PaymentState()
+        data class Success(val transactionId: String) : PaymentState()
+        data class Error(val errorMessage: String) : PaymentState()
+        object Cancelled : PaymentState()
+    }
+
+    sealed class PaymentEvent {
+        data class CardDetected(val cardType: String) : PaymentEvent()
+        data class Processing(val message: String) : PaymentEvent()
+    }
+
+    private val _paymentState = MutableStateFlow<PaymentState>(PaymentState.Idle)
+    val paymentState: StateFlow<PaymentState> = _paymentState.asStateFlow()
+
+    private val _paymentEvents = MutableSharedFlow<PaymentEvent>()
+    val paymentEvents: SharedFlow<PaymentEvent> = _paymentEvents.asSharedFlow()
+
+    private lateinit var paymentQueue: HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent>
 
     init {
         if (!PaymentProvider.isInitialized()) {
             throw IllegalStateException("PaymentProvider must be initialized before using PaymentProcessingViewModel")
         }
+
+        // Initialize payment queue
+        paymentQueue = paymentQueueFactory.createDynamicPaymentQueue(
+            storage = processingPaymentStorage,
+            persistenceStrategy = PersistenceStrategy.IMMEDIATE,
+            startMode = ProcessorStartMode.CONFIRMATION,
+            scope = viewModelScope
+        )
     }
-    
-    // Queue Setup and Configuration
-    // Initialize the queue with viewModelScope
-    private val paymentQueue: HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent> = paymentQueueFactory.createDynamicPaymentQueue(
-        storage = processingPaymentStorage,
-        persistenceStrategy = PersistenceStrategy.IMMEDIATE,
-        startMode = ProcessorStartMode.CONFIRMATION,
-        scope = viewModelScope
-    )
-    
+
     /**
      * Helper function to launch coroutines in the viewModelScope with standard error handling
      */
@@ -77,20 +97,18 @@ class PaymentProcessingViewModel @Inject constructor(
             }
         }
     }
-    
-    // Expose queue states to UI
+
     val queueState = paymentQueue.queueState
     val fullSize = paymentQueue.fullSize
     val enqueuedSize = paymentQueue.enqueuedSize
     val currentIndex = paymentQueue.currentIndex
     val processingState = paymentQueue.processingState
-    val processingPaymentEvents: SharedFlow<PaymentProcessingEvent> = paymentQueue.processorEvents
-    
-    // UI State Management
-    // UI Events flow for one-time events
+    val processingPaymentEvents: SharedFlow<PaymentProcessingEvent> =
+        paymentQueue.processorEvents
+
     private val _uiEvents = MutableSharedFlow<PaymentProcessingUiEvent>()
     val uiEvents = _uiEvents.asSharedFlow()
-    
+
     /**
      * Emit a one-time UI event
      */
@@ -99,35 +117,47 @@ class PaymentProcessingViewModel @Inject constructor(
             _uiEvents.emit(event)
         }
     }
-    
-    // UI State flow for persistent state
-    private val _uiState = MutableStateFlow<PaymentProcessingUiState>(PaymentProcessingUiState.Idle)
+
+    private val _uiState =
+        MutableStateFlow<PaymentProcessingUiState>(PaymentProcessingUiState.Idle)
     val uiState: StateFlow<PaymentProcessingUiState> = _uiState.asStateFlow()
-    
+
     /**
      * Update the UI state
      */
     private fun updateState(newState: PaymentProcessingUiState) {
         _uiState.value = newState
     }
-    
-    // Reducer for handling actions and producing side effects (injected)
+
     init {
-        // Initialize the reducer with callback functions
         reducer.initialize(
             emitUiEvent = ::emitUiEvent,
             updateState = ::updateState
         )
-        
-        // Observe processor input requests
+
         viewModelScope.launch {
             paymentQueue.processor.userInputRequests.collect { request ->
-                Log.d("PaymentProcessingViewModel", "Processor input request received: ${request::class.simpleName}")
+                Log.d(
+                    "PaymentProcessingViewModel",
+                    "Processor input request received: ${request::class.simpleName}"
+                )
                 dispatch(PaymentProcessingAction.ProcessorInputRequested(request))
             }
         }
+
+        launchInViewModelScope {
+            paymentQueue.processingState.collectLatest { state ->
+                dispatch(PaymentProcessingAction.ProcessingStateChanged(state))
+            }
+        }
+
+        launchInViewModelScope {
+            paymentQueue.queueInputRequests.collectLatest { request ->
+                dispatch(PaymentProcessingAction.QueueInputRequested(request))
+            }
+        }
     }
-    
+
     /**
      * Dispatch an action to the ViewModel
      * This triggers state transitions and side effects
@@ -146,54 +176,42 @@ class PaymentProcessingViewModel @Inject constructor(
             sideEffect.scope()
         }
     }
-    
-    // Initialization and Event Handling
-    
-    init {
-        // Observe processing state changes
-        launchInViewModelScope {
-            paymentQueue.processingState.collectLatest { state ->
-                dispatch(PaymentProcessingAction.ProcessingStateChanged(state))
-            }
-        }
-        
-        // Observe queue input requests
-        launchInViewModelScope {
-            paymentQueue.queueInputRequests.collectLatest { request ->
-                dispatch(PaymentProcessingAction.QueueInputRequested(request))
-            }
-        }
-    }
-    
-    // Public API
-    
+
     /**
      * Start processing the payment queue
      */
     fun startProcessing() {
+        _paymentState.value = PaymentState.Processing
         dispatch(PaymentProcessingAction.StartProcessing)
     }
-    
+
     /**
      * Process a payment with the specified processor type
      * Uses the processor type from the mapper or the provided override
      */
     fun enqueuePayment(
         amount: Int,
-        commission: Int = 0,
+        commission: Int,
         method: SystemPaymentMethod,
-        isTransactionless: Boolean,
+        isTransactionless: Boolean
     ) {
-        dispatch(PaymentProcessingAction.EnqueuePayment(amount, commission, method, isTransactionless))
+        dispatch(
+            PaymentProcessingAction.EnqueuePayment(
+                amount,
+                commission,
+                method,
+                isTransactionless
+            )
+        )
     }
-    
+
     /**
      * Cancel a payment
      */
     fun cancelPayment(paymentId: String) {
         dispatch(PaymentProcessingAction.CancelPayment(paymentId))
     }
-    
+
     /**
      * Cancel all payments
      * Uses a single operation to remove all items at once
@@ -208,39 +226,39 @@ class PaymentProcessingViewModel @Inject constructor(
     fun abortPayment() {
         dispatch(PaymentProcessingAction.AbortCurrentPayment)
     }
-    
+
     // Processor-Level Input Handling
-    
+
     /**
      * Confirm customer receipt printing (processor-level input request)
      */
     fun confirmCustomerReceiptPrinting(requestId: String, shouldPrint: Boolean) {
         dispatch(PaymentProcessingAction.ConfirmCustomerReceiptPrinting(requestId, shouldPrint))
     }
-    
+
     /**
      * Confirm merchant PIX key (processor-level input request)
      */
     fun confirmMerchantPixKey(requestId: String, pixKey: String) {
         dispatch(PaymentProcessingAction.ConfirmMerchantPixKey(requestId, pixKey))
     }
-    
+
     /**
      * Confirm merchant PIX has been paid (processor-level input request)
      */
     fun confirmMerchantPixHasBeenPaid(requestId: String, didPay: Boolean) {
         dispatch(PaymentProcessingAction.ConfirmMerchantPixHasBeenPaid(requestId, didPay))
     }
-    
+
     // Queue-Level Input Handling
-    
+
     /**
      * Confirm proceeding to the next processor (queue-level input request)
      */
-    fun <T: QueueItem> confirmProcessor(requestId: String, modifiedItem: T) {
+    fun <T : QueueItem> confirmProcessor(requestId: String, modifiedItem: T) {
         dispatch(PaymentProcessingAction.ConfirmProcessor(requestId, modifiedItem))
     }
-    
+
     /**
      * Update processor type for all queued items
      * Used when toggling transactionless mode
@@ -248,14 +266,14 @@ class PaymentProcessingViewModel @Inject constructor(
     fun toggleTransactionless(useTransactionless: Boolean) {
         dispatch(PaymentProcessingAction.ToggleTransactionless(useTransactionless))
     }
-    
+
     /**
      * Skip the current processor and move to the next one (queue-level input request)
      */
     fun skipProcessor(requestId: String) {
         dispatch(PaymentProcessingAction.SkipProcessor(requestId))
     }
-    
+
     /**
      * Skip the current processor on error (for error retry dialogs)
      * This moves the item to the end of the queue for later retry
@@ -263,19 +281,19 @@ class PaymentProcessingViewModel @Inject constructor(
     fun skipProcessorOnError(requestId: String) {
         dispatch(PaymentProcessingAction.SkipProcessorOnError(requestId))
     }
-    
+
     // Error Handling
-    
+
     /**
      * Handle a failed payment with the specified action (queue-level input request)
-     * 
+     *
      * @param requestId The ID of the input request
      * @param action The error handling action to take
      */
     private fun handleFailedPayment(requestId: String, action: ErrorHandlingAction) {
         dispatch(PaymentProcessingAction.HandleFailedPayment(requestId, action))
     }
-    
+
     /**
      * Retry a failed payment immediately (queue-level input request)
      * This will retry the same processor without moving the item
@@ -283,7 +301,7 @@ class PaymentProcessingViewModel @Inject constructor(
     fun retryPayment(requestId: String) {
         handleFailedPayment(requestId, ErrorHandlingAction.RETRY)
     }
-    
+
     /**
      * Retry a failed payment later (queue-level input request)
      * This will move the item to the end of the queue and continue with the next item
@@ -291,7 +309,7 @@ class PaymentProcessingViewModel @Inject constructor(
     fun skipPayment(requestId: String) {
         handleFailedPayment(requestId, ErrorHandlingAction.SKIP)
     }
-    
+
     /**
      * Abort all processors and stop processing (queue-level input request)
      */
