@@ -82,6 +82,8 @@ class PaymentProcessingViewModel @Inject constructor(
             startMode = ProcessorStartMode.CONFIRMATION,
             scope = viewModelScope
         )
+
+
     }
 
     /**
@@ -223,8 +225,14 @@ class PaymentProcessingViewModel @Inject constructor(
     /**
      * Abort the current processor
      */
-    fun abortPayment() {
+    fun abortPayment(clearQueue: Boolean = false) {
         dispatch(PaymentProcessingAction.AbortCurrentPayment)
+
+        if (clearQueue) {
+            viewModelScope.launch {
+                paymentQueue.clearQueue()
+            }
+        }
     }
 
     // Processor-Level Input Handling
@@ -313,7 +321,20 @@ class PaymentProcessingViewModel @Inject constructor(
     /**
      * Abort all processors and stop processing (queue-level input request)
      */
-    fun abortAllPayments(requestId: String) {
-        handleFailedPayment(requestId, ErrorHandlingAction.ABORT_ALL)
+    /**
+     * Abort all payments and clear the queue
+     */
+    fun abortAllPayments() {
+        viewModelScope.launch {
+            try {
+                dispatch(PaymentProcessingAction.AbortCurrentPayment)
+                dispatch(PaymentProcessingAction.ClearQueue)
+                _paymentState.value = PaymentState.Cancelled
+                Log.d("PaymentProcessingViewModel", "All payments aborted and queue cleared")
+            } catch (e: Exception) {
+                Log.e("PaymentProcessingViewModel", "Error aborting payments", e)
+                _paymentState.value = PaymentState.Error("Erro ao cancelar pagamentos")
+            }
+        }
     }
 }

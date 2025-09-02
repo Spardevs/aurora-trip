@@ -1,6 +1,7 @@
 package br.com.ticpass.pos.view.fragments.payment
 
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -33,8 +34,6 @@ class CardPaymentFragment : Fragment() {
 
     private var paymentType: String? = null
     private var shouldStartImmediately = false
-
-    // Variáveis para referências das views
     private lateinit var titleTextView: TextView
     private lateinit var statusTextView: TextView
     private lateinit var infoTextView: TextView
@@ -76,7 +75,6 @@ class CardPaymentFragment : Fragment() {
     }
 
     private fun setupUI(view: View) {
-        // Inicializar as views
         titleTextView = view.findViewById(R.id.payment_form)
         statusTextView = view.findViewById(R.id.payment_status)
         infoTextView = view.findViewById(R.id.payment_info)
@@ -104,12 +102,12 @@ class CardPaymentFragment : Fragment() {
         }
 
         cancelButton.setOnClickListener {
+            paymentViewModel.abortAllPayments()
             requireActivity().finish()
         }
     }
 
     private fun setupObservers() {
-        // Observar o estado do pagamento usando coroutines
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 paymentViewModel.paymentState.collect { state ->
@@ -127,14 +125,12 @@ class CardPaymentFragment : Fragment() {
                             updateUIForCancelled()
                         }
                         is PaymentProcessingViewModel.PaymentState.Idle -> {
-                            // Handle idle state if needed
                         }
                     }
                 }
             }
         }
 
-        // Observar eventos específicos se necessário
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 paymentViewModel.paymentEvents.collect { event ->
@@ -187,17 +183,16 @@ class CardPaymentFragment : Fragment() {
     private fun updateUIForSuccess(transactionId: String) {
         statusTextView.text = "Pagamento Aprovado!"
         infoTextView.text = "Transação: $transactionId\nObrigado pela compra!"
-        imageView.setImageResource(R.drawable.ic_check) // Adicione um ícone de sucesso
+        imageView.setImageResource(R.drawable.ic_check)
         cancelButton.text = "Finalizar"
     }
 
     private fun updateUIForError(errorMessage: String) {
         statusTextView.text = "Erro no Pagamento"
         infoTextView.text = errorMessage
-        imageView.setImageResource(R.drawable.ic_close) // Adicione um ícone de erro
+        imageView.setImageResource(R.drawable.ic_close)
         cancelButton.text = "Tentar Novamente"
         cancelButton.setOnClickListener {
-            // Reiniciar o processo de pagamento
             enqueuePayment(startImmediately = true)
         }
     }
@@ -205,7 +200,6 @@ class CardPaymentFragment : Fragment() {
     private fun updateUIForCancelled() {
         statusTextView.text = "Pagamento Cancelado"
         infoTextView.text = "A transação foi cancelada"
-        cancelButton.text = "Voltar"
     }
 
     private fun updateUIForCardDetected() {
