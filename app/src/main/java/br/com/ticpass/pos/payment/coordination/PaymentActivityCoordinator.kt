@@ -43,10 +43,10 @@ class PaymentActivityCoordinator(
     private val showProgressDialog: () -> Unit,
     private val hideProgressDialog: () -> Unit
 ) {
-    
+
     private var totalPayments = 0
     private var currentProcessingIndex = 0
-    
+
     /**
      * Initialize all ViewModel observations and UI coordination
      */
@@ -57,15 +57,16 @@ class PaymentActivityCoordinator(
         observePaymentEvents()
         observeUiState()
     }
-    
+
     private fun observeQueueState() {
         lifecycleScope.launch {
             paymentViewModel.queueState.collectLatest { queueItems ->
-                updateQueueUI(queueItems)
+                // Handle nullable list safely
+                updateQueueUI(queueItems ?: emptyList())
             }
         }
     }
-    
+
     private fun observeUiEvents() {
         lifecycleScope.launch {
             paymentViewModel.uiEvents.collect { event ->
@@ -73,61 +74,67 @@ class PaymentActivityCoordinator(
             }
         }
     }
-    
+
     private fun observeProcessingState() {
         lifecycleScope.launch {
             paymentViewModel.processingState.collectLatest { state ->
-
                 // Show dialog for active processing states
-                if (state is ProcessingState.ItemProcessing || 
-                    state is ProcessingState.ItemRetrying) {
+                if (state is ProcessingState.ItemProcessing<*> ||
+                    state is ProcessingState.ItemRetrying<*>) {
                     showProgressDialog()
                 }
-                
+
                 when (state) {
-                    is ProcessingState.ItemProcessing -> {
-                        updateProcessingProgress(paymentViewModel.currentIndex, paymentViewModel.fullSize)
-                        // Update payment method and amount information
-                        updatePaymentInfo(state.item)
+                    is ProcessingState.ItemProcessing<*> -> {
+                        val item = state.item as? PaymentProcessingQueueItem
+                        if (item != null) {
+                            updateProcessingProgress(paymentViewModel.currentIndex as Int,
+                                paymentViewModel.fullSize as Int
+                            )
+                            updatePaymentInfo(item)
+                        }
                     }
-                    is ProcessingState.ItemDone -> {
+                    is ProcessingState.ItemDone<*> -> {
                         // Success: All payments completed
+                        // Optionally handle completion
                     }
-                    is ProcessingState.ItemFailed -> {
+                    is ProcessingState.ItemFailed<*> -> {
                         // Handle error state
-                        val resourceId = ProcessingErrorEventResourceMapper.getErrorResourceKey(state.error)
+                        val error = state.error
+                        val resourceId = ProcessingErrorEventResourceMapper.getErrorResourceKey(error)
                         val displayMessage = context.getString(resourceId)
 
                         // Display the error in the progress area
-                        displayErrorMessage(state.error)
+                        displayErrorMessage(error)
                     }
-                    is ProcessingState.ItemRetrying -> {
-                        // Update progress for retrying state
-                        updateProcessingProgress(paymentViewModel.currentIndex, paymentViewModel.fullSize)
-                        // Update payment method and amount information for retry
-                        updatePaymentInfo(state.item)
+                    is ProcessingState.ItemRetrying<*> -> {
+                        val item = state.item as? PaymentProcessingQueueItem
+                        if (item != null) {
+                            updateProcessingProgress(paymentViewModel.currentIndex as Int,
+                                paymentViewModel.fullSize as Int
+                            )
+                            updatePaymentInfo(item)
+                        }
                     }
-                    is ProcessingState.ItemSkipped -> {
-                        // Update progress for skipped state
-                        updateProcessingProgress(paymentViewModel.currentIndex, paymentViewModel.fullSize)
+                    is ProcessingState.ItemSkipped<*> -> {
+                        updateProcessingProgress(paymentViewModel.currentIndex as Int,
+                            paymentViewModel.fullSize as Int
+                        )
                     }
-                    is ProcessingState.QueueCanceled -> {
-                        // Reset progress when queue is canceled
+                    is ProcessingState.QueueCanceled<*> -> {
                         updateProcessingProgress(0, 0)
                     }
-                    is ProcessingState.QueueDone -> {
-                        // Reset progress when queue processing is done
+                    is ProcessingState.QueueDone<*> -> {
                         updateProcessingProgress(0, 0)
                     }
-                    else -> { 
-                        // Reset progress for other states
+                    else -> {
                         updateProcessingProgress(0, 0)
                     }
                 }
             }
         }
     }
-    
+
     private fun observePaymentEvents() {
         lifecycleScope.launch {
             paymentViewModel.processingPaymentEvents.collectLatest { event ->
@@ -135,7 +142,7 @@ class PaymentActivityCoordinator(
             }
         }
     }
-    
+
     private fun observeUiState() {
         lifecycleScope.launch {
             paymentViewModel.uiState.collectLatest { uiState ->
@@ -166,19 +173,19 @@ class PaymentActivityCoordinator(
             }
         }
     }
-    
+
     private fun updateQueueUI(queueItems: List<PaymentProcessingQueueItem>) {
         queueView.updateQueue(queueItems)
         totalPayments = queueItems.size
-        
+
         // Update the queue title with item count
         val formattedTitle = String.format(context.getString(R.string.payment_queue), queueItems.size)
         queueTitleTextView.text = formattedTitle
     }
-    
+
     private fun updateProcessingProgress(current: Int, total: Int) {
         currentProcessingIndex = current
-        
+
         // Update dialog progress
         if(total == 1) {
             dialogProgressTextView.text = context.getString(R.string.payment_progress_first)
@@ -187,7 +194,7 @@ class PaymentActivityCoordinator(
         }
         dialogProgressBar.progress = current
         dialogProgressBar.max = total
-        
+
         // Show dialog if processing is happening, hide otherwise
         if (total > 0) {
             showProgressDialog()
@@ -195,29 +202,29 @@ class PaymentActivityCoordinator(
             hideProgressDialog()
         }
     }
-    
+
     private fun displayErrorMessage(error: ProcessingErrorEvent) {
         val errorMessage = PaymentUIUtils.getErrorMessage(context, error)
         PaymentUIUtils.logError("PaymentActivityCoordinator", error, context)
-        
+
         // Update dialog with error message
         dialogEventTextView.text = errorMessage
-        
+
         // Make sure dialog is showing for errors
         showProgressDialog()
     }
-    
+
     private fun updatePaymentInfo(item: PaymentProcessingQueueItem) {
         // Update payment method
         val paymentMethodDisplayName = getPaymentMethodDisplayName(item.method)
         dialogPaymentMethodTextView.text = paymentMethodDisplayName
-        
+
         // Update payment amount (convert from cents to currency format)
         val amountInReais = item.amount.toMoneyAsDouble()
         val formattedAmount = String.format("R$ %.2f", amountInReais)
         dialogPaymentAmountTextView.text = formattedAmount
     }
-    
+
     private fun getPaymentMethodDisplayName(method: SystemPaymentMethod): String {
         return when (method) {
             SystemPaymentMethod.CREDIT -> context.getString(R.string.enqueue_credit_payment)
@@ -229,10 +236,10 @@ class PaymentActivityCoordinator(
             SystemPaymentMethod.LN_BITCOIN -> context.getString(R.string.enqueue_bitcoin_ln_payment)
         }
     }
-    
+
     private fun confirmMerchantPixKey(requestId: String) {
         val pixKey = PaymentUIUtils.getHardcodedPixKey()
-        
+
         // Directly confirm the PIX key without showing a dialog
         paymentViewModel.confirmMerchantPixKey(requestId, pixKey)
     }

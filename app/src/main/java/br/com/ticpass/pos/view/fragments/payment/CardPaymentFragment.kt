@@ -108,9 +108,11 @@ class CardPaymentFragment : Fragment() {
     }
 
     private fun setupObservers() {
+        // Observar estado do pagamento
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 paymentViewModel.paymentState.collect { state ->
+                    Log.d("PaymentState", "Estado atual: $state")
                     when (state) {
                         is PaymentProcessingViewModel.PaymentState.Processing -> {
                             updateUIForProcessing()
@@ -125,15 +127,22 @@ class CardPaymentFragment : Fragment() {
                             updateUIForCancelled()
                         }
                         is PaymentProcessingViewModel.PaymentState.Idle -> {
+                            // Estado ocioso
+                        }
+
+                        else -> {
+
                         }
                     }
                 }
             }
         }
 
+        // Observar eventos do pagamento
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 paymentViewModel.paymentEvents.collect { event ->
+                    Log.d("PaymentEvent", "Evento recebido: $event")
                     when (event) {
                         is PaymentProcessingViewModel.PaymentEvent.CardDetected -> {
                             updateUIForCardDetected()
@@ -145,11 +154,22 @@ class CardPaymentFragment : Fragment() {
                 }
             }
         }
+
+        // Observar eventos da UI do ViewModel (opcional)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                paymentViewModel.uiEvents.collect { event ->
+                    Log.d("UiEvent", "Evento de UI: $event")
+                    // Tratar eventos de UI específicos se necessário
+                }
+            }
+        }
     }
 
     private fun enqueuePayment(startImmediately: Boolean) {
         val method = when (paymentType) {
             "credit_card" -> SystemPaymentMethod.CREDIT
+            "debit_card" -> SystemPaymentMethod.DEBIT
             "debit_card" -> SystemPaymentMethod.DEBIT
             else -> return
         }
@@ -157,6 +177,8 @@ class CardPaymentFragment : Fragment() {
         val cart = shoppingCartManager.getCart()
         val amount = cart.totalPrice
         val commission = 0
+
+        Log.d("CardPayment", "Enfileirando pagamento: $amount, método: $method")
 
         paymentViewModel.enqueuePayment(
             amount = amount.toInt(),
@@ -166,6 +188,7 @@ class CardPaymentFragment : Fragment() {
         )
 
         if (startImmediately) {
+            Log.d("CardPayment", "Iniciando processamento imediato")
             paymentViewModel.startProcessing()
         }
     }
