@@ -8,6 +8,8 @@ import androidx.core.graphics.createBitmap
  * Payment-specific events emitted during payment processing
  */
 sealed class PaymentProcessingEvent : BaseProcessingEvent {
+    open val transactionId: String? = null
+
     /**
      * Payment processing has started.
      */

@@ -15,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.feature.payment.PaymentProcessingViewModel
+import br.com.ticpass.pos.feature.payment.PaymentState // Import the PaymentState from its own file
 import br.com.ticpass.pos.payment.models.SystemPaymentMethod
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
 import com.google.android.material.button.MaterialButton
@@ -40,6 +41,7 @@ class CardPaymentFragment : Fragment() {
     private lateinit var imageView: ImageView
     private lateinit var priceTextView: TextView
     private lateinit var cancelButton: MaterialButton
+    private lateinit var retryButton: MaterialButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,6 +83,7 @@ class CardPaymentFragment : Fragment() {
         imageView = view.findViewById(R.id.image)
         priceTextView = view.findViewById(R.id.payment_price)
         cancelButton = view.findViewById(R.id.btn_cancel)
+        retryButton = view.findViewById(R.id.btn_retry)
 
         val cart = shoppingCartManager.getCart()
 
@@ -108,59 +111,31 @@ class CardPaymentFragment : Fragment() {
     }
 
     private fun setupObservers() {
-        // Observar estado do pagamento
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 paymentViewModel.paymentState.collect { state ->
                     Log.d("PaymentState", "Estado atual: $state")
                     when (state) {
-                        is PaymentProcessingViewModel.PaymentState.Processing -> {
+                        is PaymentState.Processing -> {
                             updateUIForProcessing()
                         }
-                        is PaymentProcessingViewModel.PaymentState.Success -> {
+                        is PaymentState.Success -> {
                             updateUIForSuccess(state.transactionId)
+                            shoppingCartManager.clearCart()
                         }
-                        is PaymentProcessingViewModel.PaymentState.Error -> {
+                        is PaymentState.Error -> {
                             updateUIForError(state.errorMessage)
                         }
-                        is PaymentProcessingViewModel.PaymentState.Cancelled -> {
+                        is PaymentState.Cancelled -> {
                             updateUIForCancelled()
                         }
-                        is PaymentProcessingViewModel.PaymentState.Idle -> {
+                        is PaymentState.Idle -> {
                             // Estado ocioso
                         }
-
-                        else -> {
-
+                        is PaymentState.Initializing -> {
+                            statusTextView.text = "Inicializando sistema de pagamento..."
                         }
                     }
-                }
-            }
-        }
-
-        // Observar eventos do pagamento
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                paymentViewModel.paymentEvents.collect { event ->
-                    Log.d("PaymentEvent", "Evento recebido: $event")
-                    when (event) {
-                        is PaymentProcessingViewModel.PaymentEvent.CardDetected -> {
-                            updateUIForCardDetected()
-                        }
-                        is PaymentProcessingViewModel.PaymentEvent.Processing -> {
-                            updateUIForProcessing(event.message)
-                        }
-                    }
-                }
-            }
-        }
-
-        // Observar eventos da UI do ViewModel (opcional)
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                paymentViewModel.uiEvents.collect { event ->
-                    Log.d("UiEvent", "Evento de UI: $event")
-                    // Tratar eventos de UI específicos se necessário
                 }
             }
         }
@@ -169,7 +144,6 @@ class CardPaymentFragment : Fragment() {
     private fun enqueuePayment(startImmediately: Boolean) {
         val method = when (paymentType) {
             "credit_card" -> SystemPaymentMethod.CREDIT
-            "debit_card" -> SystemPaymentMethod.DEBIT
             "debit_card" -> SystemPaymentMethod.DEBIT
             else -> return
         }
@@ -198,35 +172,75 @@ class CardPaymentFragment : Fragment() {
         infoTextView.text = "Aguarde, estamos processando sua transação"
     }
 
-    private fun updateUIForProcessing(message: String) {
-        statusTextView.text = "Processando..."
-        infoTextView.text = message
-    }
-
     private fun updateUIForSuccess(transactionId: String) {
-        statusTextView.text = "Pagamento Aprovado!"
-        infoTextView.text = "Transação: $transactionId\nObrigado pela compra!"
-        imageView.setImageResource(R.drawable.ic_check)
-        cancelButton.text = "Finalizar"
+        activity?.runOnUiThread {
+            statusTextView.text = "Pagamento Aprovado!"
+            infoTextView.text = "Transação: ${transactionId.take(8)}...\nObrigado pela compra!"
+            imageView.setImageResource(R.drawable.ic_check)
+            imageView.setColorFilter(resources.getColor(R.color.colorGreen, null))
+
+            cancelButton.text = "Finalizar"
+            cancelButton.setOnClickListener {
+                requireActivity().finish()
+            }
+            retryButton.visibility = View.GONE
+
+            imageView.animate()
+                .scaleX(1.5f)
+                .scaleY(1.5f)
+                .setDuration(500)
+                .withEndAction {
+                    imageView.animate()
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(300)
+                        .start()
+                }
+                .start()
+        }
     }
 
     private fun updateUIForError(errorMessage: String) {
-        statusTextView.text = "Erro no Pagamento"
-        infoTextView.text = errorMessage
-        imageView.setImageResource(R.drawable.ic_close)
-        cancelButton.text = "Tentar Novamente"
-        cancelButton.setOnClickListener {
-            enqueuePayment(startImmediately = true)
+        activity?.runOnUiThread {
+            statusTextView.text = "Erro no Pagamento"
+            infoTextView.text = errorMessage
+            imageView.setImageResource(R.drawable.ic_close)
+            imageView.setColorFilter(resources.getColor(R.color.colorRed, null))
+
+            cancelButton.text = "Cancelar"
+            cancelButton.setOnClickListener {
+                paymentViewModel.abortAllPayments()
+                requireActivity().finish()
+            }
+            retryButton.visibility = View.VISIBLE
+            retryButton.text = "Tentar Novamente"
+            retryButton.setOnClickListener {
+                retryPayment()
+            }
+        }
+    }
+
+    private fun retryPayment() {
+        activity?.runOnUiThread {
+            retryButton.visibility = View.GONE
+            statusTextView.text = "Preparando nova tentativa..."
+            infoTextView.text = "Aguarde..."
+            imageView.setImageResource(when (paymentType) {
+                "credit_card" -> R.drawable.ic_credit_card
+                "debit_card" -> R.drawable.ic_credit_card
+                else -> R.drawable.ic_credit_card
+            })
+            imageView.clearColorFilter()
+
+            Handler().postDelayed({
+                enqueuePayment(startImmediately = true)
+            }, 1000)
         }
     }
 
     private fun updateUIForCancelled() {
         statusTextView.text = "Pagamento Cancelado"
         infoTextView.text = "A transação foi cancelada"
-    }
-
-    private fun updateUIForCardDetected() {
-        infoTextView.text = "Cartão detectado! Processando..."
     }
 
     private fun formatCurrency(value: Double): String {

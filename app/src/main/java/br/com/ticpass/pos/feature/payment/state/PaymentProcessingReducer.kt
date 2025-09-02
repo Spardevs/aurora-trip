@@ -71,8 +71,6 @@ class PaymentProcessingReducer @Inject constructor(
             is PaymentProcessingAction.AbortCurrentPayment -> {
                 queueManagementUseCase.abortCurrentPayment(paymentQueue, emitUiEvent)
             }
-            
-            // Processor confirmation actions
             is PaymentProcessingAction.ConfirmProcessor<*> -> {
                 confirmationUseCase.confirmProcessor(
                     requestId = action.requestId,
@@ -93,8 +91,6 @@ class PaymentProcessingReducer @Inject constructor(
                     paymentQueue = paymentQueue
                 )
             }
-            
-            // Error handling actions
             is PaymentProcessingAction.HandleFailedPayment -> {
                 errorHandlingUseCase.handleFailedPayment(
                     requestId = action.requestId,
@@ -104,8 +100,6 @@ class PaymentProcessingReducer @Inject constructor(
                     updateState = updateState
                 )
             }
-            
-            // Receipt printing actions
             is PaymentProcessingAction.ConfirmCustomerReceiptPrinting -> {
                 confirmationUseCase.confirmCustomerReceiptPrinting(
                     requestId = action.requestId,
@@ -114,8 +108,6 @@ class PaymentProcessingReducer @Inject constructor(
                     updateState = updateState
                 )
             }
-            
-            // PIX payment actions
             is PaymentProcessingAction.ConfirmMerchantPixKey -> {
                 confirmationUseCase.confirmMerchantPixKey(
                     requestId = action.requestId,
@@ -124,7 +116,6 @@ class PaymentProcessingReducer @Inject constructor(
                     updateState = updateState
                 )
             }
-            
             is PaymentProcessingAction.ConfirmMerchantPixHasBeenPaid -> {
                 confirmationUseCase.confirmMerchantPixHasBeenPaid(
                     requestId = action.requestId,
@@ -133,8 +124,6 @@ class PaymentProcessingReducer @Inject constructor(
                     updateState = updateState
                 )
             }
-            
-            // Internal actions triggered by events
             is PaymentProcessingAction.ProcessingStateChanged -> {
                 action.state?.let { state ->
                     stateManagementUseCase.handleProcessingStateChange(
@@ -153,7 +142,6 @@ class PaymentProcessingReducer @Inject constructor(
                 )
                 null // No side effect needed
             }
-            
             is PaymentProcessingAction.ProcessorInputRequested -> {
                 stateManagementUseCase.handleProcessorInputRequest(
                     request = action.request,
@@ -161,14 +149,15 @@ class PaymentProcessingReducer @Inject constructor(
                 )
                 null // No side effect needed
             }
-            
-            // Transactionless mode actions
             is PaymentProcessingAction.ToggleTransactionless -> {
                 queueManagementUseCase.toggleTransactionless(
                     useTransactionless = action.useTransactionless,
                     paymentQueue = paymentQueue,
                     emitUiEvent = emitUiEvent
                 )
+            }
+            else -> {
+                null
             }
         }
     }

@@ -11,7 +11,7 @@ import br.com.ticpass.pos.queue.input.QueueInputRequest
  * Represents an action that can be dispatched to the ViewModel
  * Actions trigger state transitions and side effects
  */
-sealed class PaymentProcessingAction {
+open class PaymentProcessingAction {
     // Queue actions
     object StartProcessing : PaymentProcessingAction()
     data class EnqueuePayment(

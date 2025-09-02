@@ -32,28 +32,33 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+
+
+sealed class PaymentState {
+    object Idle : PaymentState()
+    object Initializing : PaymentState()
+    object Processing : PaymentState()
+    data class Success(val transactionId: String) : PaymentState()
+    data class Error(val errorMessage: String) : PaymentState()
+    object Cancelled : PaymentState()
+}
+
+sealed class PaymentEvent {
+    data class CardDetected(val cardType: String) : PaymentEvent()
+    data class Processing(val message: String) : PaymentEvent()
+}
+
 @HiltViewModel
 class PaymentProcessingViewModel @Inject constructor(
     private val paymentQueueFactory: PaymentProcessingQueueFactory,
     private val processingPaymentStorage: PaymentProcessingStorage,
     private val reducer: PaymentProcessingReducer
 ) : ViewModel() {
-    sealed class PaymentState {
-        object Idle : PaymentState()
-        object Initializing : PaymentState()
-        object Processing : PaymentState()
-        data class Success(val transactionId: String) : PaymentState()
-        data class Error(val errorMessage: String) : PaymentState()
-        object Cancelled : PaymentState()
-    }
 
-    sealed class PaymentEvent {
-        data class CardDetected(val cardType: String) : PaymentEvent()
-        data class Processing(val message: String) : PaymentEvent()
-    }
+    inner class ProcessorEventReceived(val event: PaymentProcessingEvent) : PaymentProcessingAction()
 
     private val paymentTimeoutHandler = Handler()
-    private val PAYMENT_TIMEOUT_MS = 120000L // 2 minutos
+    private val PAYMENT_TIMEOUT_MS = 30000L
 
     private val paymentTimeoutRunnable = Runnable {
         _paymentState.value = PaymentState.Error("Tempo limite excedido para o pagamento")
@@ -73,8 +78,6 @@ class PaymentProcessingViewModel @Inject constructor(
             emitUiEvent = ::emitUiEvent,
             updateState = ::updateState
         )
-
-        // Inicializar a fila de pagamento
         initializePaymentQueue()
     }
 
@@ -83,15 +86,11 @@ class PaymentProcessingViewModel @Inject constructor(
         clearTimeout()
     }
 
-    /**
-     * Helper function to launch coroutines in the viewModelScope with standard error handling
-     */
     private fun launchInViewModelScope(block: suspend () -> Unit) {
         viewModelScope.launch {
             try {
                 block()
             } catch (e: Exception) {
-                // Common error handling
                 updateState(PaymentProcessingUiState.Error(ProcessingErrorEvent.GENERIC))
             }
         }
@@ -162,14 +161,28 @@ class PaymentProcessingViewModel @Inject constructor(
         // Processor events collector
         viewModelScope.launch {
             paymentQueue.processorEvents.collect { event ->
+                Log.d("PaymentProcessingViewModel", "Processor event: ${event.javaClass.simpleName}")
+
                 when (event) {
-                    is PaymentProcessingEvent.APPROVAL_SUCCEEDED,
-                    is PaymentProcessingEvent.APPROVAL_DECLINED,
+                    is PaymentProcessingEvent.APPROVAL_SUCCEEDED -> {
+                        clearTimeout()
+                        val transactionId = event.transactionId
+                        _paymentState.value = PaymentState.Success(transactionId as String)
+                    }
+                    is PaymentProcessingEvent.APPROVAL_DECLINED -> {
+                        clearTimeout()
+                        _paymentState.value = PaymentState.Error("Pagamento recusado")
+                    }
                     is PaymentProcessingEvent.CANCELLED -> {
                         clearTimeout()
+                        _paymentState.value = PaymentState.Cancelled
                     }
-                    else -> {}
+                    else -> {
+                        Log.d("PaymentProcessingViewModel", "Evento não tratado: ${event.javaClass.simpleName}")
+                    }
                 }
+
+                dispatch(ProcessorEventReceived(event))
             }
         }
 
