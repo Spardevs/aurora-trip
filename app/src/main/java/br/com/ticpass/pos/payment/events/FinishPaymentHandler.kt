@@ -91,7 +91,7 @@ class FinishPaymentHandler @Inject constructor(
         val orderExists = orderRepository.getOrderById(orderId) != null
 
         if (orderExists) {
-            addPaymentToOrder(orderId, paymentData)
+//            addPaymentToOrder(orderId, paymentData)
             println("Added payment to existing multi-payment order: $orderId")
         } else {
             shoppingCartPrefs.edit {
@@ -101,14 +101,4 @@ class FinishPaymentHandler @Inject constructor(
         }
     }
 
-    private suspend fun addPaymentToOrder(orderId: String, paymentData: PaymentUIUtils.PaymentData?) {
-        // Implemente a lógica para adicionar pagamento à order
-        // paymentRepository.insertPayment(PaymentEntity(orderId = orderId, ...))
-    }
-
-    fun clearMultiPaymentSession() {
-        shoppingCartPrefs.edit {
-            remove("multi_payment_order_id")
-        }
-    }
 }
