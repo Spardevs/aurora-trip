@@ -2,6 +2,7 @@ package br.com.ticpass.pos.view.fragments.payment
 
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -15,12 +16,15 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.feature.payment.PaymentProcessingViewModel
-import br.com.ticpass.pos.feature.payment.PaymentState // Import the PaymentState from its own file
+import br.com.ticpass.pos.feature.payment.PaymentState
+import br.com.ticpass.pos.payment.events.FinishPaymentHandler
+import br.com.ticpass.pos.payment.events.PaymentType
 import br.com.ticpass.pos.payment.models.SystemPaymentMethod
+import br.com.ticpass.pos.payment.utils.PaymentUIUtils
+import br.com.ticpass.pos.sdk.AcquirerSdk
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
 import com.google.android.material.button.MaterialButton
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
@@ -28,10 +32,14 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class CardPaymentFragment : Fragment() {
+
     private val paymentViewModel: PaymentProcessingViewModel by activityViewModels()
 
     @Inject
     lateinit var shoppingCartManager: ShoppingCartManager
+
+    @Inject
+    lateinit var finishPaymentHandler: FinishPaymentHandler
 
     private var paymentType: String? = null
     private var shouldStartImmediately = false
@@ -44,6 +52,9 @@ class CardPaymentFragment : Fragment() {
     private lateinit var retryButton: MaterialButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        AcquirerSdk.initialize(
+            appContext = requireContext(),
+        )
         super.onCreate(savedInstanceState)
         paymentType = arguments?.getString("payment_type")
         shouldStartImmediately = true
@@ -120,8 +131,9 @@ class CardPaymentFragment : Fragment() {
                             updateUIForProcessing()
                         }
                         is PaymentState.Success -> {
-                            updateUIForSuccess(state.transactionId)
+                            updateUIForSuccess()
                             shoppingCartManager.clearCart()
+                            handleSuccessfulPayment(state)
                         }
                         is PaymentState.Error -> {
                             updateUIForError(state.errorMessage)
@@ -172,12 +184,10 @@ class CardPaymentFragment : Fragment() {
         infoTextView.text = "Aguarde, estamos processando sua transação"
     }
 
-    private fun updateUIForSuccess(transactionId: String) {
+    private fun updateUIForSuccess() {
         activity?.runOnUiThread {
             statusTextView.text = "Pagamento Aprovado!"
-            infoTextView.text = "Transação: ${transactionId.take(8)}...\nObrigado pela compra!"
             imageView.setImageResource(R.drawable.ic_check)
-            imageView.setColorFilter(resources.getColor(R.color.colorGreen, null))
 
             cancelButton.text = "Finalizar"
             cancelButton.setOnClickListener {
@@ -205,7 +215,6 @@ class CardPaymentFragment : Fragment() {
             statusTextView.text = "Erro no Pagamento"
             infoTextView.text = errorMessage
             imageView.setImageResource(R.drawable.ic_close)
-            imageView.setColorFilter(resources.getColor(R.color.colorRed, null))
 
             cancelButton.text = "Cancelar"
             cancelButton.setOnClickListener {
@@ -232,7 +241,7 @@ class CardPaymentFragment : Fragment() {
             })
             imageView.clearColorFilter()
 
-            Handler().postDelayed({
+            Handler(Looper.getMainLooper()).postDelayed({
                 enqueuePayment(startImmediately = true)
             }, 1000)
         }
@@ -244,7 +253,38 @@ class CardPaymentFragment : Fragment() {
     }
 
     private fun formatCurrency(value: Double): String {
-        val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+        val format = NumberFormat.getCurrencyInstance(Locale.Builder()
+            .setLanguage("pt")
+            .setRegion("BR")
+            .build())
         return format.format(value)
+    }
+
+    private fun handleSuccessfulPayment(state: PaymentState.Success) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val paymentTypeEnum = when (paymentType) {
+                    "credit_card", "debit_card" -> PaymentType.SINGLE_PAYMENT
+                    else -> PaymentType.SINGLE_PAYMENT
+                }
+                val cart = shoppingCartManager.getCart()
+                val amount = cart.totalPrice.toInt()
+                val commission = 0
+                val method = when (paymentType) {
+                    "credit_card" -> SystemPaymentMethod.CREDIT
+                    "debit_card" -> SystemPaymentMethod.DEBIT
+                    else -> SystemPaymentMethod.CREDIT
+                }
+                val paymentData = PaymentUIUtils.PaymentData(
+                    amount = amount,
+                    commission = commission,
+                    method = method,
+                    isTransactionless = true
+                )
+                finishPaymentHandler.handlePayment(paymentTypeEnum, paymentData)
+            } catch (e: Exception) {
+                Log.e("CardPaymentFragment", "Erro ao processar pagamento finalizado: ${e.message}")
+            }
+        }
     }
 }

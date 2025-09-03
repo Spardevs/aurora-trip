@@ -1,17 +1,14 @@
 package br.com.ticpass.pos.data.room.repository
 
-
 import br.com.ticpass.pos.data.room.dao.OrderDao
-import br.com.ticpass.pos.data.room.dao.ProductDao
 import br.com.ticpass.pos.data.room.entity.OrderEntity
 import br.com.ticpass.pos.data.room.entity.OrderPopulated
+import dagger.hilt.android.scopes.ActivityRetainedScoped
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
+@ActivityRetainedScoped
 class OrderRepository @Inject constructor(
-    private val orderDao: OrderDao,
-    private val productDao: ProductDao,
+    private val orderDao: OrderDao
 ) {
 
     suspend fun insertMany(orders: List<OrderEntity>) {
@@ -43,34 +40,34 @@ class OrderRepository @Inject constructor(
     suspend fun getAll() = orderDao.getAllOrders()
     fun getLast() = orderDao.getLast()
 
+    suspend fun insertOrder(order: OrderEntity) {
+        return orderDao.insertOrders(listOf(order))
+    }
+
+    suspend fun getOrderById(orderId: String): OrderEntity? {
+        return orderDao.getById(orderId)
+    }
+
     suspend fun getAllBySyncState(syncState: Boolean): List<OrderEntity> {
-        return orderDao.getBySyncState(syncState) ?: emptyList()
+        return orderDao.getBySyncState(syncState)
     }
 
     suspend fun setManySynced(orderIds: List<String>, syncState: Boolean) {
         if (orderIds.isEmpty()) return
 
-        val orders = orderDao.getAllOrders() ?: emptyList()
+        val orders = orderDao.getAllOrders()
 
-        // Use forEach to update the 'synced' property
         orders.forEach { order ->
             if (orderIds.contains(order.id)) {
                 order.synced = syncState
             }
         }
 
-        // Update all modified orders in the database
         orderDao.updateMany(orders)
     }
 
-    companion object {
-
-        // For Singleton instantiation
-        @Volatile private var instance: OrderRepository? = null
-
-        fun getInstance(orderDao: OrderDao, productDao: ProductDao) =
-            instance ?: synchronized(this) {
-                instance ?: OrderRepository(orderDao, productDao).also { instance = it }
-            }
+    suspend fun insertSingle(order: OrderEntity) {
+        return orderDao.insertOrders(listOf(order))
     }
+
 }

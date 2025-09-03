@@ -21,17 +21,11 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.location.Location
-import android.net.ConnectivityManager
-import android.net.Network
-import android.net.NetworkCapabilities
-import android.net.NetworkRequest
-import android.os.Build
+import android.os.Build.SERIAL
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
@@ -55,7 +49,6 @@ import br.com.ticpass.pos.data.room.service.GPSService
 import br.com.ticpass.pos.util.ConnectionStatusBar
 import br.com.ticpass.pos.data.activity.PermissionsActivity
 import br.com.ticpass.pos.util.ConnectivityMonitor
-import com.google.android.material.snackbar.Snackbar
 import com.topjohnwu.superuser.internal.UiThreadHandler.handler
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -200,11 +193,11 @@ class MyGPSTaskRunnable @Inject constructor(
                         defaultScope.launch(exceptionHandler) {
                             withContext(Dispatchers.IO) {
                                 forYouViewModel.apiRepository.pingDevice(
-                                    serial = Build.SERIAL,
+                                    serial = SERIAL,
                                     coords = "${location.latitude}, ${location.longitude}",
-                                    posId = if(data.pos != null) data.pos.id.toInt() else null,
-                                    eventId = if(data.event != null) data.event.id.toInt() else null,
-                                    cashier = if(data.cashier.isNotEmpty()) data.cashier else null,
+                                    posId = data.pos.id.toInt(),
+                                    eventId = data.event?.id?.toInt(),
+                                    cashier = data.cashier.ifEmpty { null },
                                 )
                             }
                         }

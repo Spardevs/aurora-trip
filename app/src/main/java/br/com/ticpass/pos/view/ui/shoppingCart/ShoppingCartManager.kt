@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.view.ui.shoppingCart
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.lifecycle.MutableLiveData
@@ -161,6 +162,6 @@ class ShoppingCartManager @Inject constructor(
         currentCart = ShoppingCart()
         sharedPreferences.edit { remove(shoppingCartKey) }
         removeAllObservers()
-        _cartUpdates.value = null
+        _cartUpdates.value = Unit
     }
 }

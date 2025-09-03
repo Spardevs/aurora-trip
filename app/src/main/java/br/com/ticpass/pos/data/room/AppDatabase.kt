@@ -3,7 +3,6 @@ package br.com.ticpass.pos.data.room
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Environment
-import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase

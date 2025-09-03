@@ -22,7 +22,6 @@ import br.com.ticpass.pos.queue.processors.payment.data.PaymentProcessingStorage
 import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent
 import br.com.ticpass.pos.feature.payment.state.PaymentProcessingSideEffect
 import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingQueueItem
-import br.com.ticpass.pos.sdk.payment.PaymentProvider
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -38,7 +37,7 @@ sealed class PaymentState {
     object Idle : PaymentState()
     object Initializing : PaymentState()
     object Processing : PaymentState()
-    data class Success(val transactionId: String) : PaymentState()
+    data class Success(val transactionId: String?) : PaymentState()
     data class Error(val errorMessage: String) : PaymentState()
     object Cancelled : PaymentState()
 }
@@ -164,10 +163,12 @@ class PaymentProcessingViewModel @Inject constructor(
                 Log.d("PaymentProcessingViewModel", "Processor event: ${event.javaClass.simpleName}")
 
                 when (event) {
-                    is PaymentProcessingEvent.APPROVAL_SUCCEEDED -> {
+                    is PaymentProcessingEvent.START -> {
+                        _paymentState.value = PaymentState.Initializing
+                    }
+                    is PaymentProcessingEvent.TRANSACTION_DONE -> {
                         clearTimeout()
-                        val transactionId = event.transactionId
-                        _paymentState.value = PaymentState.Success(transactionId as String)
+                        _paymentState.value = PaymentState.Success(event.transactionId)
                     }
                     is PaymentProcessingEvent.APPROVAL_DECLINED -> {
                         clearTimeout()
