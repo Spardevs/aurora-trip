@@ -70,7 +70,7 @@ composeDestinations = "1.8.42-beta"
 reactivexJava = "2.2.21"
 reactivexAndroid = "2.1.1"
 plugpag = "1.30.51"
-stoneSdkVersion = "4.11.6"
+stoneSdkVersion = "4.12.0"
 playServicesGamesV2 = "21.0.0"
 androidSupportDesign = "28.0.0"
 gridlayout = "1.1.0"
@@ -90,7 +90,7 @@ stone-sdk-sunmi = { module = "br.com.stone:stone-sdk-posandroid-sunmi", version.
 stone-sdk-positivo = { module = "br.com.stone:stone-sdk-posandroid-positivo", version.ref = "stoneSdkVersion" }
 stone-sdk-ingenico = { module = "br.com.stone:stone-sdk-posandroid-ingenico", version.ref = "stoneSdkVersion" }
 stone-sdk-gertec = { module = "br.com.stone:stone-sdk-posandroid-gertec", version.ref = "stoneSdkVersion" }
-stone-sdk-tectoy = { module = "br.com.stone:stone-sdk-posandroid-gertec", version.ref = "stoneSdkVersion" }
+stone-sdk-tectoy = { module = "br.com.stone:stone-sdk-posandroid-tectoy", version.ref = "stoneSdkVersion" }
 android-support-design = { module = "com.android.support:design", version.ref = "stoneSdkVersion" }
 
 lottie = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie" }

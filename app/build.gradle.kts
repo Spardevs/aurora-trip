@@ -134,18 +134,88 @@ android {
             }
         }
 
-        debug {
-            applicationIdSuffix = ".debug"
+        create("sunmi") {
+            initWith(getByName("release"))
+            versionNameSuffix = "-sunmi"
         }
 
-        create("positivoDebug") {
-            initWith(getByName("debug"))
+        create("sunmiSeriesP") {
+            initWith(getByName("release"))
+            versionNameSuffix = "-sunmiSeriesP"
+        }
+
+        create("ingenico") {
+            initWith(getByName("release"))
+            versionNameSuffix = "-ingenico"
+        }
+
+        create("tectoySeriesT") {
+            initWith(getByName("release"))
+            versionNameSuffix = "-tectoySeriesT"
+        }
+
+        create("gertecGpos700") {
+            initWith(getByName("release"))
+            versionNameSuffix = "-gertecGpos700"
+            signingConfig = signingConfigs.getByName("gertec")
+        }
+
+        create("gertecGpos760") {
+            initWith(getByName("release"))
+            versionNameSuffix = "-gertecGpos760"
+            signingConfig = signingConfigs.getByName("gertec")
+        }
+
+        create("positivoSeriesL") {
+            initWith(getByName("release"))
+            versionNameSuffix = "-positivoSeriesL"
             signingConfig = signingConfigs.getByName("positivo")
         }
+    }
 
-        create("gertecDebug") {
-            initWith(getByName("debug"))
-            signingConfig = signingConfigs.getByName("gertec")
+    configurations {
+        register("stoneDebugImplementation")
+    }
+
+    androidComponents {
+        beforeVariants { variantBuilder ->
+            val flavorName = variantBuilder.productFlavors.first().second
+            val buildType = variantBuilder.buildType
+            val isPagSeguro = flavorName == "pagseguro"
+            val isStone = flavorName == "stone"
+            val isDebug = buildType == "debug"
+            val isRelease = buildType == "release"
+            val isSupportedBuildType = isDebug || isRelease
+
+            // pagseguro only supports release and debug build types
+            if (isPagSeguro && !isSupportedBuildType) {
+                variantBuilder.enable = false
+            }
+
+            if (isStone && isRelease) {
+                variantBuilder.enable = false
+            }
+        }
+    }
+
+    // Custom tasks to build stone variants
+    afterEvaluate {
+        val stoneVariantTaskNames = mutableListOf<String>()
+        val stoneVariants = mutableListOf<String>()
+
+        // Collect all stone variant task names (except debug)
+        android.applicationVariants.configureEach {
+            if (flavorName == "stone" && buildType.name != "debug") {
+                val taskName = "assemble${name.capitalize()}"
+                stoneVariantTaskNames.add(taskName)
+                stoneVariants.add(taskName)
+            }
+        }
+
+        tasks.register("buildStoneRelease") {
+            group = "custom"
+            description = "Builds all Stone variants"
+            dependsOn(stoneVariants)
         }
     }
 
@@ -325,12 +395,13 @@ dependencies {
     "pagseguroImplementation"(libs.android.support.design)
 
     // Stone
-    "debugImplementation"(libs.stone.sdk.envconfig)
+    "stoneDebugImplementation"(libs.stone.sdk.envconfig)
     "stoneImplementation"(libs.stone.sdk)
     "stoneImplementation"(libs.stone.sdk.posandroid)
-    "stoneImplementation"(libs.stone.sdk.sunmi)
-    "stoneImplementation"(libs.stone.sdk.positivo)
-    "stoneImplementation"(libs.stone.sdk.ingenico)
-    "stoneImplementation"(libs.stone.sdk.gertec)
-    "stoneImplementation"(libs.stone.sdk.tectoy)
+    "sunmiImplementation"(libs.stone.sdk.sunmi)
+    "positivoSeriesLImplementation"(libs.stone.sdk.positivo)
+    "ingenicoImplementation"(libs.stone.sdk.ingenico)
+    "tectoySeriesTImplementation"(libs.stone.sdk.tectoy)
+    "gertecGpos700Implementation"(libs.stone.sdk.gertec)
+    "gertecGpos760Implementation"(libs.stone.sdk.gertec)
 }
