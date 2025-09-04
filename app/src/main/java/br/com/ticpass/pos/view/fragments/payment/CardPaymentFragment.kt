@@ -131,9 +131,8 @@ class CardPaymentFragment : Fragment() {
                             updateUIForProcessing()
                         }
                         is PaymentState.Success -> {
-                            updateUIForSuccess()
-                            shoppingCartManager.clearCart()
                             handleSuccessfulPayment(state)
+                            updateUIForSuccess()
                         }
                         is PaymentState.Error -> {
                             updateUIForError(state.errorMessage)
@@ -187,10 +186,12 @@ class CardPaymentFragment : Fragment() {
     private fun updateUIForSuccess() {
         activity?.runOnUiThread {
             statusTextView.text = "Pagamento Aprovado!"
+            infoTextView.text = "Transação concluída com sucesso"
             imageView.setImageResource(R.drawable.ic_check)
 
             cancelButton.text = "Finalizar"
             cancelButton.setOnClickListener {
+                shoppingCartManager.clearCart()
                 requireActivity().finish()
             }
             retryButton.visibility = View.GONE

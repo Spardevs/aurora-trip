@@ -1,5 +1,7 @@
 package br.com.ticpass.pos.data.room.repository
 
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import br.com.ticpass.pos.MainActivity
 import br.com.ticpass.pos.data.room.AuthManager
 import br.com.ticpass.pos.data.room.dao.PaymentDao
@@ -79,5 +81,16 @@ class PaymentRepository @Inject constructor(
             instance ?: synchronized(this) {
                 instance ?: PaymentRepository(paymentDao).also { instance = it }
             }
+    }
+
+    suspend fun insertPayment(payment: PaymentEntity) {
+        val authManager = AuthManager(MainActivity.appContext.dataStore)
+        val existingPayment = paymentDao.getPaymentById(payment.id)
+        if (existingPayment == null) {
+            authManager.incrementPaymentIncome(payment.type, payment.amount)
+            paymentDao.insertPayment(payment)
+        } else {
+            paymentDao.insertPayment(payment)
+        }
     }
 }

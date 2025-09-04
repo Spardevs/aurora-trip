@@ -37,4 +37,7 @@ interface PosDao {
 
     @Query("DELETE FROM pos")
     suspend fun clearPosList()
+
+    @Query("SELECT * FROM pos ORDER BY id LIMIT 1")
+    suspend fun getFirstPos(): PosEntity?
 }

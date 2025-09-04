@@ -52,4 +52,7 @@ interface PaymentDao {
 
     @Query("DELETE FROM payments")
     suspend fun clearPayments()
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPayment(payment: PaymentEntity)
 }

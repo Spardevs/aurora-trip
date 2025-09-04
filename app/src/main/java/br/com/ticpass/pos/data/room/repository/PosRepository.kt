@@ -64,6 +64,9 @@ class PosRepository @Inject constructor(
         posDao.updatePosItem((pos ?: intArrayOf()) as PosEntity)
     }
 
+    suspend fun getFirstPos(): PosEntity? =
+        posDao.getFirstPos()
+
     companion object {
         @Volatile
         private var instance: PosRepository? = null
@@ -73,4 +76,6 @@ class PosRepository @Inject constructor(
                 instance ?: PosRepository(posDao).also { instance = it }
             }
     }
+
+
 }

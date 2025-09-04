@@ -42,4 +42,7 @@ interface EventDao {
 
     @Query("UPDATE events SET isSelected = 1 WHERE id = :eventId")
     suspend fun selectEvent(eventId: String)
+
+    @Query("SELECT * FROM events LIMIT 1")
+    suspend fun getFirstEvent(): EventEntity?
 }

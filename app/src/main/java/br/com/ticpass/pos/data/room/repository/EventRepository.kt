@@ -93,5 +93,12 @@ class EventRepository @Inject constructor(
             }
     }
 
+    suspend fun getFirstEvent(): EventEntity? {
+        return try {
+            eventDao.getFirstEvent()
+        } catch (e: Exception) {
+            null
+        }
+    }
 
 }
