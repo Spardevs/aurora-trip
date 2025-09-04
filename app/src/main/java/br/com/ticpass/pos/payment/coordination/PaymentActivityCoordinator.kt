@@ -137,7 +137,7 @@ class PaymentActivityCoordinator(
 
     private fun observePaymentEvents() {
         lifecycleScope.launch {
-            paymentViewModel.processingPaymentEvents.collectLatest { event ->
+            paymentViewModel.paymentProcessingEvents.collectLatest { event ->
                 eventHandler.handlePaymentEvent(event)
             }
         }

@@ -42,6 +42,15 @@
         android:src="@drawable/ic_credit_card"
         app:tint="@android:color/white" />
 
+    <!-- Adicione o TimeoutCountdownView aqui -->
+    <br.com.ticpass.pos.payment.view.TimeoutCountdownView
+        android:id="@+id/timeout_countdown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"
+        app:tint="@android:color/white" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -83,7 +92,6 @@
         app:strokeWidth="2dp"
         app:strokeColor="@android:color/white" />
 
-
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_cancel"
         style="@style/Widget.MaterialComponents.Button.OutlinedButton"
@@ -94,6 +102,5 @@
         android:textSize="16sp"
         app:strokeWidth="2dp"
         app:strokeColor="@android:color/white" />
-
 
 </LinearLayout>

@@ -56,7 +56,7 @@ class FinishPaymentHandler @Inject constructor(
     }
 
     suspend fun handlePayment(paymentType: PaymentType, paymentData: PaymentUIUtils.PaymentData? = null) {
-        logCategoriesWithProducts()
+//        logCategoriesWithProducts()
 
         val productQuantities = getProductsFromShoppingCart()
 

@@ -67,8 +67,16 @@ class PaymentProcessingViewModel @Inject constructor(
     private val _paymentState = MutableStateFlow<PaymentState>(PaymentState.Initializing)
     val paymentState: StateFlow<PaymentState> = _paymentState.asStateFlow()
 
-    private val _paymentEvents = MutableSharedFlow<PaymentEvent>()
-    val paymentEvents: SharedFlow<PaymentEvent> = _paymentEvents.asSharedFlow()
+    // Declare _uiEvents primeiro
+    private val _uiEvents = MutableSharedFlow<PaymentProcessingUiEvent>()
+    val uiEvents: SharedFlow<PaymentProcessingUiEvent> = _uiEvents.asSharedFlow()
+
+    // Agora você pode usar _uiEvents normalmente
+    private val _uiState = MutableStateFlow<PaymentProcessingUiState>(PaymentProcessingUiState.Idle)
+    val uiState: StateFlow<PaymentProcessingUiState> = _uiState.asStateFlow()
+
+    val paymentProcessingEvents: SharedFlow<PaymentProcessingEvent> get() =
+        if (::paymentQueue.isInitialized) paymentQueue.processorEvents else MutableSharedFlow<PaymentProcessingEvent>().asSharedFlow()
 
     private lateinit var paymentQueue: HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent>
 
@@ -100,11 +108,6 @@ class PaymentProcessingViewModel @Inject constructor(
     val enqueuedSize get() = if (::paymentQueue.isInitialized) paymentQueue.enqueuedSize else MutableStateFlow(0)
     val currentIndex get() = if (::paymentQueue.isInitialized) paymentQueue.currentIndex else MutableStateFlow(0)
     val processingState get() = if (::paymentQueue.isInitialized) paymentQueue.processingState else MutableStateFlow(false)
-    val processingPaymentEvents: SharedFlow<PaymentProcessingEvent> get() =
-        if (::paymentQueue.isInitialized) paymentQueue.processorEvents else MutableSharedFlow<PaymentProcessingEvent>().asSharedFlow()
-
-    private val _uiEvents = MutableSharedFlow<PaymentProcessingUiEvent>()
-    val uiEvents = _uiEvents.asSharedFlow()
 
     /**
      * Emit a one-time UI event
@@ -114,10 +117,6 @@ class PaymentProcessingViewModel @Inject constructor(
             _uiEvents.emit(event)
         }
     }
-
-    private val _uiState =
-        MutableStateFlow<PaymentProcessingUiState>(PaymentProcessingUiState.Idle)
-    val uiState: StateFlow<PaymentProcessingUiState> = _uiState.asStateFlow()
 
     /**
      * Update the UI state
@@ -162,14 +161,61 @@ class PaymentProcessingViewModel @Inject constructor(
             paymentQueue.processorEvents.collect { event ->
                 Log.d("PaymentProcessingViewModel", "Processor event: ${event.javaClass.simpleName}")
 
+                // Mapeie eventos existentes para estados
                 when (event) {
                     is PaymentProcessingEvent.START -> {
                         _paymentState.value = PaymentState.Initializing
                     }
+
+                    // Eventos que indicam que está aguardando ação do usuário
+                    is PaymentProcessingEvent.CARD_REACH_OR_INSERT,
+                    is PaymentProcessingEvent.USE_CHIP,
+                    is PaymentProcessingEvent.USE_MAGNETIC_STRIPE,
+                    is PaymentProcessingEvent.SWIPE_CARD_REQUESTED,
+                    is PaymentProcessingEvent.PIN_REQUESTED -> {
+                        _paymentState.value = PaymentState.Processing
+                    }
+
+                    // Eventos que indicam que algo foi detectado/iniciado
+                    is PaymentProcessingEvent.CARD_INSERTED,
+                    is PaymentProcessingEvent.KEY_INSERTED,
+                    is PaymentProcessingEvent.CONTACTLESS_ON_DEVICE -> {
+                        _paymentState.value = PaymentState.Processing
+                    }
+
+                    // Eventos de processamento ativo
+                    is PaymentProcessingEvent.TRANSACTION_PROCESSING,
+                    is PaymentProcessingEvent.AUTHORIZING,
+                    is PaymentProcessingEvent.CARD_BIN_REQUESTED,
+                    is PaymentProcessingEvent.CARD_HOLDER_REQUESTED,
+                    is PaymentProcessingEvent.CVV_REQUESTED,
+                    is PaymentProcessingEvent.DOWNLOADING_TABLES,
+                    is PaymentProcessingEvent.SAVING_TABLES,
+                    is PaymentProcessingEvent.REQUEST_IN_PROGRESS,
+                    is PaymentProcessingEvent.SOLVING_PENDING_ISSUES -> {
+                        _paymentState.value = PaymentState.Processing
+                    }
+
+                    // Eventos de sucesso em etapas
+                    is PaymentProcessingEvent.CARD_BIN_OK,
+                    is PaymentProcessingEvent.CARD_HOLDER_OK,
+                    is PaymentProcessingEvent.CVV_OK,
+                    is PaymentProcessingEvent.PIN_OK,
+                    is PaymentProcessingEvent.ACTIVATION_SUCCEEDED -> {
+                        _paymentState.value = PaymentState.Processing
+                    }
+
+                    // Eventos finais de sucesso
                     is PaymentProcessingEvent.TRANSACTION_DONE -> {
                         clearTimeout()
                         _paymentState.value = PaymentState.Success(event.transactionId)
                     }
+                    is PaymentProcessingEvent.APPROVAL_SUCCEEDED -> {
+                        clearTimeout()
+                        _paymentState.value = PaymentState.Success(null)
+                    }
+
+                    // Eventos de erro/recusa
                     is PaymentProcessingEvent.APPROVAL_DECLINED -> {
                         clearTimeout()
                         _paymentState.value = PaymentState.Error("Pagamento recusado")
@@ -178,41 +224,28 @@ class PaymentProcessingViewModel @Inject constructor(
                         clearTimeout()
                         _paymentState.value = PaymentState.Cancelled
                     }
+                    is PaymentProcessingEvent.GENERIC_ERROR,
+                    is PaymentProcessingEvent.CONTACTLESS_ERROR -> {
+                        clearTimeout()
+                        _paymentState.value = PaymentState.Error("Erro no processamento")
+                    }
+
+                    // Eventos de remoção de cartão
+                    is PaymentProcessingEvent.CARD_REMOVAL_REQUESTING,
+                    is PaymentProcessingEvent.CARD_REMOVAL_SUCCEEDED -> {
+                        _paymentState.value = PaymentState.Processing
+                    }
+
+                    // Outros eventos mantêm como processing
                     else -> {
-                        Log.d("PaymentProcessingViewModel", "Evento não tratado: ${event.javaClass.simpleName}")
+                        _paymentState.value = PaymentState.Processing
                     }
                 }
 
                 dispatch(ProcessorEventReceived(event))
             }
         }
-
-        // Processor input requests collector
-        viewModelScope.launch {
-            paymentQueue.processor.userInputRequests.collect { request ->
-                Log.d(
-                    "PaymentProcessingViewModel",
-                    "Processor input request received: ${request::class.simpleName}"
-                )
-                dispatch(PaymentProcessingAction.ProcessorInputRequested(request))
-            }
-        }
-
-        // Processing state collector
-        viewModelScope.launch {
-            paymentQueue.processingState.collectLatest { state ->
-                dispatch(PaymentProcessingAction.ProcessingStateChanged(state))
-            }
-        }
-
-        // Queue input requests collector
-        viewModelScope.launch {
-            paymentQueue.queueInputRequests.collectLatest { request ->
-                dispatch(PaymentProcessingAction.QueueInputRequested(request))
-            }
-        }
     }
-
     /**
      * Dispatch an action to the ViewModel
      * This triggers state transitions and side effects
