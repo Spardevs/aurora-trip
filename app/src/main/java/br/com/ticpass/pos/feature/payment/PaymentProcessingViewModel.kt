@@ -22,6 +22,7 @@ import br.com.ticpass.pos.queue.processors.payment.data.PaymentProcessingStorage
 import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent
 import br.com.ticpass.pos.feature.payment.state.PaymentProcessingSideEffect
 import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingQueueItem
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -53,31 +54,24 @@ class PaymentProcessingViewModel @Inject constructor(
     private val processingPaymentStorage: PaymentProcessingStorage,
     private val reducer: PaymentProcessingReducer
 ) : ViewModel() {
-
     inner class ProcessorEventReceived(val event: PaymentProcessingEvent) : PaymentProcessingAction()
-
     private val paymentTimeoutHandler = Handler()
-    private val PAYMENT_TIMEOUT_MS = 30000L
 
+    private var eventsJob: Job? = null
+
+    private val PAYMENT_TIMEOUT_MS = 30000L
     private val paymentTimeoutRunnable = Runnable {
         _paymentState.value = PaymentState.Error("Tempo limite excedido para o pagamento")
         abortAllPayments()
     }
-
     private val _paymentState = MutableStateFlow<PaymentState>(PaymentState.Initializing)
     val paymentState: StateFlow<PaymentState> = _paymentState.asStateFlow()
-
-    // Declare _uiEvents primeiro
     private val _uiEvents = MutableSharedFlow<PaymentProcessingUiEvent>()
     val uiEvents: SharedFlow<PaymentProcessingUiEvent> = _uiEvents.asSharedFlow()
-
-    // Agora você pode usar _uiEvents normalmente
     private val _uiState = MutableStateFlow<PaymentProcessingUiState>(PaymentProcessingUiState.Idle)
     val uiState: StateFlow<PaymentProcessingUiState> = _uiState.asStateFlow()
-
     val paymentProcessingEvents: SharedFlow<PaymentProcessingEvent> get() =
         if (::paymentQueue.isInitialized) paymentQueue.processorEvents else MutableSharedFlow<PaymentProcessingEvent>().asSharedFlow()
-
     private lateinit var paymentQueue: HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent>
 
     init {
@@ -102,6 +96,89 @@ class PaymentProcessingViewModel @Inject constructor(
             }
         }
     }
+
+    private fun handleProcessorEvent(event: PaymentProcessingEvent) {
+        when (event) {
+            is PaymentProcessingEvent.START -> {
+                _paymentState.value = PaymentState.Initializing
+                Log.d("PaymentViewModel", "Payment initializing")
+            }
+
+            is PaymentProcessingEvent.CARD_REACH_OR_INSERT -> {
+                _paymentState.value = PaymentState.Processing
+                Log.d("PaymentViewModel", "Card reach or insert requested")
+            }
+
+            is PaymentProcessingEvent.CARD_INSERTED -> {
+                _paymentState.value = PaymentState.Processing
+                Log.d("PaymentViewModel", "Card inserted")
+            }
+
+            is PaymentProcessingEvent.PIN_REQUESTED -> {
+                _paymentState.value = PaymentState.Processing
+                Log.d("PaymentViewModel", "PIN requested")
+            }
+
+            is PaymentProcessingEvent.TRANSACTION_PROCESSING -> {
+                _paymentState.value = PaymentState.Processing
+                Log.d("PaymentViewModel", "Transaction processing")
+            }
+
+            is PaymentProcessingEvent.AUTHORIZING -> {
+                _paymentState.value = PaymentState.Processing
+                Log.d("PaymentViewModel", "Authorizing")
+            }
+
+            is PaymentProcessingEvent.TRANSACTION_DONE -> {
+                clearTimeout()
+                if (event.transactionId?.isNotBlank() == true) {
+                    _paymentState.value = PaymentState.Success(event.transactionId)
+                    Log.d("PaymentViewModel", "Transaction done with ID: ${event.transactionId}")
+                } else {
+                    _paymentState.value = PaymentState.Error("Transação sem ID válido")
+                    Log.w("PaymentViewModel", "Transaction done but no valid ID")
+                }
+            }
+
+            is PaymentProcessingEvent.APPROVAL_SUCCEEDED -> {
+                clearTimeout()
+                _paymentState.value = PaymentState.Success(null)
+                Log.d("PaymentViewModel", "Approval succeeded")
+            }
+
+            is PaymentProcessingEvent.APPROVAL_DECLINED -> {
+                clearTimeout()
+                _paymentState.value = PaymentState.Error("Pagamento recusado")
+                Log.w("PaymentViewModel", "Approval declined")
+            }
+
+            is PaymentProcessingEvent.CANCELLED -> {
+                clearTimeout()
+                _paymentState.value = PaymentState.Cancelled
+                Log.d("PaymentViewModel", "Payment cancelled")
+            }
+
+            is PaymentProcessingEvent.GENERIC_ERROR -> {
+                clearTimeout()
+                _paymentState.value = PaymentState.Error("Erro no processamento")
+                Log.e("PaymentViewModel", "Generic error")
+            }
+
+            else -> {
+                // Para outros eventos, mantemos o estado de processamento
+                if (_paymentState.value !is PaymentState.Success &&
+                    _paymentState.value !is PaymentState.Error &&
+                    _paymentState.value !is PaymentState.Cancelled) {
+                    _paymentState.value = PaymentState.Processing
+                }
+                Log.d("PaymentViewModel", "Other event: ${event.javaClass.simpleName}")
+            }
+        }
+
+        // Dispatch para o reducer
+        dispatch(ProcessorEventReceived(event))
+    }
+
 
     val queueState get() = if (::paymentQueue.isInitialized) paymentQueue.queueState else MutableStateFlow(null)
     val fullSize get() = if (::paymentQueue.isInitialized) paymentQueue.fullSize else MutableStateFlow(0)
@@ -137,8 +214,6 @@ class PaymentProcessingViewModel @Inject constructor(
                     startMode = ProcessorStartMode.IMMEDIATE,
                     scope = viewModelScope
                 )
-
-                // Iniciar coletores de eventos após a inicialização
                 startEventCollectors()
 
                 _paymentState.value = PaymentState.Idle
@@ -156,18 +231,13 @@ class PaymentProcessingViewModel @Inject constructor(
      * Start collecting events from the payment queue
      */
     private fun startEventCollectors() {
-        // Processor events collector
         viewModelScope.launch {
             paymentQueue.processorEvents.collect { event ->
                 Log.d("PaymentProcessingViewModel", "Processor event: ${event.javaClass.simpleName}")
-
-                // Mapeie eventos existentes para estados
                 when (event) {
                     is PaymentProcessingEvent.START -> {
                         _paymentState.value = PaymentState.Initializing
                     }
-
-                    // Eventos que indicam que está aguardando ação do usuário
                     is PaymentProcessingEvent.CARD_REACH_OR_INSERT,
                     is PaymentProcessingEvent.USE_CHIP,
                     is PaymentProcessingEvent.USE_MAGNETIC_STRIPE,
@@ -175,15 +245,11 @@ class PaymentProcessingViewModel @Inject constructor(
                     is PaymentProcessingEvent.PIN_REQUESTED -> {
                         _paymentState.value = PaymentState.Processing
                     }
-
-                    // Eventos que indicam que algo foi detectado/iniciado
                     is PaymentProcessingEvent.CARD_INSERTED,
                     is PaymentProcessingEvent.KEY_INSERTED,
                     is PaymentProcessingEvent.CONTACTLESS_ON_DEVICE -> {
                         _paymentState.value = PaymentState.Processing
                     }
-
-                    // Eventos de processamento ativo
                     is PaymentProcessingEvent.TRANSACTION_PROCESSING,
                     is PaymentProcessingEvent.AUTHORIZING,
                     is PaymentProcessingEvent.CARD_BIN_REQUESTED,
@@ -195,8 +261,6 @@ class PaymentProcessingViewModel @Inject constructor(
                     is PaymentProcessingEvent.SOLVING_PENDING_ISSUES -> {
                         _paymentState.value = PaymentState.Processing
                     }
-
-                    // Eventos de sucesso em etapas
                     is PaymentProcessingEvent.CARD_BIN_OK,
                     is PaymentProcessingEvent.CARD_HOLDER_OK,
                     is PaymentProcessingEvent.CVV_OK,
@@ -204,18 +268,19 @@ class PaymentProcessingViewModel @Inject constructor(
                     is PaymentProcessingEvent.ACTIVATION_SUCCEEDED -> {
                         _paymentState.value = PaymentState.Processing
                     }
-
-                    // Eventos finais de sucesso
                     is PaymentProcessingEvent.TRANSACTION_DONE -> {
                         clearTimeout()
-                        _paymentState.value = PaymentState.Success(event.transactionId)
+                        if (event.transactionId?.isNotBlank() == true) {
+                            _paymentState.value = PaymentState.Success(event.transactionId)
+                        } else {
+                            _paymentState.value = PaymentState.Error("Transação sem ID válido")
+                        }
                     }
+
                     is PaymentProcessingEvent.APPROVAL_SUCCEEDED -> {
                         clearTimeout()
                         _paymentState.value = PaymentState.Success(null)
                     }
-
-                    // Eventos de erro/recusa
                     is PaymentProcessingEvent.APPROVAL_DECLINED -> {
                         clearTimeout()
                         _paymentState.value = PaymentState.Error("Pagamento recusado")
@@ -229,19 +294,14 @@ class PaymentProcessingViewModel @Inject constructor(
                         clearTimeout()
                         _paymentState.value = PaymentState.Error("Erro no processamento")
                     }
-
-                    // Eventos de remoção de cartão
                     is PaymentProcessingEvent.CARD_REMOVAL_REQUESTING,
                     is PaymentProcessingEvent.CARD_REMOVAL_SUCCEEDED -> {
                         _paymentState.value = PaymentState.Processing
                     }
-
-                    // Outros eventos mantêm como processing
                     else -> {
                         _paymentState.value = PaymentState.Processing
                     }
                 }
-
                 dispatch(ProcessorEventReceived(event))
             }
         }
@@ -280,10 +340,7 @@ class PaymentProcessingViewModel @Inject constructor(
             return
         }
 
-        _paymentState.value = PaymentState.Processing
-        dispatch(PaymentProcessingAction.StartProcessing)
-
-        // Iniciar timeout
+        // Configurar timeout apenas quando o processamento realmente começar
         paymentTimeoutHandler.removeCallbacks(paymentTimeoutRunnable)
         paymentTimeoutHandler.postDelayed(paymentTimeoutRunnable, PAYMENT_TIMEOUT_MS)
     }
@@ -361,8 +418,6 @@ class PaymentProcessingViewModel @Inject constructor(
         }
     }
 
-    // Processor-Level Input Handling
-
     /**
      * Confirm customer receipt printing (processor-level input request)
      */
@@ -398,8 +453,6 @@ class PaymentProcessingViewModel @Inject constructor(
 
         dispatch(PaymentProcessingAction.ConfirmMerchantPixHasBeenPaid(requestId, didPay))
     }
-
-    // Queue-Level Input Handling
 
     /**
      * Confirm proceeding to the next processor (queue-level input request)
@@ -450,8 +503,6 @@ class PaymentProcessingViewModel @Inject constructor(
 
         dispatch(PaymentProcessingAction.SkipProcessorOnError(requestId))
     }
-
-    // Error Handling
 
     /**
      * Handle a failed payment with the specified action (queue-level input request)

@@ -36,6 +36,12 @@ class PaymentEventHandler(
      */
     fun handlePaymentEvent(event: PaymentProcessingEvent) {
         when (event) {
+            is PaymentProcessingEvent.CARD_REACH_OR_INSERT -> {
+                dialogEventTextView.text = "Aproxime ou insira o cartão"
+            }
+            is PaymentProcessingEvent.USE_CHIP -> {
+                dialogEventTextView.text = "Insira o cartão no chip"
+            }
             is PaymentProcessingEvent.CARD_INSERTED,
                PaymentProcessingEvent.CARD_REMOVAL_SUCCEEDED -> { clearPinDigits() }
 

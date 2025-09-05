@@ -38,25 +38,7 @@ class FinishPaymentHandler @Inject constructor(
         appContext.getSharedPreferences("ShoppingCartPrefs", MODE_PRIVATE)
     }
 
-    private suspend fun logCategoriesWithProducts() {
-        try {
-            val categoriesWithProducts = categoryRepository.getCategoriesWithProducts()
-
-            categoriesWithProducts.forEach { categoryWithProducts ->
-                Log.d("CategoryDebug", "Category: ${categoryWithProducts.category.name}")
-                Log.d("CategoryDebug", "Products count: ${categoryWithProducts.products.size}")
-
-                categoryWithProducts.products.forEach { product ->
-                    Log.d("CategoryDebug", "  - Product: ${product.name}, ID: ${product.id}")
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("FinishPaymentHandler", "Error fetching categories with products: ${e.message}")
-        }
-    }
-
     suspend fun handlePayment(paymentType: PaymentType, paymentData: PaymentUIUtils.PaymentData? = null) {
-//        logCategoriesWithProducts()
 
         val productQuantities = getProductsFromShoppingCart()
 
@@ -76,27 +58,17 @@ class FinishPaymentHandler @Inject constructor(
 
         try {
             val shoppingCartJson = shoppingCartPrefs.getString("shopping_cart_data", null)
-
-            // DEBUG: Log the raw JSON to see the actual structure
-            Log.d("FinishPaymentHandler", "Raw shopping cart JSON: $shoppingCartJson")
-
             if (shoppingCartJson != null) {
                 val jsonObject = JSONObject(shoppingCartJson)
 
-                // DEBUG: Log all keys in the JSON object
                 val keys = jsonObject.keys()
                 while (keys.hasNext()) {
                     val key = keys.next()
-                    Log.d("FinishPaymentHandler", "JSON key: $key, value: ${jsonObject.get(key)}")
                 }
 
-                // Check if "items" exists and is an object
                 if (jsonObject.has("items")) {
                     val itemsObject = jsonObject.getJSONObject("items")
                     val productIds = itemsObject.keys().asSequence().toList()
-
-                    Log.d("FinishPaymentHandler", "Product IDs found in shopping cart: $productIds")
-
                     for (productId in productIds) {
                         try {
                             val quantity = itemsObject.getInt(productId)
@@ -104,7 +76,6 @@ class FinishPaymentHandler @Inject constructor(
 
                             if (product != null) {
                                 productQuantities[productId] = quantity
-                                Log.d("FinishPaymentHandler", "Product: ${product.name} (ID: $productId), Quantity: $quantity")
                             } else {
                                 Log.e("FinishPaymentHandler", "Product not found: $productId")
                             }

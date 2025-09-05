@@ -35,16 +35,12 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class CardPaymentFragment : Fragment() {
-
     private val paymentViewModel: PaymentProcessingViewModel by activityViewModels()
     private lateinit var paymentEventHandler: PaymentEventHandler
-
     @Inject
     lateinit var shoppingCartManager: ShoppingCartManager
-
     @Inject
     lateinit var finishPaymentHandler: FinishPaymentHandler
-
     private var paymentType: String? = null
     private var shouldStartImmediately = false
     private lateinit var titleTextView: TextView
@@ -54,9 +50,8 @@ class CardPaymentFragment : Fragment() {
     private lateinit var priceTextView: TextView
     private lateinit var cancelButton: MaterialButton
     private lateinit var retryButton: MaterialButton
-
-    // Adicione esta view para o countdown
     private lateinit var timeoutCountdownView: TimeoutCountdownView
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         AcquirerSdk.initialize(requireContext())
@@ -89,18 +84,17 @@ class CardPaymentFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         if (::shoppingCartManager.isInitialized) {
-            enqueuePayment(startImmediately = true) // Corrigido: chama o método da classe
+            enqueuePayment(startImmediately = true)
         }
     }
 
     private fun setupPaymentEventHandler(view: View) {
-        // Encontre a view de countdown (você precisa adicionar ao layout)
         timeoutCountdownView = view.findViewById(R.id.timeout_countdown)
 
         paymentEventHandler = PaymentEventHandler(
             context = requireContext(),
-            dialogEventTextView = infoTextView, // Usando infoTextView para mensagens
-            dialogQRCodeImageView = imageView,  // Usando imageView para QR codes
+            dialogEventTextView = infoTextView,
+            dialogQRCodeImageView = imageView,
             dialogTimeoutCountdownView = timeoutCountdownView
         )
     }
@@ -140,13 +134,10 @@ class CardPaymentFragment : Fragment() {
     }
 
     private fun setupObservers() {
-        // Observer para eventos de processamento de pagamento
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 paymentViewModel.paymentProcessingEvents.collect { event ->
                     paymentEventHandler.handlePaymentEvent(event)
-
-                    // Sincronize o statusTextView com eventos importantes
                     when (event) {
                         is PaymentProcessingEvent.CARD_REACH_OR_INSERT -> {
                             statusTextView.text = "Aproxime ou insira o cartão"
@@ -236,22 +227,11 @@ class CardPaymentFragment : Fragment() {
             }
         }
 
-        // Observer para eventos UI da ViewModel
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                paymentViewModel.uiEvents.collect { event ->
-                    paymentEventHandler.handleUiEvent(event)
-                }
-            }
-        }
-
-        // Observer para estados de pagamento (para controle geral)
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 paymentViewModel.paymentState.collect { state ->
                     when (state) {
                         is PaymentState.Processing -> {
-                            // Só atualiza se não tiver uma mensagem mais específica dos eventos
                             if (statusTextView.text.isNullOrEmpty() ||
                                 statusTextView.text.contains("Aprovado") ||
                                 statusTextView.text.contains("Erro") ||
@@ -263,7 +243,6 @@ class CardPaymentFragment : Fragment() {
 
                         is PaymentState.Success -> {
                             handleSuccessfulPayment(state)
-                            updateUIForSuccess()
                         }
 
                         is PaymentState.Error -> {
@@ -280,6 +259,7 @@ class CardPaymentFragment : Fragment() {
 
                         is PaymentState.Initializing -> {
                             statusTextView.text = "Inicializando sistema de pagamento..."
+                            infoTextView.text = "Aguarde..."
                         }
                     }
                 }
@@ -318,22 +298,9 @@ class CardPaymentFragment : Fragment() {
         }
     }
 
-    private fun updateUIForProcessing() {
-        // Não sobreescreva mensagens específicas dos eventos
-        val currentText = statusTextView.text.toString()
-        if (currentText.isNullOrEmpty() ||
-            !currentText.contains("cartão", ignoreCase = true) &&
-            !currentText.contains("PIN", ignoreCase = true) &&
-            !currentText.contains("processando", ignoreCase = true) &&
-            !currentText.contains("verificando", ignoreCase = true)) {
-            statusTextView.text = "Processando pagamento..."
-        }
-    }
     private fun updateUIForSuccess() {
         activity?.runOnUiThread {
             statusTextView.text = "Pagamento Aprovado!"
-            // O PaymentEventHandler cuida da mensagem em infoTextView
-
             imageView.setImageResource(R.drawable.ic_check)
 
             cancelButton.text = "Finalizar"
@@ -361,10 +328,7 @@ class CardPaymentFragment : Fragment() {
     private fun updateUIForError(errorMessage: String) {
         activity?.runOnUiThread {
             statusTextView.text = "Erro no Pagamento"
-            // O PaymentEventHandler já deve ter atualizado infoTextView com a mensagem de erro
-
             imageView.setImageResource(R.drawable.ic_close)
-
             cancelButton.text = "Cancelar"
             cancelButton.setOnClickListener {
                 paymentViewModel.abortAllPayments()
@@ -410,6 +374,11 @@ class CardPaymentFragment : Fragment() {
     }
 
     private fun handleSuccessfulPayment(state: PaymentState.Success) {
+        if (state.transactionId.isNullOrEmpty()) {
+            Log.d("CardPaymentFragment", "Transação sem ID, aguardando confirmação...")
+            return
+        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val paymentTypeEnum = when (paymentType) {
@@ -428,12 +397,13 @@ class CardPaymentFragment : Fragment() {
                     amount = amount,
                     commission = commission,
                     method = method,
-                    isTransactionless = false
+                    isTransactionless = true
                 )
                 finishPaymentHandler.handlePayment(paymentTypeEnum, paymentData)
+                updateUIForSuccess()
             } catch (e: Exception) {
                 Log.e("CardPaymentFragment", "Erro ao processar pagamento finalizado: ${e.message}")
+                updateUIForError("Erro ao finalizar pagamento")
             }
         }
-    }
-}
+    }}
