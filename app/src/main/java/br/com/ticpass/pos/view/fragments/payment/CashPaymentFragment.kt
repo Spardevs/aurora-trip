@@ -1,317 +1,349 @@
 package br.com.ticpass.pos.view.fragments.payment
 
-import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
+import android.util.Log
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.ProgressBar
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.platform.ComposeView
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.view.ui.pass.PassScreen
-import br.com.ticpass.pos.view.ui.pass.PassType
-import br.com.ticpass.pos.view.ui.pass.PassData
-import br.com.ticpass.pos.data.room.AppDatabase
-import br.com.ticpass.pos.data.room.dao.EventDao
-import br.com.ticpass.pos.data.room.dao.PosDao
-import br.com.ticpass.pos.data.room.dao.ProductDao
-import br.com.ticpass.pos.data.room.entity.EventEntity
-import br.com.ticpass.pos.data.room.entity.PosEntity
-import br.com.ticpass.pos.data.room.entity.ProductEntity
-import br.com.ticpass.pos.util.savePassAsBitmap
+import br.com.ticpass.pos.data.room.service.PassGeneratorService
+import br.com.ticpass.pos.feature.payment.PaymentProcessingViewModel
+import br.com.ticpass.pos.feature.payment.PaymentState
+import br.com.ticpass.pos.payment.events.FinishPaymentHandler
+import br.com.ticpass.pos.payment.events.PaymentEventHandler
+import br.com.ticpass.pos.payment.events.PaymentType
+import br.com.ticpass.pos.payment.models.SystemPaymentMethod
+import br.com.ticpass.pos.payment.utils.PaymentUIUtils
+import br.com.ticpass.pos.payment.view.TimeoutCountdownView
+import br.com.ticpass.pos.sdk.AcquirerSdk
+import br.com.ticpass.pos.util.PaymentFragmentUtils
+import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import org.json.JSONObject
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import javax.inject.Inject
 
-
-class ProductRepository(private val productDao: ProductDao, private val posDao: PosDao, private val eventDao: EventDao) {
-    suspend fun getProductById(id: String) = productDao.getById(id)
-    suspend fun getAllPos() = posDao.getAll()
-    suspend fun getAllEvents() = eventDao.getAllEvents()
-}
-
-
+@AndroidEntryPoint
 class CashPaymentFragment : Fragment() {
+    private val paymentViewModel: PaymentProcessingViewModel by activityViewModels()
 
-    private lateinit var btnCompact: Button
-    private lateinit var btnExpanded: Button
-    private lateinit var btnGrouped: Button
-    private lateinit var composeView: ComposeView
-    private lateinit var progressBar: ProgressBar
-    private lateinit var rootView: View
-    private lateinit var loadingContainer: View
-    private lateinit var contentContainer: View
-    private var selectedPassType: PassType = PassType.ProductGrouped
+    @Inject
+    lateinit var shoppingCartManager: ShoppingCartManager
+
+    @Inject
+    lateinit var finishPaymentHandler: FinishPaymentHandler
+
+    @Inject
+    lateinit var paymentUtils: PaymentFragmentUtils
+
+    private lateinit var passGeneratorService: PassGeneratorService
+    private lateinit var paymentEventHandler: PaymentEventHandler
+    private lateinit var timeoutCountdownView: TimeoutCountdownView
+    private lateinit var titleTextView: TextView
+    private lateinit var statusTextView: TextView
+    private lateinit var infoTextView: TextView
+    private lateinit var imageView: ImageView
+    private lateinit var priceTextView: TextView
+    private lateinit var cancelButton: MaterialButton
+    private lateinit var confirmButton: MaterialButton
+    private lateinit var amountReceivedEditText: TextInputEditText
+    private lateinit var amountReceivedLayout: TextInputLayout
+    private lateinit var changeContainer: LinearLayout
+    private lateinit var changeAmountTextView: TextView
+
+    private var totalAmount: Double = 0.0
+    private var amountReceived: Double = 0.0
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        AcquirerSdk.initialize(requireContext())
+        super.onCreate(savedInstanceState)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
-        rootView = inflater.inflate(R.layout.fragment_payment_cash, container, false)
-        loadingContainer = rootView.findViewById(R.id.loadingContainer) // Adicione no seu XML
-        contentContainer = rootView.findViewById(R.id.contentContainer) // Adicione no seu XML
-        return rootView
-    }
-
-    private val repository by lazy {
-        ProductRepository(
-            AppDatabase.getInstance(requireContext()).productDao(),
-            AppDatabase.getInstance(requireContext()).posDao(),
-            AppDatabase.getInstance(requireContext()).eventDao()
-        )
+    ): View? {
+        return inflater.inflate(R.layout.fragment_payment_cash, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        btnCompact = view.findViewById(R.id.btnCompact)
-        btnExpanded = view.findViewById(R.id.btnExpanded)
-        btnGrouped = view.findViewById(R.id.btnGrouped)
-        composeView = view.findViewById(R.id.passComposeView)
-        loadingContainer = view.findViewById(R.id.loadingContainer)
-        contentContainer = view.findViewById(R.id.contentContainer)
-
-        composeView.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-
-        btnCompact.setOnClickListener { changePassType(PassType.ProductCompact) }
-        btnExpanded.setOnClickListener { changePassType(PassType.ProductExpanded) }
-        btnGrouped.setOnClickListener { changePassType(PassType.ProductGrouped) }
-
-        loadAndShowPasses(selectedPassType)
+        passGeneratorService = PassGeneratorService(requireContext())
+        setupViews(view)
+        setupPaymentEventHandler(view)
+        setupObservers()
+        setupListeners()
     }
 
-    private fun changePassType(newType: PassType) {
-        if (selectedPassType == newType) return
-        println("Changing pass type from $selectedPassType to $newType")
-        selectedPassType = newType
-        loadAndShowPasses(selectedPassType)
+    private fun setupViews(view: View) {
+        titleTextView = view.findViewById(R.id.payment_form)
+        statusTextView = view.findViewById(R.id.payment_status)
+        infoTextView = view.findViewById(R.id.payment_info)
+        imageView = view.findViewById(R.id.image)
+        priceTextView = view.findViewById(R.id.payment_price)
+        cancelButton = view.findViewById(R.id.btn_cancel)
+        confirmButton = view.findViewById(R.id.btn_confirm)
+        amountReceivedEditText = view.findViewById(R.id.amountReceivedEditText)
+        amountReceivedLayout = view.findViewById(R.id.amountReceivedLayout)
+        changeContainer = view.findViewById(R.id.changeContainer)
+        changeAmountTextView = view.findViewById(R.id.changeAmountTextView)
+        timeoutCountdownView = view.findViewById(R.id.timeoutCountdownView)
+
+        val cart = shoppingCartManager.getCart()
+        totalAmount = cart.totalPrice.toDouble() / 100.0
+
+        titleTextView.text = "Pagamento em Dinheiro"
+        statusTextView.text = "Aguardando confirmação"
+        infoTextView.text = "Informe o valor recebido em dinheiro (opcional)"
+        priceTextView.text = PaymentFragmentUtils.formatCurrency(totalAmount)
+
+        confirmButton.isEnabled = true
+
+        amountReceivedLayout.hint = "Valor recebido (opcional)"
     }
 
-    private fun loadAndShowPasses(passType: PassType) {
-        showLoading(true)
-        lifecycleScope.launch {
-            try {
-                val operatorName = getOperatorName()
-                val (products, pos, event) = loadDataFromDatabase()
-                val passList = buildPassList(products, pos, event, operatorName, passType)
+    private fun setupPaymentEventHandler(view: View) {
+        val dummyTimeoutView = TimeoutCountdownView(requireContext()).apply {
+            visibility = View.GONE
+        }
 
-                // Atualiza a UI primeiro
-                composeView.setContent {
-                    PassScreenContainer(passType = passType, passList = passList)
-                }
+        paymentEventHandler = PaymentEventHandler(
+            context = requireContext(),
+            dialogEventTextView = infoTextView,
+            dialogQRCodeImageView = imageView,
+            dialogTimeoutCountdownView = dummyTimeoutView
+        )
+    }
 
-                // Depois gera os bitmaps
-                passList.forEach { passData ->
-                    savePassAsBitmap(requireContext(), passType, passData)
+    private fun setupObservers() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                paymentViewModel.paymentState.collect { state ->
+                    when (state) {
+                        is PaymentState.Success -> handleSuccessfulPayment()
+                        is PaymentState.Error -> updateUIForError(state.errorMessage)
+                        is PaymentState.Cancelled -> updateUIForCancelled()
+                        else -> {
+                        }
+                    }
                 }
-            } finally {
-                showLoading(false)
             }
         }
     }
 
-    private fun showLoading(show: Boolean) {
-        loadingContainer.visibility = if (show) View.VISIBLE else View.GONE
-        contentContainer.alpha = if (show) 0.5f else 1f
+    private fun setupListeners() {
+        cancelButton.setOnClickListener {
+            requireActivity().finish()
+        }
 
-        btnCompact.isEnabled = !show
-        btnExpanded.isEnabled = !show
-        btnGrouped.isEnabled = !show
-    }
+        confirmButton.setOnClickListener {
+            handleCashConfirmation()
+        }
 
-    fun View.doOnNextLayout(action: (View) -> Unit) {
-        addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
-            override fun onLayoutChange(
-                v: View,
-                left: Int, top: Int, right: Int, bottom: Int,
-                oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int
-            ) {
-                removeOnLayoutChangeListener(this)
-                action(v)
+        amountReceivedEditText.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                calculateChange()
+            }
+        }
+
+        amountReceivedEditText.setOnKeyListener { _, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP) {
+                calculateChange()
+                true
+            } else {
+                false
+            }
+        }
+
+        amountReceivedEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                calculateChange()
             }
         })
     }
 
+    private fun calculateChange() {
+        try {
+            val inputText = amountReceivedEditText.text.toString()
+            if (inputText.isNotEmpty()) {
+                amountReceived = inputText.toDouble()
+                val change = amountReceived - totalAmount
 
-    private fun getCartObservations(): Map<String, String> {
-        val prefs = requireContext().getSharedPreferences("ShoppingCartPrefs", Context.MODE_PRIVATE)
-        val json = prefs.getString("shopping_cart_data", null) ?: return emptyMap()
-
-        return try {
-            val jsonObject = JSONObject(json)
-            val observations = jsonObject.optJSONObject("observations") ?: return emptyMap()
-            val map = mutableMapOf<String, String>()
-
-            observations.keys().forEach { key ->
-                observations.getString(key).let { value ->
-                    map[key] = value
+                if (change >= 0) {
+                    changeContainer.visibility = View.VISIBLE
+                    changeAmountTextView.text = PaymentFragmentUtils.formatCurrency(change)
+                    changeAmountTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorGreen))
+                    amountReceivedLayout.error = null
+                } else {
+                    changeContainer.visibility = View.VISIBLE
+                    changeAmountTextView.text = PaymentFragmentUtils.formatCurrency(change)
+                    changeAmountTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorRed))
+                    amountReceivedLayout.error = getString(R.string.insufficient_amount)
                 }
+            } else {
+                changeContainer.visibility = View.GONE
+                amountReceivedLayout.error = null
+                amountReceived = 0.0
             }
-            map
-        } catch (e: Exception) {
-            emptyMap()
+        } catch (e: NumberFormatException) {
+            changeContainer.visibility = View.GONE
+            amountReceivedLayout.error = "Valor inválido"
+            amountReceived = 0.0
         }
     }
 
-    @Composable
-    private fun PassScreenContainer(
-        passType: PassType,
-        passList: List<PassData>
-    ) {
-        PassScreen(
-            passType = passType,
-            passList = passList,
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
-
-
-    private suspend fun renderPassScreen(passType: PassType, composeView: ComposeView) {
-        val operatorName = getOperatorName()
-        val (products, pos, event) = loadDataFromDatabase()
-        val passList = buildPassList(products, pos, event, operatorName, passType)
-
-        composeView.setContent {
-            PassScreen(passType = selectedPassType, passList = passList)
-        }
-
-    }
-
-    private fun getCartItems(): Map<String, Int> {
-        val prefs = requireContext().getSharedPreferences("ShoppingCartPrefs", Context.MODE_PRIVATE)
-        val json = prefs.getString("shopping_cart_data", null) ?: return emptyMap()
-
-        val jsonObject = JSONObject(json)
-        val items = jsonObject.getJSONObject("items")
-        val map = mutableMapOf<String, Int>()
-
-        items.keys().forEach { key ->
-            map[key] = items.getInt(key)
-        }
-
-        return map
-    }
-
-    private fun getOperatorName(): String {
-        val prefs = requireContext().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        return prefs.getString("operator_name", "Atendente") ?: "Atendente"
-    }
-
-    private suspend fun loadDataFromDatabase(): Triple<List<ProductEntity>, PosEntity?, EventEntity?> {
-        val db = AppDatabase.getInstance(requireContext())
-        val cartItems = getCartItems()
-        val products = mutableListOf<ProductEntity>()
-
-        for ((id, _) in cartItems) {
-            db.productDao().getById(id)?.let { products.add(it) }
-        }
-
-        val pos = db.posDao().getAll().firstOrNull { it.isSelected }
-        val event = db.eventDao().getAllEvents().firstOrNull { it.isSelected }
-
-        return Triple(products, pos, event)
-    }
-
-
-    private fun buildPassList(
-        products: List<ProductEntity>,
-        pos: PosEntity?,
-        event: EventEntity?,
-        operatorName: String,
-        passType: PassType
-    ): List<PassData> {
-        val cartItems = getCartItems()
-        val cartObservations = getCartObservations()
-
-        return if (products.isNotEmpty()) {
-            when (passType) {
-                PassType.ProductCompact, PassType.ProductExpanded -> {
-                    products.flatMap { product ->
-                        val quantity = cartItems[product.id] ?: 1
-                        val observation = cartObservations[product.id]
-                        (1..quantity).map { unitIndex ->
-                            PassData(
-                                header = PassData.HeaderData(
-                                    title = event?.name ?: "ticpass",
-                                    date = event?.getFormattedStartDate() ?: "",
-                                    barcode = "0000000002879"
-                                ),
-                                productData = PassData.ProductData(
-                                    name = "${product.name} (${unitIndex}/$quantity)",
-                                    price = "R$ ${(product.price / 100.0).format(2)}",
-                                    eventTitle = event?.name ?: "",
-                                    eventTime = event?.getFormattedStartDate() ?: "",
-                                    observation = observation
-                                ),
-                                footer = PassData.FooterData(
-                                    cashierName = operatorName,
-                                    menuName = pos?.name ?: "POS",
-                                    description = "Ficha válida por 15 dias após a emissão...",
-                                    printTime = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("pt", "BR")).format(Date())
-                                ),
-                                showCutLine = true
-                            )
-                        }
-                    }
+    private fun handleCashConfirmation() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val inputText = amountReceivedEditText.text.toString()
+                amountReceived = if (inputText.isNotEmpty()) {
+                    inputText.toDouble()
+                } else {
+                    0.0
                 }
 
-                PassType.ProductGrouped -> {
-                    val groupedItems = products.map { product ->
-                        val quantity = cartItems[product.id] ?: 1
-                        val observation = cartObservations[product.id]
+                statusTextView.text = "Processando..."
 
-                        PassData.GroupedData.GroupedItem(
-                            quantity = quantity,
-                            name = product.name,
-                            price = "R$ ${(product.price / 100.0 * quantity).format(2)}",
-                            observation = observation
-                        )
-                    }
-
-                    val totalItems = groupedItems.sumOf { it.quantity }
-                    val totalPrice = groupedItems.sumOf {
-                        it.price.replace("R$", "").replace(",", ".").trim().toDouble()
-                    }
-
-                    listOf(
-                        PassData(
-                            header = PassData.HeaderData(
-                                title = event?.name ?: "ticpass",
-                                date = event?.getFormattedStartDate() ?: "",
-                                barcode = "0000000002879"
-                            ),
-                            groupedData = PassData.GroupedData(
-                                items = groupedItems,
-                                totalItems = totalItems,
-                                totalPrice = "R$ ${totalPrice.format(2)}"
-                            ),
-                            footer = PassData.FooterData(
-                                cashierName = operatorName,
-                                menuName = pos?.name ?: "POS",
-                                description = "Ficha válida por 15 dias após a emissão...",
-                                printTime = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("pt", "BR")).format(Date())
-                            )
-                        )
-                    )
+                if (amountReceived == 0.0) {
+                    infoTextView.text = "Confirmando pagamento sem valor informado"
+                } else if (amountReceived >= totalAmount) {
+                    infoTextView.text = "Processando pagamento com troco"
+                } else {
+                    infoTextView.text = "Confirmando pagamento com valor parcial"
                 }
+
+                amountReceivedEditText.isEnabled = false
+                confirmButton.isEnabled = false
+                cancelButton.isEnabled = false
+
+                passGeneratorService.printPassesAutomatically()
+
+                paymentViewModel.notifyPaymentSuccess()
+
+            } catch (e: Exception) {
+                Log.e("CashPaymentFragment", "Erro ao processar pagamento em dinheiro: ${e.message}")
+                updateUIForError("Erro ao processar pagamento")
+
+                amountReceivedEditText.isEnabled = true
+                confirmButton.isEnabled = true
+                cancelButton.isEnabled = true
             }
-        } else {
-            emptyList()
         }
     }
 
-    private fun Double.format(digits: Int) = "%.${digits}f".format(this)
+    private fun updateUIForSuccess() {
+        activity?.runOnUiThread {
+            statusTextView.text = "Pagamento Confirmado!"
 
+            val inputText = amountReceivedEditText.text.toString()
+            if (inputText.isNotEmpty()) {
+                infoTextView.text = "Fichas geradas com sucesso. Troco: ${PaymentFragmentUtils.formatCurrency(amountReceived - totalAmount)}"
+            } else {
+                infoTextView.text = "Fichas geradas com sucesso. Valor não informado."
+            }
 
+            imageView.setImageResource(R.drawable.ic_check)
+
+            cancelButton.text = "Finalizar"
+            cancelButton.isEnabled = true
+            cancelButton.setOnClickListener {
+                shoppingCartManager.clearCart()
+                requireActivity().finish()
+            }
+            confirmButton.visibility = View.GONE
+
+            amountReceivedLayout.visibility = View.GONE
+            changeContainer.visibility = View.GONE
+        }
+    }
+
+    private fun updateUIForError(errorMessage: String) {
+        activity?.runOnUiThread {
+            statusTextView.text = "Erro no Processamento"
+            infoTextView.text = errorMessage
+            imageView.setImageResource(R.drawable.ic_close)
+
+            // Reabilitar botão de cancelamento
+            cancelButton.isEnabled = true
+            cancelButton.text = "Cancelar"
+            cancelButton.setOnClickListener {
+                requireActivity().finish()
+            }
+
+            confirmButton.visibility = View.VISIBLE
+            confirmButton.text = "Tentar Novamente"
+            confirmButton.setOnClickListener {
+                retryPayment()
+            }
+        }
+    }
+
+    private fun retryPayment() {
+        activity?.runOnUiThread {
+            confirmButton.visibility = View.VISIBLE
+            confirmButton.text = "Confirmar Recebimento"
+            confirmButton.isEnabled = true
+            statusTextView.text = "Aguardando confirmação"
+            infoTextView.text = "Informe o valor recebido em dinheiro (opcional)"
+            imageView.setImageResource(R.drawable.ic_credit_card)
+
+            amountReceivedEditText.text?.clear()
+            amountReceivedEditText.isEnabled = true
+            changeContainer.visibility = View.GONE
+            amountReceivedLayout.error = null
+
+            cancelButton.isEnabled = true
+            cancelButton.text = "Cancelar"
+            cancelButton.setOnClickListener {
+                requireActivity().finish()
+            }
+        }
+    }
+
+    private fun updateUIForCancelled() {
+        statusTextView.text = "Pagamento Cancelado"
+        infoTextView.text = "A transação foi cancelada"
+    }
+
+    private fun handleSuccessfulPayment() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val method = SystemPaymentMethod.CASH
+
+                val paymentData = PaymentUIUtils.PaymentData(
+                    amount = (totalAmount * 100).toInt(),
+                    commission = 0,
+                    method = method,
+                    isTransactionless = true
+                )
+
+                finishPaymentHandler.handlePayment(PaymentType.SINGLE_PAYMENT, paymentData)
+                updateUIForSuccess()
+
+            } catch (e: Exception) {
+                Log.e("CashPaymentFragment", "Erro ao processar pagamento finalizado: ${e.message}")
+                updateUIForError("Erro ao finalizar pagamento")
+            }
+        }
+    }
 }

@@ -11,7 +11,16 @@
   ~ Unauthorized copying, distribution, or use of this software, via any medium,
   ~ is strictly prohibited without the express written permission of Ticpass.
   -->
+
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="cash_payment">Pagamento em Dinheiro</string>
+    <string name="awaiting_confirmation">Aguardando confirmação</string>
+    <string name="enter_amount_received">Informe o valor recebido em dinheiro</string>
+    <string name="amount_received">Valor Recebido</string>
+    <string name="change">Troco</string>
+    <string name="confirm_receipt">Confirmar Recebimento</string>
+    <string name="insufficient_amount">Valor insuficiente</string>
+    <string name="confirm_cash_receipt">Confirme o recebimento do valor em dinheiro</string>
     <string name="event_pix_qrcode_generated">QR Code PIX gerado</string>
     <string name="support_qr_code">In case of doubts, suggestions, or assistance, please scan the QR code above.</string>
     <plurals name="people_count">
