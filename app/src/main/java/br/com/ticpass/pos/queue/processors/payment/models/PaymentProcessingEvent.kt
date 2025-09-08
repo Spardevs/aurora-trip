@@ -217,4 +217,6 @@ sealed class PaymentProcessingEvent : BaseProcessingEvent {
      * Card is approved for VIP.
      */
     object APPROVED_VIP : PaymentProcessingEvent()
+
+    object PIX_QRCODE_GENERATED : PaymentProcessingEvent()
 }

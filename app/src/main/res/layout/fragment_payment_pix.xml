@@ -67,16 +67,26 @@
             android:textAlignment="center"
             android:textSize="22sp" />
 
+        <TextView
+            android:id="@+id/timer_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="03:00"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
         <ImageView
             android:id="@+id/image"
             android:layout_width="180dp"
             android:layout_height="180dp"
             android:layout_marginTop="18dp"
-            android:padding="14dp"
+            android:padding="5dp"
             android:background="#FDFDFD"
             android:scaleType="centerCrop"
-            android:src="@drawable/qr_code"
-            app:tint="@android:color/black" />
+            android:src="@drawable/qr_code" />
+
 
     </LinearLayout>
 

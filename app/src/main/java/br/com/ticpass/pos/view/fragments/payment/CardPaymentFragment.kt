@@ -25,6 +25,7 @@ import br.com.ticpass.pos.payment.utils.PaymentUIUtils
 import br.com.ticpass.pos.payment.view.TimeoutCountdownView // Import correto
 import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent // Import necessário
 import br.com.ticpass.pos.sdk.AcquirerSdk
+import br.com.ticpass.pos.util.PaymentFragmentUtils
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
 import com.google.android.material.button.MaterialButton
 import dagger.hilt.android.AndroidEntryPoint
@@ -37,10 +38,16 @@ import javax.inject.Inject
 class CardPaymentFragment : Fragment() {
     private val paymentViewModel: PaymentProcessingViewModel by activityViewModels()
     private lateinit var paymentEventHandler: PaymentEventHandler
+
     @Inject
     lateinit var shoppingCartManager: ShoppingCartManager
+
     @Inject
     lateinit var finishPaymentHandler: FinishPaymentHandler
+
+    @Inject
+    lateinit var paymentUtils: PaymentFragmentUtils
+
     private var paymentType: String? = null
     private var shouldStartImmediately = false
     private lateinit var titleTextView: TextView
@@ -51,7 +58,6 @@ class CardPaymentFragment : Fragment() {
     private lateinit var cancelButton: MaterialButton
     private lateinit var retryButton: MaterialButton
     private lateinit var timeoutCountdownView: TimeoutCountdownView
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         AcquirerSdk.initialize(requireContext())
@@ -116,14 +122,14 @@ class CardPaymentFragment : Fragment() {
                 statusTextView.text = "Aguardando pagamento no crédito"
                 infoTextView.text = "Aproxime, insira ou passe o cartão de crédito"
                 imageView.setImageResource(R.drawable.ic_credit_card)
-                priceTextView.text = formatCurrency(cart.totalPrice.toDouble())
+                priceTextView.text = PaymentFragmentUtils.formatCurrency(cart.totalPrice.toDouble())
             }
             "debit_card" -> {
                 titleTextView.text = "Cartão de Débito"
                 statusTextView.text = "Aguardando pagamento no débito"
                 infoTextView.text = "Aproxime, insira ou passe o cartão de débito"
                 imageView.setImageResource(R.drawable.ic_credit_card)
-                priceTextView.text = formatCurrency(cart.totalPrice.toDouble())
+                priceTextView.text = PaymentFragmentUtils.formatCurrency(cart.totalPrice.toDouble())
             }
         }
 
@@ -134,145 +140,15 @@ class CardPaymentFragment : Fragment() {
     }
 
     private fun setupObservers() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                paymentViewModel.paymentProcessingEvents.collect { event ->
-                    paymentEventHandler.handlePaymentEvent(event)
-                    when (event) {
-                        is PaymentProcessingEvent.CARD_REACH_OR_INSERT -> {
-                            statusTextView.text = "Aproxime ou insira o cartão"
-                        }
-
-                        is PaymentProcessingEvent.USE_CHIP -> {
-                            statusTextView.text = "Insira o cartão no chip"
-                        }
-
-                        is PaymentProcessingEvent.USE_MAGNETIC_STRIPE -> {
-                            statusTextView.text = "Passe o cartão na tarja magnética"
-                        }
-
-                        is PaymentProcessingEvent.SWIPE_CARD_REQUESTED -> {
-                            statusTextView.text = "Passe o cartão"
-                        }
-
-                        is PaymentProcessingEvent.CARD_INSERTED -> {
-                            statusTextView.text = "Cartão inserido - processando..."
-                        }
-
-                        is PaymentProcessingEvent.PIN_REQUESTED -> {
-                            statusTextView.text = "Insira o PIN do cartão"
-                        }
-
-                        is PaymentProcessingEvent.TRANSACTION_PROCESSING -> {
-                            statusTextView.text = "Processando transação..."
-                        }
-
-                        is PaymentProcessingEvent.AUTHORIZING -> {
-                            statusTextView.text = "Autorizando pagamento..."
-                        }
-
-                        is PaymentProcessingEvent.CARD_BIN_REQUESTED -> {
-                            statusTextView.text = "Verificando cartão..."
-                        }
-
-                        is PaymentProcessingEvent.CARD_HOLDER_REQUESTED -> {
-                            statusTextView.text = "Verificando titular..."
-                        }
-
-                        is PaymentProcessingEvent.CVV_REQUESTED -> {
-                            statusTextView.text = "Verificando CVV..."
-                        }
-
-                        is PaymentProcessingEvent.DOWNLOADING_TABLES -> {
-                            statusTextView.text = "Baixando tabelas..."
-                        }
-
-                        is PaymentProcessingEvent.CARD_REMOVAL_REQUESTING -> {
-                            statusTextView.text = "Remova o cartão"
-                        }
-
-                        is PaymentProcessingEvent.CONTACTLESS_ON_DEVICE -> {
-                            statusTextView.text = "Pagamento contactless detectado"
-                        }
-
-                        PaymentProcessingEvent.ACTIVATION_SUCCEEDED -> TODO()
-                        PaymentProcessingEvent.APPROVAL_DECLINED -> TODO()
-                        PaymentProcessingEvent.APPROVAL_SUCCEEDED -> TODO()
-                        PaymentProcessingEvent.APPROVED_UPDATE_TRACK_3 -> TODO()
-                        PaymentProcessingEvent.APPROVED_VIP -> TODO()
-                        PaymentProcessingEvent.CANCELLED -> TODO()
-                        PaymentProcessingEvent.CARD_BIN_OK -> TODO()
-                        PaymentProcessingEvent.CARD_HOLDER_OK -> TODO()
-                        PaymentProcessingEvent.CARD_REMOVAL_SUCCEEDED -> TODO()
-                        PaymentProcessingEvent.CONTACTLESS_ERROR -> TODO()
-                        PaymentProcessingEvent.CVV_OK -> TODO()
-                        PaymentProcessingEvent.GENERIC_ERROR -> TODO()
-                        PaymentProcessingEvent.GENERIC_SUCCESS -> TODO()
-                        PaymentProcessingEvent.KEY_INSERTED -> TODO()
-                        PaymentProcessingEvent.PARTIALLY_APPROVED -> TODO()
-                        PaymentProcessingEvent.PIN_DIGIT_INPUT -> TODO()
-                        PaymentProcessingEvent.PIN_DIGIT_REMOVED -> TODO()
-                        PaymentProcessingEvent.PIN_OK -> TODO()
-                        is PaymentProcessingEvent.QRCODE_SCAN -> TODO()
-                        PaymentProcessingEvent.REQUEST_IN_PROGRESS -> TODO()
-                        PaymentProcessingEvent.REVERSING_TRANSACTION_WITH_ERROR -> TODO()
-                        PaymentProcessingEvent.SAVING_TABLES -> TODO()
-                        PaymentProcessingEvent.SELECT_PAYMENT_METHOD -> TODO()
-                        PaymentProcessingEvent.SOLVING_PENDING_ISSUES -> TODO()
-                        PaymentProcessingEvent.START -> TODO()
-                        PaymentProcessingEvent.SWITCH_INTERFACE -> TODO()
-                        PaymentProcessingEvent.TRANSACTION_DONE -> TODO()
-                    }
-                }
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                paymentViewModel.paymentState.collect { state ->
-                    when (state) {
-                        is PaymentState.Processing -> {
-                            if (statusTextView.text.isNullOrEmpty() ||
-                                statusTextView.text.contains("Aprovado") ||
-                                statusTextView.text.contains("Erro") ||
-                                statusTextView.text.contains("Cancelado")
-                            ) {
-                                statusTextView.text = "Processando pagamento..."
-                            }
-                        }
-
-                        is PaymentState.Success -> {
-                            handleSuccessfulPayment(state)
-                        }
-
-                        is PaymentState.Error -> {
-                            updateUIForError(state.errorMessage)
-                        }
-
-                        is PaymentState.Cancelled -> {
-                            updateUIForCancelled()
-                        }
-
-                        is PaymentState.Idle -> {
-                            statusTextView.text = "Pronto para iniciar pagamento"
-                        }
-
-                        is PaymentState.Initializing -> {
-                            statusTextView.text = "Inicializando sistema de pagamento..."
-                            infoTextView.text = "Aguarde..."
-                        }
-                    }
-                }
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                paymentViewModel.uiEvents.collect { event ->
-                    paymentEventHandler.handleUiEvent(event)
-                }
-            }
-        }
+        PaymentFragmentUtils.setupPaymentObservers(
+            fragment = this,
+            paymentViewModel = paymentViewModel,
+            paymentEventHandler = paymentEventHandler,
+            statusTextView = statusTextView,
+            onSuccess = { handleSuccessfulPayment() },
+            onError = { errorMessage -> updateUIForError(errorMessage) },
+            onCancelled = { updateUIForCancelled() }
+        )
     }
 
     private fun enqueuePayment(startImmediately: Boolean) {
@@ -282,20 +158,13 @@ class CardPaymentFragment : Fragment() {
             else -> return
         }
 
-        val cart = shoppingCartManager.getCart()
-        val amount = cart.totalPrice
-        val commission = 0
-
-        paymentViewModel.enqueuePayment(
-            amount = amount.toInt(),
-            commission = commission,
+        PaymentFragmentUtils.enqueuePayment(
+            paymentViewModel = paymentViewModel,
+            shoppingCartManager = shoppingCartManager,
             method = method,
-            isTransactionless = true
+            isTransactionless = true,
+            startImmediately = startImmediately
         )
-
-        if (startImmediately) {
-            paymentViewModel.startProcessing()
-        }
     }
 
     private fun updateUIForSuccess() {
@@ -355,7 +224,7 @@ class CardPaymentFragment : Fragment() {
             imageView.clearColorFilter()
 
             Handler(Looper.getMainLooper()).postDelayed({
-                enqueuePayment(startImmediately = true) // Agora este método existe
+                enqueuePayment(startImmediately = true)
             }, 1000)
         }
     }
@@ -365,20 +234,8 @@ class CardPaymentFragment : Fragment() {
         infoTextView.text = "A transação foi cancelada"
     }
 
-    private fun formatCurrency(value: Double): String {
-        val format = NumberFormat.getCurrencyInstance(Locale.Builder()
-            .setLanguage("pt")
-            .setRegion("BR")
-            .build())
-        return format.format(value)
-    }
-
-    private fun handleSuccessfulPayment(state: PaymentState.Success) {
-        if (state.transactionId.isNullOrEmpty()) {
-            Log.d("CardPaymentFragment", "Transação sem ID, aguardando confirmação...")
-            return
-        }
-
+    private fun handleSuccessfulPayment() {
+        // Lógica específica para cartão
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val paymentTypeEnum = when (paymentType) {
@@ -406,4 +263,5 @@ class CardPaymentFragment : Fragment() {
                 updateUIForError("Erro ao finalizar pagamento")
             }
         }
-    }}
+    }
+}

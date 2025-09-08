@@ -12,7 +12,7 @@
   ~ is strictly prohibited without the express written permission of Ticpass.
   -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-
+    <string name="event_pix_qrcode_generated">QR Code PIX gerado</string>
     <string name="support_qr_code">In case of doubts, suggestions, or assistance, please scan the QR code above.</string>
     <plurals name="people_count">
         <item quantity="one">%d pessoa</item>

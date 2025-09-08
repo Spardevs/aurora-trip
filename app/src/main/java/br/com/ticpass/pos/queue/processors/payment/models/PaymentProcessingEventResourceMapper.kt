@@ -7,7 +7,7 @@ import br.com.ticpass.pos.R
  * This centralized mapping makes it easy to maintain error message mappings
  */
 object PaymentProcessingEventResourceMapper {
-    
+
     /**
      * Get the string resource key for a PaymentProcessingEvent
      * @param event The PaymentProcessingEvent to map
@@ -56,6 +56,8 @@ object PaymentProcessingEventResourceMapper {
             is PaymentProcessingEvent.REQUEST_IN_PROGRESS -> R.string.request_in_progress
             is PaymentProcessingEvent.PARTIALLY_APPROVED -> R.string.partially_approved
             is PaymentProcessingEvent.APPROVED_UPDATE_TRACK_3 -> R.string.approved_update_track_3
+            // Add the missing case for PIX_QRCODE_GENERATED
+            is PaymentProcessingEvent.PIX_QRCODE_GENERATED -> R.string.event_pix_qrcode_generated
         }
     }
 }

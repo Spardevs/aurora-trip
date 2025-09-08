@@ -557,4 +557,9 @@ class PaymentProcessingViewModel @Inject constructor(
             }
         }
     }
+
+    fun notifyPaymentSuccess() {
+        clearTimeout()
+        _paymentState.value = PaymentState.Success(null)
+    }
 }
