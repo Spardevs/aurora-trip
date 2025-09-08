@@ -6,7 +6,6 @@ import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import br.com.ticpass.pos.R
 import dagger.hilt.android.AndroidEntryPoint
@@ -39,7 +38,7 @@ class PassesActivity : BaseActivity() {
 
         companion object {
             fun fromValue(value: String): FormatType {
-                return values().firstOrNull { it.formatValue == value } ?: DEFAULT
+                return entries.firstOrNull { it.formatValue == value } ?: DEFAULT
             }
         }
     }
@@ -90,7 +89,7 @@ class PassesActivity : BaseActivity() {
                     return@launch
                 }
 
-                currentFormat = FormatType.fromValue(currEvent.ticketFormat ?: FormatType.DEFAULT.formatValue)
+                currentFormat = FormatType.fromValue(currEvent.ticketFormat)
                 withContext(Dispatchers.Main) {
                     updateFormatUi()
                 }
@@ -103,7 +102,6 @@ class PassesActivity : BaseActivity() {
             }
         }
     }
-
     private fun showNoEventSelectedWarning() {
         Toast.makeText(
             this,
@@ -139,6 +137,8 @@ class PassesActivity : BaseActivity() {
             eventRepository.upsertEvent(currEvent)
             currentFormat = newFormat
 
+            saveFormatState(newFormat)
+
             withContext(Dispatchers.Main) {
                 updateFormatUi()
                 Toast.makeText(
@@ -158,7 +158,6 @@ class PassesActivity : BaseActivity() {
             }
         }
     }
-
     private fun saveFormatState(format: FormatType) {
         getSharedPreferences("ConfigPrefs", MODE_PRIVATE).edit {
             putString("print_format", format.name)

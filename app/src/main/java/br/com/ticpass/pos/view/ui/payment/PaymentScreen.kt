@@ -29,7 +29,6 @@ class PaymentScreen : BaseActivity() {
 
         Log.d("PaymentScreen", "Opening payment screen for type: $paymentType")
 
-        // Handle the "debug" case separately
         if (paymentType == "debug") {
             startActivity(Intent(this, PaymentProcessingActivity::class.java))
             finish()
