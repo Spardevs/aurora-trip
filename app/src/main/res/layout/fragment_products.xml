@@ -6,33 +6,44 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
+    <FrameLayout
+        android:id="@+id/root_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
 
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tabCategories"
+        <!-- Conteúdo principal -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="32dp"
-            app:tabMode="scrollable"
-            app:tabGravity="center"
-            app:tabIndicatorFullWidth="false"
-            app:tabIndicatorHeight="2dp"
-            app:tabPaddingStart="8dp"
-            app:tabPaddingEnd="8dp"
-            app:tabTextAppearance="@style/TabTextAppearance"/>
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/viewPager"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"/>
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tabCategories"
+                android:layout_width="match_parent"
+                android:layout_height="32dp"
+                app:tabMode="scrollable"
+                app:tabGravity="center"
+                app:tabIndicatorFullWidth="false"
+                app:tabIndicatorHeight="2dp"
+                app:tabPaddingStart="8dp"
+                app:tabPaddingEnd="8dp"
+                app:tabTextAppearance="@style/TabTextAppearance"/>
 
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/viewPager"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"/>
+        </LinearLayout>
+
+        <!-- Payment sheet fixo na parte inferior -->
         <include
             android:id="@+id/paymentSheet"
-            layout="@layout/payment_sheet"/>
+            layout="@layout/payment_sheet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:visibility="gone"/>
 
-    </LinearLayout>
-
+    </FrameLayout>
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

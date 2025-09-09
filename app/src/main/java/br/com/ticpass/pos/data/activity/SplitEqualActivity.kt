@@ -11,68 +11,86 @@ import com.google.android.material.slider.Slider
 import java.text.NumberFormat
 import java.util.Locale
 
-class SplitEqualActivity : BaseActivity() {
+class SplitEqualActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySplitEqualBinding
     private lateinit var sharedPrefs: SharedPreferences
     private var totalPrice: Double = 0.0
+    private val paymentsQueue = mutableListOf<Double>()
+    private var currentIndex = 0
+
+    companion object {
+        const val REQUEST_PAYMENT = 1001
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySplitEqualBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Configuração fullscreen
-        window.decorView.systemUiVisibility = (
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                        or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_FULLSCREEN
-                )
-
         sharedPrefs = getSharedPreferences("ShoppingCartPrefs", MODE_PRIVATE)
-        totalPrice = getTotalPriceFromPrefs() / 100 // Convertendo de centavos para reais
+        totalPrice = getTotalPriceFromPrefs() / 100
 
         binding.toolbar.setNavigationOnClickListener { finish() }
         binding.tvTotalValue.text = formatCurrency(totalPrice)
 
-        setupSlider()
+        setupNumberPicker()
+    }
+
+    private fun setupNumberPicker() {
+        binding.numberPeople.minValue = 2
+        binding.numberPeople.maxValue = 10
+        binding.numberPeople.wrapSelectorWheel = false
+        binding.numberPeople.value = 2
+        updateDividedValue(2)
+
+        binding.numberPeople.setOnValueChangedListener { _, _, newVal ->
+            updateDividedValue(newVal)
+        }
+
+        binding.btnConfirm.setOnClickListener {
+            val people = binding.numberPeople.value
+            val dividedValue = totalPrice / people
+
+            paymentsQueue.clear()
+            repeat(people) { paymentsQueue.add(dividedValue) }
+            currentIndex = 0
+            startNextPayment()
+        }
+    }
+
+    private fun startNextPayment() {
+        if (currentIndex < paymentsQueue.size) {
+            val intent = Intent(this, PaymentSelectionActivity::class.java).apply {
+                putExtra("value_to_pay", paymentsQueue[currentIndex])
+                putExtra("progress", "${currentIndex + 1}/${paymentsQueue.size}")
+            }
+            startActivityForResult(intent, REQUEST_PAYMENT)
+        } else {
+            // todos os pagamentos concluídos
+            setResult(RESULT_OK)
+            finish()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_PAYMENT && resultCode == RESULT_OK) {
+            currentIndex++
+            startNextPayment()
+        }
+    }
+
+    private fun updateDividedValue(people: Int) {
+        binding.tvPeopleCount.text = resources.getQuantityString(
+            R.plurals.people_count, people, people
+        )
+        val dividedValue = totalPrice / people
+        binding.tvDividedValue.text = formatCurrency(dividedValue)
     }
 
     private fun getTotalPriceFromPrefs(): Double {
         val json = sharedPrefs.getString("shopping_cart_data", null) ?: return 0.0
-        return try {
-            val totalPriceStr = json.substringAfter("\"totalPrice\":").substringBefore("}")
-            totalPriceStr.toDouble()
-        } catch (e: Exception) {
-            0.0
-        }
-    }
-
-    private fun setupSlider() {
-        binding.sliderPeople.addOnChangeListener { _, value, _ ->
-            val people = value.toInt()
-            binding.tvPeopleCount.text = resources.getQuantityString(
-                R.plurals.people_count, people, people
-            )
-
-            val dividedValue = totalPrice / people
-            binding.tvDividedValue.text = formatCurrency(dividedValue)
-        }
-
-        binding.btnConfirm.setOnClickListener {
-            val people = binding.sliderPeople.value.toInt()
-            val dividedValue = totalPrice / people
-
-            // Retorna o resultado para a tela anterior
-            val result = Intent().apply {
-                putExtra("divided_value", dividedValue)
-                putExtra("people_count", people)
-            }
-            setResult(RESULT_OK, result)
-            finish()
-        }
+        return json.substringAfter("\"totalPrice\":").substringBefore("}").toDoubleOrNull() ?: 0.0
     }
 
     private fun formatCurrency(value: Double): String {

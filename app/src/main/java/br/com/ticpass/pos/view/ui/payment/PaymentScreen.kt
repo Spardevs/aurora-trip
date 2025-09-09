@@ -20,20 +20,28 @@ class PaymentScreen : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_payment)
 
         val paymentType = intent.getStringExtra("payment_type") ?: run {
             Log.e("PaymentScreen", "Payment type is null or not provided")
             return
         }
 
-        Log.d("PaymentScreen", "Opening payment screen for type: $paymentType")
-
         if (paymentType == "debug") {
             startActivity(Intent(this, PaymentProcessingActivity::class.java))
             finish()
             return
         }
+
+        setContentView(R.layout.activity_payment)
+
+        // Wait for the view to be properly laid out before adding fragment
+        findViewById<android.view.View>(R.id.payment_container).post {
+            loadFragment(paymentType)
+        }
+    }
+
+    private fun loadFragment(paymentType: String) {
+        Log.d("PaymentScreen", "Opening payment screen for type: $paymentType")
 
         val fragment = when (paymentType) {
             "credit_card", "debit_card" -> {
@@ -60,7 +68,7 @@ class PaymentScreen : BaseActivity() {
         }
 
         supportFragmentManager.beginTransaction()
-            .replace(R.id.payment_container, fragment)
-            .commitNow()
+            .add(R.id.payment_container, fragment)
+            .commit()
     }
 }

@@ -193,15 +193,16 @@ class PaymentFragmentUtils @Inject constructor(
             paymentViewModel: PaymentProcessingViewModel,
             shoppingCartManager: ShoppingCartManager,
             method: SystemPaymentMethod,
-            isTransactionless: Boolean = true,
-            startImmediately: Boolean = true
+            amount: Double? = null, // Novo parâmetro opcional
+            isTransactionless: Boolean,
+            startImmediately: Boolean
         ) {
             val cart = shoppingCartManager.getCart()
-            val amount = cart.totalPrice
+            val paymentAmount = amount ?: cart.totalPrice.toDouble()
             val commission = 0
 
             paymentViewModel.enqueuePayment(
-                amount = amount.toInt(),
+                amount = paymentAmount.toInt(),
                 commission = commission,
                 method = method,
                 isTransactionless = isTransactionless

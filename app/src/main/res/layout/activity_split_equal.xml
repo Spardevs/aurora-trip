@@ -46,15 +46,13 @@
         android:textSize="18sp"
         android:textColor="?attr/colorOnSurface"/>
 
-    <com.google.android.material.slider.Slider
-        android:id="@+id/sliderPeople"
-        android:layout_width="match_parent"
+    <NumberPicker
+        android:id="@+id/numberPeople"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:layout_marginTop="16dp"
-        android:valueFrom="2"
-        android:valueTo="10"
-        android:stepSize="1"/>
-
+        android:descendantFocusability="blocksDescendants"/>
     <TextView
         android:id="@+id/tvPeopleCount"
         android:layout_width="wrap_content"

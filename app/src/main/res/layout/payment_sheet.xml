@@ -4,10 +4,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/colorOnPrimaryFixedVariant"
     android:orientation="vertical"
+    android:background="?attr/colorOnPrimaryFixedVariant"
     android:padding="16dp">
 
+    <!-- Cabeçalho com total, itens e botões -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -18,7 +19,7 @@
             android:id="@+id/tv_total_price"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="R$ 333.222.111,00"
+            android:text="R$ 0,00"
             android:textColor="@android:color/white"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -33,7 +34,7 @@
             android:id="@+id/tv_items_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="3 itens"
+            android:text="0 itens"
             android:textColor="@android:color/white"
             android:textSize="12sp"
             android:textStyle="bold" />
@@ -43,17 +44,13 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:gravity="end"
-            android:orientation="horizontal"
-            >
+            android:orientation="horizontal">
+
             <ImageButton
                 android:id="@+id/btnClearAll"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:duplicateParentState="false"
-                android:focusable="true"
-                android:gravity="center_vertical"
                 android:src="@drawable/ic_delete"
                 app:tint="?attr/colorError" />
 
@@ -63,22 +60,19 @@
                 android:layout_height="20dp"
                 android:layout_marginStart="12dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:duplicateParentState="false"
-                android:focusable="true"
-                android:gravity="center_vertical"
                 android:src="@drawable/ic_percet_symbol"
                 app:tint="@android:color/white" />
         </LinearLayout>
     </LinearLayout>
 
+    <!-- Container onde os fragments de pagamento serão carregados -->
     <GridLayout
         android:id="@+id/payment_methods_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="12dp"
         android:columnCount="3"
-        android:alignmentMode="alignMargins"
-        android:useDefaultMargins="true">
-    </GridLayout>
+        android:orientation="horizontal"
+        android:padding="8dp" />
+
 </LinearLayout>

@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.GridLayout
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -80,12 +81,14 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout)
         tabLayout = view.findViewById(R.id.tabCategories)
         viewPager = view.findViewById(R.id.viewPager)
+
         paymentSheet = view.findViewById(R.id.paymentSheet)
+
 
         setupSwipeRefresh()
         setupTabLayout()
 
-        cartUpdatesObserver = Observer<Any> {
+        cartUpdatesObserver = Observer {
             updatePaymentVisibility()
         }
         shoppingCartManager.cartUpdates.observe(viewLifecycleOwner, cartUpdatesObserver!!)
@@ -95,7 +98,7 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         setupViewPager()
         setupPaymentMethods()
 
-        loadingObserver = Observer<Boolean> { isLoading ->
+        loadingObserver = Observer { isLoading ->
             swipeRefreshLayout.isRefreshing = isLoading
         }
         productsViewModel.isLoading.observe(viewLifecycleOwner, loadingObserver!!)
@@ -205,31 +208,31 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
             paymentSheet.findViewById<ImageButton>(R.id.btnOptions)?.setOnClickListener {
                 showSplitBillDialog()
             }
+
+            paymentSheet.findViewById<ImageButton>(R.id.btnClearAll)?.setOnClickListener {
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Limpar carrinho")
+                    .setMessage("Deseja remover todos os itens do carrinho?")
+                    .setPositiveButton("Sim") { dialog, _ ->
+                        shoppingCartManager.clearCart()
+                        Toast.makeText(requireContext(), "Carrinho limpo", Toast.LENGTH_SHORT).show()
+                        dialog.dismiss()
+                    }
+                    .setNegativeButton("Cancelar") { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .show()
+            }
         } else {
             paymentSheet.visibility = View.GONE
-        }
-
-        paymentSheet.findViewById<ImageButton>(R.id.btnClearAll).setOnClickListener {
-            AlertDialog.Builder(requireContext())
-                .setTitle("Limpar carrinho")
-                .setMessage("Deseja remover todos os itens do carrinho?")
-                .setPositiveButton("Sim") { dialog, _ ->
-                    shoppingCartManager.clearCart()
-                    Toast.makeText(requireContext(), "Carrinho limpo", Toast.LENGTH_SHORT).show()
-                    dialog.dismiss()
-                }
-                .setNegativeButton("Cancelar") { dialog, _ ->
-                    dialog.dismiss()
-                }
-                .show()
         }
     }
 
     private fun updatePaymentInfo(cart: ShoppingCartManager.ShoppingCart) {
-        paymentSheet.findViewById<TextView>(R.id.tv_items_count).text =
+        paymentSheet.findViewById<TextView>(R.id.tv_items_count)?.text =
             "${cart.items.values.sum()} itens"
 
-        paymentSheet.findViewById<TextView>(R.id.tv_total_price).text =
+        paymentSheet.findViewById<TextView>(R.id.tv_total_price)?.text =
             formatCurrency(cart.totalPrice.toDouble())
     }
 
