@@ -43,13 +43,6 @@ class CardPaymentFragment : Fragment() {
 
     @Inject
     lateinit var paymentUtils: PaymentFragmentUtils
-
-    private var paymentType: String? = null
-    private var paymentValue: Double = 0.0
-    private var totalValue: Double = 0.0
-    private var remainingValue: Double = 0.0
-    private var isMultiPayment: Boolean = false
-    private var progress: String = ""
     private var shouldStartImmediately = false
 
     private lateinit var titleTextView: TextView
@@ -61,15 +54,24 @@ class CardPaymentFragment : Fragment() {
     private lateinit var retryButton: MaterialButton
     private lateinit var timeoutCountdownView: TimeoutCountdownView
 
+    private var paymentType: String? = null
+    private var paymentValue: Double = 0.0
+    private var totalValue: Double = 0.0
+    private var remainingValue: Double = 0.0
+    private var isMultiPayment: Boolean = false
+    private var progress: String = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         AcquirerSdk.initialize(requireContext())
         super.onCreate(savedInstanceState)
+
         paymentType = arguments?.getString("payment_type")
         paymentValue = arguments?.getDouble("value_to_pay") ?: 0.0
         totalValue = arguments?.getDouble("total_value") ?: paymentValue
         remainingValue = arguments?.getDouble("remaining_value") ?: paymentValue
         isMultiPayment = arguments?.getBoolean("is_multi_payment") ?: false
         progress = arguments?.getString("progress") ?: ""
+
         shouldStartImmediately = true
     }
 
@@ -120,6 +122,13 @@ class CardPaymentFragment : Fragment() {
         priceTextView = view.findViewById(R.id.payment_price)
         cancelButton = view.findViewById(R.id.btn_cancel)
         retryButton = view.findViewById(R.id.btn_retry)
+        priceTextView.text = PaymentFragmentUtils.formatCurrency(paymentValue)
+
+        if (isMultiPayment && progress.isNotEmpty()) {
+            val progressTextView = view.findViewById<TextView>(R.id.tv_progress)
+            progressTextView?.visibility = View.VISIBLE
+            progressTextView?.text = "Pagamento $progress"
+        }
 
         // Usar o valor específico deste pagamento, não o total do carrinho
         priceTextView.text = PaymentFragmentUtils.formatCurrency(paymentValue)
@@ -225,10 +234,17 @@ class CardPaymentFragment : Fragment() {
         }
     }
 
+
     private fun getNextProgress(currentProgress: String): String {
         return try {
-            val currentNumber = currentProgress.filter { it.isDigit() }.toInt()
-            "${currentNumber + 1}/?"
+            val parts = currentProgress.split("/")
+            if (parts.size == 2) {
+                val current = parts[0].toInt()
+                val total = parts[1].toInt()
+                "${current + 1}/$total"
+            } else {
+                "2/?"
+            }
         } catch (e: Exception) {
             "2/?"
         }
@@ -284,7 +300,7 @@ class CardPaymentFragment : Fragment() {
                 }
 
                 val paymentData = PaymentUIUtils.PaymentData(
-                    amount = paymentValue.toInt(),
+                    amount = (paymentValue * 100).toInt(), // Converter para centavos
                     commission = 0,
                     method = method,
                     isTransactionless = true

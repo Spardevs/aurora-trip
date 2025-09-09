@@ -62,11 +62,13 @@ class SplitEqualActivity : AppCompatActivity() {
         if (currentIndex < paymentsQueue.size) {
             val intent = Intent(this, PaymentSelectionActivity::class.java).apply {
                 putExtra("value_to_pay", paymentsQueue[currentIndex])
+                putExtra("total_value", totalPrice) // Adicione o valor total
+                putExtra("remaining_value", paymentsQueue[currentIndex]) // Valor atual a pagar
+                putExtra("is_multi_payment", true) // Indica que é pagamento múltiplo
                 putExtra("progress", "${currentIndex + 1}/${paymentsQueue.size}")
             }
             startActivityForResult(intent, REQUEST_PAYMENT)
         } else {
-            // todos os pagamentos concluídos
             setResult(RESULT_OK)
             finish()
         }

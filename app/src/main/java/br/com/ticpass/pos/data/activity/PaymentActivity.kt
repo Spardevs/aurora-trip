@@ -37,8 +37,10 @@ class PaymentActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_payment)
+        binding = PaymentSheetBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
+        // Obter os valores passados
         val paymentType = intent.getStringExtra("payment_type")
         val paymentValue = intent.getDoubleExtra("value_to_pay", 0.0)
         val totalValue = intent.getDoubleExtra("total_value", paymentValue)
@@ -46,33 +48,36 @@ class PaymentActivity : AppCompatActivity() {
         val isMultiPayment = intent.getBooleanExtra("is_multi_payment", false)
         val progress = intent.getStringExtra("progress") ?: ""
 
-
-
         if (savedInstanceState == null) {
-            val paymentType = intent.getStringExtra("payment_type")
-
             val fragment = when (paymentType) {
                 "credit_card", "debit_card" -> CardPaymentFragment().apply {
                     arguments = Bundle().apply {
                         putString("payment_type", paymentType)
-                        putDouble("value_to_pay", paymentValue)
-                        putDouble("total_value", totalValue)
-                        putDouble("remaining_value", remainingValue)
+                        putDouble("value_to_pay", paymentValue) // Valor dividido
+                        putDouble("total_value", totalValue) // Valor total
+                        putDouble("remaining_value", remainingValue) // Valor restante
                         putBoolean("is_multi_payment", isMultiPayment)
                         putString("progress", progress)
                     }
                 }
-
-                else -> {
-                    CashPaymentFragment().apply {
-                        arguments = Bundle().apply {
-                            putString("payment_type", paymentType)
-                            putDouble("value_to_pay", paymentValue)
-                            putDouble("total_value", totalValue)
-                            putDouble("remaining_value", remainingValue)
-                            putBoolean("is_multi_payment", isMultiPayment)
-                            putString("progress", progress)
-                        }
+                "pix" -> PixPaymentFragment().apply {
+                    arguments = Bundle().apply {
+                        putString("payment_type", paymentType)
+                        putDouble("value_to_pay", paymentValue) // Valor dividido
+                        putDouble("total_value", totalValue) // Valor total
+                        putDouble("remaining_value", remainingValue) // Valor restante
+                        putBoolean("is_multi_payment", isMultiPayment)
+                        putString("progress", progress)
+                    }
+                }
+                else -> CashPaymentFragment().apply {
+                    arguments = Bundle().apply {
+                        putString("payment_type", paymentType)
+                        putDouble("value_to_pay", paymentValue) // Valor dividido
+                        putDouble("total_value", totalValue) // Valor total
+                        putDouble("remaining_value", remainingValue) // Valor restante
+                        putBoolean("is_multi_payment", isMultiPayment)
+                        putString("progress", progress)
                     }
                 }
             }
@@ -92,7 +97,7 @@ class PaymentActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
-        shoppingCartManager.cartUpdates.observe(this) { // <<< troque viewLifecycleOwner por this
+        shoppingCartManager.cartUpdates.observe(this) {
             Log.d("PaymentActivity", "CartUpdates observed - Updating UI")
             updateCartUI()
         }

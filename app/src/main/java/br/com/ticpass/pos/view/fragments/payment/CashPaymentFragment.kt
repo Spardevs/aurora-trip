@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.view.fragments.payment
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -20,6 +21,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import br.com.ticpass.pos.R
+import br.com.ticpass.pos.data.activity.PaymentSelectionActivity
 import br.com.ticpass.pos.data.room.service.PassGeneratorService
 import br.com.ticpass.pos.feature.payment.PaymentProcessingViewModel
 import br.com.ticpass.pos.feature.payment.PaymentState
@@ -52,6 +54,12 @@ class CashPaymentFragment : Fragment() {
     @Inject
     lateinit var paymentUtils: PaymentFragmentUtils
 
+
+    private var paymentValue: Double = 0.0
+    private var totalValue: Double = 0.0
+    private var remainingValue: Double = 0.0
+    private var isMultiPayment: Boolean = false
+    private var progress: String = ""
     private lateinit var passGeneratorService: PassGeneratorService
     private lateinit var paymentEventHandler: PaymentEventHandler
     private lateinit var timeoutCountdownView: TimeoutCountdownView
@@ -73,6 +81,13 @@ class CashPaymentFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         AcquirerSdk.initialize(requireContext())
         super.onCreate(savedInstanceState)
+
+        // Obter valores dos arguments
+        paymentValue = arguments?.getDouble("value_to_pay") ?: 0.0
+        totalValue = arguments?.getDouble("total_value") ?: paymentValue
+        remainingValue = arguments?.getDouble("remaining_value") ?: paymentValue
+        isMultiPayment = arguments?.getBoolean("is_multi_payment") ?: false
+        progress = arguments?.getString("progress") ?: ""
     }
 
     override fun onCreateView(
@@ -106,6 +121,14 @@ class CashPaymentFragment : Fragment() {
         changeContainer = view.findViewById(R.id.changeContainer)
         changeAmountTextView = view.findViewById(R.id.changeAmountTextView)
         timeoutCountdownView = view.findViewById(R.id.timeoutCountdownView)
+        totalAmount = paymentValue
+        priceTextView.text = PaymentFragmentUtils.formatCurrency(totalAmount)
+
+        if (isMultiPayment && progress.isNotEmpty()) {
+            val progressTextView = view.findViewById<TextView>(R.id.tv_progress)
+            progressTextView?.visibility = View.VISIBLE
+            progressTextView?.text = "Pagamento $progress"
+        }
 
         val cart = shoppingCartManager.getCart()
         totalAmount = cart.totalPrice.toDouble() / 100.0
@@ -331,19 +354,58 @@ class CashPaymentFragment : Fragment() {
                 val method = SystemPaymentMethod.CASH
 
                 val paymentData = PaymentUIUtils.PaymentData(
-                    amount = (totalAmount * 100).toInt(),
+                    amount = (paymentValue * 100).toInt(), // Converter para centavos
                     commission = 0,
                     method = method,
                     isTransactionless = true
                 )
 
                 finishPaymentHandler.handlePayment(PaymentType.SINGLE_PAYMENT, paymentData)
-                updateUIForSuccess()
+
+                // Navegar para próximo pagamento ou finalizar
+                if (isMultiPayment) {
+                    navigateBackToSelection()
+                } else {
+                    updateUIForSuccess()
+                }
 
             } catch (e: Exception) {
                 Log.e("CashPaymentFragment", "Erro ao processar pagamento finalizado: ${e.message}")
                 updateUIForError("Erro ao finalizar pagamento")
             }
+        }
+    }
+
+    private fun navigateBackToSelection() {
+        val newRemainingValue = remainingValue - paymentValue
+
+        if (newRemainingValue > 0) {
+            val intent = Intent(requireContext(), PaymentSelectionActivity::class.java).apply {
+                putExtra("total_value", totalValue)
+                putExtra("remaining_value", newRemainingValue)
+                putExtra("is_multi_payment", true)
+                putExtra("progress", getNextProgress(progress))
+            }
+            startActivity(intent)
+            requireActivity().finish()
+        } else {
+            shoppingCartManager.clearCart()
+            requireActivity().finish()
+        }
+    }
+
+    private fun getNextProgress(currentProgress: String): String {
+        return try {
+            val parts = currentProgress.split("/")
+            if (parts.size == 2) {
+                val current = parts[0].toInt()
+                val total = parts[1].toInt()
+                "${current + 1}/$total"
+            } else {
+                "2/?"
+            }
+        } catch (e: Exception) {
+            "2/?"
         }
     }
 }

@@ -100,11 +100,6 @@ class SplitManualActivity : BaseActivity() {
             val valueStr = binding.etValue.text.toString().replace(",", ".")
             val valueToSubtract = valueStr.toDoubleOrNull() ?: 0.0
 
-            if (valueToSubtract <= 0) {
-                binding.etValue.error = "Valor deve ser maior que zero"
-                return@setOnClickListener
-            }
-
             val remainingAfterSubtraction = calculateRemainingValue() - valueToSubtract
             if (remainingAfterSubtraction < 0) {
                 binding.etValue.error = "Valor excede o restante"

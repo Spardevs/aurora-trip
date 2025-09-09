@@ -65,7 +65,6 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Container onde os fragments de pagamento serão carregados -->
     <GridLayout
         android:id="@+id/payment_methods_container"
         android:layout_width="match_parent"
