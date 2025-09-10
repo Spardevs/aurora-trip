@@ -59,6 +59,6 @@ class PaymentSelectionActivity : BaseActivity() {
             putExtra("is_multi_payment", isMultiPayment)
             putExtra("progress", progress)
         }
-        startActivity(intent)
+        startActivityForResult(intent, SplitEqualActivity.REQUEST_PAYMENT)
     }
 }

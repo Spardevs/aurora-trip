@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
@@ -191,7 +192,8 @@ class CardPaymentFragment : Fragment() {
             cancelButton.text = if (isMultiPayment) "Próximo Pagamento" else "Finalizar"
             cancelButton.setOnClickListener {
                 if (isMultiPayment) {
-                    navigateBackToSelection()
+                    requireActivity().setResult(AppCompatActivity.RESULT_OK)
+                    requireActivity().finish()
                 } else {
                     shoppingCartManager.clearCart()
                     requireActivity().finish()
@@ -216,7 +218,6 @@ class CardPaymentFragment : Fragment() {
 
     private fun navigateBackToSelection() {
         val newRemainingValue = remainingValue - paymentValue
-
         if (newRemainingValue > 0) {
             // Ainda há valor a ser pago, voltar para seleção
             val intent = Intent(requireContext(), PaymentSelectionActivity::class.java).apply {
@@ -306,10 +307,24 @@ class CardPaymentFragment : Fragment() {
                     isTransactionless = true
                 )
 
-                finishPaymentHandler.handlePayment(PaymentType.SINGLE_PAYMENT, paymentData)
-                updateUIForSuccess()
+                finishPaymentHandler.handlePayment(
+                    PaymentType.SINGLE_PAYMENT,
+                    PaymentUIUtils.PaymentData(
+                        amount = (paymentValue * 100).toInt(),
+                        commission = 0,
+                        method = when (paymentType) {
+                            "credit_card" -> SystemPaymentMethod.CREDIT
+                            "debit_card" -> SystemPaymentMethod.DEBIT
+                            "pix" -> SystemPaymentMethod.PIX
+                            else -> SystemPaymentMethod.CREDIT
+                        },
+                        isTransactionless = true
+                    )
+                )
+
+                requireActivity().setResult(AppCompatActivity.RESULT_OK)
+                requireActivity().finish()
             } catch (e: Exception) {
-                Log.e("CardPaymentFragment", "Erro ao processar pagamento finalizado: ${e.message}")
                 updateUIForError("Erro ao finalizar pagamento")
             }
         }

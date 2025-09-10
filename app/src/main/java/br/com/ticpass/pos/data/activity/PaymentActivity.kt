@@ -38,7 +38,7 @@ class PaymentActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = PaymentSheetBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_payment)
 
         // Obter os valores passados
         val paymentType = intent.getStringExtra("payment_type")
