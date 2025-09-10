@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -110,11 +111,11 @@ class PixPaymentFragment : Fragment() {
             is PaymentState.Success -> {
                 pixTimer?.cancel()
                 statusTextView.text = "Pagamento Aprovado!"
-                infoTextView.text = "Pagamento via PIX confirmado com sucesso"
+                infoTextView.text = "Pagamento via PIX confirmado"
                 timerTextView.text = "Concluído"
-                if (isMultiPayment) {
-                    navigateBackToSelection()
-                }
+
+                requireActivity().setResult(AppCompatActivity.RESULT_OK)
+                requireActivity().finish()
             }
             is PaymentState.Error -> {
                 pixTimer?.cancel()
@@ -123,7 +124,6 @@ class PixPaymentFragment : Fragment() {
                 timerTextView.text = "Erro"
             }
             else -> {
-                // Handle other states if needed
             }
         }
     }
@@ -147,8 +147,8 @@ class PixPaymentFragment : Fragment() {
         view?.findViewById<TextView>(R.id.payment_form)?.text = "PIX"
         statusTextView.text = "Aguardando pagamento via PIX"
         infoTextView.text = "Aponte a câmera do seu app bancário para o QR Code"
-        priceTextView.text = formatCurrency(paymentValue)
         timerTextView.text = "03:00"
+        priceTextView.text = formatCurrency(paymentValue)
 
         // Mostrar progresso se for pagamento múltiplo
         if (isMultiPayment && progress.isNotEmpty()) {
@@ -270,13 +270,10 @@ class PixPaymentFragment : Fragment() {
     }
 
     private fun enqueuePayment() {
-        val cart = shoppingCartManager.getCart()
-        val amount = cart.totalPrice
-        val commission = 0
-
+        val amount = (paymentValue * 100).toInt()
         paymentViewModel.enqueuePayment(
-            amount = amount.toInt(),
-            commission = commission,
+            amount = amount,
+            commission = 0,
             method = SystemPaymentMethod.PIX,
             isTransactionless = false
         )

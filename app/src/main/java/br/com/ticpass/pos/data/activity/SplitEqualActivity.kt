@@ -57,14 +57,13 @@ class SplitEqualActivity : AppCompatActivity() {
             startNextPayment()
         }
     }
-
     private fun startNextPayment() {
         if (currentIndex < paymentsQueue.size) {
             val intent = Intent(this, PaymentSelectionActivity::class.java).apply {
                 putExtra("value_to_pay", paymentsQueue[currentIndex])
-                putExtra("total_value", totalPrice) // Adicione o valor total
-                putExtra("remaining_value", paymentsQueue[currentIndex]) // Valor atual a pagar
-                putExtra("is_multi_payment", true) // Indica que é pagamento múltiplo
+                putExtra("total_value", totalPrice)
+                putExtra("remaining_value", paymentsQueue[currentIndex])
+                putExtra("is_multi_payment", true)
                 putExtra("progress", "${currentIndex + 1}/${paymentsQueue.size}")
             }
             startActivityForResult(intent, REQUEST_PAYMENT)
@@ -73,7 +72,6 @@ class SplitEqualActivity : AppCompatActivity() {
             finish()
         }
     }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_PAYMENT && resultCode == RESULT_OK) {

@@ -53,9 +53,9 @@ class PaymentSelectionActivity : BaseActivity() {
 
         val intent = Intent(this, PaymentActivity::class.java).apply {
             putExtra("payment_type", paymentType)
-            putExtra("value_to_pay", value) // Valor dividido
-            putExtra("total_value", totalValue) // Valor total original
-            putExtra("remaining_value", value) // Valor restante (neste caso, é o valor dividido)
+            putExtra("value_to_pay", value)
+            putExtra("total_value", totalValue)
+            putExtra("remaining_value", value)
             putExtra("is_multi_payment", isMultiPayment)
             putExtra("progress", progress)
         }

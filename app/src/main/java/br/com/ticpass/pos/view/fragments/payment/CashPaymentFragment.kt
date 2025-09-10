@@ -123,7 +123,7 @@ class CashPaymentFragment : Fragment() {
         changeAmountTextView = view.findViewById(R.id.changeAmountTextView)
         timeoutCountdownView = view.findViewById(R.id.timeoutCountdownView)
         totalAmount = paymentValue
-        priceTextView.text = PaymentFragmentUtils.formatCurrency(totalAmount)
+        priceTextView.text = PaymentFragmentUtils.formatCurrency(paymentValue)
 
         if (isMultiPayment && progress.isNotEmpty()) {
             val progressTextView = view.findViewById<TextView>(R.id.tv_progress)
@@ -354,44 +354,37 @@ class CashPaymentFragment : Fragment() {
             try {
                 val method = SystemPaymentMethod.CASH
 
-                val paymentData = PaymentUIUtils.PaymentData(
-                    amount = (paymentValue * 100).toInt(), // Converter para centavos
-                    commission = 0,
-                    method = method,
-                    isTransactionless = true
+                finishPaymentHandler.handlePayment(
+                    PaymentType.SINGLE_PAYMENT,
+                    PaymentUIUtils.PaymentData(
+                        amount = (paymentValue * 100).toInt(),
+                        commission = 0,
+                        method = method,
+                        isTransactionless = true
+                    )
                 )
 
-                finishPaymentHandler.handlePayment(PaymentType.SINGLE_PAYMENT, paymentData)
-
-                // Navegar para próximo pagamento ou finalizar
                 if (isMultiPayment) {
                     navigateBackToSelection()
                 } else {
-                    updateUIForSuccess()
+                    requireActivity().setResult(AppCompatActivity.RESULT_OK)
+                    requireActivity().finish()
                 }
 
             } catch (e: Exception) {
-                Log.e("CashPaymentFragment", "Erro ao processar pagamento finalizado: ${e.message}")
                 updateUIForError("Erro ao finalizar pagamento")
             }
         }
     }
-
     private fun navigateBackToSelection() {
         val newRemainingValue = remainingValue - paymentValue
 
         if (newRemainingValue > 0) {
-            val intent = Intent(requireContext(), PaymentSelectionActivity::class.java).apply {
-                putExtra("total_value", totalValue)
-                putExtra("remaining_value", newRemainingValue)
-                putExtra("is_multi_payment", true)
-                putExtra("progress", getNextProgress(progress))
-            }
-            startActivity(intent)
             requireActivity().setResult(AppCompatActivity.RESULT_OK)
             requireActivity().finish()
         } else {
             shoppingCartManager.clearCart()
+            requireActivity().setResult(AppCompatActivity.RESULT_OK)
             requireActivity().finish()
         }
     }

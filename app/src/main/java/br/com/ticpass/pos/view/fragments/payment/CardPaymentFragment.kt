@@ -125,10 +125,10 @@ class CardPaymentFragment : Fragment() {
         retryButton = view.findViewById(R.id.btn_retry)
         priceTextView.text = PaymentFragmentUtils.formatCurrency(paymentValue)
 
-        if (isMultiPayment && progress.isNotEmpty()) {
+        if (isMultiPayment) {
             val progressTextView = view.findViewById<TextView>(R.id.tv_progress)
             progressTextView?.visibility = View.VISIBLE
-            progressTextView?.text = "Pagamento $progress"
+            progressTextView?.text = "Pagamento ${progress}"
         }
 
         // Usar o valor específico deste pagamento, não o total do carrinho
@@ -216,25 +216,6 @@ class CardPaymentFragment : Fragment() {
         }
     }
 
-    private fun navigateBackToSelection() {
-        val newRemainingValue = remainingValue - paymentValue
-        if (newRemainingValue > 0) {
-            // Ainda há valor a ser pago, voltar para seleção
-            val intent = Intent(requireContext(), PaymentSelectionActivity::class.java).apply {
-                putExtra("total_value", totalValue)
-                putExtra("remaining_value", newRemainingValue)
-                putExtra("is_multi_payment", true)
-                putExtra("progress", getNextProgress(progress))
-            }
-            startActivity(intent)
-            requireActivity().finish()
-        } else {
-            // Todos os pagamentos foram concluídos
-            shoppingCartManager.clearCart()
-            requireActivity().finish()
-        }
-    }
-
 
     private fun getNextProgress(currentProgress: String): String {
         return try {
@@ -300,33 +281,22 @@ class CardPaymentFragment : Fragment() {
                     else -> SystemPaymentMethod.CREDIT
                 }
 
-                val paymentData = PaymentUIUtils.PaymentData(
-                    amount = (paymentValue * 100).toInt(), // Converter para centavos
-                    commission = 0,
-                    method = method,
-                    isTransactionless = true
-                )
-
                 finishPaymentHandler.handlePayment(
                     PaymentType.SINGLE_PAYMENT,
                     PaymentUIUtils.PaymentData(
                         amount = (paymentValue * 100).toInt(),
                         commission = 0,
-                        method = when (paymentType) {
-                            "credit_card" -> SystemPaymentMethod.CREDIT
-                            "debit_card" -> SystemPaymentMethod.DEBIT
-                            "pix" -> SystemPaymentMethod.PIX
-                            else -> SystemPaymentMethod.CREDIT
-                        },
+                        method = method,
                         isTransactionless = true
                     )
                 )
 
+                // ✅ devolve para SplitEqualActivity
                 requireActivity().setResult(AppCompatActivity.RESULT_OK)
                 requireActivity().finish()
+
             } catch (e: Exception) {
                 updateUIForError("Erro ao finalizar pagamento")
             }
         }
-    }
-}
+    }}
