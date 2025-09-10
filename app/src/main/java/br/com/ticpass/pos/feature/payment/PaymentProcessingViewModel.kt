@@ -4,6 +4,7 @@ import android.os.Handler
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.ticpass.pos.data.acquirers.workers.jobs.CleanTransactions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import br.com.ticpass.pos.queue.error.ErrorHandlingAction
@@ -52,12 +53,17 @@ sealed class PaymentEvent {
 class PaymentProcessingViewModel @Inject constructor(
     private val paymentQueueFactory: PaymentProcessingQueueFactory,
     private val processingPaymentStorage: PaymentProcessingStorage,
-    private val reducer: PaymentProcessingReducer
+    private val reducer: PaymentProcessingReducer,
+    private val paymentStorage: PaymentProcessingStorage
+
 ) : ViewModel() {
     inner class ProcessorEventReceived(val event: PaymentProcessingEvent) : PaymentProcessingAction()
     private val paymentTimeoutHandler = Handler()
 
     private var eventsJob: Job? = null
+
+    private val cleanTransactions = CleanTransactions(paymentStorage)
+
 
     private val PAYMENT_TIMEOUT_MS = 30000L
     private val paymentTimeoutRunnable = Runnable {
@@ -178,6 +184,7 @@ class PaymentProcessingViewModel @Inject constructor(
         // Dispatch para o reducer
         dispatch(ProcessorEventReceived(event))
     }
+
 
 
     val queueState get() = if (::paymentQueue.isInitialized) paymentQueue.queueState else MutableStateFlow(null)
@@ -561,5 +568,13 @@ class PaymentProcessingViewModel @Inject constructor(
     fun notifyPaymentSuccess() {
         clearTimeout()
         _paymentState.value = PaymentState.Success(null)
+    }
+
+    fun checkAndCleanTransactions() {
+        cleanTransactions.execute()
+    }
+
+    suspend fun forceClean() {
+        cleanTransactions.forceCleanCompletedTransactions()
     }
 }

@@ -272,6 +272,7 @@ dependencies {
     implementation("com.google.zxing:core:3.5.0")
     implementation(libs.zxing.core)
     implementation(libs.zxing)
+    implementation("com.jakewharton.timber:timber:5.0.1")
 
     // Google's Goodies
     implementation(libs.google.android.material)

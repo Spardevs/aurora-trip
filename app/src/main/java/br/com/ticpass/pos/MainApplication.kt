@@ -8,6 +8,7 @@ import br.com.ticpass.pos.sdk.payment.PaymentProvider
 import br.com.ticpass.pos.util.ConnectivityMonitor
 import br.com.ticpass.pos.util.ConnectionStatusBar
 import dagger.hilt.android.HiltAndroidApp
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -28,6 +29,10 @@ class MainApplication : Application(), Configuration.Provider {
         super.onCreate()
         instance = this
         PaymentProvider.initialize(this)
+
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
+        }
 
         connectionStatusBar = ConnectionStatusBar(applicationContext)
         connectivityMonitor = ConnectivityMonitor(applicationContext, Handler(mainLooper)).apply {
