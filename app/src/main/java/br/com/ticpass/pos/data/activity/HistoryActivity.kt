@@ -7,13 +7,16 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager // Mude para LinearLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.model.History
+import br.com.ticpass.pos.data.room.AppDatabase
+import br.com.ticpass.pos.data.room.repository.HistoryRepository
 import br.com.ticpass.pos.view.ui.history.adapter.HistoryAdapter
 import br.com.ticpass.pos.view.ui.history.adapter.ProductModalAdapter
 import br.com.ticpass.pos.viewmodel.history.HistoryViewModel
+import br.com.ticpass.pos.viewmodel.history.HistoryViewModelFactory
 
 class HistoryActivity : AppCompatActivity() {
 
@@ -24,31 +27,47 @@ class HistoryActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_history)
 
-        viewModel = ViewModelProvider(this)[HistoryViewModel::class.java]
+        setupViewModel()
         setupRecyclerView()
         loadHistory()
     }
 
+    private fun setupViewModel() {
+        val database = AppDatabase.getInstance(this) // Assumindo que você tem essa instância
+        val repository = HistoryRepository(database.orderDao())
+        val factory = HistoryViewModelFactory(repository)
+        viewModel = ViewModelProvider(this, factory)[HistoryViewModel::class.java]
+    }
+
     private fun setupRecyclerView() {
         val recyclerView: RecyclerView = findViewById(R.id.rvHistory)
-
-        // MANTENHA LinearLayoutManager para a lista principal (1 coluna)
         val linearLayoutManager = LinearLayoutManager(this)
         recyclerView.layoutManager = linearLayoutManager
 
         adapter = HistoryAdapter(emptyList()) { history ->
             showHistoryActionsModal(history)
         }
-
         recyclerView.adapter = adapter
     }
 
     private fun loadHistory() {
-        val historyList = viewModel.getHistory()
-        adapter = HistoryAdapter(historyList) { history ->
-            showHistoryActionsModal(history)
+        // Observa as mudanças no histórico
+        viewModel.histories.observe(this) { historyList ->
+            adapter = HistoryAdapter(historyList) { history ->
+                showHistoryActionsModal(history)
+            }
+            findViewById<RecyclerView>(R.id.rvHistory).adapter = adapter
         }
-        findViewById<RecyclerView>(R.id.rvHistory).adapter = adapter
+
+        // Observa o estado de loading (opcional)
+        viewModel.isLoading.observe(this) { isLoading ->
+            // Aqui você pode mostrar/esconder um loading
+            // findViewById<ProgressBar>(R.id.progressBar).visibility =
+            //     if (isLoading) View.VISIBLE else View.GONE
+        }
+
+        // Carrega os dados
+        viewModel.loadHistories()
     }
 
     private fun showHistoryActionsModal(history: History) {
