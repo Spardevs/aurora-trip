@@ -18,14 +18,22 @@ class HistoryRepository(
             // Agrupa acquisitions por produto para contar quantidades
             val productQuantities = acquisitions.groupingBy { it.product }.eachCount()
 
+            val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+            isoFormat.timeZone = TimeZone.getTimeZone("UTC")
+
+
+
             History(
                 id = populated.order.id,
                 transactionId = payments.firstOrNull()?.acquirerTransactionKey ?: populated.order.id,
                 totalPrice = payments.sumOf { it.amount } / 100.0,
                 paymentPrice = payments.sumOf { it.amount } / 100.0,
                 commissionPrice = payments.sumOf { it.commission } / 100.0,
-                date = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-                    .parse(populated.order.createdAt) ?: Date(),
+                date = try {
+                    isoFormat.parse(populated.order.createdAt) ?: Date()
+                } catch (e: Exception) {
+                    Date()
+                },
                 paymentMethod = payments.firstOrNull()?.type ?: "Desconhecido",
                 description = "Venda concluída",
                 products = acquisitions.distinctBy { it.product }.map { acq ->

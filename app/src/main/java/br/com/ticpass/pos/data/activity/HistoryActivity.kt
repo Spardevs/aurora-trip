@@ -3,6 +3,7 @@ package br.com.ticpass.pos.data.activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.FrameLayout
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -18,14 +19,17 @@ import br.com.ticpass.pos.view.ui.history.adapter.ProductModalAdapter
 import br.com.ticpass.pos.viewmodel.history.HistoryViewModel
 import br.com.ticpass.pos.viewmodel.history.HistoryViewModelFactory
 
-class HistoryActivity : AppCompatActivity() {
-
+class HistoryActivity : DrawerBaseActivity() {
     private lateinit var viewModel: HistoryViewModel
     private lateinit var adapter: HistoryAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_history)
+
+        val contentFrame = findViewById<FrameLayout>(R.id.content_frame)
+        layoutInflater.inflate(R.layout.activity_history, contentFrame, true)
+
+        supportActionBar?.title = "Histórico"
 
         setupViewModel()
         setupRecyclerView()
@@ -111,5 +115,33 @@ class HistoryActivity : AppCompatActivity() {
         }
 
         dialog.show()
+    }
+
+    override fun openProducts() {
+        startActivity(Intent(this, ProductsActivity::class.java))
+    }
+
+    override fun openHistory() {
+        // já estamos na tela de histórico
+    }
+
+    override fun openPasses() {
+        startActivity(Intent(this, PassesActivity::class.java))
+    }
+
+    override fun openReport() {
+        startActivity(Intent(this, ReportActivity::class.java))
+    }
+
+    override fun openWithdrawal() {
+        startActivity(Intent(this, WithdrawalActivity::class.java))
+    }
+
+    override fun openSupport() {
+        startActivity(Intent(this, SupportActivity::class.java))
+    }
+
+    override fun openSettings() {
+        startActivity(Intent(this, SettingsActivity::class.java))
     }
 }

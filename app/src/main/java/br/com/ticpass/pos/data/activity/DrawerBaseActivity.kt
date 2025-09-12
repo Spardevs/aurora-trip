@@ -124,7 +124,7 @@ abstract class DrawerBaseActivity : BaseActivity() {
         categoryRepository = CategoryRepository(db.categoryDao())
 
         navView      = findViewById(R.id.nav_view)
-        val toolbar  = findViewById< MaterialToolbar>(R.id.toolbar)
+        val toolbar  = findViewById<MaterialToolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
