@@ -23,7 +23,8 @@ class HistoryViewModel(
         viewModelScope.launch {
             val list = repository.getHistories()
             Log.d("HistoryViewModel", "Histories carregados: ${list.size}")
-            _histories.postValue(list)
+            val sortedList = list.sortedByDescending { it.date }
+            _histories.postValue(sortedList)
         }
     }
 }
