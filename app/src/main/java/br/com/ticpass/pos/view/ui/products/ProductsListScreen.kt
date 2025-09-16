@@ -8,6 +8,7 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.GridLayout
@@ -15,6 +16,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -79,10 +81,9 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         super.onViewCreated(view, savedInstanceState)
 
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout)
-        tabLayout = view.findViewById(R.id.tabCategories)
         viewPager = view.findViewById(R.id.viewPager)
-
-        paymentSheet = view.findViewById(R.id.paymentSheet)
+        tabLayout = view.findViewById(R.id.tabLayout)
+        paymentSheet = view.findViewById(R.id.paymentSheetProducts)
 
 
         setupSwipeRefresh()
@@ -127,7 +128,10 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
                 viewPager.adapter = pagerAdapter
 
                 TabLayoutMediator(tabLayout, viewPager) { tab, position ->
-                    tab.text = categories[position]
+                    val customView = LayoutInflater.from(requireContext())
+                        .inflate(R.layout.item_tab, null) as TextView
+                    customView.text = categories[position]
+                    tab.customView = customView
                 }.attach()
 
                 swipeRefreshLayout.isRefreshing = false
@@ -141,6 +145,7 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         productsViewModel.loadCategoriesWithProducts()
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun setupSwipeRefresh() {
         swipeRefreshLayout.setColorSchemeResources(
             R.color.design_default_color_primary,
@@ -148,8 +153,29 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
             R.color.design_default_color_primary_variant
         )
 
+        swipeRefreshLayout.setOnRefreshListener(null)
+
+        var pressStartTime: Long = 0
+        val holdTime = 2000L // 2 segundos
+
+        swipeRefreshLayout.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    pressStartTime = System.currentTimeMillis()
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    val elapsed = System.currentTimeMillis() - pressStartTime
+                    if (elapsed >= holdTime && swipeRefreshLayout.isRefreshing) {
+                        refreshData()
+                    }
+                    swipeRefreshLayout.isRefreshing = false
+                }
+            }
+            false
+        }
+
         swipeRefreshLayout.setOnRefreshListener {
-            refreshData()
+            // não faz nada, pois controlamos no OnTouch
         }
 
         swipeRefreshLayout.setDistanceToTriggerSync(120)
