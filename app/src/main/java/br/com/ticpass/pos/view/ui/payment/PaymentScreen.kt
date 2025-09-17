@@ -34,7 +34,6 @@ class PaymentScreen : BaseActivity() {
 
         setContentView(R.layout.activity_payment)
 
-        // Wait for the view to be properly laid out before adding fragment
         findViewById<android.view.View>(R.id.payment_container).post {
             loadFragment(paymentType)
         }

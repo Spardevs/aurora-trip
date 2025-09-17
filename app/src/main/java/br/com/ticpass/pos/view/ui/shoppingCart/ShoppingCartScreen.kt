@@ -231,22 +231,6 @@ class ShoppingCartScreen : BaseActivity() {
         if (hasItems) {
             updatePaymentInfo(cart)
 
-            paymentSheet.findViewById<ImageView>(R.id.btnClearAll)?.let { btnClear ->
-                btnClear.setOnClickListener {
-                    AlertDialog.Builder(this)
-                        .setTitle("Limpar carrinho")
-                        .setMessage("Deseja remover todos os itens do carrinho?")
-                        .setPositiveButton("Sim") { dialog, _ ->
-                            shoppingCartManager.clearCart()
-                            dialog.dismiss()
-                        }
-                        .setNegativeButton("Cancelar") { dialog, _ ->
-                            dialog.dismiss()
-                        }
-                        .show()
-                }
-            }
-
             paymentSheet.findViewById<ImageView>(R.id.btnOptions)?.let { btnOptions ->
                 btnOptions.setOnClickListener {
                     showSplitBillDialog()
@@ -256,12 +240,6 @@ class ShoppingCartScreen : BaseActivity() {
     }
 
     private fun updatePaymentInfo(cart: ShoppingCartManager.ShoppingCart) {
-        paymentSheet.findViewById<TextView>(R.id.tv_items_count)?.text =
-            resources.getQuantityString(
-                R.plurals.items_count,
-                cart.items.values.sum(),
-                cart.items.values.sum()
-            )
 
         paymentSheet.findViewById<TextView>(R.id.tv_total_price)?.text =
             formatCurrency(cart.totalPrice.toDouble())

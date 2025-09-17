@@ -2,82 +2,104 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="?attr/colorOnPrimaryFixedVariant"
-    android:padding="16dp">
+    android:orientation="vertical">
 
+    <!-- Header do pagamento -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:layout_height="60dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:weightSum="1">
 
-        <TextView
-            android:id="@+id/tv_total_price"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="R$ 0,00"
-            android:textColor="@android:color/white"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <View
-            android:layout_width="1dp"
-            android:layout_height="20dp"
-            android:layout_marginHorizontal="4dp"
-            android:background="@android:color/white" />
-
-        <TextView
-            android:id="@+id/tv_items_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0 itens"
-            android:textColor="@android:color/white"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-
+        <!-- BG arredondado com valor -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/payment_header_container"
+            android:layout_width="0dp"
+            android:layout_weight="0.50"
             android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:background="@drawable/bg_linear_rounded"
+            android:backgroundTint="@color/colorGreen">
+
+            <TextView
+                android:id="@+id/tv_total_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="R$ 0,00"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_marginStart="10dp"
+            android:id="@+id/cart_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:background="@drawable/bg_linear_rounded"
+            android:backgroundTint="@color/colorAccent"
+            android:gravity="center">
+            <ImageView
+                android:id="@+id/iv_cart"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_cart"
+                app:tint="@android:color/white"
+                android:importantForAccessibility="no"/>
+
+        </LinearLayout>
+        <!-- Container do carrinho -->
+    </LinearLayout>
+
+    <!-- Formas de pagamento -->
+    <LinearLayout
+        android:id="@+id/payment_forms_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@drawable/bg_linear_rounded"
+        android:backgroundTint="@color/colorGreen"
+        android:padding="12dp"
+        android:layout_marginHorizontal="10dp"
+        android:layout_marginTop="5dp"
+        android:visibility="visible">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btnOptions"
             android:layout_gravity="end"
-            android:gravity="end"
-            android:orientation="horizontal">
+            android:gravity="center_vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dividir"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginEnd="10dp"
+                />
 
             <ImageButton
-                android:id="@+id/btnClearAll"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_delete"
-                app:tint="?attr/colorError" />
-
-            <ImageButton
-                android:id="@+id/btnOptions"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_marginStart="12dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_percet_symbol"
                 app:tint="@android:color/white" />
         </LinearLayout>
+
+        <GridLayout
+            android:id="@+id/payment_methods_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:columnCount="3"
+            android:orientation="horizontal" />
     </LinearLayout>
-
-    <FrameLayout
-        android:id="@+id/payment_container"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="12dp" />
-
-    <GridLayout
-        android:id="@+id/payment_methods_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:columnCount="3"
-        android:orientation="horizontal"
-        android:padding="8dp" />
 
 </LinearLayout>

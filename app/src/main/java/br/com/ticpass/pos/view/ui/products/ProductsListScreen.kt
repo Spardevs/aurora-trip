@@ -14,6 +14,7 @@ import android.view.ViewGroup
 import android.widget.GridLayout
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -88,6 +89,13 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
 
         setupSwipeRefresh()
         setupTabLayout()
+
+        val header = paymentSheet.findViewById<View>(R.id.payment_header_container)
+        val forms = paymentSheet.findViewById<View>(R.id.payment_forms_container)
+
+        header.setOnClickListener {
+            forms.visibility = if (forms.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+        }
 
         cartUpdatesObserver = Observer {
             updatePaymentVisibility()
@@ -231,32 +239,16 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
             paymentSheet.visibility = View.VISIBLE
             updatePaymentInfo(cart)
 
-            paymentSheet.findViewById<ImageButton>(R.id.btnOptions)?.setOnClickListener {
+            paymentSheet.findViewById<LinearLayout>(R.id.btnOptions)?.setOnClickListener {
                 showSplitBillDialog()
             }
 
-            paymentSheet.findViewById<ImageButton>(R.id.btnClearAll)?.setOnClickListener {
-                AlertDialog.Builder(requireContext())
-                    .setTitle("Limpar carrinho")
-                    .setMessage("Deseja remover todos os itens do carrinho?")
-                    .setPositiveButton("Sim") { dialog, _ ->
-                        shoppingCartManager.clearCart()
-                        Toast.makeText(requireContext(), "Carrinho limpo", Toast.LENGTH_SHORT).show()
-                        dialog.dismiss()
-                    }
-                    .setNegativeButton("Cancelar") { dialog, _ ->
-                        dialog.dismiss()
-                    }
-                    .show()
-            }
         } else {
             paymentSheet.visibility = View.GONE
         }
     }
 
     private fun updatePaymentInfo(cart: ShoppingCartManager.ShoppingCart) {
-        paymentSheet.findViewById<TextView>(R.id.tv_items_count)?.text =
-            "${cart.items.values.sum()} itens"
 
         paymentSheet.findViewById<TextView>(R.id.tv_total_price)?.text =
             formatCurrency(cart.totalPrice.toDouble())

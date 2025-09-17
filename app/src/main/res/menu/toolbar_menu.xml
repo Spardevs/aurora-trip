@@ -12,6 +12,7 @@
         app:showAsAction="ifRoom"
         app:actionLayout="@layout/cart_badge"
         tools:targetApi="26"
+        android:visible="true"
     />
 
 </menu>
