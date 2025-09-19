@@ -57,6 +57,18 @@ class ShoppingCartManager @Inject constructor(
         }
     }
 
+    fun deleteItem(productId: String) {
+        val items = currentCart.items.toMutableMap()
+        items.remove(productId)
+        val observations = currentCart.observations.toMutableMap()
+        observations.remove(productId)
+
+        val totalPrice = calculateTotalPrice(items)
+        currentCart = ShoppingCart(items, totalPrice, observations)
+        saveCart(currentCart)
+        _cartUpdates.postValue(Unit)
+    }
+
     fun getObservation(productId: String): String? = currentCart.observations[productId]
 
     fun updateObservation(productId: String, observation: String) {

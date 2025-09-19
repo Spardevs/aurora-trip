@@ -9,33 +9,58 @@
     android:clipToPadding="false"
     android:clipChildren="false">
 
+    <!-- Conteúdo principal da tela -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <!-- Barra superior -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/colorAccent"
             android:orientation="horizontal"
             android:paddingHorizontal="16dp">
 
-            <com.google.android.material.button.MaterialButton
+            <ImageButton
                 android:id="@+id/btnBack"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="50dp"
-                android:layout_height="60dp"
-                app:icon="@drawable/ic_cancel" />
+                android:layout_height="50dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_arrow_left"
+                app:tint="@color/material_dynamic_neutral_variant95" />
 
             <View
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_weight="1" />
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="Carrinho"
+                android:textColor="#E3E3F4"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <ImageButton
+                android:id="@+id/btnOptionCart"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_options_vertical"
+                app:tint="@color/material_dynamic_neutral_variant95" />
 
         </LinearLayout>
 
-        <!-- lista de itens -->
+        <!-- Lista de itens -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerCart"
             android:layout_width="match_parent"
@@ -45,7 +70,7 @@
             android:paddingBottom="100dp"
             tools:listitem="@layout/item_cart" />
 
-        <!-- mensagem de carrinho vazio -->
+        <!-- Mensagem quando estiver vazio -->
         <TextView
             android:id="@+id/tvEmptyCart"
             android:layout_width="match_parent"
@@ -58,13 +83,13 @@
             android:textSize="16sp"
             android:visibility="gone" />
 
-        <include
-            android:id="@+id/paymentSheet"
-            layout="@layout/payment_sheet"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"/>
     </LinearLayout>
 
+    <include
+        android:id="@+id/paymentSheet"
+        layout="@layout/payment_sheet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"/>
 
 </FrameLayout>

@@ -35,6 +35,16 @@ class ShoppingCartActivity : BaseActivity() {
             },
             onObservationClick = { cartItem ->
                 showObservationDialog(cartItem)
+            },
+            onMinusClick = { cartItem ->
+                if (cartItem.quantity == 1) {
+                    shoppingCartManager.updateItem(cartItem.product.id, 0)
+                } else {
+                    shoppingCartManager.updateItem(cartItem.product.id, cartItem.quantity - 1)
+                }
+            },
+            onMinusLongClick = { cartItem ->
+                shoppingCartManager.deleteItem(cartItem.product.id)
             }
         )
 

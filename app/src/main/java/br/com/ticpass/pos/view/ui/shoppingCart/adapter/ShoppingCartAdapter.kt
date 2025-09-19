@@ -15,7 +15,9 @@ import java.util.Locale
 
 class ShoppingCartAdapter(
     private val onQuantityChange: (CartItem, Int) -> Unit,
-    private val onObservationClick: (CartItem) -> Unit
+    private val onObservationClick: (CartItem) -> Unit,
+    private val onMinusClick: (CartItem) -> Unit,
+    private val onMinusLongClick: ((CartItem) -> Unit)? = null
 ) : RecyclerView.Adapter<ShoppingCartAdapter.ViewHolder>() {
 
     private val items = mutableListOf<CartItem>()
@@ -34,11 +36,10 @@ class ShoppingCartAdapter(
         private val quantity    = view.findViewById<TextView>(R.id.tvQuantity)
         private val btnIncrease = view.findViewById<ImageView>(R.id.btnIncrease)
         private val btnDecrease = view.findViewById<ImageView>(R.id.btnDecrease)
-        private val btnDelete   = view.findViewById<ImageView>(R.id.btnDelete)
         private val btnObs = view.findViewById<ImageView>(R.id.btnObs)
         private val obsDescription = view.findViewById<TextView>(R.id.obsDescription)
 
-        fun bind(item: CartItem, onUpdate: (CartItem, Int) -> Unit) {
+        fun bind(item: CartItem) {
             name.text     = item.product.name
             price.text    = formatCurrency(item.product.price)
             quantity.text = item.quantity.toString()
@@ -49,12 +50,12 @@ class ShoppingCartAdapter(
                 .load(item.product.thumbnail)
                 .into(img)
 
-            btnIncrease.setOnClickListener { onUpdate(item, item.quantity + 1) }
-            btnDecrease.setOnClickListener {
-                if (item.quantity > 1) onUpdate(item, item.quantity - 1)
+            btnIncrease.setOnClickListener { onQuantityChange(item, item.quantity + 1) }
+            btnDecrease.setOnClickListener { onMinusClick(item) }
+            btnDecrease.setOnLongClickListener {
+                onMinusLongClick?.invoke(item)
+                true
             }
-            btnDelete.setOnClickListener { onUpdate(item, 0) }
-
             val observation = item.observation
             if (!observation.isNullOrEmpty()) {
                 obsDescription.text = observation
@@ -76,7 +77,7 @@ class ShoppingCartAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(items[position], onQuantityChange)
+        holder.bind(items[position])
     }
 
     override fun getItemCount(): Int = items.size

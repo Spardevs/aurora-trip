@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/tools"
-    android:layout_margin="8dp"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="1dp"
     card_view:cardCornerRadius="16dp"
     card_view:cardElevation="8dp"
     android:background="@android:color/transparent"
@@ -18,7 +19,7 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:padding="12dp"
-        android:background="#DDE9F8">
+        android:background="@color/cardview_light_background">
 
         <ImageView
             android:id="@+id/imgThumbnail"
@@ -34,91 +35,80 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tvName"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Nome do Produto"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tvPrice"
+                <TextView
+                    android:id="@+id/tvName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Nome do Produto"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvPrice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Preço"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Preço"
-                android:textSize="14sp" />
-        </LinearLayout>
+                android:orientation="horizontal">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+                <ImageButton
+                    android:id="@+id/btnObs"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="end"
+                    android:background="@drawable/ic_chat_message"
+                    android:backgroundTint="@color/colorAccent"
+                    android:padding="4dp"
+                    app:tint="?attr/colorAccent" />
 
-            <ImageView
-                android:id="@+id/btnObs"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_gravity="end"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="4dp"
-                android:src="@drawable/messages"
-                app:tint="?attr/colorPrimary" />
-
-            <TextView
-                android:id="@+id/obsDescription"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:textColor="@color/colorOrange"
-                android:visibility="gone"
-                android:textSize="11sp" />
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/obsDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:textColor="@color/colorAccent"
+                    android:visibility="gone"
+                    android:textSize="11sp" />
+            </LinearLayout>
 
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:gravity="center"
             android:layout_marginStart="8dp">
-
-
-            <ImageView
-                android:id="@+id/btnDelete"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_gravity="end"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Excluir"
-                android:padding="4dp"
-                android:src="@drawable/ic_delete"
-                card_view:tint="@color/colorRed" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:orientation="vertical"
                 >
 
-                <ImageView
-                    android:id="@+id/btnDecrease"
+                <ImageButton
+                    android:id="@+id/btnIncrease"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Diminuir"
-                    android:padding="4dp"
-                    android:src="@drawable/ic_arrow_down" />
+                    android:layout_gravity="center"
+                    android:background="@drawable/ic_add_circle"
+                    android:backgroundTint="@color/colorGreen"
+                    />
+
 
                 <TextView
                     android:id="@+id/tvQuantity"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_marginHorizontal="8dp"
                     android:text="1"
@@ -127,14 +117,13 @@
                     android:gravity="center" />
 
 
-                <ImageView
-                    android:id="@+id/btnIncrease"
+                <ImageButton
+                    android:id="@+id/btnDecrease"
                     android:layout_width="32dp"
                     android:layout_height="32dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Aumentar"
-                    android:padding="4dp"
-                    android:src="@drawable/ic_arrow_up" />
+                    android:layout_gravity="center"
+                    android:backgroundTint="@color/colorRed"
+                    android:background="@drawable/ic_minus_circle" />
 
             </LinearLayout>
         </LinearLayout>

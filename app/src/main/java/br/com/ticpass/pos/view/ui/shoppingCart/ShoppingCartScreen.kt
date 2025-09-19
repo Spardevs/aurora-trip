@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
 import android.widget.GridLayout
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -47,7 +48,8 @@ class ShoppingCartScreen : BaseActivity() {
     private lateinit var adapter: ShoppingCartAdapter
     private lateinit var recyclerView: RecyclerView
     private lateinit var tvEmptyCart: TextView
-    private lateinit var btnBack: MaterialButton
+    private lateinit var btnBack: ImageButton
+    private lateinit var btnOptionCart: ImageButton
     private lateinit var paymentSheet: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,8 +60,33 @@ class ShoppingCartScreen : BaseActivity() {
         recyclerView = findViewById(R.id.recyclerCart)
         tvEmptyCart = findViewById(R.id.tvEmptyCart)
         btnBack = findViewById(R.id.btnBack)
+        btnOptionCart = findViewById(R.id.btnOptionCart)
 
         btnBack.setOnClickListener { onBackPressed() }
+
+        btnOptionCart.setOnClickListener { view ->
+            val popup = android.widget.PopupMenu(this, view)
+            popup.menuInflater.inflate(R.menu.menu_cart_options, popup.menu)
+
+            popup.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.action_clear_cart -> {
+                        showClearCartDialog()
+                        true
+                    }
+                    else -> false
+                }
+            }
+
+            popup.show()
+        }
+
+        // 🔥 Igual ao ProductsListScreen
+        val header = paymentSheet.findViewById<View>(R.id.payment_header_container)
+        val forms = paymentSheet.findViewById<View>(R.id.payment_forms_container)
+        header.setOnClickListener {
+            forms.visibility = if (forms.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+        }
 
         setupShoppingCart()
         setupPaymentMethods()
@@ -73,6 +100,16 @@ class ShoppingCartScreen : BaseActivity() {
             },
             onObservationClick = { item ->
                 showObservationDialog(item)
+            },
+            onMinusClick = { item ->
+                if (item.quantity == 1) {
+                    shoppingCartManager.updateItem(item.product.id, 0)
+                } else {
+                    shoppingCartManager.updateItem(item.product.id, item.quantity - 1)
+                }
+            },
+            onMinusLongClick = { item ->
+                shoppingCartManager.deleteItem(item.product.id)
             }
         )
 
@@ -231,10 +268,14 @@ class ShoppingCartScreen : BaseActivity() {
         if (hasItems) {
             updatePaymentInfo(cart)
 
-            paymentSheet.findViewById<ImageView>(R.id.btnOptions)?.let { btnOptions ->
-                btnOptions.setOnClickListener {
-                    showSplitBillDialog()
-                }
+            // btnOptions é um LinearLayout no XML
+            paymentSheet.findViewById<LinearLayout>(R.id.btnOptions)?.setOnClickListener {
+                showSplitBillDialog()
+            }
+
+            // Se também quiser abrir o carrinho pelo ícone/container
+            paymentSheet.findViewById<LinearLayout>(R.id.cart_container)?.setOnClickListener {
+                startActivity(Intent(this, ShoppingCartScreen::class.java))
             }
         }
     }
@@ -243,6 +284,21 @@ class ShoppingCartScreen : BaseActivity() {
 
         paymentSheet.findViewById<TextView>(R.id.tv_total_price)?.text =
             formatCurrency(cart.totalPrice.toDouble())
+    }
+
+    private fun showClearCartDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Limpar carrinho")
+            .setMessage("Deseja realmente limpar todo o carrinho?")
+            .setPositiveButton("Sim") { dialog, _ ->
+                shoppingCartManager.clearCart()
+                Toast.makeText(this, "Carrinho limpo", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancelar") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
     }
 
     private fun showObservationDialog(item: CartItem) {

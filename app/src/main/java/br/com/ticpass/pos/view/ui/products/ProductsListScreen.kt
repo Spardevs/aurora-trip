@@ -31,6 +31,7 @@ import br.com.ticpass.pos.data.api.Product
 import br.com.ticpass.pos.view.ui.payment.PaymentScreen
 import br.com.ticpass.pos.view.ui.products.adapter.CategoriesPagerAdapter
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
+import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartScreen
 import br.com.ticpass.pos.viewmodel.payment.PaymentMethod
 import br.com.ticpass.pos.viewmodel.products.ProductsViewModel
 import br.com.ticpass.pos.viewmodel.products.ProductsRefreshViewModel
@@ -235,18 +236,24 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         val cart = shoppingCartManager.getCart()
         val hasItems = cart.items.isNotEmpty()
 
+        paymentSheet.visibility = if (hasItems) View.VISIBLE else View.GONE
+
         if (hasItems) {
-            paymentSheet.visibility = View.VISIBLE
             updatePaymentInfo(cart)
 
+            // Correto: btnOptions é LinearLayout
             paymentSheet.findViewById<LinearLayout>(R.id.btnOptions)?.setOnClickListener {
                 showSplitBillDialog()
             }
 
-        } else {
-            paymentSheet.visibility = View.GONE
+            // Carrinho
+            paymentSheet.findViewById<LinearLayout>(R.id.cart_container)?.setOnClickListener {
+                val intent = Intent(requireContext(), ShoppingCartScreen::class.java)
+                startActivity(intent)
+            }
         }
     }
+
 
     private fun updatePaymentInfo(cart: ShoppingCartManager.ShoppingCart) {
 
