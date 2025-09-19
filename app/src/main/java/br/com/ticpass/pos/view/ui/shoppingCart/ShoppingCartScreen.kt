@@ -5,6 +5,7 @@ import android.graphics.Rect
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.Button
 import android.widget.EditText
 import android.widget.GridLayout
 import android.widget.ImageButton
@@ -13,24 +14,18 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.activity.BaseActivity
-import br.com.ticpass.pos.data.activity.PaymentActivity
 import br.com.ticpass.pos.data.activity.SplitEqualActivity
 import br.com.ticpass.pos.data.activity.SplitManualActivity
 import br.com.ticpass.pos.data.room.entity.CartItem
 import br.com.ticpass.pos.data.room.repository.ProductRepository
 import br.com.ticpass.pos.view.ui.payment.PaymentScreen
-import br.com.ticpass.pos.view.ui.payment.adapter.PaymentAdapter
-import br.com.ticpass.pos.view.ui.products.ProductsListScreen
 import br.com.ticpass.pos.view.ui.shoppingCart.adapter.ShoppingCartAdapter
 import br.com.ticpass.pos.viewmodel.payment.PaymentMethod
-import com.google.android.material.button.MaterialButton
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -81,7 +76,6 @@ class ShoppingCartScreen : BaseActivity() {
             popup.show()
         }
 
-        // 🔥 Igual ao ProductsListScreen
         val header = paymentSheet.findViewById<View>(R.id.payment_header_container)
         val forms = paymentSheet.findViewById<View>(R.id.payment_forms_container)
         header.setOnClickListener {
@@ -163,12 +157,14 @@ class ShoppingCartScreen : BaseActivity() {
         PaymentMethod("Dinheiro", R.drawable.cash, "cash"),
         PaymentMethod("Crédito", R.drawable.credit, "credit_card"),
         PaymentMethod("Débito", R.drawable.debit, "debit_card"),
-        PaymentMethod("VR", R.drawable.vr, "vr"),
-        PaymentMethod("Pix", R.drawable.pix,  "pix")
+        PaymentMethod("Pix", R.drawable.pix,  "pix"),
+        PaymentMethod("Debug", R.drawable.icon,  "debug")
+
     )
     private fun setupPaymentMethods() {
         val container = paymentSheet.findViewById<GridLayout>(R.id.payment_methods_container)
         container.removeAllViews()
+        val columnCount = 2 // número de colunas definido
 
         paymentMethods.forEachIndexed { index, method ->
             val itemView = LayoutInflater.from(this)
@@ -180,8 +176,8 @@ class ShoppingCartScreen : BaseActivity() {
             val params = GridLayout.LayoutParams().apply {
                 width = 0
                 height = GridLayout.LayoutParams.WRAP_CONTENT
-                columnSpec = GridLayout.spec(index % 3, 1f)
-                rowSpec = GridLayout.spec(index / 3)
+                columnSpec = GridLayout.spec(index % columnCount, 1f) // usa columnCount aqui
+                rowSpec = GridLayout.spec(index / columnCount)        // e aqui
                 setMargins(8, 8, 8, 8)
             }
 
@@ -218,7 +214,6 @@ class ShoppingCartScreen : BaseActivity() {
                 SPLIT_EQUAL_REQUEST -> {
                     val dividedValue = data?.getDoubleExtra("divided_value", 0.0) ?: 0.0
                     val peopleCount = data?.getIntExtra("people_count", 1) ?: 1
-                    // Implemente a lógica para lidar com a divisão
                     showDivisionResult(dividedValue, peopleCount)
                 }
                 SPLIT_MANUAL_REQUEST -> {
@@ -268,12 +263,10 @@ class ShoppingCartScreen : BaseActivity() {
         if (hasItems) {
             updatePaymentInfo(cart)
 
-            // btnOptions é um LinearLayout no XML
             paymentSheet.findViewById<LinearLayout>(R.id.btnOptions)?.setOnClickListener {
                 showSplitBillDialog()
             }
 
-            // Se também quiser abrir o carrinho pelo ícone/container
             paymentSheet.findViewById<LinearLayout>(R.id.cart_container)?.setOnClickListener {
                 startActivity(Intent(this, ShoppingCartScreen::class.java))
             }
@@ -287,18 +280,29 @@ class ShoppingCartScreen : BaseActivity() {
     }
 
     private fun showClearCartDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Limpar carrinho")
-            .setMessage("Deseja realmente limpar todo o carrinho?")
-            .setPositiveButton("Sim") { dialog, _ ->
-                shoppingCartManager.clearCart()
-                Toast.makeText(this, "Carrinho limpo", Toast.LENGTH_SHORT).show()
-                dialog.dismiss()
-            }
-            .setNegativeButton("Cancelar") { dialog, _ ->
-                dialog.dismiss()
-            }
-            .show()
+        val dialogView = layoutInflater.inflate(R.layout.dialog_clear_cart, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        val btnNo = dialogView.findViewById<Button>(R.id.btnNo)
+        val btnYes = dialogView.findViewById<Button>(R.id.btnYes)
+
+        btnNo.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        btnYes.setOnClickListener {
+            shoppingCartManager.clearCart()
+            Toast.makeText(this, "Carrinho limpo", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+        }
+
+        dialog.show()
+
+        // Para adicionar sombra e arredondar o fundo do diálogo
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.decorView?.elevation = 16f
     }
 
     private fun showObservationDialog(item: CartItem) {

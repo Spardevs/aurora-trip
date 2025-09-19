@@ -265,14 +265,13 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         PaymentMethod("Dinheiro", R.drawable.cash, "cash"),
         PaymentMethod("Crédito", R.drawable.credit, "credit_card"),
         PaymentMethod("Débito", R.drawable.debit, "debit_card"),
-        PaymentMethod("VR", R.drawable.vr, "vr"),
         PaymentMethod("Pix", R.drawable.pix,  "pix"),
         PaymentMethod("Debug", R.drawable.icon,  "debug")
     )
 
     private fun setupPaymentMethods() {
         val container = paymentSheet.findViewById<GridLayout>(R.id.payment_methods_container)
-        container.removeAllViews()
+        val columnCount = 2 // ou container.columnCount se já estiver definido no XML
 
         paymentMethods.forEachIndexed { index, method ->
             val itemView = LayoutInflater.from(requireContext())
@@ -284,8 +283,8 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
             val params = GridLayout.LayoutParams().apply {
                 width = 0
                 height = GridLayout.LayoutParams.WRAP_CONTENT
-                columnSpec = GridLayout.spec(index % 3, 1f)
-                rowSpec = GridLayout.spec(index / 3)
+                columnSpec = GridLayout.spec(index % columnCount, 1f)
+                rowSpec = GridLayout.spec(index / columnCount)
                 setMargins(8, 8, 8, 8)
             }
 

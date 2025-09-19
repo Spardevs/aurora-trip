@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:backgroundTint="#E7E8FD"
     android:orientation="vertical">
 
     <!-- Header do pagamento -->
@@ -19,13 +19,15 @@
         <LinearLayout
             android:id="@+id/payment_header_container"
             android:layout_width="0dp"
-            android:layout_weight="0.50"
             android:layout_height="wrap_content"
-            android:padding="12dp"
+            android:layout_weight="0.64"
+            android:background="@drawable/bg_linear_rounded"
+            android:backgroundTint="@color/colorGreen"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:background="@drawable/bg_linear_rounded"
-            android:backgroundTint="@color/colorGreen">
+            android:padding="12dp"
+            android:elevation="5dp"
+            >
 
             <TextView
                 android:id="@+id/tv_total_price"
@@ -36,22 +38,25 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
         </LinearLayout>
+
         <LinearLayout
-            android:layout_marginStart="10dp"
             android:id="@+id/cart_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="12dp"
+            android:layout_marginStart="10dp"
             android:background="@drawable/bg_linear_rounded"
-            android:backgroundTint="@color/colorAccent"
-            android:gravity="center">
+            android:backgroundTint="#E7E8FD"
+            android:gravity="center"
+            android:padding="12dp"
+            android:elevation="5dp">
+
             <ImageView
                 android:id="@+id/iv_cart"
                 android:layout_width="22dp"
                 android:layout_height="22dp"
+                android:importantForAccessibility="no"
                 android:src="@drawable/ic_cart"
-                app:tint="@android:color/white"
-                android:importantForAccessibility="no"/>
+                app:tint="@color/ic_launcher_background" />
 
         </LinearLayout>
         <!-- Container do carrinho -->
@@ -60,32 +65,34 @@
     <!-- Formas de pagamento -->
     <LinearLayout
         android:id="@+id/payment_forms_container"
-        android:layout_width="match_parent"
+        android:layout_width="250dp"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:background="@drawable/bg_linear_rounded"
-        android:backgroundTint="@color/colorGreen"
-        android:padding="12dp"
+        android:layout_gravity="center"
         android:layout_marginHorizontal="10dp"
         android:layout_marginTop="5dp"
+        android:background="@drawable/bg_drawer"
+        android:backgroundTint="@color/colorGreen"
+        android:orientation="vertical"
+        android:padding="12dp"
         android:visibility="gone">
+
         <LinearLayout
             android:id="@+id/btnOptions"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless">
+            android:focusable="true">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
                 android:text="Dividir"
                 android:textColor="@android:color/white"
                 android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginEnd="10dp"
-                />
+                android:textStyle="bold" />
 
             <ImageButton
                 android:layout_width="20dp"
@@ -100,7 +107,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
-            android:columnCount="3"
+            android:columnCount="2"
             android:orientation="horizontal" />
     </LinearLayout>
 
