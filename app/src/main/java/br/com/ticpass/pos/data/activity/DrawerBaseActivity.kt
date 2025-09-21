@@ -91,7 +91,6 @@ data class ShoppingCart(
 abstract class DrawerBaseActivity : BaseActivity() {
     protected lateinit var drawerLayout: DrawerLayout
     protected lateinit var navView: NavigationView
-
     private val qrScannerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result -> handleQrResult(result) }
@@ -124,7 +123,7 @@ abstract class DrawerBaseActivity : BaseActivity() {
         categoryRepository = CategoryRepository(db.categoryDao())
 
         navView      = findViewById(R.id.nav_view)
-        val toolbar  = findViewById<MaterialToolbar>(R.id.toolbar)
+        val toolbar  = findViewById<MaterialToolbar>(R.id.drawer_toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)

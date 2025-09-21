@@ -42,6 +42,7 @@ import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 import javax.inject.Inject
+import androidx.core.view.isVisible
 
 @AndroidEntryPoint
 class ProductsListScreen : Fragment(R.layout.fragment_products) {
@@ -95,7 +96,7 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         val forms = paymentSheet.findViewById<View>(R.id.payment_forms_container)
 
         header.setOnClickListener {
-            forms.visibility = if (forms.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+            forms.visibility = if (forms.isVisible) View.GONE else View.VISIBLE
         }
 
         cartUpdatesObserver = Observer {

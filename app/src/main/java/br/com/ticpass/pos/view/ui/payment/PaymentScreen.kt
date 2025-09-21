@@ -3,6 +3,8 @@ package br.com.ticpass.pos.view.ui.payment
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.LinearLayout
 import androidx.activity.viewModels
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.activity.BaseActivity
@@ -11,6 +13,8 @@ import br.com.ticpass.pos.payment.PaymentProcessingActivity
 import br.com.ticpass.pos.view.fragments.payment.CashPaymentFragment
 import br.com.ticpass.pos.view.fragments.payment.CardPaymentFragment
 import br.com.ticpass.pos.view.fragments.payment.PixPaymentFragment
+import br.com.ticpass.pos.view.ui.products.ProductsListScreen
+import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -34,7 +38,15 @@ class PaymentScreen : BaseActivity() {
 
         setContentView(R.layout.activity_payment)
 
-        findViewById<android.view.View>(R.id.payment_container).post {
+        // 👉 Aqui adicionamos o clique no container do carrinho
+        val cartContainer = findViewById<LinearLayout>(R.id.cart_container)
+        cartContainer.setOnClickListener {
+            val intent = Intent(this, ShoppingCartScreen::class.java)
+            startActivityForResult(intent, ProductsListScreen.REQUEST_CART_UPDATE)
+        }
+
+        // Continua o fluxo normal
+        findViewById<View>(R.id.payment_container).post {
             loadFragment(paymentType)
         }
     }

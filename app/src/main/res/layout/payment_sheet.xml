@@ -70,12 +70,16 @@
         android:layout_gravity="center"
         android:layout_marginHorizontal="10dp"
         android:layout_marginTop="5dp"
+<<<<<<< Updated upstream
         android:background="@drawable/bg_drawer"
         android:backgroundTint="@color/colorGreen"
         android:orientation="vertical"
         android:padding="12dp"
         android:visibility="gone">
 
+=======
+        android:visibility="gone">
+>>>>>>> Stashed changes
         <LinearLayout
             android:id="@+id/btnOptions"
             android:layout_width="wrap_content"
