@@ -4,35 +4,49 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorAccent"
+    android:background="@drawable/bg_with_gradient"
     android:orientation="vertical"
     android:gravity="center">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:gravity="center"
+        android:orientation="vertical"
         android:padding="16dp">
 
+        <ImageView
+            android:id="@+id/imageNfc"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_contactless"
+            app:tint="@android:color/white" />
+
+
         <TextView
-            android:id="@+id/payment_price"
+            android:id="@+id/payment_info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="R$ 1.200,00"
+            android:text="Aproxime, insira ou passe o cartão"
+            android:textAlignment="center"
             android:textColor="@android:color/white"
-            android:textSize="24sp"
+            android:textSize="30sp"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/payment_form"
+            android:id="@+id/payment_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cartão"
+            android:text="Aguardando pagamento"
+            android:textAlignment="center"
             android:textColor="@android:color/white"
-            android:textSize="18sp" />
+            android:textSize="24sp" />
+
 
     </LinearLayout>
+
+
 
     <ImageView
         android:id="@+id/image"
@@ -59,25 +73,24 @@
         android:padding="16dp">
 
         <TextView
-            android:id="@+id/payment_status"
+            android:id="@+id/payment_form"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Aguardando pagamento"
+            android:text="Cartão"
             android:textColor="@android:color/white"
-            android:textSize="16sp"
-            android:textAlignment="center" />
-
+            android:textSize="30sp" />
         <TextView
-            android:id="@+id/payment_info"
+            android:id="@+id/payment_price"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Aproxime, insira ou passe o cartão"
-            android:textStyle="bold"
+            android:text="R$ 1.200,00"
             android:textColor="@android:color/white"
-            android:textAlignment="center"
-            android:textSize="22sp" />
+            android:textSize="54sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
+
+
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_retry"
@@ -99,7 +112,7 @@
         android:layout_height="wrap_content"
         android:text="Cancelar"
         android:textColor="@android:color/white"
-        android:textSize="16sp"
+        android:textSize="30sp"
         app:strokeWidth="2dp"
         app:strokeColor="@android:color/white" />
 

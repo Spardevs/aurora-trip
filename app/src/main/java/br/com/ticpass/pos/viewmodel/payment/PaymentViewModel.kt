@@ -1,31 +1,47 @@
 package br.com.ticpass.pos.viewmodel.payment
 
 import android.content.SharedPreferences
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
-import org.json.JSONObject
-import androidx.core.content.edit
 import br.com.ticpass.pos.payment.models.SystemPaymentMethod
+import org.json.JSONObject
+import java.math.BigInteger
+import java.text.NumberFormat
+import java.util.Locale
 
 data class PaymentCart(
     val totalItems: Int,
-    val totalPrice: Double
-)
+    val totalProductsValue: BigInteger,
+    val totalCommission: BigInteger,
+    val totalPrice: BigInteger
+) {
+    fun formattedTotalProductsValue(): String = formatCurrency(totalProductsValue)
+    fun formattedTotalCommission(): String = formatCurrency(totalCommission)
+    fun formattedTotalPrice(): String = formatCurrency(totalPrice)
+
+    private fun formatCurrency(valueInCents: BigInteger): String {
+        val valueInReais = valueInCents.toDouble() / 100.0
+        val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+        return format.format(valueInReais)
+    }
+}
 
 class PaymentViewModel(
     private val sharedPrefs: SharedPreferences,
     private val shoppingCartManager: ShoppingCartManager
 ) : ViewModel() {
     private val _cartData = MutableLiveData<PaymentCart>()
+    val cartData: LiveData<PaymentCart> = _cartData
+
     private val paymentQueue = mutableListOf<SystemPaymentMethod>()
     private val _paymentTrigger = MutableLiveData<SystemPaymentMethod?>()
     private val _queueLiveData = MutableLiveData<List<SystemPaymentMethod>>(emptyList())
     val queueLiveData: LiveData<List<SystemPaymentMethod>> = _queueLiveData
     private val _paymentMethods = MutableLiveData<List<PaymentMethod>>()
+    val paymentMethods: LiveData<List<PaymentMethod>> = _paymentMethods
 
     init {
         loadCartData()
@@ -39,14 +55,22 @@ class PaymentViewModel(
                 val jsonObject = JSONObject(it)
                 val itemsObject = jsonObject.getJSONObject("items")
 
-                // Calcula o total de itens
                 val totalItems = itemsObject.keys().asSequence().sumOf { key ->
                     itemsObject.getInt(key)
                 }
 
-                val totalPrice = jsonObject.getDouble("totalPrice")
+                val totalProductsValue = jsonObject.optLong("totalProductsValue", 0L).toBigInteger()
+                val totalCommission = jsonObject.optLong("totalCommission", 0L).toBigInteger()
+                val totalPrice = jsonObject.optLong("totalPrice", 0L).toBigInteger()
 
-                _cartData.postValue(PaymentCart(totalItems, totalPrice))
+                _cartData.postValue(
+                    PaymentCart(
+                        totalItems = totalItems,
+                        totalProductsValue = totalProductsValue,
+                        totalCommission = totalCommission,
+                        totalPrice = totalPrice
+                    )
+                )
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -73,7 +97,6 @@ class PaymentViewModel(
         return _paymentTrigger.value
     }
 }
-
 
 data class PaymentMethod(
     val name: String,

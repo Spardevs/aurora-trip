@@ -78,8 +78,26 @@ class ShoppingCartScreen : BaseActivity() {
 
         val header = paymentSheet.findViewById<View>(R.id.payment_header_container)
         val forms = paymentSheet.findViewById<View>(R.id.payment_forms_container)
+        val tvSubTotalContainer = paymentSheet.findViewById<View>(R.id.ll_sub_total)
+        val tvTotalCommissionContainer = paymentSheet.findViewById<View>(R.id.ll_total_commission)
+        val cartContainer = paymentSheet.findViewById<LinearLayout>(R.id.cart_container)
+
         header.setOnClickListener {
-            forms.visibility = if (forms.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+            if (forms.visibility == View.VISIBLE) {
+                forms.visibility = View.GONE
+                // Quando fechar, pode mostrar o carrinho e esconder os totais
+                tvSubTotalContainer.visibility = View.GONE
+                tvTotalCommissionContainer.visibility = View.GONE
+                cartContainer.visibility = View.VISIBLE
+            } else {
+                // Quando abrir, mostrar os totais e esconder o carrinho
+                tvSubTotalContainer.visibility = View.VISIBLE
+                tvTotalCommissionContainer.visibility = View.VISIBLE
+                cartContainer.visibility = View.GONE
+                val cart = shoppingCartManager.getCart()
+                updatePaymentInfo(cart)
+                forms.visibility = View.VISIBLE
+            }
         }
 
         setupShoppingCart()
@@ -176,14 +194,15 @@ class ShoppingCartScreen : BaseActivity() {
             val params = GridLayout.LayoutParams().apply {
                 width = 0
                 height = GridLayout.LayoutParams.WRAP_CONTENT
-                columnSpec = GridLayout.spec(index % columnCount, 1f) // usa columnCount aqui
-                rowSpec = GridLayout.spec(index / columnCount)        // e aqui
+                columnSpec = GridLayout.spec(index % columnCount, 1f)
+                rowSpec = GridLayout.spec(index / columnCount)
                 setMargins(8, 8, 8, 8)
             }
 
             itemView.setOnClickListener {
                 val intent = Intent(this, PaymentScreen::class.java)
                 intent.putExtra("payment_type", method.value)
+                intent.putExtra("show_cart_button", false)
                 startActivity(intent)
             }
 
@@ -267,16 +286,37 @@ class ShoppingCartScreen : BaseActivity() {
                 showSplitBillDialog()
             }
 
-            paymentSheet.findViewById<LinearLayout>(R.id.cart_container)?.setOnClickListener {
-                startActivity(Intent(this, ShoppingCartScreen::class.java))
-            }
+            // Aqui escondemos o carrinho e mostramos os totais ao abrir o paymentSheet
+            paymentSheet.findViewById<LinearLayout>(R.id.cart_container)?.visibility = View.GONE
+            paymentSheet.findViewById<View>(R.id.ll_sub_total)?.visibility = View.VISIBLE
+            paymentSheet.findViewById<View>(R.id.ll_total_commission)?.visibility = View.VISIBLE
         }
     }
 
     private fun updatePaymentInfo(cart: ShoppingCartManager.ShoppingCart) {
-
+        // Atualiza total principal imediatamente
         paymentSheet.findViewById<TextView>(R.id.tv_total_price)?.text =
             formatCurrency(cart.totalPrice.toDouble())
+
+        lifecycleScope.launch {
+            var productsTotal = 0.0
+
+            for ((productId, qty) in cart.items) {
+                val product = withContext(Dispatchers.IO) {
+                    productRepository.getById(productId)
+                }
+                product?.let {
+                    productsTotal += it.price * qty
+                }
+            }
+
+            val commission = (cart.totalPrice.toDouble() - productsTotal).coerceAtLeast(0.0)
+
+            paymentSheet.findViewById<TextView>(R.id.tv_sub_total)?.text =
+                formatCurrency(productsTotal)
+            paymentSheet.findViewById<TextView>(R.id.tv_total_commission)?.text =
+                formatCurrency(commission)
+        }
     }
 
     private fun showClearCartDialog() {

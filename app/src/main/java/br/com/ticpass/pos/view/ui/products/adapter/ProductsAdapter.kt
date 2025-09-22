@@ -98,7 +98,10 @@ class ProductsAdapter(
         fun bind(product: Product) {
             currentProduct = product
             nameTextView.text = product.title
-            priceTextView.text = formatCurrency(product.value.toDouble())
+
+            // Trata o valor como centavos (Long) e converte para reais antes de formatar
+            priceTextView.text = formatCurrencyFromCents(product.value)
+
             updateBadge()
 
             if (product.photo.isNotEmpty()) {
@@ -144,9 +147,11 @@ class ProductsAdapter(
             currentProduct = null
         }
 
-        private fun formatCurrency(value: Double): String {
+        // Converte centavos (Long) para reais e formata no Locale pt-BR
+        private fun formatCurrencyFromCents(valueInCents: Long): String {
+            val valueInReais = valueInCents / 100000.0
             val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
-            return format.format(value)
+            return format.format(valueInReais)
         }
     }
 

@@ -35,9 +35,11 @@ class ShoppingCartManager @Inject constructor(
     private val observerMap = mutableMapOf<String, WeakReference<androidx.lifecycle.Observer<Any>>>()
 
     data class ShoppingCart(
-        val items: Map<String, Int> = emptyMap(), // productId to quantity
+        val items: Map<String, Int> = emptyMap(),
+        val totalProductsValue: BigInteger = BigInteger.ZERO,
+        val totalCommission: BigInteger = BigInteger.ZERO,
         val totalPrice: BigInteger = BigInteger.ZERO,
-        val observations: Map<String, String> = emptyMap() // productId to observation
+        val observations: Map<String, String> = emptyMap()
     )
 
     private var currentCart: ShoppingCart = loadCart()
@@ -63,8 +65,16 @@ class ShoppingCartManager @Inject constructor(
         val observations = currentCart.observations.toMutableMap()
         observations.remove(productId)
 
-        val totalPrice = calculateTotalPrice(items)
-        currentCart = ShoppingCart(items, totalPrice, observations)
+        val (productsValue, commissionValue) = calculateTotals(items)
+        val totalPrice = productsValue + commissionValue
+
+        currentCart = ShoppingCart(
+            items = items,
+            totalProductsValue = productsValue,
+            totalCommission = commissionValue,
+            totalPrice = totalPrice,
+            observations = observations
+        )
         saveCart(currentCart)
         _cartUpdates.postValue(Unit)
     }
@@ -99,8 +109,16 @@ class ShoppingCartManager @Inject constructor(
             items.remove(productId)
         }
 
-        val totalPrice = calculateTotalPrice(items)
-        currentCart = ShoppingCart(items, totalPrice)
+        val (productsValue, commissionValue) = calculateTotals(items)
+        val totalPrice = productsValue + commissionValue
+
+        currentCart = ShoppingCart(
+            items = items,
+            totalProductsValue = productsValue,
+            totalCommission = commissionValue,
+            totalPrice = totalPrice,
+            observations = currentCart.observations
+        )
         saveCart(currentCart)
         _cartUpdates.postValue(Unit)
     }
@@ -116,6 +134,24 @@ class ShoppingCartManager @Inject constructor(
             val product = runBlocking { productRepository.getById(productId) }
             total + (product?.price?.toBigInteger() ?: BigInteger.ZERO) * quantity.toBigInteger()
         }
+    }
+
+    private fun calculateTotals(items: Map<String, Int>): Pair<BigInteger, BigInteger> {
+        var productsSum = BigInteger.ZERO
+        var commissionSum = BigInteger.ZERO
+        val commissionPercent = 10L
+
+        for ((productId, quantity) in items) {
+            val product = runBlocking { productRepository.getById(productId) }
+            val price = product?.price?.toBigInteger() ?: BigInteger.ZERO
+            val totalProductPrice = price * quantity.toBigInteger()
+            productsSum += totalProductPrice
+
+            val commissionValue = totalProductPrice * commissionPercent.toBigInteger() / BigInteger.valueOf(100)
+            commissionSum += commissionValue
+        }
+
+        return Pair(productsSum, commissionSum)
     }
 
     private fun saveCart(cart: ShoppingCart) {

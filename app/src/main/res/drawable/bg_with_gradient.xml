@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 1) imagem de fundo (pode não se comportar exatamente como centerCrop) -->
+    <item>
+        <bitmap
+            android:src="@drawable/bg_image"
+            android:gravity="center"
+            />
+    </item>
+
+    <!-- 2) gradiente sobre a imagem (altere as cores/alpha conforme desejar) -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="100"
+                android:startColor="#666CFF"
+                android:endColor="#8E14FF"
+                />
+        </shape>
+    </item>
+
+</layer-list>

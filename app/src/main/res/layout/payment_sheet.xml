@@ -1,49 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:backgroundTint="#E7E8FD"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    >
 
     <!-- Header do pagamento -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="horizontal"
+        android:layout_marginBottom="16dp"
+        android:layout_marginHorizontal="16dp"
         android:weightSum="1">
 
         <!-- BG arredondado com valor -->
         <LinearLayout
             android:id="@+id/payment_header_container"
             android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:layout_weight="0.64"
             android:background="@drawable/bg_linear_rounded"
             android:backgroundTint="@color/colorGreen"
             android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="12dp"
-            android:elevation="5dp"
-            >
+            android:orientation="vertical"
+            android:layout_marginHorizontal="16dp"
+            android:paddingHorizontal="22dp"
+            android:paddingVertical="14dp"
+            android:elevation="5dp">
 
-            <TextView
-                android:id="@+id/tv_total_price"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="R$ 0,00"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:orientation="horizontal"
+                android:visibility="gone"
+                android:id="@+id/ll_sub_total">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="subtotal:"
+                    android:textColor="@android:color/white"
+                    android:textSize="10sp"
+                    android:gravity="start" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"/>
+
+
+                <TextView
+                    android:id="@+id/tv_sub_total"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="R$ 0,00"
+                    android:textColor="@android:color/white"
+                    android:textSize="10sp"
+                    android:gravity="end" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                android:id="@+id/ll_total_commission">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="comissão de atendente:"
+                    android:textColor="@android:color/white"
+                    android:textSize="10sp"
+                    android:gravity="start" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"/>
+
+                <TextView
+                    android:id="@+id/tv_total_commission"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="R$ 0,00"
+                    android:textColor="@android:color/white"
+                    android:textSize="10sp"
+                    android:gravity="end" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:visibility="visible"
+                android:id="@+id/ll_total_price">
+
+                <TextView
+                    android:id="@+id/tv_total_price_tittle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="TOTAL:"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:gravity="start" />
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.5"/>
+
+                <TextView
+                    android:id="@+id/tv_total_price"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="R$ 0,00"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:gravity="end" />
+            </LinearLayout>
+
         </LinearLayout>
 
         <LinearLayout
             android:id="@+id/cart_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
+            android:visibility="visible"
             android:background="@drawable/bg_linear_rounded"
             android:backgroundTint="#E7E8FD"
             android:gravity="center"
@@ -64,22 +155,18 @@
 
     <!-- Formas de pagamento -->
     <LinearLayout
-        android:id="@+id/payment_forms_container"
-        android:layout_width="250dp"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:layout_marginHorizontal="30dp"
+        android:weightSum="1"
+        android:id="@+id/payment_forms_container"
         android:layout_gravity="center"
-        android:layout_marginHorizontal="10dp"
-        android:layout_marginTop="5dp"
-<<<<<<< Updated upstream
         android:background="@drawable/bg_drawer"
         android:backgroundTint="@color/colorGreen"
         android:orientation="vertical"
         android:padding="12dp"
         android:visibility="gone">
-
-=======
-        android:visibility="gone">
->>>>>>> Stashed changes
         <LinearLayout
             android:id="@+id/btnOptions"
             android:layout_width="wrap_content"
