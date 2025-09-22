@@ -85,12 +85,10 @@ class ShoppingCartScreen : BaseActivity() {
         header.setOnClickListener {
             if (forms.visibility == View.VISIBLE) {
                 forms.visibility = View.GONE
-                // Quando fechar, pode mostrar o carrinho e esconder os totais
-                tvSubTotalContainer.visibility = View.GONE
-                tvTotalCommissionContainer.visibility = View.GONE
-                cartContainer.visibility = View.VISIBLE
+                tvSubTotalContainer.visibility = View.VISIBLE
+                tvTotalCommissionContainer.visibility = View.VISIBLE
+                cartContainer.visibility = View.GONE
             } else {
-                // Quando abrir, mostrar os totais e esconder o carrinho
                 tvSubTotalContainer.visibility = View.VISIBLE
                 tvTotalCommissionContainer.visibility = View.VISIBLE
                 cartContainer.visibility = View.GONE
