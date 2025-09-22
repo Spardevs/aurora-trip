@@ -7,10 +7,12 @@ import androidx.lifecycle.ViewModel
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
 import br.com.ticpass.pos.payment.models.SystemPaymentMethod
+import dagger.hilt.android.lifecycle.HiltViewModel
 import org.json.JSONObject
 import java.math.BigInteger
 import java.text.NumberFormat
 import java.util.Locale
+import javax.inject.Inject
 
 data class PaymentCart(
     val totalItems: Int,
@@ -29,7 +31,8 @@ data class PaymentCart(
     }
 }
 
-class PaymentViewModel(
+@HiltViewModel
+class PaymentViewModel @Inject constructor(
     private val sharedPrefs: SharedPreferences,
     private val shoppingCartManager: ShoppingCartManager
 ) : ViewModel() {

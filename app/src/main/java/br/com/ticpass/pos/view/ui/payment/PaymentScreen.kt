@@ -37,7 +37,7 @@ class PaymentScreen : BaseActivity() {
     private lateinit var llTotalPrice: LinearLayout
     private lateinit var llTotalCommission: LinearLayout
 
-    private lateinit var cartContainer: LinearLayout
+    private var cartContainer: LinearLayout? = null
 
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,14 +70,24 @@ class PaymentScreen : BaseActivity() {
 
         cartContainer = findViewById(R.id.cart_container)
 
-        if (!showCartButton) {
-            cartContainer.visibility = View.GONE
-            llSubTotal.visibility = View.VISIBLE
-            llTotalCommission.visibility = View.VISIBLE
+        if (cartContainer == null) {
+            Log.e("PaymentScreen", "cart_container view not found in activity_payment layout")
         } else {
-            cartContainer.visibility = View.VISIBLE
+            if (!showCartButton) {
+                cartContainer!!.visibility = View.GONE
+                llSubTotal.visibility = View.VISIBLE
+                llTotalCommission.visibility = View.VISIBLE
+            } else {
+                cartContainer!!.visibility = View.VISIBLE
+            }
+
+            cartContainer!!.setOnClickListener {
+                val intent = Intent(this, ShoppingCartScreen::class.java)
+                startActivityForResult(intent, ProductsListScreen.REQUEST_CART_UPDATE)
+            }
         }
-        cartContainer.setOnClickListener {
+
+        cartContainer?.setOnClickListener {
             val intent = Intent(this, ShoppingCartScreen::class.java)
             startActivityForResult(intent, ProductsListScreen.REQUEST_CART_UPDATE)
         }
