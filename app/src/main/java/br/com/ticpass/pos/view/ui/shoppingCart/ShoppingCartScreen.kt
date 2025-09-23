@@ -30,6 +30,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.math.BigInteger
 import java.text.NumberFormat
 import java.util.Locale
 import javax.inject.Inject
@@ -373,8 +374,10 @@ class ShoppingCartScreen : BaseActivity() {
         dialog.show()
     }
 
-    private fun formatCurrency(value: Double): String {
-        return NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(value)
+    private fun formatCurrency(valueInCents: Double): String {
+        val valueInReais = valueInCents / 10000.0
+        val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+        return format.format(valueInReais)
     }
 
     class GridSpacingItemDecoration(

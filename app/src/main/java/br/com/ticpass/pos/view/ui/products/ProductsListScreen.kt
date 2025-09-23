@@ -43,6 +43,7 @@ import java.text.NumberFormat
 import java.util.Locale
 import javax.inject.Inject
 import androidx.core.view.isVisible
+import java.math.BigInteger
 
 @AndroidEntryPoint
 class ProductsListScreen : Fragment(R.layout.fragment_products) {
@@ -259,7 +260,7 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
     private fun updatePaymentInfo(cart: ShoppingCartManager.ShoppingCart) {
 
         paymentSheet.findViewById<TextView>(R.id.tv_total_price)?.text =
-            formatCurrency(cart.totalPrice.toDouble())
+            formatCurrency(cart.totalPrice)
     }
 
     private val paymentMethods = listOf(
@@ -300,9 +301,10 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         }
     }
 
-    private fun formatCurrency(value: Double): String {
+    private fun formatCurrency(valueInCents: BigInteger): String {
+        val valueInReais = valueInCents.toDouble() / 10000.0
         val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
-        return format.format(value)
+        return format.format(valueInReais)
     }
 
     override fun onResume() {

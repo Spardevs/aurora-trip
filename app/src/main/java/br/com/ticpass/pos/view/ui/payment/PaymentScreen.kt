@@ -19,6 +19,9 @@ import br.com.ticpass.pos.view.ui.products.ProductsListScreen
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartScreen
 import br.com.ticpass.pos.viewmodel.payment.PaymentViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import java.math.BigInteger
+import java.text.NumberFormat
+import java.util.Locale
 
 @AndroidEntryPoint
 class PaymentScreen : BaseActivity() {
@@ -59,7 +62,7 @@ class PaymentScreen : BaseActivity() {
 
         setContentView(R.layout.activity_payment)
 
-        
+
         tvTotalPrice = findViewById(R.id.tv_total_price)
         tvSubTotal = findViewById(R.id.tv_sub_total)
         tvTotalCommission = findViewById(R.id.tv_total_commission)
@@ -94,10 +97,10 @@ class PaymentScreen : BaseActivity() {
 
         // Observa os dados do carrinho para atualizar os valores na UI
         paymentViewModel.cartData.observe(this) { cart ->
-            tvTotalPrice.text = cart.formattedTotalPrice()
+            tvTotalPrice.text = formatCurrency(cart.totalPrice)
             if (!showCartButton) {
-                tvSubTotal.text = "Produtos: ${cart.formattedTotalProductsValue()}"
-                tvTotalCommission.text = "Comissão: ${cart.formattedTotalCommission()}"
+                tvSubTotal.text = formatCurrency(cart.totalProductsValue)
+                tvTotalCommission.text = formatCurrency(cart.totalCommission)
             }
         }
 
@@ -136,5 +139,11 @@ class PaymentScreen : BaseActivity() {
         supportFragmentManager.beginTransaction()
             .add(R.id.payment_container, fragment)
             .commit()
+    }
+
+    private fun formatCurrency(valueInCents: BigInteger): String {
+        val valueInReais = valueInCents.toDouble() / 100.0
+        val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+        return format.format(valueInReais)
     }
 }

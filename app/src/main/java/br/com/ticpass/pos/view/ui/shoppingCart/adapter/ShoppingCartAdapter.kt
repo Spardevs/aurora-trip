@@ -67,7 +67,7 @@ class ShoppingCartAdapter(
 
         private fun formatCurrency(value: Long): String {
             val fmt = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
-            return fmt.format(value / 100.0)
+            return fmt.format(value / 10000.0)
         }
     }
 
