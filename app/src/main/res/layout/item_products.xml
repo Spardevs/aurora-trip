@@ -4,10 +4,19 @@
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    card_view:cardCornerRadius="6dp"
-    card_view:cardElevation="2dp"
-    card_view:cardUseCompatPadding="false"
-    android:layout_margin="2dp">
+>
+
+    <TextView
+        android:id="@+id/productBadge"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_gravity="top|end"
+        android:background="@drawable/badge_background"
+        android:textColor="@android:color/white"
+        android:gravity="center"
+        android:textSize="11sp"
+        android:visibility="gone"
+        android:layout_margin="1dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,7 +24,12 @@
         android:orientation="vertical"
         android:padding="6dp"
         android:background="@color/zxing_transparent"
-        android:gravity="center_horizontal">
+        android:gravity="center_horizontal"
+        card_view:cardCornerRadius="6dp"
+        card_view:cardElevation="2dp"
+        card_view:cardUseCompatPadding="false"
+        android:layout_margin="2dp"
+        >
 
         <FrameLayout
             android:layout_width="wrap_content"
@@ -30,17 +44,6 @@
                 android:contentDescription="@string/manu_image"
                 android:scaleType="centerCrop" />
 
-            <TextView
-                android:id="@+id/productBadge"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:layout_gravity="top|end"
-                android:background="@drawable/badge_background"
-                android:textColor="@android:color/white"
-                android:gravity="center"
-                android:textSize="10sp"
-                android:visibility="gone"
-                android:layout_margin="1dp" />
         </FrameLayout>
 
         <TextView

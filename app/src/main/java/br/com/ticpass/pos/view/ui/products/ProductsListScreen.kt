@@ -89,16 +89,17 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         tabLayout = view.findViewById(R.id.tabLayout)
         paymentSheet = view.findViewById(R.id.paymentSheetProducts)
 
-
-        setupSwipeRefresh()
-        setupTabLayout()
+        val forms = paymentSheet.findViewById<View>(R.id.payment_forms_container)
+        forms.visibility = View.GONE
 
         val header = paymentSheet.findViewById<View>(R.id.payment_header_container)
-        val forms = paymentSheet.findViewById<View>(R.id.payment_forms_container)
 
         header.setOnClickListener {
             forms.visibility = if (forms.isVisible) View.GONE else View.VISIBLE
         }
+
+        setupSwipeRefresh()
+        setupTabLayout()
 
         cartUpdatesObserver = Observer {
             updatePaymentVisibility()
@@ -166,27 +167,20 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
 
         swipeRefreshLayout.setOnRefreshListener(null)
 
-        var pressStartTime: Long = 0
-        val holdTime = 2000L // 2 segundos
-
         swipeRefreshLayout.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    pressStartTime = System.currentTimeMillis()
+                    // Início do toque
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    val elapsed = System.currentTimeMillis() - pressStartTime
-                    if (elapsed >= holdTime && swipeRefreshLayout.isRefreshing) {
+                    // Quando o toque é liberado ou cancelado
+                    if (swipeRefreshLayout.isRefreshing) {
                         refreshData()
                     }
                     swipeRefreshLayout.isRefreshing = false
                 }
             }
             false
-        }
-
-        swipeRefreshLayout.setOnRefreshListener {
-            // não faz nada, pois controlamos no OnTouch
         }
 
         swipeRefreshLayout.setDistanceToTriggerSync(120)
@@ -309,6 +303,7 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
 
     override fun onResume() {
         super.onResume()
+        paymentSheet.findViewById<View>(R.id.payment_forms_container).visibility = View.GONE
         updatePaymentVisibility()
     }
 

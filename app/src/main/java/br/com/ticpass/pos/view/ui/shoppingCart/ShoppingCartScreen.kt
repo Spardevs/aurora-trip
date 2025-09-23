@@ -121,6 +121,9 @@ class ShoppingCartScreen : BaseActivity() {
             },
             onMinusLongClick = { item ->
                 shoppingCartManager.deleteItem(item.product.id)
+            },
+            getProductCommission = { productId ->
+                shoppingCartManager.getProductCommission(productId)?.toLong() ?: 0L
             }
         )
 

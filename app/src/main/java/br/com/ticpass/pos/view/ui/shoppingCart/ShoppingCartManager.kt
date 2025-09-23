@@ -39,9 +39,9 @@ class ShoppingCartManager @Inject constructor(
         val totalProductsValue: BigInteger = BigInteger.ZERO,
         val totalCommission: BigInteger = BigInteger.ZERO,
         val totalPrice: BigInteger = BigInteger.ZERO,
-        val observations: Map<String, String> = emptyMap()
+        val observations: Map<String, String> = emptyMap(),
+        val productCommissions: Map<String, BigInteger> = emptyMap()
     )
-
     private var currentCart: ShoppingCart = loadCart()
 
     fun getCart(): ShoppingCart = currentCart
@@ -109,7 +109,7 @@ class ShoppingCartManager @Inject constructor(
             items.remove(productId)
         }
 
-        val (productsValue, commissionValue) = calculateTotals(items)
+        val (productsValue, commissionValue, productCommissions) = calculateTotals(items)
         val totalPrice = productsValue + commissionValue
 
         currentCart = ShoppingCart(
@@ -117,7 +117,8 @@ class ShoppingCartManager @Inject constructor(
             totalProductsValue = productsValue,
             totalCommission = commissionValue,
             totalPrice = totalPrice,
-            observations = currentCart.observations
+            observations = currentCart.observations,
+            productCommissions = productCommissions
         )
         saveCart(currentCart)
         _cartUpdates.postValue(Unit)
@@ -136,10 +137,12 @@ class ShoppingCartManager @Inject constructor(
         }
     }
 
-    private fun calculateTotals(items: Map<String, Int>): Pair<BigInteger, BigInteger> {
+    private fun calculateTotals(items: Map<String, Int>): Triple<BigInteger, BigInteger, Map<String, BigInteger>> {
         var productsSum = BigInteger.ZERO
         var commissionSum = BigInteger.ZERO
         val commissionPercent = 10L
+
+        val productCommissions = mutableMapOf<String, BigInteger>()
 
         for ((productId, quantity) in items) {
             val product = runBlocking { productRepository.getById(productId) }
@@ -147,11 +150,16 @@ class ShoppingCartManager @Inject constructor(
             val totalProductPrice = price * quantity.toBigInteger()
             productsSum += totalProductPrice
 
-            val commissionValue = totalProductPrice * commissionPercent.toBigInteger() / BigInteger.valueOf(100)
+            // comissão POR UNIDADE
+            val commissionPerUnit = price * commissionPercent.toBigInteger() / BigInteger.valueOf(100)
+            productCommissions[productId] = commissionPerUnit
+
+            // comissão total para esse produto (por unidade * quantidade)
+            val commissionValue = commissionPerUnit * quantity.toBigInteger()
             commissionSum += commissionValue
         }
 
-        return Pair(productsSum, commissionSum)
+        return Triple(productsSum, commissionSum, productCommissions)
     }
 
     private fun saveCart(cart: ShoppingCart) {
@@ -211,5 +219,9 @@ class ShoppingCartManager @Inject constructor(
         sharedPreferences.edit { remove(shoppingCartKey) }
         removeAllObservers()
         _cartUpdates.value = Unit
+    }
+
+    fun getProductCommission(productId: String): BigInteger? {
+        return currentCart.productCommissions[productId]
     }
 }

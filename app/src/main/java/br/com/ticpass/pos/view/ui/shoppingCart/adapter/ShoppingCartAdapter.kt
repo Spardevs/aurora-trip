@@ -17,7 +17,8 @@ class ShoppingCartAdapter(
     private val onQuantityChange: (CartItem, Int) -> Unit,
     private val onObservationClick: (CartItem) -> Unit,
     private val onMinusClick: (CartItem) -> Unit,
-    private val onMinusLongClick: ((CartItem) -> Unit)? = null
+    private val onMinusLongClick: ((CartItem) -> Unit)? = null,
+    private val getProductCommission: (productId: String) -> Long = { 0L }
 ) : RecyclerView.Adapter<ShoppingCartAdapter.ViewHolder>() {
 
     private val items = mutableListOf<CartItem>()
@@ -39,11 +40,19 @@ class ShoppingCartAdapter(
         private val btnObs = view.findViewById<ImageView>(R.id.btnObs)
         private val obsDescription = view.findViewById<TextView>(R.id.obsDescription)
 
+
+
         fun bind(item: CartItem) {
+
+            val commissionPerUnit = getProductCommission(item.product.id)
+            val pricePlusCommissionPerUnit = item.product.price + commissionPerUnit
+            val totalForThisItem = pricePlusCommissionPerUnit * item.quantity
             name.text     = item.product.name
             price.text    = formatCurrency(item.product.price)
             quantity.text = item.quantity.toString()
             btnObs.setOnClickListener { onObservationClick(item) }
+            price.text = formatCurrency(totalForThisItem)
+            quantity.text = item.quantity.toString()
 
 
             Glide.with(img.context)
