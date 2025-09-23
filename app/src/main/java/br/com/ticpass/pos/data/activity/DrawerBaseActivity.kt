@@ -21,6 +21,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
@@ -125,9 +126,13 @@ abstract class DrawerBaseActivity : BaseActivity() {
         navView      = findViewById(R.id.nav_view)
         val toolbar  = findViewById<MaterialToolbar>(R.id.drawer_toolbar)
         setSupportActionBar(toolbar)
-        supportActionBar?.apply {
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.ic_apps)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        val drawable = ContextCompat.getDrawable(this, R.drawable.ic_apps)?.mutate()
+        drawable?.let {
+            DrawableCompat.setTint(it, ContextCompat.getColor(this, R.color.colorWhite))
+            supportActionBar?.setHomeAsUpIndicator(it)
         }
 
         val footer = layoutInflater.inflate(R.layout.nav_drawer_footer, navView, false)

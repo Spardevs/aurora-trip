@@ -128,8 +128,8 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         categoriesObserver?.let { productsViewModel.categories.removeObserver(it) }
         productsObserver?.let { productsViewModel.productsByCategory.removeObserver(it) }
 
-        categoriesObserver = Observer<List<String>> { categories ->
-            productsObserver = Observer<Map<String, List<Product>>> { productsMap ->
+        categoriesObserver = Observer { categories ->
+            productsObserver = Observer { productsMap ->
                 pagerAdapter = CategoriesPagerAdapter(
                     requireActivity(),
                     categories,
