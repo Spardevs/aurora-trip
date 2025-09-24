@@ -6,21 +6,30 @@
     android:layout_margin="1dp"
     android:background="@drawable/rounded_button_background"
     android:orientation="horizontal"
+    android:layout_gravity="center"
     android:padding="12dp">
-
-    <ImageView
-        android:id="@+id/iv_payment_icon"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginEnd="8dp"
-        app:srcCompat="@drawable/credit" />
-
-    <TextView
-        android:id="@+id/tv_payment_name"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="Crédito"
-        android:textAlignment="center"
-        android:textColor="@color/colorGreen" />
+        android:gravity="center"
+        >
+        <ImageView
+            android:id="@+id/iv_payment_icon"
+            android:layout_width="15dp"
+            android:layout_height="15dp"
+            android:layout_gravity="center"
+            android:layout_marginEnd="8dp"
+            app:srcCompat="@drawable/credit" />
+
+        <TextView
+            android:id="@+id/tv_payment_name"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:text="Crédito"
+            android:textSize="11sp"
+            android:textAlignment="center"
+            android:textColor="@color/colorGreen" />
+    </LinearLayout>
+
 </LinearLayout>
