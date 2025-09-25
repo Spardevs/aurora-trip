@@ -12,6 +12,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -22,14 +23,16 @@ import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.room.service.PassGeneratorService
 import br.com.ticpass.pos.feature.payment.PaymentProcessingViewModel
 import br.com.ticpass.pos.feature.payment.PaymentState
+import br.com.ticpass.pos.feature.printing.PrintingViewModel
 import br.com.ticpass.pos.payment.events.FinishPaymentHandler
-import br.com.ticpass.pos.payment.events.PaymentEventHandler
 import br.com.ticpass.pos.payment.events.PaymentType
 import br.com.ticpass.pos.payment.models.SystemPaymentMethod
 import br.com.ticpass.pos.payment.utils.PaymentUIUtils
 import br.com.ticpass.pos.payment.view.TimeoutCountdownView
+import br.com.ticpass.pos.printing.events.PrintingHandler
 import br.com.ticpass.pos.sdk.AcquirerSdk
 import br.com.ticpass.pos.util.PaymentFragmentUtils
+import br.com.ticpass.pos.view.ui.pass.PassType
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
@@ -40,20 +43,28 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class CashPaymentFragment : Fragment() {
+
     private val paymentViewModel: PaymentProcessingViewModel by activityViewModels()
+    private val printingViewModel: PrintingViewModel by activityViewModels()
+
     @Inject
     lateinit var shoppingCartManager: ShoppingCartManager
+
     @Inject
     lateinit var finishPaymentHandler: FinishPaymentHandler
+
     @Inject
     lateinit var paymentUtils: PaymentFragmentUtils
+
     private var paymentValue: Double = 0.0
     private var totalValue: Double = 0.0
     private var remainingValue: Double = 0.0
     private var isMultiPayment: Boolean = false
     private var progress: String = ""
+
     private lateinit var passGeneratorService: PassGeneratorService
-    private lateinit var paymentEventHandler: PaymentEventHandler
+     private lateinit var printingHandler: PrintingHandler
+
     private lateinit var timeoutCountdownView: TimeoutCountdownView
     private lateinit var titleTextView: TextView
     private lateinit var statusTextView: TextView
@@ -66,19 +77,23 @@ class CashPaymentFragment : Fragment() {
     private lateinit var amountReceivedLayout: TextInputLayout
     private lateinit var changeContainer: LinearLayout
     private lateinit var changeAmountTextView: TextView
+
     private var totalAmount: Double = 0.0
     private var amountReceived: Double = 0.0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         AcquirerSdk.initialize(requireContext())
         super.onCreate(savedInstanceState)
 
-        // Obter valores dos arguments
-        paymentValue = arguments?.getDouble("value_to_pay") ?: 0.0
-        totalValue = arguments?.getDouble("total_value") ?: paymentValue
-        remainingValue = arguments?.getDouble("remaining_value") ?: paymentValue
-        isMultiPayment = arguments?.getBoolean("is_multi_payment") ?: false
-        progress = arguments?.getString("progress") ?: ""
+        arguments?.let {
+            paymentValue = it.getDouble("value_to_pay", 0.0)
+            totalValue = it.getDouble("total_value", paymentValue)
+            remainingValue = it.getDouble("remaining_value", paymentValue)
+            isMultiPayment = it.getBoolean("is_multi_payment", false)
+            progress = it.getString("progress", "")
+        }
     }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -92,10 +107,11 @@ class CashPaymentFragment : Fragment() {
 
         passGeneratorService = PassGeneratorService(requireContext())
         setupViews(view)
-        setupPaymentEventHandler(view)
+        setupPrintingHandler()
         setupObservers()
         setupListeners()
     }
+
     private fun setupViews(view: View) {
         titleTextView = view.findViewById(R.id.payment_form)
         statusTextView = view.findViewById(R.id.payment_status)
@@ -109,6 +125,7 @@ class CashPaymentFragment : Fragment() {
         changeContainer = view.findViewById(R.id.changeContainer)
         changeAmountTextView = view.findViewById(R.id.changeAmountTextView)
         timeoutCountdownView = view.findViewById(R.id.timeoutCountdownView)
+
         totalAmount = paymentValue
         priceTextView.text = PaymentFragmentUtils.formatCurrency(paymentValue)
 
@@ -127,21 +144,16 @@ class CashPaymentFragment : Fragment() {
         priceTextView.text = PaymentFragmentUtils.formatCurrency(totalAmount)
 
         confirmButton.isEnabled = true
-
         amountReceivedLayout.hint = "Valor recebido (opcional)"
     }
-    private fun setupPaymentEventHandler(view: View) {
-        val dummyTimeoutView = TimeoutCountdownView(requireContext()).apply {
-            visibility = View.GONE
-        }
 
-        paymentEventHandler = PaymentEventHandler(
+    private fun setupPrintingHandler() {
+        printingHandler = PrintingHandler(
             context = requireContext(),
-            dialogEventTextView = infoTextView,
-            dialogQRCodeImageView = imageView,
-            dialogTimeoutCountdownView = dummyTimeoutView
+            lifecycleOwner = viewLifecycleOwner
         )
     }
+
     private fun setupObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -150,13 +162,13 @@ class CashPaymentFragment : Fragment() {
                         is PaymentState.Success -> handleSuccessfulPayment()
                         is PaymentState.Error -> updateUIForError(state.errorMessage)
                         is PaymentState.Cancelled -> updateUIForCancelled()
-                        else -> {
-                        }
+                        else -> {}
                     }
                 }
             }
         }
     }
+
     private fun setupListeners() {
         cancelButton.setOnClickListener {
             requireActivity().finish()
@@ -189,6 +201,7 @@ class CashPaymentFragment : Fragment() {
             }
         })
     }
+
     private fun calculateChange() {
         try {
             val inputText = amountReceivedEditText.text.toString()
@@ -218,33 +231,35 @@ class CashPaymentFragment : Fragment() {
             amountReceived = 0.0
         }
     }
+
     private fun handleCashConfirmation() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val inputText = amountReceivedEditText.text.toString()
-                amountReceived = if (inputText.isNotEmpty()) {
-                    inputText.toDouble()
-                } else {
-                    0.0
-                }
+                amountReceived = if (inputText.isNotEmpty()) inputText.toDouble() else 0.0
 
                 statusTextView.text = "Processando..."
-
-                if (amountReceived == 0.0) {
-                    infoTextView.text = "Confirmando pagamento sem valor informado"
-                } else if (amountReceived >= totalAmount) {
-                    infoTextView.text = "Processando pagamento com troco"
-                } else {
-                    infoTextView.text = "Confirmando pagamento com valor parcial"
+                infoTextView.text = when {
+                    amountReceived == 0.0 -> "Confirmando pagamento sem valor informado"
+                    amountReceived >= totalAmount -> "Processando pagamento com troco"
+                    else -> "Confirmando pagamento com valor parcial"
                 }
 
                 amountReceivedEditText.isEnabled = false
                 confirmButton.isEnabled = false
                 cancelButton.isEnabled = false
 
-                passGeneratorService.printPassesAutomatically()
-
                 paymentViewModel.notifyPaymentSuccess()
+
+                // Iniciar impressão via PrintingHandler
+                val composeView = ComposeView(requireContext())
+                printingHandler.generateTickets(
+                    composeView = composeView,
+                    passType = PassType.ProductCompact,
+                    printingViewModel = printingViewModel
+                )
+
+                requireActivity().finish()
 
             } catch (e: Exception) {
                 Log.e("CashPaymentFragment", "Erro ao processar pagamento em dinheiro: ${e.message}")
@@ -256,15 +271,15 @@ class CashPaymentFragment : Fragment() {
             }
         }
     }
+
     private fun updateUIForSuccess() {
         activity?.runOnUiThread {
             statusTextView.text = "Pagamento Confirmado!"
-
             val inputText = amountReceivedEditText.text.toString()
-            if (inputText.isNotEmpty()) {
-                infoTextView.text = "Fichas geradas com sucesso. Troco: ${PaymentFragmentUtils.formatCurrency(amountReceived - totalAmount)}"
+            infoTextView.text = if (inputText.isNotEmpty()) {
+                "Fichas geradas com sucesso. Troco: ${PaymentFragmentUtils.formatCurrency(amountReceived - totalAmount)}"
             } else {
-                infoTextView.text = "Fichas geradas com sucesso. Valor não informado."
+                "Fichas geradas com sucesso. Valor não informado."
             }
 
             imageView.setImageResource(R.drawable.ic_check)
@@ -275,19 +290,19 @@ class CashPaymentFragment : Fragment() {
                 shoppingCartManager.clearCart()
                 requireActivity().finish()
             }
-            confirmButton.visibility = View.GONE
 
+            confirmButton.visibility = View.GONE
             amountReceivedLayout.visibility = View.GONE
             changeContainer.visibility = View.GONE
         }
     }
+
     private fun updateUIForError(errorMessage: String) {
         activity?.runOnUiThread {
             statusTextView.text = "Erro no Processamento"
             infoTextView.text = errorMessage
             imageView.setImageResource(R.drawable.ic_close)
 
-            // Reabilitar botão de cancelamento
             cancelButton.isEnabled = true
             cancelButton.text = "Cancelar"
             cancelButton.setOnClickListener {
@@ -301,6 +316,7 @@ class CashPaymentFragment : Fragment() {
             }
         }
     }
+
     private fun retryPayment() {
         activity?.runOnUiThread {
             confirmButton.visibility = View.VISIBLE
@@ -322,10 +338,12 @@ class CashPaymentFragment : Fragment() {
             }
         }
     }
+
     private fun updateUIForCancelled() {
         statusTextView.text = "Pagamento Cancelado"
         infoTextView.text = "A transação foi cancelada"
     }
+
     private fun handleSuccessfulPayment() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
@@ -341,6 +359,14 @@ class CashPaymentFragment : Fragment() {
                     )
                 )
 
+                // Imprimir fichas
+                val composeView = ComposeView(requireContext())
+                printingHandler.generateTickets(
+                    composeView = composeView,
+                    passType = PassType.ProductCompact,
+                    printingViewModel = printingViewModel
+                )
+
                 if (isMultiPayment) {
                     navigateBackToSelection()
                 } else {
@@ -354,6 +380,7 @@ class CashPaymentFragment : Fragment() {
             }
         }
     }
+
     private fun navigateBackToSelection() {
         val newRemainingValue = remainingValue - paymentValue
 
@@ -366,6 +393,7 @@ class CashPaymentFragment : Fragment() {
             requireActivity().finish()
         }
     }
+
     private fun getNextProgress(currentProgress: String): String {
         return try {
             val parts = currentProgress.split("/")
