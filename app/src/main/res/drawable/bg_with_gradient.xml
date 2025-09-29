@@ -5,7 +5,8 @@
     <item>
         <bitmap
             android:src="@drawable/bg_image"
-            android:gravity="center" />
+            android:gravity="fill_vertical|center_horizontal"
+            android:antialias="true"/>
     </item>
 
     <item>

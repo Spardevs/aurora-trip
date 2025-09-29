@@ -8,9 +8,11 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.ContextCompat
@@ -34,50 +36,41 @@ import br.com.ticpass.pos.sdk.AcquirerSdk
 import br.com.ticpass.pos.util.PaymentFragmentUtils
 import br.com.ticpass.pos.view.ui.pass.PassType
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.math.BigInteger
+import java.text.NumberFormat
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class CashPaymentFragment : Fragment() {
-
     private val paymentViewModel: PaymentProcessingViewModel by activityViewModels()
     private val printingViewModel: PrintingViewModel by activityViewModels()
-
     @Inject
     lateinit var shoppingCartManager: ShoppingCartManager
-
     @Inject
     lateinit var finishPaymentHandler: FinishPaymentHandler
-
     @Inject
     lateinit var paymentUtils: PaymentFragmentUtils
-
     private var paymentValue: Double = 0.0
     private var totalValue: Double = 0.0
     private var remainingValue: Double = 0.0
     private var isMultiPayment: Boolean = false
     private var progress: String = ""
-
     private lateinit var passGeneratorService: PassGeneratorService
-     private lateinit var printingHandler: PrintingHandler
-
-    private lateinit var timeoutCountdownView: TimeoutCountdownView
+    private lateinit var printingHandler: PrintingHandler
+    // Views mapeadas ao layout que você enviou
     private lateinit var titleTextView: TextView
-    private lateinit var statusTextView: TextView
-    private lateinit var infoTextView: TextView
+    private var statusTextView: TextView? = null
+    private var infoTextView: TextView? = null
     private lateinit var imageView: ImageView
     private lateinit var priceTextView: TextView
-    private lateinit var cancelButton: MaterialButton
-    private lateinit var confirmButton: MaterialButton
-    private lateinit var amountReceivedEditText: TextInputEditText
-    private lateinit var amountReceivedLayout: TextInputLayout
-    private lateinit var changeContainer: LinearLayout
-    private lateinit var changeAmountTextView: TextView
-
+    private lateinit var tvTotalValue: TextView
+    private lateinit var tvChangeValue: TextView
+    private lateinit var etReceivedValue: EditText
+    private var btnCancel: Button? = null
+    private var btnConfirm: Button? = null
     private var totalAmount: Double = 0.0
     private var amountReceived: Double = 0.0
 
@@ -90,7 +83,7 @@ class CashPaymentFragment : Fragment() {
             totalValue = it.getDouble("total_value", paymentValue)
             remainingValue = it.getDouble("remaining_value", paymentValue)
             isMultiPayment = it.getBoolean("is_multi_payment", false)
-            progress = it.getString("progress", "")
+            progress = it.getString("progress", "") ?: ""
         }
     }
 
@@ -105,46 +98,47 @@ class CashPaymentFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        titleTextView = view.findViewById(R.id.tvMoneyTitle)
+        imageView = view.findViewById(R.id.iconMoney)
+        priceTextView = view.findViewById(R.id.tvTotalValue)
+
+        tvTotalValue = view.findViewById(R.id.tvTotalValue)
+        tvChangeValue = view.findViewById(R.id.tvChangeValue)
+        etReceivedValue = view.findViewById(R.id.etReceivedValue)
+        btnCancel = view.findViewById(R.id.btnCancel)
+        btnConfirm = view.findViewById(R.id.btnConfirm)
+
+        statusTextView = view.findViewById(R.id.payment_status) ?: TextView(requireContext())
+        infoTextView = view.findViewById(R.id.payment_info) ?: TextView(requireContext())
+
         passGeneratorService = PassGeneratorService(requireContext())
-        setupViews(view)
         setupPrintingHandler()
         setupObservers()
+
+        setupViews(view)
+
         setupListeners()
+
+        tvTotalValue.text = PaymentFragmentUtils.formatCurrency(totalAmount)
+        priceTextView.text = PaymentFragmentUtils.formatCurrency(totalAmount)
     }
 
     private fun setupViews(view: View) {
-        titleTextView = view.findViewById(R.id.payment_form)
-        statusTextView = view.findViewById(R.id.payment_status)
-        infoTextView = view.findViewById(R.id.payment_info)
-        imageView = view.findViewById(R.id.image)
-        priceTextView = view.findViewById(R.id.payment_price)
-        cancelButton = view.findViewById(R.id.btn_cancel)
-        confirmButton = view.findViewById(R.id.btn_confirm)
-        amountReceivedEditText = view.findViewById(R.id.amountReceivedEditText)
-        amountReceivedLayout = view.findViewById(R.id.amountReceivedLayout)
-        changeContainer = view.findViewById(R.id.changeContainer)
-        changeAmountTextView = view.findViewById(R.id.changeAmountTextView)
-        timeoutCountdownView = view.findViewById(R.id.timeoutCountdownView)
-
-        totalAmount = paymentValue
-        priceTextView.text = PaymentFragmentUtils.formatCurrency(paymentValue)
-
-        if (isMultiPayment && progress.isNotEmpty()) {
-            val progressTextView = view.findViewById<TextView>(R.id.tv_progress)
-            progressTextView?.visibility = View.VISIBLE
-            progressTextView?.text = "Pagamento $progress"
-        }
-
         val cart = shoppingCartManager.getCart()
-        totalAmount = cart.totalPrice.toDouble() / 100.0
+        totalAmount = cart.totalPrice.toDouble() / 10000.0
 
         titleTextView.text = "Pagamento em Dinheiro"
-        statusTextView.text = "Aguardando confirmação"
-        infoTextView.text = "Informe o valor recebido em dinheiro (opcional)"
-        priceTextView.text = PaymentFragmentUtils.formatCurrency(totalAmount)
+        statusTextView?.text = "Aguardando confirmação"
+        infoTextView?.text = "Informe o valor recebido em dinheiro (opcional)"
+        priceTextView.text = formatCurrency(cart.totalPrice)
 
-        confirmButton.isEnabled = true
-        amountReceivedLayout.hint = "Valor recebido (opcional)"
+        btnConfirm?.isEnabled = true
+    }
+
+    private fun formatCurrency(valueInCents: BigInteger): String {
+        val valueInReais = valueInCents.toDouble() / 100.0
+        val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+        return format.format(valueInReais)
     }
 
     private fun setupPrintingHandler() {
@@ -170,21 +164,21 @@ class CashPaymentFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        cancelButton.setOnClickListener {
+        btnCancel?.setOnClickListener {
             requireActivity().finish()
         }
 
-        confirmButton.setOnClickListener {
+        btnConfirm?.setOnClickListener {
             handleCashConfirmation()
         }
 
-        amountReceivedEditText.setOnFocusChangeListener { _, hasFocus ->
+        etReceivedValue.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 calculateChange()
             }
         }
 
-        amountReceivedEditText.setOnKeyListener { _, keyCode, event ->
+        etReceivedValue.setOnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP) {
                 calculateChange()
                 true
@@ -193,7 +187,7 @@ class CashPaymentFragment : Fragment() {
             }
         }
 
-        amountReceivedEditText.addTextChangedListener(object : TextWatcher {
+        etReceivedValue.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
@@ -203,51 +197,54 @@ class CashPaymentFragment : Fragment() {
     }
 
     private fun calculateChange() {
-        try {
-            val inputText = amountReceivedEditText.text.toString()
-            if (inputText.isNotEmpty()) {
-                amountReceived = inputText.toDouble()
-                val change = amountReceived - totalAmount
-
-                if (change >= 0) {
-                    changeContainer.visibility = View.VISIBLE
-                    changeAmountTextView.text = PaymentFragmentUtils.formatCurrency(change)
-                    changeAmountTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorGreen))
-                    amountReceivedLayout.error = null
-                } else {
-                    changeContainer.visibility = View.VISIBLE
-                    changeAmountTextView.text = PaymentFragmentUtils.formatCurrency(change)
-                    changeAmountTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorRed))
-                    amountReceivedLayout.error = getString(R.string.insufficient_amount)
-                }
-            } else {
-                changeContainer.visibility = View.GONE
-                amountReceivedLayout.error = null
-                amountReceived = 0.0
-            }
-        } catch (e: NumberFormatException) {
-            changeContainer.visibility = View.GONE
-            amountReceivedLayout.error = "Valor inválido"
+        val inputText = etReceivedValue.text.toString().trim()
+        if (inputText.isEmpty()) {
+            tvChangeValue.visibility = View.VISIBLE
+            tvChangeValue.text = PaymentFragmentUtils.formatCurrency(0.0)
+            etReceivedValue.error = null
             amountReceived = 0.0
+            return
+        }
+
+        val parsed = inputText.replace(',', '.').toDoubleOrNull()
+        if (parsed == null) {
+            etReceivedValue.error = "Valor inválido"
+            tvChangeValue.text = PaymentFragmentUtils.formatCurrency(0.0)
+            amountReceived = 0.0
+            return
+        }
+
+        amountReceived = parsed
+        val change = amountReceived - totalAmount
+
+        tvChangeValue.visibility = View.VISIBLE
+        tvChangeValue.text = PaymentFragmentUtils.formatCurrency(change)
+        val colorRes = if (change >= 0) R.color.colorGreen else R.color.colorRed
+        tvChangeValue.setTextColor(ContextCompat.getColor(requireContext(), colorRes))
+
+        if (change < 0) {
+            etReceivedValue.error = getString(R.string.insufficient_amount)
+        } else {
+            etReceivedValue.error = null
         }
     }
 
     private fun handleCashConfirmation() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val inputText = amountReceivedEditText.text.toString()
-                amountReceived = if (inputText.isNotEmpty()) inputText.toDouble() else 0.0
+                val inputText = etReceivedValue.text.toString()
+                amountReceived = if (inputText.isNotEmpty()) inputText.replace(',', '.').toDouble() else 0.0
 
-                statusTextView.text = "Processando..."
-                infoTextView.text = when {
+                statusTextView?.text = "Processando..."
+                infoTextView?.text = when {
                     amountReceived == 0.0 -> "Confirmando pagamento sem valor informado"
                     amountReceived >= totalAmount -> "Processando pagamento com troco"
                     else -> "Confirmando pagamento com valor parcial"
                 }
 
-                amountReceivedEditText.isEnabled = false
-                confirmButton.isEnabled = false
-                cancelButton.isEnabled = false
+                etReceivedValue.isEnabled = false
+                btnConfirm?.isEnabled = false
+                btnCancel?.isEnabled = false
 
                 paymentViewModel.notifyPaymentSuccess()
 
@@ -265,18 +262,18 @@ class CashPaymentFragment : Fragment() {
                 Log.e("CashPaymentFragment", "Erro ao processar pagamento em dinheiro: ${e.message}")
                 updateUIForError("Erro ao processar pagamento")
 
-                amountReceivedEditText.isEnabled = true
-                confirmButton.isEnabled = true
-                cancelButton.isEnabled = true
+                etReceivedValue.isEnabled = true
+                btnConfirm?.isEnabled = true
+                btnCancel?.isEnabled = true
             }
         }
     }
 
     private fun updateUIForSuccess() {
         activity?.runOnUiThread {
-            statusTextView.text = "Pagamento Confirmado!"
-            val inputText = amountReceivedEditText.text.toString()
-            infoTextView.text = if (inputText.isNotEmpty()) {
+            statusTextView?.text = "Pagamento Confirmado!"
+            val inputText = etReceivedValue.text.toString()
+            infoTextView?.text = if (inputText.isNotEmpty()) {
                 "Fichas geradas com sucesso. Troco: ${PaymentFragmentUtils.formatCurrency(amountReceived - totalAmount)}"
             } else {
                 "Fichas geradas com sucesso. Valor não informado."
@@ -284,34 +281,34 @@ class CashPaymentFragment : Fragment() {
 
             imageView.setImageResource(R.drawable.ic_check)
 
-            cancelButton.text = "Finalizar"
-            cancelButton.isEnabled = true
-            cancelButton.setOnClickListener {
+            btnCancel?.text = "Finalizar"
+            btnCancel?.isEnabled = true
+            btnCancel?.setOnClickListener {
                 shoppingCartManager.clearCart()
                 requireActivity().finish()
             }
 
-            confirmButton.visibility = View.GONE
-            amountReceivedLayout.visibility = View.GONE
-            changeContainer.visibility = View.GONE
+            btnConfirm?.visibility = View.GONE
+            etReceivedValue.visibility = View.GONE
+            tvChangeValue.visibility = View.GONE
         }
     }
 
     private fun updateUIForError(errorMessage: String) {
         activity?.runOnUiThread {
-            statusTextView.text = "Erro no Processamento"
-            infoTextView.text = errorMessage
+            statusTextView?.text = "Erro no Processamento"
+            infoTextView?.text = errorMessage
             imageView.setImageResource(R.drawable.ic_close)
 
-            cancelButton.isEnabled = true
-            cancelButton.text = "Cancelar"
-            cancelButton.setOnClickListener {
+            btnCancel?.isEnabled = true
+            btnCancel?.text = "Cancelar"
+            btnCancel?.setOnClickListener {
                 requireActivity().finish()
             }
 
-            confirmButton.visibility = View.VISIBLE
-            confirmButton.text = "Tentar Novamente"
-            confirmButton.setOnClickListener {
+            btnConfirm?.visibility = View.VISIBLE
+            btnConfirm?.text = "Tentar Novamente"
+            btnConfirm?.setOnClickListener {
                 retryPayment()
             }
         }
@@ -319,29 +316,29 @@ class CashPaymentFragment : Fragment() {
 
     private fun retryPayment() {
         activity?.runOnUiThread {
-            confirmButton.visibility = View.VISIBLE
-            confirmButton.text = "Confirmar Recebimento"
-            confirmButton.isEnabled = true
-            statusTextView.text = "Aguardando confirmação"
-            infoTextView.text = "Informe o valor recebido em dinheiro (opcional)"
+            btnConfirm?.visibility = View.VISIBLE
+            btnConfirm?.text = "Confirmar Recebimento"
+            btnConfirm?.isEnabled = true
+            statusTextView?.text = "Aguardando confirmação"
+            infoTextView?.text = "Informe o valor recebido em dinheiro (opcional)"
             imageView.setImageResource(R.drawable.ic_credit_card)
 
-            amountReceivedEditText.text?.clear()
-            amountReceivedEditText.isEnabled = true
-            changeContainer.visibility = View.GONE
-            amountReceivedLayout.error = null
+            etReceivedValue.text?.clear()
+            etReceivedValue.isEnabled = true
+            tvChangeValue.visibility = View.GONE
+            etReceivedValue.error = null
 
-            cancelButton.isEnabled = true
-            cancelButton.text = "Cancelar"
-            cancelButton.setOnClickListener {
+            btnCancel?.isEnabled = true
+            btnCancel?.text = "Cancelar"
+            btnCancel?.setOnClickListener {
                 requireActivity().finish()
             }
         }
     }
 
     private fun updateUIForCancelled() {
-        statusTextView.text = "Pagamento Cancelado"
-        infoTextView.text = "A transação foi cancelada"
+        statusTextView?.text = "Pagamento Cancelado"
+        infoTextView?.text = "A transação foi cancelada"
     }
 
     private fun handleSuccessfulPayment() {

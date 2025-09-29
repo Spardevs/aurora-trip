@@ -1,136 +1,136 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:padding="24dp"
-    android:gravity="center">
+    android:background="@drawable/bg_with_gradient">
 
+    <!-- Ícone dinheiro -->
     <ImageView
-        android:id="@+id/image"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_gravity="center_horizontal"
-        android:src="@drawable/ic_credit_card"
-        android:contentDescription="@string/cash_payment"
-    />
+        android:id="@+id/iconMoney"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/ic_cash_normal"
+        app:tint="@color/colorWhite" />
 
+    <!-- Texto Dinheiro -->
     <TextView
-        android:id="@+id/payment_form"
+        android:id="@+id/tvMoneyTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="16dp"
-        android:text="@string/cash_payment"
+        android:text="Dinheiro"
+        android:textColor="#FFFFFF"
         android:textSize="24sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:layout_below="@id/iconMoney"
+        android:layout_marginTop="12dp"
+        android:layout_centerHorizontal="true" />
 
+    <!-- Total -->
     <TextView
-        android:id="@+id/payment_price"
+        android:id="@+id/tvTotalLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="8dp"
+        android:text="Total"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:layout_below="@id/tvMoneyTitle"
+        android:layout_marginTop="24dp" />
+
+    <TextView
+        android:id="@+id/tvTotalValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="R$ 0,00"
+        android:textColor="#FFFFFF"
         android:textSize="20sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:layout_below="@id/tvTotalLabel"
+        android:layout_marginTop="4dp" />
 
-    <!-- Campo para valor recebido -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/amountReceivedLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="@string/amount_received">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/amountReceivedEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
-            android:imeOptions="actionDone"
-            android:maxLines="1" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- Display do troco -->
-    <LinearLayout
-        android:id="@+id/changeContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:orientation="vertical"
-        android:visibility="gone"
-        android:gravity="center">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/change"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/changeAmountTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/colorGreen" />
-    </LinearLayout>
-
+    <!-- Troco -->
     <TextView
-        android:id="@+id/payment_status"
+        android:id="@+id/tvChangeLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="16dp"
-        android:text="@string/awaiting_confirmation"
-        android:textSize="18sp" />
+        android:text="Troco"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:layout_below="@id/tvTotalValue"
+        android:layout_marginTop="16dp" />
 
     <TextView
-        android:id="@+id/payment_info"
+        android:id="@+id/tvChangeValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
+        android:text="R$ 0,00"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_below="@id/tvChangeLabel"
+        android:layout_marginTop="4dp" />
+
+    <!-- Campo valor recebido -->
+    <TextView
+        android:id="@+id/tvReceivedLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Valor recebido"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:layout_below="@id/tvChangeValue"
+        android:layout_marginTop="24dp" />
+
+    <EditText
+        android:id="@+id/etReceivedValue"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_below="@id/tvReceivedLabel"
         android:layout_marginTop="8dp"
-        android:text="@string/enter_amount_received"
-        android:textSize="16sp"
-        android:textAlignment="center"
-        android:textColor="?android:attr/textColorSecondary" />
+        android:background="@drawable/rounded_edittext_white"
+        android:hint="Insira o valor..."
+        android:inputType="numberDecimal"
+        android:padding="12dp"
+        android:textColor="#000000"
+        android:textColorHint="#CCCCCC" />
 
+    <!-- Botões Cancelar e Confirmar -->
     <LinearLayout
+        android:id="@+id/buttonContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="24dp"
         android:orientation="horizontal"
-        android:gravity="center">
+        android:weightSum="2">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_cancel"
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnCancel"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_weight="1"
-            android:layout_marginEnd="8dp"
-            android:text="@string/cancel"
-            style="@style/Widget.Material3.Button.OutlinedButton" />
+            android:text="Cancelar"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/btn_outline_white"
+            android:backgroundTint="@null"
+            android:textStyle="bold"
+            android:layout_marginEnd="12dp" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_confirm"
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnConfirm"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_weight="1"
-            android:layout_marginStart="8dp"
-            android:text="@string/confirm_receipt"
-            style="@style/Widget.Material3.Button" />
-
-        <br.com.ticpass.pos.payment.view.TimeoutCountdownView
-            android:id="@+id/timeoutCountdownView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:visibility="gone"/>
+            android:text="Confirmar"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/btn_outline_white"
+            android:backgroundTint="@null"
+            android:textStyle="bold"
+            android:layout_marginEnd="12dp" />
 
     </LinearLayout>
 
-</LinearLayout>
+</RelativeLayout>
