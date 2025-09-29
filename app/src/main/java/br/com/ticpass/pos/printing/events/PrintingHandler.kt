@@ -1,6 +1,7 @@
 package br.com.ticpass.pos.printing.events
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
@@ -27,6 +28,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.collections.iterator
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 
 class ProductRepository(private val productDao: ProductDao, private val posDao: PosDao, private val eventDao: EventDao) {
     suspend fun getProductById(id: String) = productDao.getById(id)
@@ -46,21 +50,37 @@ class PrintingHandler(
         )
     }
 
-    // alterar assinatura para receber o ViewModel
     fun generateTickets(
-        composeView: ComposeView,
         passType: PassType,
-        printingViewModel: PrintingViewModel
+        printingViewModel: PrintingViewModel,
+        imagePath: String? = null,
+        imageBitmap: Bitmap? = null
     ) {
         lifecycleOwner.lifecycleScope.launch {
             try {
+                // Se foi passada uma imagem pronta (caminho), apenas enfileira essa impressão
+                if (!imagePath.isNullOrEmpty()) {
+                    printingViewModel.enqueuePrinting(imagePath, PrintingProcessorType.MP_4200_HS)
+                    printingViewModel.startProcessing()
+                    return@launch
+                }
+
+                // Se veio um Bitmap em memória, salve em disco e depois enfileire
+                if (imageBitmap != null) {
+                    val tmpFile = saveBitmapToTempFile(context, imageBitmap)
+                    if (tmpFile != null) {
+                        printingViewModel.enqueuePrinting(tmpFile.absolutePath, PrintingProcessorType.MP_4200_HS)
+                        printingViewModel.startProcessing()
+                    } else {
+                        Log.e("PrintingHandler", "Falha ao salvar bitmap temporário para impressão")
+                    }
+                    return@launch
+                }
+
+                // Comportamento antigo: gerar passes via savePassAsBitmap para cada PassData
                 val operatorName = getOperatorName()
                 val (products, pos, event) = loadDataFromDatabase()
                 val passList = buildPassList(products, pos, event, operatorName, passType)
-
-                composeView.setContent {
-                    PassScreenContainer(passType = passType, passList = passList)
-                }
 
                 passList.forEach { passData ->
                     val file = savePassAsBitmap(context, passType, passData)
@@ -72,13 +92,29 @@ class PrintingHandler(
                     }
                 }
 
-                // se seu queue precisa ser iniciado manualmente, chame:
-                // printingViewModel.startProcessing()
+                printingViewModel.startProcessing()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
     }
+
+    private fun saveBitmapToTempFile(context: Context, bitmap: Bitmap): File? {
+        return try {
+            val dir = File(context.cacheDir, "printing")
+            if (!dir.exists()) dir.mkdirs()
+            val file = File(dir, "pass_${System.currentTimeMillis()}.png")
+            FileOutputStream(file).use { out ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                out.flush()
+            }
+            file
+        } catch (e: IOException) {
+            e.printStackTrace()
+            null
+        }
+    }
+
     @Composable
     private fun PassScreenContainer(
         passType: PassType,
@@ -205,6 +241,42 @@ class PrintingHandler(
             }
         } else {
             emptyList()
+        }
+    }
+
+    // Add this method to PrintingHandler class
+    fun enqueueAndStartPrinting(
+        printingViewModel: PrintingViewModel,
+        imageBitmap: Bitmap? = null
+    ) {
+        lifecycleOwner.lifecycleScope.launch {
+            try {
+                // Use existing bitmap if provided
+                if (imageBitmap != null) {
+                    val tmpFile = saveBitmapToTempFile(context, imageBitmap)
+                    if (tmpFile != null) {
+                        printingViewModel.enqueuePrinting(tmpFile.absolutePath, PrintingProcessorType.MP_4200_HS)
+                        printingViewModel.startProcessing()
+                        return@launch
+                    }
+                }
+
+                // Generate passes from database as fallback
+                val operatorName = getOperatorName()
+                val (products, pos, event) = loadDataFromDatabase()
+                val passList = buildPassList(products, pos, event, operatorName, PassType.ProductCompact)
+
+                passList.forEach { passData ->
+                    val file = savePassAsBitmap(context, PassType.ProductCompact, passData)
+                    if (file != null) {
+                        printingViewModel.enqueuePrinting(file.absolutePath, PrintingProcessorType.MP_4200_HS)
+                    }
+                }
+
+                printingViewModel.startProcessing()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 

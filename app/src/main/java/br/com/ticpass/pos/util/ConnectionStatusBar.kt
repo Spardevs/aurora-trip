@@ -47,23 +47,26 @@ class ConnectionStatusBar(private val context: Context) {
                     snackbar = Snackbar.make(rootView, message, 5000)
 
                     val snackbarView = snackbar?.view
-                    snackbarView?.apply {
-                        layoutParams = FrameLayout.LayoutParams(
-                            FrameLayout.LayoutParams.MATCH_PARENT,
-                            FrameLayout.LayoutParams.WRAP_CONTENT
-                        ).apply {
-                            gravity = Gravity.BOTTOM
-                            val margin = 8f
-                            val scale = context.resources.displayMetrics.density
-                            val marginPx = (margin * scale + 0.5f).toInt()
-                            setMargins(marginPx, marginPx, marginPx, marginPx)
-                        }
-                        setPadding(0, 0, 0, 0)
+                    snackbarView?.let { view ->
+                        // Garanta largura total e remova marginBottom (e margens laterais se desejar)
+                        val marginPx = 0 // 0 para ocupar todo o width
+                        val topMarginPx = 0 // se quiser um pequeno espaçamento superior, ajuste aqui
+                        val params = (view.layoutParams as? ViewGroup.MarginLayoutParams)
+                            ?: FrameLayout.LayoutParams(
+                                FrameLayout.LayoutParams.MATCH_PARENT,
+                                FrameLayout.LayoutParams.WRAP_CONTENT
+                            )
 
-                        findViewById<com.google.android.material.textview.MaterialTextView>(
+                        params.width = ViewGroup.LayoutParams.MATCH_PARENT
+                        params.setMargins(marginPx, topMarginPx, marginPx, 0) // bottom = 0 -> sem marginBottom
+                        view.layoutParams = params
+
+                        view.setPadding(0, 0, 0, 0)
+
+                        view.findViewById<com.google.android.material.textview.MaterialTextView>(
                             com.google.android.material.R.id.snackbar_text
                         )?.apply {
-                            textSize = 11f
+                            textSize = 9f
                         }
                     }
 
@@ -76,7 +79,7 @@ class ConnectionStatusBar(private val context: Context) {
                         show()
 
                         handler.removeCallbacks(dismissRunnable)
-                        handler.postDelayed(dismissRunnable, 10000)
+                        handler.postDelayed(dismissRunnable, 5000)
                     }
                 }
             } catch (e: Exception) {
