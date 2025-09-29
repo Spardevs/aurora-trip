@@ -1,101 +1,106 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="24dp"
-    android:background="@drawable/bg_with_gradient">
+    android:background="@drawable/bg_with_gradient"
+    android:orientation="vertical">
 
-    <!-- Ícone dinheiro -->
-    <ImageView
-        android:id="@+id/iconMoney"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
-        android:layout_centerHorizontal="true"
-        android:src="@drawable/ic_cash_normal"
-        app:tint="@color/colorWhite" />
-
-    <!-- Texto Dinheiro -->
-    <TextView
-        android:id="@+id/tvMoneyTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Dinheiro"
-        android:textColor="#FFFFFF"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_below="@id/iconMoney"
-        android:layout_marginTop="12dp"
-        android:layout_centerHorizontal="true" />
-
-    <!-- Total -->
-    <TextView
-        android:id="@+id/tvTotalLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Total"
-        android:textColor="#FFFFFF"
-        android:textSize="14sp"
-        android:layout_below="@id/tvMoneyTitle"
-        android:layout_marginTop="24dp" />
-
-    <TextView
-        android:id="@+id/tvTotalValue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="R$ 0,00"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_below="@id/tvTotalLabel"
-        android:layout_marginTop="4dp" />
-
-    <!-- Troco -->
-    <TextView
-        android:id="@+id/tvChangeLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Troco"
-        android:textColor="#FFFFFF"
-        android:textSize="14sp"
-        android:layout_below="@id/tvTotalValue"
-        android:layout_marginTop="16dp" />
-
-    <TextView
-        android:id="@+id/tvChangeValue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="R$ 0,00"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_below="@id/tvChangeLabel"
-        android:layout_marginTop="4dp" />
-
-    <!-- Campo valor recebido -->
-    <TextView
-        android:id="@+id/tvReceivedLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Valor recebido"
-        android:textColor="#FFFFFF"
-        android:textSize="14sp"
-        android:layout_below="@id/tvChangeValue"
-        android:layout_marginTop="24dp" />
-
-    <EditText
-        android:id="@+id/etReceivedValue"
+    <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_below="@id/tvReceivedLabel"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/rounded_edittext_white"
-        android:hint="Insira o valor..."
-        android:inputType="numberDecimal"
-        android:padding="12dp"
-        android:textColor="#000000"
-        android:textColorHint="#CCCCCC" />
+        android:layout_height="wrap_content"
+        android:layout_above="@id/buttonContainer"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Ícone dinheiro -->
+            <ImageView
+                android:id="@+id/iconMoney"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_gravity="center_horizontal"
+                android:src="@drawable/ic_cash_normal"
+                app:tint="@color/colorWhite" />
+
+            <!-- Texto Dinheiro -->
+            <TextView
+                android:id="@+id/tvMoneyTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dinheiro"
+                android:textColor="#FFFFFF"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:layout_gravity="center_horizontal" />
+
+            <!-- Total -->
+            <TextView
+                android:id="@+id/tvTotalLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Total"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvTotalValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="R$ 0,00"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginTop="4dp" />
+
+            <!-- Troco -->
+            <TextView
+                android:id="@+id/tvChangeLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Troco"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvChangeValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="R$ 0,00"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginTop="4dp" />
+
+            <!-- Campo valor recebido -->
+            <TextView
+                android:id="@+id/tvReceivedLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Valor recebido"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:layout_marginTop="10dp" />
+
+            <EditText
+                android:id="@+id/etReceivedValue"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/rounded_edittext_white"
+                android:hint="Insira o valor..."
+                android:inputType="numberDecimal"
+                android:padding="12dp"
+                android:textColor="#000000"
+                android:textColorHint="#CCCCCC" />
+        </LinearLayout>
+    </ScrollView>
 
     <!-- Botões Cancelar e Confirmar -->
     <LinearLayout
@@ -103,9 +108,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="24dp"
         android:orientation="horizontal"
-        android:weightSum="2">
+        android:weightSum="2"
+        android:layout_marginTop="12dp">
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnCancel"
@@ -133,4 +138,4 @@
 
     </LinearLayout>
 
-</RelativeLayout>
+</LinearLayout>

@@ -1,21 +1,24 @@
 package br.com.ticpass.pos.view.fragments.payment
 
+import android.content.Context
 import android.os.Bundle
 import android.text.Editable
+import android.text.InputFilter
 import android.text.TextWatcher
 import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -30,7 +33,6 @@ import br.com.ticpass.pos.payment.events.FinishPaymentHandler
 import br.com.ticpass.pos.payment.events.PaymentType
 import br.com.ticpass.pos.payment.models.SystemPaymentMethod
 import br.com.ticpass.pos.payment.utils.PaymentUIUtils
-import br.com.ticpass.pos.payment.view.TimeoutCountdownView
 import br.com.ticpass.pos.printing.events.PrintingHandler
 import br.com.ticpass.pos.sdk.AcquirerSdk
 import br.com.ticpass.pos.util.PaymentFragmentUtils
@@ -38,41 +40,55 @@ import br.com.ticpass.pos.view.ui.pass.PassType
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import java.math.BigInteger
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.text.NumberFormat
 import java.util.Locale
 import javax.inject.Inject
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
+
 
 @AndroidEntryPoint
 class CashPaymentFragment : Fragment() {
+
     private val paymentViewModel: PaymentProcessingViewModel by activityViewModels()
     private val printingViewModel: PrintingViewModel by activityViewModels()
+
     @Inject
     lateinit var shoppingCartManager: ShoppingCartManager
+
     @Inject
     lateinit var finishPaymentHandler: FinishPaymentHandler
+
     @Inject
     lateinit var paymentUtils: PaymentFragmentUtils
+
     private var paymentValue: Double = 0.0
     private var totalValue: Double = 0.0
     private var remainingValue: Double = 0.0
     private var isMultiPayment: Boolean = false
     private var progress: String = ""
+
     private lateinit var passGeneratorService: PassGeneratorService
     private lateinit var printingHandler: PrintingHandler
-    // Views mapeadas ao layout que você enviou
+
+    // Views
     private lateinit var titleTextView: TextView
     private var statusTextView: TextView? = null
     private var infoTextView: TextView? = null
     private lateinit var imageView: ImageView
     private lateinit var priceTextView: TextView
+
     private lateinit var tvTotalValue: TextView
     private lateinit var tvChangeValue: TextView
     private lateinit var etReceivedValue: EditText
     private var btnCancel: Button? = null
     private var btnConfirm: Button? = null
-    private var totalAmount: Double = 0.0
-    private var amountReceived: Double = 0.0
+
+    // Valores monetários usando BigDecimal internamente para evitar problemas de precisão
+    private var totalAmount: BigDecimal = BigDecimal.ZERO // em reais
+    private var amountReceived: BigDecimal = BigDecimal.ZERO // em reais
 
     override fun onCreate(savedInstanceState: Bundle?) {
         AcquirerSdk.initialize(requireContext())
@@ -108,6 +124,14 @@ class CashPaymentFragment : Fragment() {
         btnCancel = view.findViewById(R.id.btnCancel)
         btnConfirm = view.findViewById(R.id.btnConfirm)
 
+        // Agora que etReceivedValue está inicializado, pode usar:
+        etReceivedValue.requestFocus()
+
+        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(etReceivedValue, InputMethodManager.SHOW_IMPLICIT)
+
+        val buttonContainer = view.findViewById<View>(R.id.buttonContainer)
+
         statusTextView = view.findViewById(R.id.payment_status) ?: TextView(requireContext())
         infoTextView = view.findViewById(R.id.payment_info) ?: TextView(requireContext())
 
@@ -116,29 +140,61 @@ class CashPaymentFragment : Fragment() {
         setupObservers()
 
         setupViews(view)
-
         setupListeners()
 
-        tvTotalValue.text = PaymentFragmentUtils.formatCurrency(totalAmount)
-        priceTextView.text = PaymentFragmentUtils.formatCurrency(totalAmount)
-    }
+        ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
+            val imeHeight = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+            buttonContainer.animate().translationY(-imeHeight.toFloat()).setDuration(150).start()
+            insets
+        }
 
+        // exibe total formatado
+        tvTotalValue.text = formatCurrencyFromReais(totalAmount)
+        priceTextView.text = formatCurrencyFromReais(totalAmount)
+    }
     private fun setupViews(view: View) {
+        // Ler o carrinho do ShoppingCartManager (totalPrice em centavos)
         val cart = shoppingCartManager.getCart()
-        totalAmount = cart.totalPrice.toDouble() / 10000.0
+        val totalCents: Long = try {
+            // tenta converter para Long (suporta Number, Long, Int, BigInteger com toLong())
+            cart.totalPrice.toLong()
+        } catch (e: Exception) {
+            // fallback: tenta double -> long
+            cart.totalPrice.toString().toDoubleOrNull()?.toLong() ?: 0L
+        }
+
+        // converte centavos -> reais com BigDecimal (scale 2)
+        totalAmount = BigDecimal.valueOf(totalCents, 2).setScale(2, RoundingMode.HALF_EVEN)
 
         titleTextView.text = "Pagamento em Dinheiro"
         statusTextView?.text = "Aguardando confirmação"
         infoTextView?.text = "Informe o valor recebido em dinheiro (opcional)"
-        priceTextView.text = formatCurrency(cart.totalPrice)
 
+        // habilita botão confirmar
         btnConfirm?.isEnabled = true
+
+        // força filtro no input para aceitar apenas 0-9 , .
+        etReceivedValue.filters = arrayOf(InputFilter { source, start, end, dest, dstart, dend ->
+            val allowed = "0123456789.,"
+            for (i in start until end) {
+                if (!allowed.contains(source[i])) return@InputFilter ""
+            }
+            null
+        })
     }
 
-    private fun formatCurrency(valueInCents: BigInteger): String {
-        val valueInReais = valueInCents.toDouble() / 100.0
-        val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
-        return format.format(valueInReais)
+    // Formata BigDecimal (reais) para string "R$ x.xxx,xx"
+    private fun formatCurrencyFromReais(value: BigDecimal): String {
+        val nf = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+        nf.maximumFractionDigits = 2
+        nf.minimumFractionDigits = 2
+        return nf.format(value)
+    }
+
+    // Alternativa: formata a partir de centavos (Long)
+    private fun formatCurrencyFromCents(valueInCents: Long): String {
+        val reais = BigDecimal.valueOf(valueInCents, 2).setScale(2, RoundingMode.HALF_EVEN)
+        return formatCurrencyFromReais(reais)
     }
 
     private fun setupPrintingHandler() {
@@ -191,6 +247,7 @@ class CashPaymentFragment : Fragment() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
+                // apenas recalcula; não reformatamos o texto automaticamente aqui para evitar cursor jump
                 calculateChange()
             }
         })
@@ -200,29 +257,36 @@ class CashPaymentFragment : Fragment() {
         val inputText = etReceivedValue.text.toString().trim()
         if (inputText.isEmpty()) {
             tvChangeValue.visibility = View.VISIBLE
-            tvChangeValue.text = PaymentFragmentUtils.formatCurrency(0.0)
+            tvChangeValue.text = formatCurrencyFromReais(BigDecimal.ZERO)
             etReceivedValue.error = null
-            amountReceived = 0.0
+            amountReceived = BigDecimal.ZERO
             return
         }
 
-        val parsed = inputText.replace(',', '.').toDoubleOrNull()
+        // Normaliza vírgula para ponto e tenta BigDecimal
+        val normalized = inputText.replace(',', '.')
+        val parsed = try {
+            BigDecimal(normalized).setScale(2, RoundingMode.HALF_EVEN)
+        } catch (e: Exception) {
+            null
+        }
+
         if (parsed == null) {
             etReceivedValue.error = "Valor inválido"
-            tvChangeValue.text = PaymentFragmentUtils.formatCurrency(0.0)
-            amountReceived = 0.0
+            tvChangeValue.text = formatCurrencyFromReais(BigDecimal.ZERO)
+            amountReceived = BigDecimal.ZERO
             return
         }
 
         amountReceived = parsed
-        val change = amountReceived - totalAmount
+        val change = amountReceived.subtract(totalAmount).setScale(2, RoundingMode.HALF_EVEN)
 
         tvChangeValue.visibility = View.VISIBLE
-        tvChangeValue.text = PaymentFragmentUtils.formatCurrency(change)
-        val colorRes = if (change >= 0) R.color.colorGreen else R.color.colorRed
+        tvChangeValue.text = formatCurrencyFromReais(change)
+        val colorRes = if (change >= BigDecimal.ZERO) R.color.colorGreen else R.color.colorRed
         tvChangeValue.setTextColor(ContextCompat.getColor(requireContext(), colorRes))
 
-        if (change < 0) {
+        if (change < BigDecimal.ZERO) {
             etReceivedValue.error = getString(R.string.insufficient_amount)
         } else {
             etReceivedValue.error = null
@@ -233,11 +297,17 @@ class CashPaymentFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val inputText = etReceivedValue.text.toString()
-                amountReceived = if (inputText.isNotEmpty()) inputText.replace(',', '.').toDouble() else 0.0
+                amountReceived = if (inputText.isNotEmpty()) {
+                    try {
+                        BigDecimal(inputText.replace(',', '.')).setScale(2, RoundingMode.HALF_EVEN)
+                    } catch (e: Exception) {
+                        BigDecimal.ZERO
+                    }
+                } else BigDecimal.ZERO
 
                 statusTextView?.text = "Processando..."
                 infoTextView?.text = when {
-                    amountReceived == 0.0 -> "Confirmando pagamento sem valor informado"
+                    amountReceived == BigDecimal.ZERO -> "Confirmando pagamento sem valor informado"
                     amountReceived >= totalAmount -> "Processando pagamento com troco"
                     else -> "Confirmando pagamento com valor parcial"
                 }
@@ -274,7 +344,8 @@ class CashPaymentFragment : Fragment() {
             statusTextView?.text = "Pagamento Confirmado!"
             val inputText = etReceivedValue.text.toString()
             infoTextView?.text = if (inputText.isNotEmpty()) {
-                "Fichas geradas com sucesso. Troco: ${PaymentFragmentUtils.formatCurrency(amountReceived - totalAmount)}"
+                val troco = amountReceived.subtract(totalAmount)
+                "Fichas geradas com sucesso. Troco: ${formatCurrencyFromReais(troco)}"
             } else {
                 "Fichas geradas com sucesso. Valor não informado."
             }
@@ -356,7 +427,6 @@ class CashPaymentFragment : Fragment() {
                     )
                 )
 
-                // Imprimir fichas
                 val composeView = ComposeView(requireContext())
                 printingHandler.generateTickets(
                     composeView = composeView,
