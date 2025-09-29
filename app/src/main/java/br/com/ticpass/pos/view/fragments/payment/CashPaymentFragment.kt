@@ -69,26 +69,19 @@ class CashPaymentFragment : Fragment() {
     private var remainingValue: Double = 0.0
     private var isMultiPayment: Boolean = false
     private var progress: String = ""
-
     private lateinit var passGeneratorService: PassGeneratorService
     private lateinit var printingHandler: PrintingHandler
-
-    // Views
     private lateinit var titleTextView: TextView
     private var statusTextView: TextView? = null
     private var infoTextView: TextView? = null
     private lateinit var imageView: ImageView
-    private lateinit var priceTextView: TextView
-
     private lateinit var tvTotalValue: TextView
     private lateinit var tvChangeValue: TextView
     private lateinit var etReceivedValue: EditText
     private var btnCancel: Button? = null
     private var btnConfirm: Button? = null
-
-    // Valores monetários usando BigDecimal internamente para evitar problemas de precisão
-    private var totalAmount: BigDecimal = BigDecimal.ZERO // em reais
-    private var amountReceived: BigDecimal = BigDecimal.ZERO // em reais
+    private var totalAmount: BigDecimal = BigDecimal.ZERO
+    private var amountReceived: BigDecimal = BigDecimal.ZERO
 
     override fun onCreate(savedInstanceState: Bundle?) {
         AcquirerSdk.initialize(requireContext())
@@ -116,15 +109,12 @@ class CashPaymentFragment : Fragment() {
 
         titleTextView = view.findViewById(R.id.tvMoneyTitle)
         imageView = view.findViewById(R.id.iconMoney)
-        priceTextView = view.findViewById(R.id.tvTotalValue)
-
         tvTotalValue = view.findViewById(R.id.tvTotalValue)
         tvChangeValue = view.findViewById(R.id.tvChangeValue)
         etReceivedValue = view.findViewById(R.id.etReceivedValue)
         btnCancel = view.findViewById(R.id.btnCancel)
         btnConfirm = view.findViewById(R.id.btnConfirm)
 
-        // Agora que etReceivedValue está inicializado, pode usar:
         etReceivedValue.requestFocus()
 
         val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -148,32 +138,25 @@ class CashPaymentFragment : Fragment() {
             insets
         }
 
-        // exibe total formatado
         tvTotalValue.text = formatCurrencyFromReais(totalAmount)
-        priceTextView.text = formatCurrencyFromReais(totalAmount)
+        tvTotalValue.text = formatCurrencyFromReais(totalAmount)
     }
     private fun setupViews(view: View) {
-        // Ler o carrinho do ShoppingCartManager (totalPrice em centavos)
         val cart = shoppingCartManager.getCart()
         val totalCents: Long = try {
-            // tenta converter para Long (suporta Number, Long, Int, BigInteger com toLong())
             cart.totalPrice.toLong()
         } catch (e: Exception) {
-            // fallback: tenta double -> long
             cart.totalPrice.toString().toDoubleOrNull()?.toLong() ?: 0L
         }
 
-        // converte centavos -> reais com BigDecimal (scale 2)
         totalAmount = BigDecimal.valueOf(totalCents, 2).setScale(2, RoundingMode.HALF_EVEN)
 
         titleTextView.text = "Pagamento em Dinheiro"
         statusTextView?.text = "Aguardando confirmação"
         infoTextView?.text = "Informe o valor recebido em dinheiro (opcional)"
 
-        // habilita botão confirmar
         btnConfirm?.isEnabled = true
 
-        // força filtro no input para aceitar apenas 0-9 , .
         etReceivedValue.filters = arrayOf(InputFilter { source, start, end, dest, dstart, dend ->
             val allowed = "0123456789.,"
             for (i in start until end) {
@@ -183,7 +166,6 @@ class CashPaymentFragment : Fragment() {
         })
     }
 
-    // Formata BigDecimal (reais) para string "R$ x.xxx,xx"
     private fun formatCurrencyFromReais(value: BigDecimal): String {
         val nf = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
         nf.maximumFractionDigits = 2
@@ -191,7 +173,6 @@ class CashPaymentFragment : Fragment() {
         return nf.format(value)
     }
 
-    // Alternativa: formata a partir de centavos (Long)
     private fun formatCurrencyFromCents(valueInCents: Long): String {
         val reais = BigDecimal.valueOf(valueInCents, 2).setScale(2, RoundingMode.HALF_EVEN)
         return formatCurrencyFromReais(reais)
@@ -247,7 +228,6 @@ class CashPaymentFragment : Fragment() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
-                // apenas recalcula; não reformatamos o texto automaticamente aqui para evitar cursor jump
                 calculateChange()
             }
         })
@@ -263,7 +243,6 @@ class CashPaymentFragment : Fragment() {
             return
         }
 
-        // Normaliza vírgula para ponto e tenta BigDecimal
         val normalized = inputText.replace(',', '.')
         val parsed = try {
             BigDecimal(normalized).setScale(2, RoundingMode.HALF_EVEN)
@@ -318,7 +297,6 @@ class CashPaymentFragment : Fragment() {
 
                 paymentViewModel.notifyPaymentSuccess()
 
-                // Iniciar impressão via PrintingHandler
                 val composeView = ComposeView(requireContext())
                 printingHandler.generateTickets(
                     composeView = composeView,

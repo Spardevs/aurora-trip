@@ -20,7 +20,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Ícone dinheiro -->
             <ImageView
                 android:id="@+id/iconMoney"
                 android:layout_width="72dp"
@@ -29,7 +28,6 @@
                 android:src="@drawable/ic_cash_normal"
                 app:tint="@color/colorWhite" />
 
-            <!-- Texto Dinheiro -->
             <TextView
                 android:id="@+id/tvMoneyTitle"
                 android:layout_width="wrap_content"
@@ -40,7 +38,6 @@
                 android:textStyle="bold"
                 android:layout_gravity="center_horizontal" />
 
-            <!-- Total -->
             <TextView
                 android:id="@+id/tvTotalLabel"
                 android:layout_width="wrap_content"
@@ -59,7 +56,6 @@
                 android:textStyle="bold"
                 android:layout_marginTop="4dp" />
 
-            <!-- Troco -->
             <TextView
                 android:id="@+id/tvChangeLabel"
                 android:layout_width="wrap_content"
@@ -78,7 +74,6 @@
                 android:textStyle="bold"
                 android:layout_marginTop="4dp" />
 
-            <!-- Campo valor recebido -->
             <TextView
                 android:id="@+id/tvReceivedLabel"
                 android:layout_width="wrap_content"
@@ -102,7 +97,6 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Botões Cancelar e Confirmar -->
     <LinearLayout
         android:id="@+id/buttonContainer"
         android:layout_width="match_parent"
