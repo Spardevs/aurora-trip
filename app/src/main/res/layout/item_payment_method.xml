@@ -15,8 +15,8 @@
         >
         <ImageView
             android:id="@+id/iv_payment_icon"
-            android:layout_width="15dp"
-            android:layout_height="15dp"
+            android:layout_width="@dimen/payment_icon_size"
+            android:layout_height="@dimen/payment_icon_size"
             android:layout_gravity="center"
             android:layout_marginEnd="8dp"
             app:srcCompat="@drawable/credit" />
@@ -27,7 +27,7 @@
             android:layout_height="match_parent"
             android:layout_gravity="center"
             android:text="Crédito"
-            android:textSize="11sp"
+            android:textSize="@dimen/text_sm"
             android:textAlignment="center"
             android:textColor="@color/colorGreen" />
     </LinearLayout>

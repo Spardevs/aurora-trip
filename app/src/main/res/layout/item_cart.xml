@@ -45,7 +45,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Nome do Produto"
-                    android:textSize="16sp"
+                    android:textSize="@dimen/text_sm"
                     android:textStyle="bold" />
 
                 <TextView
@@ -53,7 +53,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Preço"
-                    android:textSize="14sp" />
+                    android:textSize="@dimen/text_xs" />
             </LinearLayout>
 
             <LinearLayout
@@ -78,7 +78,7 @@
                     android:layout_gravity="center"
                     android:textColor="@color/colorAccent"
                     android:visibility="gone"
-                    android:textSize="11sp" />
+                    android:textSize="@dimen/text_xs" />
             </LinearLayout>
 
         </LinearLayout>
@@ -112,7 +112,7 @@
                     android:layout_height="match_parent"
                     android:layout_marginHorizontal="8dp"
                     android:text="1"
-                    android:textSize="16sp"
+                    android:textSize="@dimen/text_xs"
                     android:textStyle="bold"
                     android:gravity="center" />
 

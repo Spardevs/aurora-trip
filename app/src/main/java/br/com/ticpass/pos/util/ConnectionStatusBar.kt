@@ -4,9 +4,11 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Color
 import android.util.Log
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
 
@@ -56,7 +58,9 @@ class ConnectionStatusBar(private val context: Context) {
                                 FrameLayout.LayoutParams.MATCH_PARENT,
                                 FrameLayout.LayoutParams.WRAP_CONTENT
                             )
+                        val tv = view.findViewById<TextView>(com.google.android.material.R.id.snackbar_text)
 
+                        tv?.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
                         params.width = ViewGroup.LayoutParams.MATCH_PARENT
                         params.setMargins(marginPx, topMarginPx, marginPx, 0) // bottom = 0 -> sem marginBottom
                         view.layoutParams = params

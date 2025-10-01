@@ -51,7 +51,7 @@
                         android:layout_height="wrap_content"
                         android:text="subtotal:"
                         android:textColor="@android:color/white"
-                        android:textSize="10sp" />
+                         android:textSize="@dimen/text_xs" />
 
                     <TextView
                         android:id="@+id/tv_sub_total"
@@ -59,7 +59,7 @@
                         android:layout_height="wrap_content"
                         android:text="R$ 0,00"
                         android:textColor="@android:color/white"
-                        android:textSize="10sp" />
+                         android:textSize="@dimen/text_xs" />
                 </LinearLayout>
 
                 <!-- Comissão -->
@@ -77,7 +77,7 @@
                         android:layout_height="wrap_content"
                         android:text="comissão de atendente:"
                         android:textColor="@android:color/white"
-                        android:textSize="10sp" />
+                         android:textSize="@dimen/text_xs" />
 
                     <TextView
                         android:id="@+id/tv_total_commission"
@@ -85,7 +85,7 @@
                         android:layout_height="wrap_content"
                         android:text="R$ 0,00"
                         android:textColor="@android:color/white"
-                        android:textSize="10sp" />
+                         android:textSize="@dimen/text_xs" />
                 </LinearLayout>
 
                 <!-- Total -->
@@ -104,7 +104,7 @@
                         android:layout_height="wrap_content"
                         android:text="TOTAL:"
                         android:textColor="@android:color/white"
-                        android:textSize="14sp"
+                        android:textSize="@dimen/text_sm"
                         android:textStyle="bold" />
 
                     <TextView
@@ -113,7 +113,7 @@
                         android:layout_height="wrap_content"
                         android:text="R$ 0,00"
                         android:textColor="@android:color/white"
-                        android:textSize="14sp"
+                        android:textSize="@dimen/text_sm"
                         android:textStyle="bold" />
                 </LinearLayout>
 
@@ -139,7 +139,7 @@
                 android:layout_marginStart="1dp"
                 android:layout_marginEnd="10dp"
                 android:elevation="5dp"
-                android:padding="10dp"
+                android:padding="15dp"
                 android:importantForAccessibility="no"
                 android:src="@drawable/ic_cart"
                 app:tint="@color/ic_launcher_background" />

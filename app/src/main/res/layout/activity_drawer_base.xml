@@ -25,10 +25,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="22dp"
                 android:layout_gravity="center"
-                android:src="@drawable/logo_full_light"
-                android:contentDescription="@string/app_name"
                 android:adjustViewBounds="true"
-                android:scaleType="fitCenter"/>
+                android:contentDescription="@string/app_name"
+                android:scaleType="fitCenter"
+                android:src="@drawable/logo_full_light" />
         </com.google.android.material.appbar.MaterialToolbar>
 
         <FrameLayout
