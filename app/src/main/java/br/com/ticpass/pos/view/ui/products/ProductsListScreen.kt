@@ -165,25 +165,12 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
             R.color.design_default_color_primary_variant
         )
 
-        swipeRefreshLayout.setOnRefreshListener(null)
-
-        swipeRefreshLayout.setOnTouchListener { _, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    // Início do toque
-                }
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    // Quando o toque é liberado ou cancelado
-                    if (swipeRefreshLayout.isRefreshing) {
-                        refreshData()
-                    }
-                    swipeRefreshLayout.isRefreshing = false
-                }
-            }
-            false
+        swipeRefreshLayout.setOnRefreshListener {
+            swipeRefreshLayout.isRefreshing = true
+            refreshData()
         }
 
-        swipeRefreshLayout.setDistanceToTriggerSync(120)
+        swipeRefreshLayout.setDistanceToTriggerSync(200)
     }
 
     private fun refreshData() {

@@ -13,6 +13,8 @@
   -->
 
 <resources>
+    <dimen name="button_payment_screen">48dp</dimen>
+    <dimen name="padding_payment_screen">24dp</dimen>
     <dimen name="product_image_size">70dp</dimen>
     <dimen name="payment_icon_size">15dp</dimen>
     <dimen name="text_xs">9sp</dimen>

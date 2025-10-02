@@ -4,7 +4,7 @@
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp"
+    android:padding="@dimen/padding_payment_screen"
     android:background="@drawable/bg_with_gradient"
     android:orientation="vertical">
 
@@ -109,7 +109,7 @@
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnCancel"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="@dimen/button_payment_screen"
             android:layout_weight="1"
             android:text="Cancelar"
             android:textColor="#FFFFFF"
@@ -121,14 +121,13 @@
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnConfirm"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="@dimen/button_payment_screen"
             android:layout_weight="1"
             android:text="Confirmar"
             android:textColor="#FFFFFF"
             android:background="@drawable/btn_outline_white"
             android:backgroundTint="@null"
-            android:textStyle="bold"
-            android:layout_marginEnd="12dp" />
+            android:textStyle="bold" />
 
     </LinearLayout>
 

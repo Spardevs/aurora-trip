@@ -77,7 +77,6 @@ class ProductsActivity : DrawerBaseActivity() {
         observerId = null
     }
 
-
     override fun openProducts() {
         startActivity(Intent(this, ProductsActivity::class.java))
         finish()
