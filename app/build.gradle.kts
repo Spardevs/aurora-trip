@@ -103,6 +103,14 @@ android {
 
     flavorDimensions += "acquirers"
     productFlavors {
+        create("proprietaryGertec") {
+            dimension = "acquirers"
+            applicationIdSuffix = ".proprietary.gertec"
+            versionNameSuffix = "-proprietary-gertec"
+            minSdk = libs.versions.pagseguroMinSdk.get().toInt()
+            targetSdk = libs.versions.pagseguroTargetSdk.get().toInt()
+        }
+
         create("pagseguro") {
             dimension = "acquirers"
             applicationIdSuffix = ".amalerinha"
@@ -154,6 +162,12 @@ android {
             versionNameSuffix = "-tectoySeriesT"
         }
 
+        create("sk210") {
+            initWith(getByName("release"))
+            versionNameSuffix = "-sk210"
+            signingConfig = signingConfigs.getByName("gertec")
+        }
+
         create("gertecGpos700") {
             initWith(getByName("release"))
             versionNameSuffix = "-gertecGpos700"
@@ -181,18 +195,25 @@ android {
         beforeVariants { variantBuilder ->
             val flavorName = variantBuilder.productFlavors.first().second
             val buildType = variantBuilder.buildType
+            val isProprietaryGertec = flavorName == "proprietaryGertec"
             val isPagSeguro = flavorName == "pagseguro"
             val isStone = flavorName == "stone"
             val isDebug = buildType == "debug"
             val isRelease = buildType == "release"
-            val isSupportedBuildType = isDebug || isRelease
+            val isSk210 = buildType == "sk210"
 
-            // pagseguro only supports release and debug build types
-            if (isPagSeguro && !isSupportedBuildType) {
+            // proprietaryGertec only supports debug and sk210 build types
+            if (isProprietaryGertec && !(isDebug || isSk210)) {
                 variantBuilder.enable = false
             }
 
-            if (isStone && isRelease) {
+            // pagseguro only supports release and debug build types (no device-specific builds)
+            if (isPagSeguro && !(isDebug || isRelease)) {
+                variantBuilder.enable = false
+            }
+
+            // stone supports all build types except release and sk210
+            if (isStone && (isRelease || isSk210)) {
                 variantBuilder.enable = false
             }
         }
@@ -391,6 +412,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
+
+    implementation(files("libs/EasyLayer-SK210-v2.1.7-release.aar"))
 
     // PagSeguro
     "pagseguroImplementation"(libs.plugpagservice.wrapper)

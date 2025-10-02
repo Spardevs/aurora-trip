@@ -17,7 +17,7 @@ object RefundProcessorRegistry {
     // Map of processor types to processors (for dynamic processor)
     private val processorMap: Map<RefundProcessorType, RefundProcessorBase> by lazy {
         mapOf(
-            RefundProcessorType.ACQUIRER to acquirerProcessor,
+//            RefundProcessorType.ACQUIRER to acquirerProcessor,
         )
     }
 

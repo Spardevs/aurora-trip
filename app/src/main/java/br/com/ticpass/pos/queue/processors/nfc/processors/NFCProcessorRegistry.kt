@@ -21,9 +21,9 @@ object NFCProcessorRegistry {
     // Map of processor types to processors (for dynamic processor)
     private val processorMap: Map<NFCProcessorType, NFCProcessorBase> by lazy {
         mapOf(
-            NFCProcessorType.CUSTOMER_AUTH to nfcCustomerAuth,
-            NFCProcessorType.TAG_FORMAT to nfcTagFormat,
-            NFCProcessorType.CUSTOMER_SETUP to nfcCustomerSetup,
+//            NFCProcessorType.CUSTOMER_AUTH to nfcCustomerAuth,
+//            NFCProcessorType.TAG_FORMAT to nfcTagFormat,
+//            NFCProcessorType.CUSTOMER_SETUP to nfcCustomerSetup,
         )
     }
 
