@@ -1,5 +1,7 @@
 package br.com.ticpass.pos.queue.processors.printing.processors.core
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import br.com.ticpass.pos.queue.core.QueueProcessor
 import br.com.ticpass.pos.queue.input.UserInputRequest
 import br.com.ticpass.pos.queue.input.UserInputResponse
@@ -35,6 +37,8 @@ abstract class PrintingProcessorBase :
      */
     override suspend fun process(item: PrintingQueueItem): ProcessingResult {
         _events.emit(PrintingEvent.START)
+
+        Log.d(TAG, "Processing print job for item: ${item.id}")
 
         // Call implementation-specific processing
         return processPrinting(item)

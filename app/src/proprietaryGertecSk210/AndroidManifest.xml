@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2025 Ticpass. All rights reserved.
+  ~
+  ~ PROPRIETARY AND CONFIDENTIAL
+  ~
+  ~ This software is the confidential and proprietary information of Ticpass
+  ~ ("Confidential Information"). You shall not disclose such Confidential Information
+  ~ and shall use it only in accordance with the terms of the license agreement you
+  ~ entered into with Ticpass.
+  ~
+  ~ Unauthorized copying, distribution, or use of this software, via any medium,
+  ~ is strictly prohibited without the express written permission of Ticpass.
+  -->
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:name="br.com.ticpass.pos.MainApplication"
+        android:label="@string/app_name"
+        tools:replace="android:label"
+        android:icon="@mipmap/ic_launcher"
+    >
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+
+        </provider>
+
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="br.com.ticpass.pos.payment.PaymentProcessingActivity"
+            android:exported="true"/>
+
+        <activity
+            android:name="br.com.ticpass.pos.printing.PrintingActivity"
+            android:exported="true"/>
+
+        <activity
+            android:name="br.com.ticpass.pos.refund.RefundActivity"
+            android:exported="true"/>
+
+        <activity
+            android:name="br.com.ticpass.pos.nfc.NFCActivity"
+            android:exported="true"/>
+    </application>
+</manifest>

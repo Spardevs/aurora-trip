@@ -166,6 +166,9 @@ android {
             initWith(getByName("release"))
             versionNameSuffix = "-gertecSk210"
             signingConfig = signingConfigs.getByName("gertec")
+
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
 
         create("gertecGpos700") {
