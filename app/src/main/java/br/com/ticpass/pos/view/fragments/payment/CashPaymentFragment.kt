@@ -304,8 +304,6 @@ class CashPaymentFragment : Fragment() {
             try {
                 showLoadingModal()
                 paymentViewModel.notifyPaymentSuccess()
-                startPrintingProcess()
-
             } catch (e: Exception) {
                 Log.e("CashPaymentFragment", "Erro ao processar pagamento em dinheiro: ${e.message}")
                 updateUIForError("Erro ao processar pagamento")
@@ -313,6 +311,8 @@ class CashPaymentFragment : Fragment() {
             }
         }
     }
+
+
 
     private fun observePrintingState() {
         if (observingPrintingState) return
@@ -445,21 +445,9 @@ class CashPaymentFragment : Fragment() {
                     )
                 )
 
-                val composeView = ComposeView(requireContext())
-                val root = requireActivity().findViewById<ViewGroup>(android.R.id.content)
-                root.addView(composeView, ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                ))
+                // Inicia o processo de impressão centralizado
+                startPrintingProcess()
 
-                val latestBitmap = getLatestPassBitmap()
-                printingHandler.generateTickets(
-                    passType = PassType.ProductCompact,
-                    printingViewModel = printingViewModel,
-                    imageBitmap = latestBitmap
-                )
-
-                observePrintingState()
             } catch (e: Exception) {
                 updateUIForError("Erro ao finalizar pagamento")
             }
@@ -518,6 +506,12 @@ class CashPaymentFragment : Fragment() {
 
     private fun showErrorModal(onDismiss: (() -> Unit)? = null) {
         errorDialog = PrintingErrorDialogFragment()
+        errorDialog?.cancelPrintingListener = object : PrintingErrorDialogFragment.OnCancelPrintingListener {
+            override fun onCancelPrinting() {
+                dismissLoadingModal() // Fecha o modal de loading
+                errorDialog?.dismissAllowingStateLoss() // Fecha o modal de erro
+            }
+        }
         errorDialog?.show(parentFragmentManager, "printing_error")
         parentFragmentManager.setFragmentResultListener("printing_error_dismiss", viewLifecycleOwner) { _, _ ->
             onDismiss?.invoke()

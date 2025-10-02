@@ -32,23 +32,10 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
-class ProductRepository(private val productDao: ProductDao, private val posDao: PosDao, private val eventDao: EventDao) {
-    suspend fun getProductById(id: String) = productDao.getById(id)
-    suspend fun getAllPos() = posDao.getAll()
-    suspend fun getAllEvents() = eventDao.getAllEvents()
-}
-
 class PrintingHandler(
     private val context: Context,
     private val lifecycleOwner: LifecycleOwner
 ) {
-    private val repository by lazy {
-        ProductRepository(
-            AppDatabase.getInstance(context).productDao(),
-            AppDatabase.getInstance(context).posDao(),
-            AppDatabase.getInstance(context).eventDao()
-        )
-    }
 
     fun generateTickets(
         passType: PassType,
@@ -58,14 +45,12 @@ class PrintingHandler(
     ) {
         lifecycleOwner.lifecycleScope.launch {
             try {
-                // Se foi passada uma imagem pronta (caminho), apenas enfileira essa impressão
                 if (!imagePath.isNullOrEmpty()) {
                     printingViewModel.enqueuePrinting(imagePath, PrintingProcessorType.MP_4200_HS)
                     printingViewModel.startProcessing()
                     return@launch
                 }
 
-                // Se veio um Bitmap em memória, salve em disco e depois enfileire
                 if (imageBitmap != null) {
                     val tmpFile = saveBitmapToTempFile(context, imageBitmap)
                     if (tmpFile != null) {
@@ -77,7 +62,6 @@ class PrintingHandler(
                     return@launch
                 }
 
-                // Comportamento antigo: gerar passes via savePassAsBitmap para cada PassData
                 val operatorName = getOperatorName()
                 val (products, pos, event) = loadDataFromDatabase()
                 val passList = buildPassList(products, pos, event, operatorName, passType)
@@ -251,17 +235,16 @@ class PrintingHandler(
     ) {
         lifecycleOwner.lifecycleScope.launch {
             try {
-                // Use existing bitmap if provided
+                Log.d("PrintingHandler", "PrintingHandler enqueueAndStartPrinting")
                 if (imageBitmap != null) {
                     val tmpFile = saveBitmapToTempFile(context, imageBitmap)
                     if (tmpFile != null) {
-                        printingViewModel.enqueuePrinting(tmpFile.absolutePath, PrintingProcessorType.MP_4200_HS)
+                        printingViewModel.enqueuePrinting(tmpFile.absolutePath, PrintingProcessorType.ACQUIRER)
                         printingViewModel.startProcessing()
                         return@launch
                     }
                 }
 
-                // Generate passes from database as fallback
                 val operatorName = getOperatorName()
                 val (products, pos, event) = loadDataFromDatabase()
                 val passList = buildPassList(products, pos, event, operatorName, PassType.ProductCompact)
@@ -269,7 +252,7 @@ class PrintingHandler(
                 passList.forEach { passData ->
                     val file = savePassAsBitmap(context, PassType.ProductCompact, passData)
                     if (file != null) {
-                        printingViewModel.enqueuePrinting(file.absolutePath, PrintingProcessorType.MP_4200_HS)
+                        printingViewModel.enqueuePrinting(file.absolutePath, PrintingProcessorType.ACQUIRER)
                     }
                 }
 
