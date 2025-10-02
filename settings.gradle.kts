@@ -23,6 +23,10 @@ val packageCloudReadToken = localProperties.getProperty("PACKAGE_CLOUD_READ_TOKE
 
 pluginManagement {
     repositories {
+        flatDir {
+            dirs("libs")
+        }
+
         gradlePluginPortal()
         google()
         mavenCentral()
