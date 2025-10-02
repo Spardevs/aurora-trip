@@ -103,10 +103,10 @@ android {
 
     flavorDimensions += "acquirers"
     productFlavors {
-        create("proprietary") {
+        create("proprietaryGertec") {
             dimension = "acquirers"
-            applicationIdSuffix = ".proprietary"
-            versionNameSuffix = "-proprietary"
+            applicationIdSuffix = ".proprietary.gertec"
+            versionNameSuffix = "-proprietary-gertec"
             minSdk = libs.versions.pagseguroMinSdk.get().toInt()
             targetSdk = libs.versions.pagseguroTargetSdk.get().toInt()
         }
@@ -162,13 +162,10 @@ android {
             versionNameSuffix = "-tectoySeriesT"
         }
 
-        create("gertecSk210") {
+        create("sk210") {
             initWith(getByName("release"))
-            versionNameSuffix = "-gertecSk210"
+            versionNameSuffix = "-sk210"
             signingConfig = signingConfigs.getByName("gertec")
-
-            isMinifyEnabled = false
-            isShrinkResources = false
         }
 
         create("gertecGpos700") {
@@ -198,25 +195,25 @@ android {
         beforeVariants { variantBuilder ->
             val flavorName = variantBuilder.productFlavors.first().second
             val buildType = variantBuilder.buildType
-            val isProprietary = flavorName == "proprietary"
+            val isProprietaryGertec = flavorName == "proprietaryGertec"
             val isPagSeguro = flavorName == "pagseguro"
             val isStone = flavorName == "stone"
             val isDebug = buildType == "debug"
             val isRelease = buildType == "release"
-            val isGertecSk210 = buildType == "gertecSk210"
+            val isSk210 = buildType == "sk210"
 
-            // proprietary only supports debug and gertecSk210 build types
-            if (isProprietary && !(isDebug || isGertecSk210)) {
+            // proprietaryGertec only supports debug and sk210 build types
+            if (isProprietaryGertec && !(isDebug || isSk210)) {
                 variantBuilder.enable = false
             }
 
-            // pagseguro only supports release and debug build types (no gertecSk210)
+            // pagseguro only supports release and debug build types (no device-specific builds)
             if (isPagSeguro && !(isDebug || isRelease)) {
                 variantBuilder.enable = false
             }
 
-            // stone supports all build types except release and gertecSk210
-            if (isStone && (isRelease || isGertecSk210)) {
+            // stone supports all build types except release and sk210
+            if (isStone && (isRelease || isSk210)) {
                 variantBuilder.enable = false
             }
         }
