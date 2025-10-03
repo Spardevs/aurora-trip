@@ -36,6 +36,12 @@ class PrintingLoadingDialogFragment : DialogFragment() {
 
 class PrintingSuccessDialogFragment : DialogFragment() {
 
+    interface OnFinishListener {
+        fun onFinish()
+    }
+
+    var onFinishListener: OnFinishListener? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         isCancelable = true
@@ -53,6 +59,8 @@ class PrintingSuccessDialogFragment : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         view.findViewById<Button>(R.id.btn_finish)?.setOnClickListener {
+            onFinishListener?.onFinish()
+            activity?.finish()
             dismiss()
         }
     }
@@ -66,7 +74,6 @@ class PrintingSuccessDialogFragment : DialogFragment() {
         dialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
     }
 }
-
 class PrintingErrorDialogFragment : DialogFragment() {
 
     interface OnCancelPrintingListener {

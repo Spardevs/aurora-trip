@@ -498,13 +498,22 @@ class CashPaymentFragment : Fragment() {
     }
 
     private fun showSuccessModal(autoDismissMs: Long = 1200L, onDismiss: (() -> Unit)? = null) {
-        successDialog = PrintingSuccessDialogFragment()
+        successDialog = PrintingSuccessDialogFragment().apply {
+            onFinishListener = object : PrintingSuccessDialogFragment.OnFinishListener {
+                override fun onFinish() {
+                    try {
+                        dismissAllowingStateLoss()
+                    } catch (_: Exception) {}
+                    requireActivity().finish()
+                    onDismiss?.invoke()
+                }
+            }
+        }
+
         successDialog?.show(parentFragmentManager, "printing_success")
+
         successDialog?.dialog?.window?.decorView?.postDelayed({
-            try {
-                successDialog?.dismissAllowingStateLoss()
-            } catch (_: Exception) {}
-            onDismiss?.invoke()
+            successDialog?.onFinishListener?.onFinish()
         }, autoDismissMs)
     }
 
