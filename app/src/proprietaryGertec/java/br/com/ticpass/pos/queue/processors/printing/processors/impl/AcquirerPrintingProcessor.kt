@@ -206,21 +206,21 @@ class AcquirerPrintingProcessor : PrintingProcessorBase() {
                 UserInputRequest.CONFIRM_PRINTER_PAPER_CUT()
             )
 
+            val paperCutType = PaperCutType.NONE
+
             // Get the paper cut type from response, default to PARTIAL if null/invalid
-            val paperCutType = userResponse.value as? PaperCutType ?: PaperCutType.PARTIAL
-
-            // Perform paper cut based on user choice
-            when (paperCutType) {
-                PaperCutType.FULL -> {
-                    printer.cutPaper(CutType.PAPER_FULL_CUT)
-                }
-                PaperCutType.PARTIAL -> {
-                    printer.cutPaper(CutType.PAPER_PARTIAL_CUT)
-                }
-                PaperCutType.NONE -> {}
-            }
-
-            printer.status
+//            val paperCutType = userResponse.value as? PaperCutType ?: PaperCutType.PARTIAL
+//
+//            // Perform paper cut based on user choice
+//            when (paperCutType) {
+//                PaperCutType.FULL -> {
+//                    printer.cutPaper(CutType.PAPER_FULL_CUT)
+//                }
+//                PaperCutType.PARTIAL -> {
+//                    printer.cutPaper(CutType.PAPER_PARTIAL_CUT)
+//                }
+//                PaperCutType.NONE -> {}
+//            }
 
             when (paperCutType) {
                 PaperCutType.FULL, PaperCutType.PARTIAL -> {
