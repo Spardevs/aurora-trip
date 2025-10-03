@@ -9,20 +9,22 @@
             android:antialias="true"/>
     </item>
 
+    <!-- 2) overlay escuro -->
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#cf000000" />
+            <solid android:color="#CF000000" />
         </shape>
     </item>
 
-    <!-- 3) gradiente com as cores vivas (AARRGGBB) -->
+    <!-- 3) gradiente com as cores vivas -->
     <item>
         <shape android:shape="rectangle">
             <gradient
-                android:angle="100"
-                android:startColor="#df666CFF"
-                android:endColor="#df8E14FF"
-            />
+                android:type="linear"
+                android:dither="true"
+                android:angle="135"
+                android:startColor="#DF666CFF"
+                android:endColor="#DF8E14FF"/>
         </shape>
     </item>
 
