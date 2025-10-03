@@ -41,6 +41,14 @@ sealed class PrintingUiState {
     ) : PrintingUiState()
     
     /**
+     * Confirmation state - waiting for user to confirm printer paper cut type
+     */
+    data class ConfirmPrinterPaperCut(
+        val requestId: String,
+        val timeoutMs: Long,
+    ) : PrintingUiState()
+    
+    /**
      * Error retry state - waiting for user to decide how to handle an error
      */
     data class ErrorRetryOrSkip(

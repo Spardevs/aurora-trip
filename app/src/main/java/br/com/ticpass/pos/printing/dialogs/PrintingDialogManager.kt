@@ -17,6 +17,7 @@ import br.com.ticpass.pos.printing.view.TimeoutCountdownView
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.error.ProcessingErrorEventResourceMapper
 import br.com.ticpass.pos.queue.processors.printing.models.PrintingQueueItem
+import br.com.ticpass.pos.queue.processors.printing.models.PaperCutType
 import br.com.ticpass.pos.queue.processors.printing.processors.models.PrintingProcessorType
 
 /**
@@ -174,6 +175,52 @@ class PrintingDialogManager(
         startDialogTimeoutCountdown(timeoutView, state.timeoutMs) {
             // Auto-skip on timeout
             printingViewModel.skipProcessorOnError(requestId)
+            dialog.dismiss()
+        }
+        
+        dialog.show()
+    }
+
+    /**
+     * Show a dialog to confirm paper cut type after printing.
+     * Provides three options: Full Cut, Partial Cut, or No Cut with timeout countdown.
+     */
+    fun showPaperCutConfirmationDialog(requestId: String, timeoutMs: Long) {
+        Log.d("TimeoutDebug", "showPaperCutConfirmationDialog - timeoutMs: $timeoutMs")
+        
+        // Create a custom dialog view with paper cut options
+        val dialogView = layoutInflater.inflate(R.layout.dialog_paper_cut_confirmation, null)
+        
+        // Get references to the timeout view
+        val timeoutView = dialogView.findViewById<TimeoutCountdownView>(R.id.timeout_countdown_view)
+        
+        // Create the dialog
+        val dialog = AlertDialog.Builder(context)
+            .setTitle(R.string.paper_cut_confirmation_title)
+            .setMessage(R.string.paper_cut_confirmation_message)
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+        
+        // Set up button click listeners for the three options
+        dialogView.findViewById<View>(R.id.btn_full_cut).setOnClickListener {
+            printingViewModel.confirmPrinterPaperCut(requestId, PaperCutType.FULL)
+            dialog.dismiss()
+        }
+        
+        dialogView.findViewById<View>(R.id.btn_partial_cut).setOnClickListener {
+            printingViewModel.confirmPrinterPaperCut(requestId, PaperCutType.PARTIAL)
+            dialog.dismiss()
+        }
+        
+        dialogView.findViewById<View>(R.id.btn_no_cut).setOnClickListener {
+            printingViewModel.confirmPrinterPaperCut(requestId, PaperCutType.NONE)
+            dialog.dismiss()
+        }
+        
+        // Start timeout countdown - default to PARTIAL cut on timeout
+        startDialogTimeoutCountdown(timeoutView, timeoutMs) {
+            printingViewModel.confirmPrinterPaperCut(requestId, PaperCutType.PARTIAL)
             dialog.dismiss()
         }
         

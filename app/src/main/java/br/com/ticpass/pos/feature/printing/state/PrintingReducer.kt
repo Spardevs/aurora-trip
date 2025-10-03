@@ -111,6 +111,15 @@ class PrintingReducer @Inject constructor(
                     updateState = updateState
                 )
             }
+            
+            is PrintingAction.ConfirmPrinterPaperCut -> {
+                confirmationUseCase.confirmPrinterPaperCut(
+                    requestId = action.requestId,
+                    paperCutType = action.paperCutType,
+                    printingQueue = printingQueue,
+                    updateState = updateState
+                )
+            }
 
             // Internal actions triggered by events
             is PrintingAction.ProcessingStateChanged -> {

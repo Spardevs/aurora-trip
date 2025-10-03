@@ -78,4 +78,12 @@ sealed class UserInputRequest {
         override val timeoutMs: Long = 90_000L, // 90 seconds default timeout
         val pin: String
     ) : UserInputRequest()
+
+    /**
+     * Request for printer paper cut confirmation
+     */
+    data class CONFIRM_PRINTER_PAPER_CUT(
+        override val id: String = UUID.randomUUID().toString(),
+        override val timeoutMs: Long = 10_000L, // 10 seconds default timeout
+    ) : UserInputRequest()
 }

@@ -210,6 +210,13 @@ class PrintingViewModel @Inject constructor(
         dispatch(PrintingAction.ConfirmPrinterNetworkInfo(requestId, networkInfo))
     }
     
+    /**
+     * Confirm printer paper cut (processor-level input request)
+     */
+    fun confirmPrinterPaperCut(requestId: String, paperCutType: br.com.ticpass.pos.queue.processors.printing.models.PaperCutType) {
+        dispatch(PrintingAction.ConfirmPrinterPaperCut(requestId, paperCutType))
+    }
+    
     // Queue-Level Input Handling
     
     /**
