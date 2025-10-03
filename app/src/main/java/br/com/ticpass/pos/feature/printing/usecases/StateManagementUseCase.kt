@@ -99,6 +99,12 @@ class StateManagementUseCase @Inject constructor() {
                     timeoutMs = request.timeoutMs
                 ))
             }
+            is UserInputRequest.CONFIRM_PRINTER_PAPER_CUT -> {
+                updateState(PrintingUiState.ConfirmPrinterPaperCut(
+                    requestId = request.id,
+                    timeoutMs = request.timeoutMs
+                ))
+            }
             else -> {}
         }
     }

@@ -31,6 +31,13 @@
     <string name="printing_method">Printing Method</string>
     <string name="edit_printing_note">You can modify printing details before proceeding</string>
     <string name="error_printing_retry_description">Choose how to handle this printing error:</string>
+    
+    <!-- Paper Cut Confirmation -->
+    <string name="paper_cut_confirmation_title">Paper Cut Options</string>
+    <string name="paper_cut_confirmation_message">Choose how to cut the paper after printing:</string>
+    <string name="paper_cut_full">Full Cut</string>
+    <string name="paper_cut_partial">Partial Cut</string>
+    <string name="paper_cut_none">No Cut</string>
 
     <string name="enqueue_auth_nfc">Customer Auth</string>
     <string name="enqueue_format_nfc">Tag Format</string>

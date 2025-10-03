@@ -42,6 +42,12 @@ sealed class PrintingAction {
         val networkInfo: PrinterNetworkInfo
     ) : PrintingAction()
     
+    // Printer paper cut actions
+    data class ConfirmPrinterPaperCut(
+        val requestId: String,
+        val paperCutType: br.com.ticpass.pos.queue.processors.printing.models.PaperCutType
+    ) : PrintingAction()
+    
     // Internal actions triggered by events
     data class ProcessingStateChanged(val state: ProcessingState<*>?) : PrintingAction()
     data class QueueInputRequested(val request: QueueInputRequest) : PrintingAction()

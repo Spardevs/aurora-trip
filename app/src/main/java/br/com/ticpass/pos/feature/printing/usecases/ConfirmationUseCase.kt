@@ -11,6 +11,7 @@ import br.com.ticpass.pos.queue.processors.printing.models.PrintingEvent
 import br.com.ticpass.pos.feature.printing.state.PrintingSideEffect
 import br.com.ticpass.pos.queue.processors.printing.models.PrintingQueueItem
 import br.com.ticpass.pos.queue.processors.printing.processors.models.PrinterNetworkInfo
+import br.com.ticpass.pos.queue.processors.printing.models.PaperCutType
 import javax.inject.Inject
 
 /**
@@ -72,6 +73,24 @@ class ConfirmationUseCase @Inject constructor() {
         updateState(PrintingUiState.Processing)
         // Create an input response with the network info as the value
         val response = UserInputResponse(requestId, networkInfo)
+        // Provide input directly to the processor instead of using queue input
+        return PrintingSideEffect.ProvideProcessorInput {
+            printingQueue.processor.provideUserInput(response)
+        }
+    }
+    
+    /**
+     * Confirm printer paper cut type
+     */
+    fun confirmPrinterPaperCut(
+        requestId: String,
+        paperCutType: PaperCutType,
+        printingQueue: HybridQueueManager<PrintingQueueItem, PrintingEvent>,
+        updateState: (PrintingUiState) -> Unit
+    ): PrintingSideEffect {
+        updateState(PrintingUiState.Processing)
+        // Create an input response with the paper cut type as the value
+        val response = UserInputResponse(requestId, paperCutType)
         // Provide input directly to the processor instead of using queue input
         return PrintingSideEffect.ProvideProcessorInput {
             printingQueue.processor.provideUserInput(response)

@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.queue.processors.printing
 
+import br.com.gertec.easylayer.utils.Status
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
 
 /**
@@ -9,50 +10,24 @@ import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
  */
 enum class AcquirerPrintingErrorEvent(val code: String, val event: ProcessingErrorEvent) {
 
-    CONNECTIVITY_ERROR(
-        "CONNECTIVITY_ERROR",
+    OK(
+        Status.OK.value.toString(),
         ProcessingErrorEvent.CONNECTION_ERROR
     ),
 
-    OPERATION_CANCELLED_BY_USER(
-        "OPERATION_CANCELLED_BY_USER",
+    OVERHEAT(
+        Status.OVERHEAT.value.toString(),
         ProcessingErrorEvent.CANCELLED_BY_USER
     ),
     
     // Printer errors
-    PRINTER_GENERIC_ERROR(
-        "PRINTER_GENERIC_ERROR",
+    OUT_OF_PAPER(
+        Status.OUT_OF_PAPER.value.toString(),
         ProcessingErrorEvent.PRINTER_ERROR
     ),
-    
-    PRINTER_BUSY_ERROR(
-        "PRINTER_BUSY_ERROR",
-        ProcessingErrorEvent.PRINTER_BUSY
-    ),
-    
-    PRINTER_OUT_OF_PAPER(
-        "PRINTER_OUT_OF_PAPER_ERROR",
-        ProcessingErrorEvent.PRINTER_OUT_OF_PAPER
-    ),
-    
-    PRINTER_LOW_ENERGY(
-        "PRINTER_LOW_ENERGY_ERROR",
-        ProcessingErrorEvent.LOW_BATTERY
-    ),
-    
-    PRINTER_OVERHEATING(
-        "PRINTER_OVERHEATING_ERROR",
-        ProcessingErrorEvent.PRINTER_OVERHEATING
-    ),
-    
-    // Generic and system errors
-    GENERIC_ERROR(
-        "GENERIC_ERROR",
-        ProcessingErrorEvent.GENERIC
-    ),
-    
+
     UNKNOWN_ERROR(
-        "UNKNOWN_ERROR",
+        Status.UNKNOWN_ERROR.value.toString(),
         ProcessingErrorEvent.GENERIC
     );
 

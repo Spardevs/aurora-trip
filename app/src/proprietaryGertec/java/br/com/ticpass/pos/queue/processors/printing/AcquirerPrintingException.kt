@@ -24,6 +24,6 @@ class AcquirerPrintingException : Exception {
      */
     val event: ProcessingErrorEvent
         get() {
-            return errorEvent ?: AcquirerPrintingErrorEvent.translate(errorCode!!)
+            return errorEvent ?: AcquirerPrintingErrorEvent.translate(errorCode!!.toString())
         }
 }

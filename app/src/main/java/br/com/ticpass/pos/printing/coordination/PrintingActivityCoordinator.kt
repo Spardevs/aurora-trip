@@ -152,6 +152,9 @@ class PrintingActivityCoordinator(
                     is PrintingUiState.ConfirmPrinterNetworkInfo -> {
                         confirmPrinterNetworkInfo(uiState.requestId)
                     }
+                    is PrintingUiState.ConfirmPrinterPaperCut -> {
+                        dialogManager.showPaperCutConfirmationDialog(uiState.requestId, uiState.timeoutMs)
+                    }
                     else -> {
                         // Other UI states don't need dialogs
                         Log.d("PrintingActivityCoordinator", "No dialog needed for state: $uiState")

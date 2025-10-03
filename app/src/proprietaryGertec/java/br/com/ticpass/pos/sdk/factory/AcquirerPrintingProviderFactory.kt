@@ -1,8 +1,10 @@
 package br.com.ticpass.pos.sdk.factory
 
 import android.content.Context
+import android.util.Log
 import br.com.gertec.easylayer.printer.Printer
-import br.com.gertec.easylayer.printer.PrinterUtils
+import br.com.gertec.easylayer.printer.PrinterError
+import java.util.Locale
 
 /**
  * Gertec printing provider
@@ -14,10 +16,9 @@ import br.com.gertec.easylayer.printer.PrinterUtils
 class GertecPrintingProvider(
     val context: Context,
     val printer: Printer,
-    val printerUtils: PrinterUtils
 )
 
-typealias AcquirerPrintingProvider = (Printer.Listener) -> GertecPrintingProvider
+typealias AcquirerPrintingProvider = () -> GertecPrintingProvider
 
 /**
  * Factory for creating GertecPrintingProvider instances
@@ -28,21 +29,35 @@ typealias AcquirerPrintingProvider = (Printer.Listener) -> GertecPrintingProvide
 class AcquirerPrintingProviderFactory(
     private val context: Context,
 ) {
+    val dummyListener : Printer.Listener = object : Printer.Listener {
+        override fun onPrinterError(printerError: PrinterError) {
+            val message = String.format(
+                Locale.US,
+                "Id: [%d] | Cause: [\"%s\"]",
+                printerError.requestId,
+                printerError.cause
+            )
+            Log.d("AcquirerPrintingProcessor", "[onPrinterError] $message")
+        }
+
+        override fun onPrinterSuccessful(printerRequestId: Int) {
+            val message = String.format(Locale.US, "Id: [%d]", printerRequestId)
+            Log.d("AcquirerPrintingProcessor", "[onPrinterSuccessful] $message")
+        }
+    }
     /**
      * Creates a function that returns a GertecPrintingProvider with a unique listener
      * Following Gertec's onCreate pattern:
-     * 1. Printer.getInstance(context, listener) - with caller-provided listener
+     * 1. Printer.getInstance(context) - with caller-provided listener
      * 2. printer.getPrinterUtils()
      * 
      * @return A function that accepts a Printer.Listener and creates a provider with unique callbacks
      */
     fun create(): AcquirerPrintingProvider {
-        return { listener ->
-            // Following Gertec example pattern with unique listener per invocation
-            val printer = Printer.getInstance(context, listener)
-            val printerUtils = printer.printerUtils
-            
-            GertecPrintingProvider(context, printer, printerUtils)
+        return {
+            val printer = Printer.getInstance(context, dummyListener)
+
+            GertecPrintingProvider(context, printer)
         }
     }
 }
