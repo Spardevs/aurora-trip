@@ -324,7 +324,7 @@ class CashPaymentFragment : Fragment() {
                     when (state) {
                         is ProcessingState.QueueDone<*> -> {
                             dismissLoadingModal()
-                            showSuccessModal {
+                            showSuccessModal(autoDismissMs = 1200L) {
                                 shoppingCartManager.clearCart()
                                 requireActivity().setResult(AppCompatActivity.RESULT_OK)
                                 requireActivity().finish()
@@ -334,7 +334,7 @@ class CashPaymentFragment : Fragment() {
                         is ProcessingState.ItemFailed<*> -> {
                             dismissLoadingModal()
                             showErrorModal {
-                                retryPayment()
+                                requireActivity().finish()
                             }
                         }
 
@@ -346,9 +346,16 @@ class CashPaymentFragment : Fragment() {
                             }
                         }
 
-                        is ProcessingState.QueueIdle<*> -> {
+                        is ProcessingState.ItemDone<*> -> {
+                            dismissLoadingModal()
+                            showSuccessModal(autoDismissMs = 1200L)
                         }
+
                         else -> {
+                            dismissLoadingModal()
+                            showErrorModal {
+                                requireActivity().finish()
+                            }
                         }
                     }
                 }
@@ -508,14 +515,14 @@ class CashPaymentFragment : Fragment() {
         errorDialog = PrintingErrorDialogFragment()
         errorDialog?.cancelPrintingListener = object : PrintingErrorDialogFragment.OnCancelPrintingListener {
             override fun onCancelPrinting() {
-                dismissLoadingModal() // Fecha o modal de loading
-                errorDialog?.dismissAllowingStateLoss() // Fecha o modal de erro
+                printingViewModel.cancelAllPrintings()
+                dismissLoadingModal()
+                errorDialog?.dismissAllowingStateLoss()
+                requireActivity().finish()
+                onDismiss?.invoke()
             }
         }
         errorDialog?.show(parentFragmentManager, "printing_error")
-        parentFragmentManager.setFragmentResultListener("printing_error_dismiss", viewLifecycleOwner) { _, _ ->
-            onDismiss?.invoke()
-        }
     }
 
     private fun getLatestPassBitmap(): Bitmap? {

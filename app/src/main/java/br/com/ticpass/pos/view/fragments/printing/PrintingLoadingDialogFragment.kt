@@ -30,7 +30,6 @@ class PrintingLoadingDialogFragment : DialogFragment() {
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
-        // background transparent so your layout shape shows
         dialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
     }
 }
@@ -70,7 +69,7 @@ class PrintingErrorDialogFragment : DialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        isCancelable = true
+        isCancelable = false // impede cancelar tocando fora/voltar
         setStyle(STYLE_NO_TITLE, 0)
     }
 
@@ -84,10 +83,8 @@ class PrintingErrorDialogFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val btnCancel = view.findViewById<Button>(R.id.btn_cancel)
-        btnCancel.setOnClickListener {
+        view.findViewById<Button>(R.id.btn_cancel).setOnClickListener {
             cancelPrintingListener?.onCancelPrinting()
-            dismiss()
         }
     }
 
