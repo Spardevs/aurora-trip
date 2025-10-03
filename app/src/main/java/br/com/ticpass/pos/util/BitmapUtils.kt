@@ -87,7 +87,7 @@ fun savePassAsBitmap(context: Context, passType: PassType, passData: PassData): 
         val inflater = LayoutInflater.from(context)
         val view: View = when (passType) {
             is PassType.ProductCompact ->
-                inflateProductLayout(inflater, R.layout.printer_pass_compact, passData)
+                inflateProductLayout(inflater, R.layout.printer_pass_expanded, passData)
             is PassType.ProductExpanded ->
                 inflateProductLayout(inflater, R.layout.printer_pass_expanded, passData)
             is PassType.ProductGrouped ->
