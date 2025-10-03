@@ -71,7 +71,7 @@ class AcquirerPrintingProcessor : PrintingProcessorBase() {
                 PrintingSuccess()
             }
             
-            cleanup()
+//            cleanup()
             return result
 
         } catch (exception: PrintingException) {

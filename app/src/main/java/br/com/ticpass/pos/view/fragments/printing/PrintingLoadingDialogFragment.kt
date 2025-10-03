@@ -49,6 +49,14 @@ class PrintingSuccessDialogFragment : DialogFragment() {
         return inflater.inflate(R.layout.fragment_printing_success, container, false)
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        view.findViewById<Button>(R.id.btn_finish)?.setOnClickListener {
+            dismiss()
+        }
+    }
+
     override fun onStart() {
         super.onStart()
         dialog?.window?.setLayout(
