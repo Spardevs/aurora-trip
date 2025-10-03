@@ -353,9 +353,6 @@ class CashPaymentFragment : Fragment() {
 
                         else -> {
                             dismissLoadingModal()
-                            showErrorModal {
-                                requireActivity().finish()
-                            }
                         }
                     }
                 }
