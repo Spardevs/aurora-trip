@@ -325,7 +325,6 @@ class CashPaymentFragment : Fragment() {
                         is ProcessingState.QueueDone<*> -> {
                             dismissLoadingModal()
                             showSuccessModal(autoDismissMs = 1200L) {
-                                // Limpa o carrinho e fecha a Activity
                                 shoppingCartManager.clearCart()
                                 requireActivity().setResult(AppCompatActivity.RESULT_OK)
                                 requireActivity().finish()
@@ -347,8 +346,16 @@ class CashPaymentFragment : Fragment() {
                             }
                         }
 
+                        is ProcessingState.ItemDone<*> -> {
+                            dismissLoadingModal()
+                            showSuccessModal(autoDismissMs = 1200L)
+                        }
+
                         else -> {
-                            // Estados intermediários
+                            dismissLoadingModal()
+                            showErrorModal {
+                                requireActivity().finish()
+                            }
                         }
                     }
                 }
