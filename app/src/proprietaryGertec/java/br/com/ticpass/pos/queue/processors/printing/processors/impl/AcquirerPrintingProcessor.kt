@@ -168,10 +168,6 @@ class AcquirerPrintingProcessor : PrintingProcessorBase() {
      */
     private fun doPrint(bitmap: Bitmap): Int {
         try {
-            // Convert to monochromatic for better printing quality
-            val monochromaticBitmap = printer.printerUtils.toMonochromatic(bitmap, 0.4)
-//            printer.printImageAutoResize(monochromaticBitmap)
-
             // Configure print settings
             val printConfig = PrintConfig()
             printConfig.width = 384  // Standard thermal printer width
@@ -181,7 +177,7 @@ class AcquirerPrintingProcessor : PrintingProcessorBase() {
             _events.tryEmit(PrintingEvent.PRINTING)
 
             // Synchronous print operation - returns request ID immediately
-            val printRequestId = printer.printImage(printConfig, monochromaticBitmap)
+            val printRequestId = printer.printImage(printConfig, bitmap)
             printer.scrollPaper(2)
             
             return printRequestId
