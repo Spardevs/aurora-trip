@@ -198,9 +198,9 @@ class AcquirerPrintingProcessor : PrintingProcessorBase() {
     private suspend fun handlePaperCutConfirmation(): ProcessingResult {
         return try {
             // Request user input for paper cut confirmation
-            val userResponse = requestUserInput(
-                UserInputRequest.CONFIRM_PRINTER_PAPER_CUT()
-            )
+//            val userResponse = requestUserInput(
+//                UserInputRequest.CONFIRM_PRINTER_PAPER_CUT()
+//            )
 
             val paperCutType = PaperCutType.NONE
 
