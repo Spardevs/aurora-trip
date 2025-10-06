@@ -140,7 +140,7 @@ class PassAdapter(
         return when (viewType) {
             TYPE_COMPACT -> {
                 val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.printer_pass_expanded, parent, false)
+                    .inflate(R.layout.printer_pass_compact, parent, false)
                 CompactViewHolder(view)
             }
             TYPE_EXPANDED -> {

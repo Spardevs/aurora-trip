@@ -13,6 +13,7 @@
   -->
 
 <resources>
+    <dimen name="cart_icon_size">32dp</dimen>
     <dimen name="button_payment_screen">48dp</dimen>
     <dimen name="padding_payment_screen">24dp</dimen>
     <dimen name="product_image_size">70dp</dimen>
@@ -20,6 +21,7 @@
     <dimen name="text_xs">9sp</dimen>
     <dimen name="text_sm">11sp</dimen>
     <dimen name="text_md">15sp</dimen>
+
     <dimen name="grid_spacing_small">2dp</dimen>
     <dimen name="viewpager_item_margin">8dp</dimen>
     <dimen name="viewpager_next_item_visible">60dp</dimen>

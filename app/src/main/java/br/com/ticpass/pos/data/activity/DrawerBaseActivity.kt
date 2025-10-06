@@ -127,15 +127,13 @@ abstract class DrawerBaseActivity : BaseActivity() {
         val toolbar  = findViewById<MaterialToolbar>(R.id.drawer_toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
-//        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setDisplayHomeAsUpEnabled(false)
-        toolbar.navigationIcon = null
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-//        val drawable = ContextCompat.getDrawable(this, R.drawable.ic_apps)?.mutate()
-//        drawable?.let {
-//            DrawableCompat.setTint(it, ContextCompat.getColor(this, R.color.colorWhite))
-//            supportActionBar?.setHomeAsUpIndicator(it)
-//        }
+        val drawable = ContextCompat.getDrawable(this, R.drawable.ic_apps)?.mutate()
+        drawable?.let {
+            DrawableCompat.setTint(it, ContextCompat.getColor(this, R.color.colorWhite))
+            supportActionBar?.setHomeAsUpIndicator(it)
+        }
 
         val footer = layoutInflater.inflate(R.layout.nav_drawer_footer, navView, false)
         navView.addView(footer, FrameLayout.LayoutParams(
@@ -329,10 +327,10 @@ abstract class DrawerBaseActivity : BaseActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-//            android.R.id.home -> {
-//                showConfirmationDialog()
-//                true
-//            }
+            android.R.id.home -> {
+                showConfirmationDialog()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -346,16 +344,16 @@ abstract class DrawerBaseActivity : BaseActivity() {
     protected abstract fun openSettings()
 
     suspend fun logoutClearDb() {
-       try {
-           posRepository.clearAll()
-           menuRepository.clearAll()
-           cashierRepository.clearAll()
-           productsRepository.clearAll()
-           categoryRepository.clearAll()
+        try {
+            posRepository.clearAll()
+            menuRepository.clearAll()
+            cashierRepository.clearAll()
+            productsRepository.clearAll()
+            categoryRepository.clearAll()
 
-           Log.d("User logout", "Db cleared, user logged out")
-       } catch (e: Exception) {
-           throw e
-       }
+            Log.d("User logout", "Db cleared, user logged out")
+        } catch (e: Exception) {
+            throw e
+        }
     }
 }

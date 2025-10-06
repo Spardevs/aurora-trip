@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <dimen name="cart_icon_size">32dp</dimen>
     <dimen name="button_payment_screen">38dp</dimen>
     <dimen name="padding_payment_screen">12dp</dimen>
     <dimen name="payment_icon_size">25dp</dimen>

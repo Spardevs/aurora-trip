@@ -63,8 +63,8 @@
 
                 <ImageButton
                     android:id="@+id/btnObs"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="@dimen/cart_icon_size"
+                    android:layout_height="@dimen/cart_icon_size"
                     android:layout_gravity="end"
                     android:background="@drawable/ic_chat_message"
                     android:backgroundTint="@color/colorAccent"
@@ -98,8 +98,8 @@
 
                 <ImageButton
                     android:id="@+id/btnIncrease"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="@dimen/cart_icon_size"
+                    android:layout_height="@dimen/cart_icon_size"
                     android:layout_gravity="center"
                     android:background="@drawable/ic_add_circle"
                     android:backgroundTint="@color/colorGreen"
@@ -119,8 +119,8 @@
 
                 <ImageButton
                     android:id="@+id/btnDecrease"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="@dimen/cart_icon_size"
+                    android:layout_height="@dimen/cart_icon_size"
                     android:layout_gravity="center"
                     android:backgroundTint="@color/colorRed"
                     android:background="@drawable/ic_minus_circle" />
