@@ -442,7 +442,7 @@ class CashPaymentFragment : Fragment() {
                 finishPaymentHandler.handlePayment(
                     PaymentType.SINGLE_PAYMENT,
                     PaymentUIUtils.PaymentData(
-                        amount = (paymentValue * 100).toInt(),
+                        amount = (paymentValue * 1000).toInt(),
                         commission = 0,
                         method = method,
                         isTransactionless = true

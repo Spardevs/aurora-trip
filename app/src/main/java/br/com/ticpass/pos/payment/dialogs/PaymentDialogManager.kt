@@ -100,7 +100,7 @@ class PaymentDialogManager(
             positiveButton.setOnClickListener {
                 try {
                     // Get the modified values
-                    val modifiedAmount = (amountEditText.text.toString().toDouble() * 100).toInt()
+                    val modifiedAmount = (amountEditText.text.toString().toDouble() * 1000).toInt()
                     val modifiedMethod = paymentMethods[methodSpinner.selectedItemPosition]
 
                     paymentViewModel.confirmProcessor(

@@ -270,7 +270,7 @@ class PixPaymentFragment : Fragment() {
     }
 
     private fun enqueuePayment() {
-        val amount = (paymentValue * 100).toInt()
+        val amount = (paymentValue * 1000).toInt()
         paymentViewModel.enqueuePayment(
             amount = amount,
             commission = 0,
