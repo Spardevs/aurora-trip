@@ -18,27 +18,30 @@
             android:orientation="vertical">
 
             <com.google.android.material.tabs.TabLayout
-                android:id="@+id/tabCategories"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="5dp"
+                android:id="@+id/tabLayout"
                 android:layout_width="match_parent"
-                android:layout_height="32dp"
-                app:tabMode="scrollable"
-                app:tabGravity="center"
-                app:tabIndicatorFullWidth="false"
-                app:tabIndicatorHeight="2dp"
-                app:tabPaddingStart="8dp"
-                app:tabPaddingEnd="8dp"
-                app:tabTextAppearance="@style/TabTextAppearance"/>
+                android:layout_height="26dp"
+                app:tabIndicatorHeight="0dp"
+                app:tabIndicator="@null"
+                android:background="@android:color/transparent"
+                android:elevation="0dp"
+                app:tabBackground="@drawable/tab_selector_background"
+                app:tabSelectedTextColor="@android:color/white"
+                app:tabTextColor="@android:color/darker_gray"
+                app:tabMode="scrollable"/>
 
             <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/viewPager"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1"/>
+                android:layout_weight="1" />
         </LinearLayout>
 
         <!-- Payment sheet fixo na parte inferior -->
         <include
-            android:id="@+id/paymentSheet"
+            android:id="@+id/paymentSheetProducts"
             layout="@layout/payment_sheet"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

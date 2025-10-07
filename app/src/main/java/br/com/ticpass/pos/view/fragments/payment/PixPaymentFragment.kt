@@ -135,7 +135,7 @@ class PixPaymentFragment : Fragment() {
         priceTextView = view.findViewById(R.id.payment_price)
         timerTextView = view.findViewById(R.id.timer_text)
 
-        val cancelButton = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_pay)
+        val cancelButton = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btn_cancel)
         cancelButton?.setOnClickListener {
             cancelPixPayment()
             requireActivity().finish()
@@ -270,7 +270,7 @@ class PixPaymentFragment : Fragment() {
     }
 
     private fun enqueuePayment() {
-        val amount = (paymentValue * 100).toInt()
+        val amount = (paymentValue * 1000).toInt()
         paymentViewModel.enqueuePayment(
             amount = amount,
             commission = 0,

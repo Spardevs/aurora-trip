@@ -109,13 +109,18 @@ fun savePassAsBitmap(context: Context, passType: PassType, passData: PassData): 
             is PassType.ProductGrouped -> "ProductGrouped"
         }
 
+        // Create directory with pass type name and save the image inside
         val outputDir = File(context.filesDir, passTypeName).apply { mkdirs() }
+        Log.d("SavePassAsBitmap", "Diretório criado: ${outputDir.absolutePath}")
+
         File(outputDir, "pass_${System.currentTimeMillis()}.png").apply {
             FileOutputStream(this).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             }
+            Log.d("SavePassAsBitmap", "Imagem salva em: ${this.absolutePath}")
         }
     } catch (e: Exception) {
+        Log.e("SavePassAsBitmap", "Erro ao salvar imagem: ${e.message}", e)
         e.printStackTrace()
         null
     }

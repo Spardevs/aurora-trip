@@ -37,27 +37,6 @@ class ProductsActivity : DrawerBaseActivity() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.toolbar_menu, menu)
-
-        cartMenuItem = menu.findItem(R.id.fab)
-        val badgeLayout = LayoutInflater.from(this).inflate(R.layout.cart_badge, null)
-        cartBadge = badgeLayout.findViewById(R.id.cart_badge)
-        cartMenuItem.actionView = badgeLayout
-
-        badgeLayout.setOnClickListener {
-            val intent = Intent(this, ShoppingCartScreen::class.java)
-            startActivityForResult(intent, ProductsListScreen.REQUEST_CART_UPDATE)
-        }
-
-        shoppingCartManager.cartUpdates.observe(this) {
-            updateCartBadge()
-        }
-
-        updateCartBadge()
-        return true
-    }
-
 
     override fun onResume() {
         super.onResume()
@@ -97,7 +76,6 @@ class ProductsActivity : DrawerBaseActivity() {
         }
         observerId = null
     }
-
 
     override fun openProducts() {
         startActivity(Intent(this, ProductsActivity::class.java))

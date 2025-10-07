@@ -71,7 +71,7 @@ class AcquirerPrintingProcessor : PrintingProcessorBase() {
                 PrintingSuccess()
             }
             
-            cleanup()
+//            cleanup()
             return result
 
         } catch (exception: PrintingException) {
@@ -168,10 +168,6 @@ class AcquirerPrintingProcessor : PrintingProcessorBase() {
      */
     private fun doPrint(bitmap: Bitmap): Int {
         try {
-            // Convert to monochromatic for better printing quality
-            val monochromaticBitmap = printer.printerUtils.toMonochromatic(bitmap, 0.4)
-//            printer.printImageAutoResize(monochromaticBitmap)
-
             // Configure print settings
             val printConfig = PrintConfig()
             printConfig.width = 384  // Standard thermal printer width
@@ -181,7 +177,7 @@ class AcquirerPrintingProcessor : PrintingProcessorBase() {
             _events.tryEmit(PrintingEvent.PRINTING)
 
             // Synchronous print operation - returns request ID immediately
-            val printRequestId = printer.printImage(printConfig, monochromaticBitmap)
+            val printRequestId = printer.printImage(printConfig, bitmap)
             printer.scrollPaper(2)
             
             return printRequestId
@@ -202,25 +198,25 @@ class AcquirerPrintingProcessor : PrintingProcessorBase() {
     private suspend fun handlePaperCutConfirmation(): ProcessingResult {
         return try {
             // Request user input for paper cut confirmation
-            val userResponse = requestUserInput(
-                UserInputRequest.CONFIRM_PRINTER_PAPER_CUT()
-            )
+//            val userResponse = requestUserInput(
+//                UserInputRequest.CONFIRM_PRINTER_PAPER_CUT()
+//            )
+
+            val paperCutType = PaperCutType.NONE
 
             // Get the paper cut type from response, default to PARTIAL if null/invalid
-            val paperCutType = userResponse.value as? PaperCutType ?: PaperCutType.PARTIAL
-
-            // Perform paper cut based on user choice
-            when (paperCutType) {
-                PaperCutType.FULL -> {
-                    printer.cutPaper(CutType.PAPER_FULL_CUT)
-                }
-                PaperCutType.PARTIAL -> {
-                    printer.cutPaper(CutType.PAPER_PARTIAL_CUT)
-                }
-                PaperCutType.NONE -> {}
-            }
-
-            printer.status
+//            val paperCutType = userResponse.value as? PaperCutType ?: PaperCutType.PARTIAL
+//
+//            // Perform paper cut based on user choice
+//            when (paperCutType) {
+//                PaperCutType.FULL -> {
+//                    printer.cutPaper(CutType.PAPER_FULL_CUT)
+//                }
+//                PaperCutType.PARTIAL -> {
+//                    printer.cutPaper(CutType.PAPER_PARTIAL_CUT)
+//                }
+//                PaperCutType.NONE -> {}
+//            }
 
             when (paperCutType) {
                 PaperCutType.FULL, PaperCutType.PARTIAL -> {

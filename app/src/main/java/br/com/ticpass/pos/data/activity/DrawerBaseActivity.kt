@@ -21,6 +21,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
@@ -91,7 +92,6 @@ data class ShoppingCart(
 abstract class DrawerBaseActivity : BaseActivity() {
     protected lateinit var drawerLayout: DrawerLayout
     protected lateinit var navView: NavigationView
-
     private val qrScannerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result -> handleQrResult(result) }
@@ -124,11 +124,15 @@ abstract class DrawerBaseActivity : BaseActivity() {
         categoryRepository = CategoryRepository(db.categoryDao())
 
         navView      = findViewById(R.id.nav_view)
-        val toolbar  = findViewById<MaterialToolbar>(R.id.toolbar)
+        val toolbar  = findViewById<MaterialToolbar>(R.id.drawer_toolbar)
         setSupportActionBar(toolbar)
-        supportActionBar?.apply {
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.ic_apps)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        val drawable = ContextCompat.getDrawable(this, R.drawable.ic_apps)?.mutate()
+        drawable?.let {
+            DrawableCompat.setTint(it, ContextCompat.getColor(this, R.color.colorWhite))
+            supportActionBar?.setHomeAsUpIndicator(it)
         }
 
         val footer = layoutInflater.inflate(R.layout.nav_drawer_footer, navView, false)
@@ -340,16 +344,16 @@ abstract class DrawerBaseActivity : BaseActivity() {
     protected abstract fun openSettings()
 
     suspend fun logoutClearDb() {
-       try {
-           posRepository.clearAll()
-           menuRepository.clearAll()
-           cashierRepository.clearAll()
-           productsRepository.clearAll()
-           categoryRepository.clearAll()
+        try {
+            posRepository.clearAll()
+            menuRepository.clearAll()
+            cashierRepository.clearAll()
+            productsRepository.clearAll()
+            categoryRepository.clearAll()
 
-           Log.d("User logout", "Db cleared, user logged out")
-       } catch (e: Exception) {
-           throw e
-       }
+            Log.d("User logout", "Db cleared, user logged out")
+        } catch (e: Exception) {
+            throw e
+        }
     }
 }

@@ -8,13 +8,16 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.GridLayout
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -28,6 +31,7 @@ import br.com.ticpass.pos.data.api.Product
 import br.com.ticpass.pos.view.ui.payment.PaymentScreen
 import br.com.ticpass.pos.view.ui.products.adapter.CategoriesPagerAdapter
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
+import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartScreen
 import br.com.ticpass.pos.viewmodel.payment.PaymentMethod
 import br.com.ticpass.pos.viewmodel.products.ProductsViewModel
 import br.com.ticpass.pos.viewmodel.products.ProductsRefreshViewModel
@@ -38,6 +42,8 @@ import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 import javax.inject.Inject
+import androidx.core.view.isVisible
+import java.math.BigInteger
 
 @AndroidEntryPoint
 class ProductsListScreen : Fragment(R.layout.fragment_products) {
@@ -79,11 +85,18 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         super.onViewCreated(view, savedInstanceState)
 
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout)
-        tabLayout = view.findViewById(R.id.tabCategories)
         viewPager = view.findViewById(R.id.viewPager)
+        tabLayout = view.findViewById(R.id.tabLayout)
+        paymentSheet = view.findViewById(R.id.paymentSheetProducts)
 
-        paymentSheet = view.findViewById(R.id.paymentSheet)
+        val forms = paymentSheet.findViewById<View>(R.id.payment_forms_container)
+        forms.visibility = View.GONE
 
+        val header = paymentSheet.findViewById<View>(R.id.payment_header_container)
+
+        header.setOnClickListener {
+            forms.visibility = if (forms.isVisible) View.GONE else View.VISIBLE
+        }
 
         setupSwipeRefresh()
         setupTabLayout()
@@ -117,8 +130,8 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         categoriesObserver?.let { productsViewModel.categories.removeObserver(it) }
         productsObserver?.let { productsViewModel.productsByCategory.removeObserver(it) }
 
-        categoriesObserver = Observer<List<String>> { categories ->
-            productsObserver = Observer<Map<String, List<Product>>> { productsMap ->
+        categoriesObserver = Observer { categories ->
+            productsObserver = Observer { productsMap ->
                 pagerAdapter = CategoriesPagerAdapter(
                     requireActivity(),
                     categories,
@@ -127,7 +140,10 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
                 viewPager.adapter = pagerAdapter
 
                 TabLayoutMediator(tabLayout, viewPager) { tab, position ->
-                    tab.text = categories[position]
+                    val customView = LayoutInflater.from(requireContext())
+                        .inflate(R.layout.item_tab, null) as TextView
+                    customView.text = categories[position]
+                    tab.customView = customView
                 }.attach()
 
                 swipeRefreshLayout.isRefreshing = false
@@ -141,6 +157,7 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         productsViewModel.loadCategoriesWithProducts()
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun setupSwipeRefresh() {
         swipeRefreshLayout.setColorSchemeResources(
             R.color.design_default_color_primary,
@@ -149,10 +166,11 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         )
 
         swipeRefreshLayout.setOnRefreshListener {
+            swipeRefreshLayout.isRefreshing = true
             refreshData()
         }
 
-        swipeRefreshLayout.setDistanceToTriggerSync(120)
+        swipeRefreshLayout.setDistanceToTriggerSync(200)
     }
 
     private fun refreshData() {
@@ -201,53 +219,41 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         val cart = shoppingCartManager.getCart()
         val hasItems = cart.items.isNotEmpty()
 
+        paymentSheet.visibility = if (hasItems) View.VISIBLE else View.GONE
+
         if (hasItems) {
-            paymentSheet.visibility = View.VISIBLE
             updatePaymentInfo(cart)
 
-            paymentSheet.findViewById<ImageButton>(R.id.btnOptions)?.setOnClickListener {
+            // Correto: btnOptions é LinearLayout
+            paymentSheet.findViewById<LinearLayout>(R.id.btnOptions)?.setOnClickListener {
                 showSplitBillDialog()
             }
 
-            paymentSheet.findViewById<ImageButton>(R.id.btnClearAll)?.setOnClickListener {
-                AlertDialog.Builder(requireContext())
-                    .setTitle("Limpar carrinho")
-                    .setMessage("Deseja remover todos os itens do carrinho?")
-                    .setPositiveButton("Sim") { dialog, _ ->
-                        shoppingCartManager.clearCart()
-                        Toast.makeText(requireContext(), "Carrinho limpo", Toast.LENGTH_SHORT).show()
-                        dialog.dismiss()
-                    }
-                    .setNegativeButton("Cancelar") { dialog, _ ->
-                        dialog.dismiss()
-                    }
-                    .show()
+            // Carrinho
+            paymentSheet.findViewById<LinearLayout>(R.id.cart_container)?.setOnClickListener {
+                val intent = Intent(requireContext(), ShoppingCartScreen::class.java)
+                startActivity(intent)
             }
-        } else {
-            paymentSheet.visibility = View.GONE
         }
     }
 
+
     private fun updatePaymentInfo(cart: ShoppingCartManager.ShoppingCart) {
-        paymentSheet.findViewById<TextView>(R.id.tv_items_count)?.text =
-            "${cart.items.values.sum()} itens"
 
         paymentSheet.findViewById<TextView>(R.id.tv_total_price)?.text =
-            formatCurrency(cart.totalPrice.toDouble())
+            formatCurrency(cart.totalPrice)
     }
 
     private val paymentMethods = listOf(
         PaymentMethod("Dinheiro", R.drawable.cash, "cash"),
         PaymentMethod("Crédito", R.drawable.credit, "credit_card"),
         PaymentMethod("Débito", R.drawable.debit, "debit_card"),
-        PaymentMethod("VR", R.drawable.vr, "vr"),
         PaymentMethod("Pix", R.drawable.pix,  "pix"),
-        PaymentMethod("Debug", R.drawable.icon,  "debug")
     )
 
     private fun setupPaymentMethods() {
         val container = paymentSheet.findViewById<GridLayout>(R.id.payment_methods_container)
-        container.removeAllViews()
+        val columnCount = 2 // ou container.columnCount se já estiver definido no XML
 
         paymentMethods.forEachIndexed { index, method ->
             val itemView = LayoutInflater.from(requireContext())
@@ -259,8 +265,8 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
             val params = GridLayout.LayoutParams().apply {
                 width = 0
                 height = GridLayout.LayoutParams.WRAP_CONTENT
-                columnSpec = GridLayout.spec(index % 3, 1f)
-                rowSpec = GridLayout.spec(index / 3)
+                columnSpec = GridLayout.spec(index % columnCount, 1f)
+                rowSpec = GridLayout.spec(index / columnCount)
                 setMargins(8, 8, 8, 8)
             }
 
@@ -275,13 +281,15 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         }
     }
 
-    private fun formatCurrency(value: Double): String {
+    private fun formatCurrency(valueInCents: BigInteger): String {
+        val valueInReais = valueInCents.toDouble() / 10000.0
         val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
-        return format.format(value)
+        return format.format(valueInReais)
     }
 
     override fun onResume() {
         super.onResume()
+        paymentSheet.findViewById<View>(R.id.payment_forms_container).visibility = View.GONE
         updatePaymentVisibility()
     }
 

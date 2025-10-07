@@ -35,11 +35,13 @@ class ShoppingCartManager @Inject constructor(
     private val observerMap = mutableMapOf<String, WeakReference<androidx.lifecycle.Observer<Any>>>()
 
     data class ShoppingCart(
-        val items: Map<String, Int> = emptyMap(), // productId to quantity
+        val items: Map<String, Int> = emptyMap(),
+        val totalProductsValue: BigInteger = BigInteger.ZERO,
+        val totalCommission: BigInteger = BigInteger.ZERO,
         val totalPrice: BigInteger = BigInteger.ZERO,
-        val observations: Map<String, String> = emptyMap() // productId to observation
+        val observations: Map<String, String> = emptyMap(),
+        val productCommissions: Map<String, BigInteger> = emptyMap()
     )
-
     private var currentCart: ShoppingCart = loadCart()
 
     fun getCart(): ShoppingCart = currentCart
@@ -55,6 +57,26 @@ class ShoppingCartManager @Inject constructor(
         if (currentQuantity > 0) {
             updateItem(productId, currentQuantity - 1)
         }
+    }
+
+    fun deleteItem(productId: String) {
+        val items = currentCart.items.toMutableMap()
+        items.remove(productId)
+        val observations = currentCart.observations.toMutableMap()
+        observations.remove(productId)
+
+        val (productsValue, commissionValue) = calculateTotals(items)
+        val totalPrice = productsValue + commissionValue
+
+        currentCart = ShoppingCart(
+            items = items,
+            totalProductsValue = productsValue,
+            totalCommission = commissionValue,
+            totalPrice = totalPrice,
+            observations = observations
+        )
+        saveCart(currentCart)
+        _cartUpdates.postValue(Unit)
     }
 
     fun getObservation(productId: String): String? = currentCart.observations[productId]
@@ -87,8 +109,17 @@ class ShoppingCartManager @Inject constructor(
             items.remove(productId)
         }
 
-        val totalPrice = calculateTotalPrice(items)
-        currentCart = ShoppingCart(items, totalPrice)
+        val (productsValue, commissionValue, productCommissions) = calculateTotals(items)
+        val totalPrice = productsValue + commissionValue
+
+        currentCart = ShoppingCart(
+            items = items,
+            totalProductsValue = productsValue,
+            totalCommission = commissionValue,
+            totalPrice = totalPrice,
+            observations = currentCart.observations,
+            productCommissions = productCommissions
+        )
         saveCart(currentCart)
         _cartUpdates.postValue(Unit)
     }
@@ -104,6 +135,31 @@ class ShoppingCartManager @Inject constructor(
             val product = runBlocking { productRepository.getById(productId) }
             total + (product?.price?.toBigInteger() ?: BigInteger.ZERO) * quantity.toBigInteger()
         }
+    }
+
+    private fun calculateTotals(items: Map<String, Int>): Triple<BigInteger, BigInteger, Map<String, BigInteger>> {
+        var productsSum = BigInteger.ZERO
+        var commissionSum = BigInteger.ZERO
+        val commissionPercent = 10L
+
+        val productCommissions = mutableMapOf<String, BigInteger>()
+
+        for ((productId, quantity) in items) {
+            val product = runBlocking { productRepository.getById(productId) }
+            val price = product?.price?.toBigInteger() ?: BigInteger.ZERO
+            val totalProductPrice = price * quantity.toBigInteger()
+            productsSum += totalProductPrice
+
+            // comissão POR UNIDADE
+            val commissionPerUnit = price * commissionPercent.toBigInteger() / BigInteger.valueOf(100)
+            productCommissions[productId] = commissionPerUnit
+
+            // comissão total para esse produto (por unidade * quantidade)
+            val commissionValue = commissionPerUnit * quantity.toBigInteger()
+            commissionSum += commissionValue
+        }
+
+        return Triple(productsSum, commissionSum, productCommissions)
     }
 
     private fun saveCart(cart: ShoppingCart) {
@@ -163,5 +219,9 @@ class ShoppingCartManager @Inject constructor(
         sharedPreferences.edit { remove(shoppingCartKey) }
         removeAllObservers()
         _cartUpdates.value = Unit
+    }
+
+    fun getProductCommission(productId: String): BigInteger? {
+        return currentCart.productCommissions[productId]
     }
 }

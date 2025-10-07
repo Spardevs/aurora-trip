@@ -15,7 +15,10 @@ import java.util.Locale
 
 class ShoppingCartAdapter(
     private val onQuantityChange: (CartItem, Int) -> Unit,
-    private val onObservationClick: (CartItem) -> Unit
+    private val onObservationClick: (CartItem) -> Unit,
+    private val onMinusClick: (CartItem) -> Unit,
+    private val onMinusLongClick: ((CartItem) -> Unit)? = null,
+    private val getProductCommission: (productId: String) -> Long = { 0L }
 ) : RecyclerView.Adapter<ShoppingCartAdapter.ViewHolder>() {
 
     private val items = mutableListOf<CartItem>()
@@ -34,27 +37,34 @@ class ShoppingCartAdapter(
         private val quantity    = view.findViewById<TextView>(R.id.tvQuantity)
         private val btnIncrease = view.findViewById<ImageView>(R.id.btnIncrease)
         private val btnDecrease = view.findViewById<ImageView>(R.id.btnDecrease)
-        private val btnDelete   = view.findViewById<ImageView>(R.id.btnDelete)
         private val btnObs = view.findViewById<ImageView>(R.id.btnObs)
         private val obsDescription = view.findViewById<TextView>(R.id.obsDescription)
 
-        fun bind(item: CartItem, onUpdate: (CartItem, Int) -> Unit) {
+
+
+        fun bind(item: CartItem) {
+
+            val commissionPerUnit = getProductCommission(item.product.id)
+            val pricePlusCommissionPerUnit = item.product.price + commissionPerUnit
+            val totalForThisItem = pricePlusCommissionPerUnit * item.quantity
             name.text     = item.product.name
             price.text    = formatCurrency(item.product.price)
             quantity.text = item.quantity.toString()
             btnObs.setOnClickListener { onObservationClick(item) }
+            price.text = formatCurrency(totalForThisItem)
+            quantity.text = item.quantity.toString()
 
 
             Glide.with(img.context)
                 .load(item.product.thumbnail)
                 .into(img)
 
-            btnIncrease.setOnClickListener { onUpdate(item, item.quantity + 1) }
-            btnDecrease.setOnClickListener {
-                if (item.quantity > 1) onUpdate(item, item.quantity - 1)
+            btnIncrease.setOnClickListener { onQuantityChange(item, item.quantity + 1) }
+            btnDecrease.setOnClickListener { onMinusClick(item) }
+            btnDecrease.setOnLongClickListener {
+                onMinusLongClick?.invoke(item)
+                true
             }
-            btnDelete.setOnClickListener { onUpdate(item, 0) }
-
             val observation = item.observation
             if (!observation.isNullOrEmpty()) {
                 obsDescription.text = observation
@@ -66,7 +76,7 @@ class ShoppingCartAdapter(
 
         private fun formatCurrency(value: Long): String {
             val fmt = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
-            return fmt.format(value / 100.0)
+            return fmt.format(value / 10000.0)
         }
     }
 
@@ -76,7 +86,7 @@ class ShoppingCartAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(items[position], onQuantityChange)
+        holder.bind(items[position])
     }
 
     override fun getItemCount(): Int = items.size

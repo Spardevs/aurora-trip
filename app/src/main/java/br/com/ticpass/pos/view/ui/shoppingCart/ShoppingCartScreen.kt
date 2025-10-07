@@ -5,35 +5,32 @@ import android.graphics.Rect
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.Button
 import android.widget.EditText
 import android.widget.GridLayout
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.activity.BaseActivity
-import br.com.ticpass.pos.data.activity.PaymentActivity
 import br.com.ticpass.pos.data.activity.SplitEqualActivity
 import br.com.ticpass.pos.data.activity.SplitManualActivity
 import br.com.ticpass.pos.data.room.entity.CartItem
 import br.com.ticpass.pos.data.room.repository.ProductRepository
 import br.com.ticpass.pos.view.ui.payment.PaymentScreen
-import br.com.ticpass.pos.view.ui.payment.adapter.PaymentAdapter
-import br.com.ticpass.pos.view.ui.products.ProductsListScreen
 import br.com.ticpass.pos.view.ui.shoppingCart.adapter.ShoppingCartAdapter
 import br.com.ticpass.pos.viewmodel.payment.PaymentMethod
-import com.google.android.material.button.MaterialButton
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.math.BigInteger
 import java.text.NumberFormat
 import java.util.Locale
 import javax.inject.Inject
@@ -47,7 +44,8 @@ class ShoppingCartScreen : BaseActivity() {
     private lateinit var adapter: ShoppingCartAdapter
     private lateinit var recyclerView: RecyclerView
     private lateinit var tvEmptyCart: TextView
-    private lateinit var btnBack: MaterialButton
+    private lateinit var btnBack: ImageButton
+    private lateinit var btnOptionCart: ImageButton
     private lateinit var paymentSheet: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,8 +56,48 @@ class ShoppingCartScreen : BaseActivity() {
         recyclerView = findViewById(R.id.recyclerCart)
         tvEmptyCart = findViewById(R.id.tvEmptyCart)
         btnBack = findViewById(R.id.btnBack)
+        btnOptionCart = findViewById(R.id.btnOptionCart)
 
         btnBack.setOnClickListener { onBackPressed() }
+
+        btnOptionCart.setOnClickListener { view ->
+            val popup = android.widget.PopupMenu(this, view)
+            popup.menuInflater.inflate(R.menu.menu_cart_options, popup.menu)
+
+            popup.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.action_clear_cart -> {
+                        showClearCartDialog()
+                        true
+                    }
+                    else -> false
+                }
+            }
+
+            popup.show()
+        }
+
+        val header = paymentSheet.findViewById<View>(R.id.payment_header_container)
+        val forms = paymentSheet.findViewById<View>(R.id.payment_forms_container)
+        val tvSubTotalContainer = paymentSheet.findViewById<View>(R.id.ll_sub_total)
+        val tvTotalCommissionContainer = paymentSheet.findViewById<View>(R.id.ll_total_commission)
+        val cartContainer = paymentSheet.findViewById<LinearLayout>(R.id.cart_container)
+
+        header.setOnClickListener {
+            if (forms.visibility == View.VISIBLE) {
+                forms.visibility = View.GONE
+                tvSubTotalContainer.visibility = View.VISIBLE
+                tvTotalCommissionContainer.visibility = View.VISIBLE
+                cartContainer.visibility = View.GONE
+            } else {
+                tvSubTotalContainer.visibility = View.VISIBLE
+                tvTotalCommissionContainer.visibility = View.VISIBLE
+                cartContainer.visibility = View.GONE
+                val cart = shoppingCartManager.getCart()
+                updatePaymentInfo(cart)
+                forms.visibility = View.VISIBLE
+            }
+        }
 
         setupShoppingCart()
         setupPaymentMethods()
@@ -73,6 +111,19 @@ class ShoppingCartScreen : BaseActivity() {
             },
             onObservationClick = { item ->
                 showObservationDialog(item)
+            },
+            onMinusClick = { item ->
+                if (item.quantity == 1) {
+                    shoppingCartManager.updateItem(item.product.id, 0)
+                } else {
+                    shoppingCartManager.updateItem(item.product.id, item.quantity - 1)
+                }
+            },
+            onMinusLongClick = { item ->
+                shoppingCartManager.deleteItem(item.product.id)
+            },
+            getProductCommission = { productId ->
+                shoppingCartManager.getProductCommission(productId)?.toLong() ?: 0L
             }
         )
 
@@ -126,12 +177,14 @@ class ShoppingCartScreen : BaseActivity() {
         PaymentMethod("Dinheiro", R.drawable.cash, "cash"),
         PaymentMethod("Crédito", R.drawable.credit, "credit_card"),
         PaymentMethod("Débito", R.drawable.debit, "debit_card"),
-        PaymentMethod("VR", R.drawable.vr, "vr"),
-        PaymentMethod("Pix", R.drawable.pix,  "pix")
+        PaymentMethod("Pix", R.drawable.pix,  "pix"),
+        PaymentMethod("Debug", R.drawable.icon,  "debug")
+
     )
     private fun setupPaymentMethods() {
         val container = paymentSheet.findViewById<GridLayout>(R.id.payment_methods_container)
         container.removeAllViews()
+        val columnCount = 2 // número de colunas definido
 
         paymentMethods.forEachIndexed { index, method ->
             val itemView = LayoutInflater.from(this)
@@ -143,14 +196,15 @@ class ShoppingCartScreen : BaseActivity() {
             val params = GridLayout.LayoutParams().apply {
                 width = 0
                 height = GridLayout.LayoutParams.WRAP_CONTENT
-                columnSpec = GridLayout.spec(index % 3, 1f)
-                rowSpec = GridLayout.spec(index / 3)
+                columnSpec = GridLayout.spec(index % columnCount, 1f)
+                rowSpec = GridLayout.spec(index / columnCount)
                 setMargins(8, 8, 8, 8)
             }
 
             itemView.setOnClickListener {
                 val intent = Intent(this, PaymentScreen::class.java)
                 intent.putExtra("payment_type", method.value)
+                intent.putExtra("show_cart_button", false)
                 startActivity(intent)
             }
 
@@ -181,7 +235,6 @@ class ShoppingCartScreen : BaseActivity() {
                 SPLIT_EQUAL_REQUEST -> {
                     val dividedValue = data?.getDoubleExtra("divided_value", 0.0) ?: 0.0
                     val peopleCount = data?.getIntExtra("people_count", 1) ?: 1
-                    // Implemente a lógica para lidar com a divisão
                     showDivisionResult(dividedValue, peopleCount)
                 }
                 SPLIT_MANUAL_REQUEST -> {
@@ -231,40 +284,67 @@ class ShoppingCartScreen : BaseActivity() {
         if (hasItems) {
             updatePaymentInfo(cart)
 
-            paymentSheet.findViewById<ImageView>(R.id.btnClearAll)?.let { btnClear ->
-                btnClear.setOnClickListener {
-                    AlertDialog.Builder(this)
-                        .setTitle("Limpar carrinho")
-                        .setMessage("Deseja remover todos os itens do carrinho?")
-                        .setPositiveButton("Sim") { dialog, _ ->
-                            shoppingCartManager.clearCart()
-                            dialog.dismiss()
-                        }
-                        .setNegativeButton("Cancelar") { dialog, _ ->
-                            dialog.dismiss()
-                        }
-                        .show()
-                }
+            paymentSheet.findViewById<LinearLayout>(R.id.btnOptions)?.setOnClickListener {
+                showSplitBillDialog()
             }
 
-            paymentSheet.findViewById<ImageView>(R.id.btnOptions)?.let { btnOptions ->
-                btnOptions.setOnClickListener {
-                    showSplitBillDialog()
-                }
-            }
+            // Aqui escondemos o carrinho e mostramos os totais ao abrir o paymentSheet
+            paymentSheet.findViewById<LinearLayout>(R.id.cart_container)?.visibility = View.GONE
+            paymentSheet.findViewById<View>(R.id.ll_sub_total)?.visibility = View.VISIBLE
+            paymentSheet.findViewById<View>(R.id.ll_total_commission)?.visibility = View.VISIBLE
         }
     }
 
     private fun updatePaymentInfo(cart: ShoppingCartManager.ShoppingCart) {
-        paymentSheet.findViewById<TextView>(R.id.tv_items_count)?.text =
-            resources.getQuantityString(
-                R.plurals.items_count,
-                cart.items.values.sum(),
-                cart.items.values.sum()
-            )
-
+        // Atualiza total principal imediatamente
         paymentSheet.findViewById<TextView>(R.id.tv_total_price)?.text =
             formatCurrency(cart.totalPrice.toDouble())
+
+        lifecycleScope.launch {
+            var productsTotal = 0.0
+
+            for ((productId, qty) in cart.items) {
+                val product = withContext(Dispatchers.IO) {
+                    productRepository.getById(productId)
+                }
+                product?.let {
+                    productsTotal += it.price * qty
+                }
+            }
+
+            val commission = (cart.totalPrice.toDouble() - productsTotal).coerceAtLeast(0.0)
+
+            paymentSheet.findViewById<TextView>(R.id.tv_sub_total)?.text =
+                formatCurrency(productsTotal)
+            paymentSheet.findViewById<TextView>(R.id.tv_total_commission)?.text =
+                formatCurrency(commission)
+        }
+    }
+
+    private fun showClearCartDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_clear_cart, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        val btnNo = dialogView.findViewById<Button>(R.id.btnNo)
+        val btnYes = dialogView.findViewById<Button>(R.id.btnYes)
+
+        btnNo.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        btnYes.setOnClickListener {
+            shoppingCartManager.clearCart()
+            Toast.makeText(this, "Carrinho limpo", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+        }
+
+        dialog.show()
+
+        // Para adicionar sombra e arredondar o fundo do diálogo
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.decorView?.elevation = 16f
     }
 
     private fun showObservationDialog(item: CartItem) {
@@ -297,8 +377,10 @@ class ShoppingCartScreen : BaseActivity() {
         dialog.show()
     }
 
-    private fun formatCurrency(value: Double): String {
-        return NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(value)
+    private fun formatCurrency(valueInCents: Double): String {
+        val valueInReais = valueInCents / 10000.0
+        val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+        return format.format(valueInReais)
     }
 
     class GridSpacingItemDecoration(

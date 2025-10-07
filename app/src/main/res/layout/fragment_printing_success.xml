@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="#FFFFFAF0">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="15dp"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:background="@drawable/bg_printing_border_success"
+        tools:ignore="MissingConstraints">
+
+        <ImageView
+            android:id="@+id/iv_completed"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/ic_printer"
+            android:layout_marginBottom="16dp"
+            app:layout_constraintBottom_toTopOf="@+id/tv_completed"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:tint="#4CAF50" />
+
+        <TextView
+            android:id="@+id/tv_completed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Concluído"
+            android:textColor="#4CAF50"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            app:layout_constraintTop_toBottomOf="@id/iv_completed"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Novo botão Finalizar -->
+        <Button
+            android:id="@+id/btn_finish"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:backgroundTint="#4CAF50"
+            android:padding="12dp"
+            android:text="Finalizar"
+            android:textColor="#FFFFFF" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

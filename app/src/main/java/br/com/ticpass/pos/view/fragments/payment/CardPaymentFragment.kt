@@ -11,11 +11,11 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.data.activity.PaymentSelectionActivity
 import br.com.ticpass.pos.feature.payment.PaymentProcessingViewModel
 import br.com.ticpass.pos.payment.events.FinishPaymentHandler
 import br.com.ticpass.pos.payment.events.PaymentEventHandler
@@ -30,6 +30,8 @@ import com.google.android.material.button.MaterialButton
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.fragment.app.setFragmentResultListener
+import androidx.fragment.app.setFragmentResult
 
 @AndroidEntryPoint
 class CardPaymentFragment : Fragment() {
@@ -91,6 +93,11 @@ class CardPaymentFragment : Fragment() {
             setupUI(view)
             setupPaymentEventHandler(view)
             setupObservers()
+
+            // Listener para re-tentar vindo do PaymentErrorFragment
+            setFragmentResultListener("retry_payment") { _, _ ->
+                retryPayment()
+            }
         } else {
             Log.e("CardPaymentFragment", "ShoppingCartManager not initialized")
             requireActivity().finish()
@@ -162,8 +169,8 @@ class CardPaymentFragment : Fragment() {
             paymentEventHandler = paymentEventHandler,
             statusTextView = statusTextView,
             onSuccess = { handleSuccessfulPayment() },
-            onError = { errorMessage -> updateUIForError(errorMessage) },
-            onCancelled = { updateUIForCancelled() }
+            onError = { errorMessage -> showErrorFragment(errorMessage) },
+            onCancelled = { showErrorFragment("Pagamento cancelado") }
         )
     }
 
@@ -184,71 +191,6 @@ class CardPaymentFragment : Fragment() {
         )
     }
 
-    private fun updateUIForSuccess() {
-        activity?.runOnUiThread {
-            statusTextView.text = "Pagamento Aprovado!"
-            imageView.setImageResource(R.drawable.ic_check)
-
-            cancelButton.text = if (isMultiPayment) "Próximo Pagamento" else "Finalizar"
-            cancelButton.setOnClickListener {
-                if (isMultiPayment) {
-                    requireActivity().setResult(AppCompatActivity.RESULT_OK)
-                    requireActivity().finish()
-                } else {
-                    shoppingCartManager.clearCart()
-                    requireActivity().finish()
-                }
-            }
-            retryButton.visibility = View.GONE
-
-            imageView.animate()
-                .scaleX(1.5f)
-                .scaleY(1.5f)
-                .setDuration(500)
-                .withEndAction {
-                    imageView.animate()
-                        .scaleX(1f)
-                        .scaleY(1f)
-                        .setDuration(300)
-                        .start()
-                }
-                .start()
-        }
-    }
-
-
-    private fun getNextProgress(currentProgress: String): String {
-        return try {
-            val parts = currentProgress.split("/")
-            if (parts.size == 2) {
-                val current = parts[0].toInt()
-                val total = parts[1].toInt()
-                "${current + 1}/$total"
-            } else {
-                "2/?"
-            }
-        } catch (e: Exception) {
-            "2/?"
-        }
-    }
-
-    private fun updateUIForError(errorMessage: String) {
-        activity?.runOnUiThread {
-            statusTextView.text = "Erro no Pagamento"
-            imageView.setImageResource(R.drawable.ic_close)
-            cancelButton.text = "Cancelar"
-            cancelButton.setOnClickListener {
-                paymentViewModel.abortAllPayments()
-                requireActivity().finish()
-            }
-            retryButton.visibility = View.VISIBLE
-            retryButton.text = "Tentar Novamente"
-            retryButton.setOnClickListener {
-                retryPayment()
-            }
-        }
-    }
-
     private fun retryPayment() {
         activity?.runOnUiThread {
             retryButton.visibility = View.GONE
@@ -267,9 +209,23 @@ class CardPaymentFragment : Fragment() {
         }
     }
 
-    private fun updateUIForCancelled() {
-        statusTextView.text = "Pagamento Cancelado"
-        infoTextView.text = "A transação foi cancelada"
+    private fun showSuccessFragment() {
+        val frag = PaymentSuccessFragment.newInstance(isMultiPayment, progress)
+        replaceWithFragment(frag)
+    }
+
+    private fun showErrorFragment(errorMessage: String) {
+        val frag = PaymentErrorFragment.newInstance(errorMessage)
+        replaceWithFragment(frag)
+    }
+
+    private fun replaceWithFragment(fragment: Fragment) {
+        // usa um container chamado R.id.fragment_container se existir; senão usa android.R.id.content
+        val containerId = requireActivity().findViewById<View?>(R.id.fragment_container)?.id ?: android.R.id.content
+        requireActivity().supportFragmentManager.beginTransaction()
+            .replace(containerId, fragment)
+            .addToBackStack(null)
+            .commitAllowingStateLoss()
     }
 
     private fun handleSuccessfulPayment() {
@@ -284,19 +240,19 @@ class CardPaymentFragment : Fragment() {
                 finishPaymentHandler.handlePayment(
                     PaymentType.SINGLE_PAYMENT,
                     PaymentUIUtils.PaymentData(
-                        amount = (paymentValue * 100).toInt(),
+                        amount = (paymentValue * 1000).toInt(),
                         commission = 0,
                         method = method,
                         isTransactionless = true
                     )
                 )
 
-                // ✅ devolve para SplitEqualActivity
-                requireActivity().setResult(AppCompatActivity.RESULT_OK)
-                requireActivity().finish()
+                // Em vez de terminar a Activity imediatamente, mostra o fragment de sucesso
+                showSuccessFragment()
 
             } catch (e: Exception) {
-                updateUIForError("Erro ao finalizar pagamento")
+                showErrorFragment("Erro ao finalizar pagamento")
             }
         }
-    }}
+    }
+}

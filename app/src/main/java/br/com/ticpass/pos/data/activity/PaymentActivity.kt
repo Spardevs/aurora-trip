@@ -107,13 +107,7 @@ class PaymentActivity : AppCompatActivity() {
         val cart = shoppingCartManager.getCart()
         Log.d("PaymentActivity", "Updating UI - Items: ${cart.items.values.sum()}, Total: ${cart.totalPrice}")
 
-        binding.tvItemsCount.text = resources.getQuantityString(
-            R.plurals.items_count,
-            cart.items.values.sum(),
-            cart.items.values.sum()
-        )
         binding.tvTotalPrice.text = formatCurrency(cart.totalPrice.toDouble())
-        binding.btnClearAll.visibility = if (cart.items.isNotEmpty()) View.VISIBLE else View.INVISIBLE
     }
 
     private fun formatCurrency(value: Double): String {
@@ -134,4 +128,3 @@ class PaymentViewModelFactory(
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
-
