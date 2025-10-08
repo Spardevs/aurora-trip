@@ -422,13 +422,23 @@ dependencies {
     "pagseguroImplementation"(libs.android.support.design)
 
     // Stone
-    "stoneDebugImplementation"(libs.stone.sdk.envconfig)
     "stoneImplementation"(libs.stone.sdk)
     "stoneImplementation"(libs.stone.sdk.posandroid)
+
+    // Stone device-specific implementations (production)
     "sunmiImplementation"(libs.stone.sdk.sunmi)
     "positivoSeriesLImplementation"(libs.stone.sdk.positivo)
     "ingenicoImplementation"(libs.stone.sdk.ingenico)
     "tectoySeriesTImplementation"(libs.stone.sdk.tectoy)
     "gertecGpos700Implementation"(libs.stone.sdk.gertec)
     "gertecGpos760Implementation"(libs.stone.sdk.gertec)
+
+    // Stone device-specific implementations (debug - all variants for testing)
+    "stoneDebugImplementation"(libs.stone.sdk.envconfig)
+    "stoneDebugImplementation"(libs.stone.sdk.sunmi)
+    "stoneDebugImplementation"(libs.stone.sdk.positivo)
+    "stoneDebugImplementation"(libs.stone.sdk.ingenico)
+    "stoneDebugImplementation"(libs.stone.sdk.gertec)
+    // Note: tectoy SDK causes build failures in debug, only enabled for production tectoySeriesT flavor
+    // "stoneDebugImplementation"(libs.stone.sdk.tectoy)
 }
