@@ -102,12 +102,14 @@ class NFCCustomerAuthProcessor : NFCProcessorBase() {
     }
 
     /**
-     * Requests the user to input NFC tag pin.
+     * Requests the user to input NFC tag pin and validates subject ID.
+     * @param pin The PIN from the tag
+     * @param subjectId The subject ID from the tag to validate against
      */
-    private suspend fun requestNFCTagAuth(pin: String): Boolean {
+    private suspend fun requestNFCTagAuth(pin: String, subjectId: String): Boolean {
         return withContext(Dispatchers.IO) {
             requestUserInput(
-                UserInputRequest.CONFIRM_NFC_TAG_AUTH(pin = pin)
+                UserInputRequest.CONFIRM_NFC_TAG_AUTH(pin = pin, subjectId = subjectId)
             )
         }.value as? Boolean ?: false
     }
@@ -159,7 +161,8 @@ class NFCCustomerAuthProcessor : NFCProcessorBase() {
                 name = jsonObject.optString("name", ""),
                 nationalId = jsonObject.optString("nationalId", ""),
                 phone = jsonObject.optString("phone", ""),
-                pin = jsonObject.optString("pin", "")
+                pin = jsonObject.optString("pin", ""),
+                subjectId = jsonObject.optString("subjectId", "")
             )
 
         } catch (e: Exception) {
@@ -192,14 +195,15 @@ class NFCCustomerAuthProcessor : NFCProcessorBase() {
                 val customerData = parseCustomerData(result)
                     ?: throw NFCException(ProcessingErrorEvent.NFC_PROCESSING_TAG_CUSTOMER_DATA_ERROR)
 
-                val didAuth = requestNFCTagAuth(customerData.pin)
+                val didAuth = requestNFCTagAuth(customerData.pin, customerData.subjectId)
                 if (!didAuth) throw NFCException(ProcessingErrorEvent.NFC_TAG_CUSTOMER_PIN_INCORRECT)
 
                 return@withContext NFCSuccess.CustomerAuthSuccess(
                     id = customerData.id,
                     name = customerData.name,
                     nationalId = customerData.nationalId,
-                    phone = customerData.phone
+                    phone = customerData.phone,
+                    subjectId = customerData.subjectId
                 )
             }
             catch (e: NFCException) {
