@@ -32,22 +32,20 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.setFragmentResult
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 
 @AndroidEntryPoint
 class CardPaymentFragment : Fragment() {
     private val paymentViewModel: PaymentProcessingViewModel by activityViewModels()
     private lateinit var paymentEventHandler: PaymentEventHandler
-
     @Inject
     lateinit var shoppingCartManager: ShoppingCartManager
-
     @Inject
     lateinit var finishPaymentHandler: FinishPaymentHandler
-
     @Inject
     lateinit var paymentUtils: PaymentFragmentUtils
     private var shouldStartImmediately = false
-
     private lateinit var titleTextView: TextView
     private lateinit var statusTextView: TextView
     private lateinit var infoTextView: TextView
@@ -56,13 +54,15 @@ class CardPaymentFragment : Fragment() {
     private lateinit var cancelButton: MaterialButton
     private lateinit var retryButton: MaterialButton
     private lateinit var timeoutCountdownView: TimeoutCountdownView
-
     private var paymentType: String? = null
     private var paymentValue: Double = 0.0
     private var totalValue: Double = 0.0
     private var remainingValue: Double = 0.0
     private var isMultiPayment: Boolean = false
     private var progress: String = ""
+    private lateinit var pinInputLayout: TextInputLayout
+    private lateinit var pinInput: TextInputEditText
+    private lateinit var submitPinButton: MaterialButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         AcquirerSdk.initialize(requireContext())
@@ -89,12 +89,15 @@ class CardPaymentFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        pinInputLayout = view.findViewById(R.id.pin_input_layout)
+        pinInput = view.findViewById(R.id.pin_input)
+        submitPinButton = view.findViewById(R.id.btn_submit_pin)
+
         if (::shoppingCartManager.isInitialized) {
             setupUI(view)
             setupPaymentEventHandler(view)
             setupObservers()
 
-            // Listener para re-tentar vindo do PaymentErrorFragment
             setFragmentResultListener("retry_payment") { _, _ ->
                 retryPayment()
             }
@@ -138,7 +141,6 @@ class CardPaymentFragment : Fragment() {
             progressTextView?.text = "Pagamento ${progress}"
         }
 
-        // Usar o valor específico deste pagamento, não o total do carrinho
         priceTextView.text = PaymentFragmentUtils.formatCurrency(paymentValue)
 
         when (paymentType) {
@@ -185,7 +187,7 @@ class CardPaymentFragment : Fragment() {
             paymentViewModel = paymentViewModel,
             shoppingCartManager = shoppingCartManager,
             method = method,
-            amount = paymentValue, // Passar o valor específico
+            amount = paymentValue,
             isTransactionless = true,
             startImmediately = startImmediately
         )
@@ -247,7 +249,6 @@ class CardPaymentFragment : Fragment() {
                     )
                 )
 
-                // Em vez de terminar a Activity imediatamente, mostra o fragment de sucesso
                 showSuccessFragment()
 
             } catch (e: Exception) {

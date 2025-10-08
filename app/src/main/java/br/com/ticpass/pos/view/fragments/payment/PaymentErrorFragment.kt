@@ -10,12 +10,15 @@ import dagger.hilt.android.AndroidEntryPoint
 import androidx.fragment.app.Fragment
 import br.com.ticpass.pos.R
 import androidx.core.os.bundleOf
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.setFragmentResult
+import br.com.ticpass.pos.feature.payment.PaymentProcessingViewModel
 
 @AndroidEntryPoint
 class PaymentErrorFragment : Fragment() {
 
     private var errorMessage: String? = null
+    private val paymentViewModel: PaymentProcessingViewModel by activityViewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +50,7 @@ class PaymentErrorFragment : Fragment() {
         }
 
         btnFinish?.setOnClickListener {
+            paymentViewModel.abortAllPayments()
             requireActivity().finish()
         }
     }

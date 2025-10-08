@@ -282,7 +282,7 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
     }
 
     private fun formatCurrency(valueInCents: BigInteger): String {
-        val valueInReais = valueInCents.toDouble() / 10000.0
+        val valueInReais = valueInCents.toDouble() / 1000
         val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
         return format.format(valueInReais)
     }

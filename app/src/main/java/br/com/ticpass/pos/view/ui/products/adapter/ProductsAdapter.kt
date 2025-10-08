@@ -149,10 +149,11 @@ class ProductsAdapter(
 
         // Converte centavos (Long) para reais e formata no Locale pt-BR
         private fun formatCurrencyFromCents(valueInCents: Long): String {
-            val valueInReais = valueInCents / 100000.0
-            val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
-            return format.format(valueInReais)
-        }
+                val valueInReais = valueInCents.toDouble() / 1000
+                val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+                return format.format(valueInReais)
+            }
+
     }
 
     fun updateProducts(newProducts: List<Product>) {
