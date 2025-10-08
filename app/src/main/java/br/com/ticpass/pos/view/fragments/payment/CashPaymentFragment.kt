@@ -50,6 +50,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.io.File
 import java.math.BigDecimal
+import java.math.BigInteger
 import java.math.RoundingMode
 import java.text.NumberFormat
 import java.util.Locale
@@ -148,8 +149,7 @@ class CashPaymentFragment : Fragment() {
             insets
         }
 
-        tvTotalValue.text = formatCurrencyFromReais(totalAmount)
-        tvTotalValue.text = formatCurrencyFromReais(totalAmount)
+        tvTotalValue.text = formatCurrency(totalAmount.toBigInteger())
     }
 
     private fun setupViews(view: View) {
@@ -442,7 +442,7 @@ class CashPaymentFragment : Fragment() {
                 finishPaymentHandler.handlePayment(
                     PaymentType.SINGLE_PAYMENT,
                     PaymentUIUtils.PaymentData(
-                        amount = (paymentValue * 1000).toInt(),
+                        amount = (paymentValue * 1000.0).toInt(),
                         commission = 0,
                         method = method,
                         isTransactionless = true
@@ -542,5 +542,11 @@ class CashPaymentFragment : Fragment() {
             e.printStackTrace()
             null
         }
+    }
+
+    private fun formatCurrency(valueInCents: BigInteger): String {
+        val valueInReais = valueInCents.toDouble() / 1000
+        val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+        return format.format(valueInReais)
     }
 }

@@ -23,7 +23,6 @@
             android:src="@drawable/ic_contactless"
             app:tint="@android:color/white" />
 
-
         <TextView
             android:id="@+id/payment_info"
             android:layout_width="wrap_content"
@@ -53,7 +52,6 @@
         android:src="@drawable/ic_credit_card"
         app:tint="@android:color/white" />
 
-    <!-- Adicione o TimeoutCountdownView aqui -->
     <br.com.ticpass.pos.payment.view.TimeoutCountdownView
         android:id="@+id/timeout_countdown"
         android:layout_width="wrap_content"
@@ -75,6 +73,7 @@
             android:text="Cartão"
             android:textColor="@android:color/white"
             android:textSize="16sp" />
+
         <TextView
             android:id="@+id/payment_price"
             android:layout_width="wrap_content"
@@ -86,7 +85,30 @@
 
     </LinearLayout>
 
+    <!-- Campo para digitar PIN -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/pin_input_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_marginTop="16dp"
+        app:passwordToggleEnabled="true">
 
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/pin_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberPassword"
+            android:hint="Digite o PIN" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_submit_pin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Confirmar PIN"
+        android:visibility="gone"
+        android:layout_marginTop="8dp" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_retry"

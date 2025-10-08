@@ -14,13 +14,10 @@
         android:gravity="center"
         android:orientation="vertical"
         android:padding="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="309dp">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <ImageView
             android:id="@+id/imageCheck"
@@ -38,7 +35,8 @@
             android:textAlignment="center"
             android:textColor="@android:color/white"
             android:textSize="30sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:layout_marginTop="16dp" />
 
         <TextView
             android:id="@+id/payment_error_info"
@@ -47,19 +45,8 @@
             android:text="Erro ao validar saldo bancário"
             android:textAlignment="center"
             android:textColor="@android:color/white"
-            android:textSize="22sp" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        tools:layout_editor_absoluteX="-25dp"
-        tools:layout_editor_absoluteY="637dp"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:visibility="gone"
-        tools:ignore="MissingConstraints">
+            android:textSize="22sp"
+            android:layout_marginTop="8dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_client_ticket"
@@ -68,11 +55,10 @@
             android:layout_height="wrap_content"
             android:text="Tentar Novamente"
             android:textColor="@android:color/white"
-            android:textSize="30sp"
+            android:textSize="@dimen/text_md"
             app:strokeColor="@android:color/white"
             app:strokeWidth="2dp"
-            tools:layout_editor_absoluteX="107dp"
-            tools:layout_editor_absoluteY="738dp" />
+            android:layout_marginTop="24dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_finish"
@@ -81,13 +67,11 @@
             android:layout_height="wrap_content"
             android:text="Fechar"
             android:textColor="@android:color/white"
-            android:textSize="30sp"
+            android:textSize="@dimen/text_md"
             app:strokeColor="@android:color/white"
             app:strokeWidth="2dp"
-            tools:layout_editor_absoluteX="107dp"
-            tools:layout_editor_absoluteY="738dp" />
+            android:layout_marginTop="5dp" />
 
     </LinearLayout>
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
