@@ -21,7 +21,13 @@ data class NFCTagCustomerData(
     /**
      * The pin code for the customer, which should be a 4-digit number.
      */
-    val pin: String = (1000..9999).random().toString(10)
+    val pin: String = (1000..9999).random().toString(10),
+
+    /**
+     * The subject ID that this card is associated with (e.g., menu ID, location ID).
+     * Used to prevent cross-subject usage (e.g., using a card from menu A on menu B).
+     */
+    val subjectId: String
 )
 
 data class NFCTagCustomerDataInput(
@@ -43,4 +49,9 @@ data class NFCTagCustomerDataInput(
      * Optional field, there's no need to store dots or dashes.
      */
     val phone: String = "",
+
+    /**
+     * The subject ID that this card is associated with (e.g., menu ID, location ID).
+     */
+    val subjectId: String
 )

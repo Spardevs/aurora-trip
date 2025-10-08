@@ -255,8 +255,8 @@ class NFCCustomerSetupProcessor : NFCProcessorBase() {
      * @return ByteArray containing the JSON representation of the customer data
      */
     private fun processCustomerData(customerData: NFCTagCustomerData): ByteArray {
-        val (id, name, nationalId, phone, pin) = customerData
-        val json = """{"name":"$name","nationalId":"$nationalId","phone":"$phone","id":"$id","pin":"$pin"}"""
+        val (id, name, nationalId, phone, pin, subjectId) = customerData
+        val json = """{"name":"$name","nationalId":"$nationalId","phone":"$phone","id":"$id","pin":"$pin","subjectId":"$subjectId"}"""
         val jsonBytes = json.toByteArray(Charsets.UTF_8)
 
         return jsonBytes
@@ -277,7 +277,8 @@ class NFCCustomerSetupProcessor : NFCProcessorBase() {
             name = input.name,
             nationalId = input.nationalId,
             phone = input.phone,
-            pin = (1000..9999).random().toString(10)
+            pin = (1000..9999).random().toString(10),
+            subjectId = input.subjectId
         )
     }
 
@@ -324,7 +325,8 @@ class NFCCustomerSetupProcessor : NFCProcessorBase() {
                     name = customerData.name,
                     nationalId = customerData.nationalId,
                     phone = customerData.phone,
-                    pin = customerData.pin
+                    pin = customerData.pin,
+                    subjectId = customerData.subjectId
                 )
             }
             catch (e: NFCException) {

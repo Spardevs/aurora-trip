@@ -54,11 +54,13 @@ sealed class NFCUiState {
      * @param requestId Unique identifier for the request
      * @param timeoutMs Timeout in milliseconds for the confirmation
      * @param pin The PIN to be used for NFC tag authentication
+     * @param subjectId The subject ID from the tag to validate against
      */
     data class ConfirmNFCTagAuth(
         val requestId: String,
         val timeoutMs: Long = 5_000L, // 5 seconds default timeout
         val pin: String,
+        val subjectId: String
     ) : NFCUiState()
 
     /**

@@ -209,6 +209,8 @@ class NFCDialogManager(
         val editCpf = dialogView.findViewById<TextInputEditText>(R.id.edit_cpf)
         val layoutPhone = dialogView.findViewById<TextInputLayout>(R.id.layout_phone)
         val editPhone = dialogView.findViewById<TextInputEditText>(R.id.edit_phone)
+        val layoutSubjectId = dialogView.findViewById<TextInputLayout>(R.id.layout_subject_id)
+        val editSubjectId = dialogView.findViewById<TextInputEditText>(R.id.edit_subject_id)
         val timeoutView = dialogView.findViewById<TimeoutCountdownView>(R.id.timeout_countdown_view)
         val btnCancel = dialogView.findViewById<Button>(R.id.btn_cancel)
         val btnConfirm = dialogView.findViewById<Button>(R.id.btn_confirm)
@@ -254,6 +256,15 @@ class NFCDialogManager(
                 layoutPhone.error = null
             }
             
+            // Validate subject ID (required)
+            val subjectId = editSubjectId.text.toString().trim()
+            if (subjectId.isEmpty()) {
+                layoutSubjectId.error = context.getString(R.string.nfc_customer_error_subject_id_required)
+                isValid = false
+            } else {
+                layoutSubjectId.error = null
+            }
+            
             return isValid
         }
         
@@ -263,7 +274,8 @@ class NFCDialogManager(
                 id = UUID.randomUUID().toString(),
                 name = editName.text.toString().trim(),
                 nationalId = CpfUtils.cleanCpf(editCpf.text.toString()),
-                phone = BrazilianPhoneUtils.cleanPhone(editPhone.text.toString())
+                phone = BrazilianPhoneUtils.cleanPhone(editPhone.text.toString()),
+                subjectId = editSubjectId.text.toString().trim()
             )
         }
         
@@ -294,16 +306,19 @@ class NFCDialogManager(
     }
 
     /**
-     * Show a dialog to confirm NFC tag authentication with a PIN.
-     * Allows user to enter the PIN for NFC tag authentication.
+     * Show a dialog to confirm NFC tag authentication with a PIN and subject ID validation.
+     * Allows user to enter the PIN for NFC tag authentication and validates subject ID.
      */
     fun showConfirmNFCTagAuthDialog(
         requestId: String,
         timeoutMs: Long,
         pin: String,
+        subjectId: String
     ) {
         // manager pin should be retrieved from secure storage in production app
         val managerPin = "0000"
+        // current subject ID should be retrieved from app context/session
+        val currentSubjectId = "MENU_001" // TODO: Get from app context
         var attemptsRemaining = 3
         
         // Create a custom dialog view for PIN entry
@@ -328,7 +343,7 @@ class NFCDialogManager(
             imm.hideSoftInputFromWindow(editPin.windowToken, 0)
         }
         
-        // Function to validate PIN
+        // Function to validate PIN and subject ID
         fun validatePin(): Boolean {
             val enteredPin = editPin.text.toString()
             
@@ -337,6 +352,16 @@ class NFCDialogManager(
                 return false
             }
             
+            // First check subject ID
+            if (subjectId != currentSubjectId) {
+                hideKeyboard()
+                Toast.makeText(context, "This card cannot be used here (wrong subject)", Toast.LENGTH_LONG).show()
+                nfcViewModel.confirmNFCTagAuth(requestId, false)
+                dialog.dismiss()
+                return true
+            }
+            
+            // Then validate PIN
             if (enteredPin == pin || enteredPin == managerPin) {
                 hideKeyboard()
                 nfcViewModel.confirmNFCTagAuth(requestId, true)

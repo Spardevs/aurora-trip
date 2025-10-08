@@ -53,13 +53,15 @@ sealed class UserInputRequest {
     ) : UserInputRequest()
 
     /**
-     * Request to confirm NFC tag authentication with a PIN
+     * Request to confirm NFC tag authentication with a PIN and subject ID
      * @param pin The PIN to be used for NFC tag authentication
+     * @param subjectId The subject ID from the tag to validate against
      */
     data class CONFIRM_NFC_TAG_AUTH(
         override val id: String = UUID.randomUUID().toString(),
         override val timeoutMs: Long = 30_000L, // 30 seconds default timeout
-        val pin: String
+        val pin: String,
+        val subjectId: String
     ) : UserInputRequest()
 
     /**

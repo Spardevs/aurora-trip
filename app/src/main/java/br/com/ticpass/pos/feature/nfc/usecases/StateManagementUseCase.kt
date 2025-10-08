@@ -106,7 +106,8 @@ class StateManagementUseCase @Inject constructor() {
                     NFCUiState.ConfirmNFCTagAuth(
                         requestId = request.id,
                         timeoutMs = request.timeoutMs,
-                        pin = request.pin
+                        pin = request.pin,
+                        subjectId = request.subjectId
                     )
                 )
             }

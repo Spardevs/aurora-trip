@@ -616,9 +616,11 @@
     <string name="nfc_customer_name_hint">Name</string>
     <string name="nfc_customer_cpf_hint">CPF (Optional)</string>
     <string name="nfc_customer_phone_hint">Phone (Optional)</string>
+    <string name="nfc_customer_subject_id_hint">Subject ID (e.g., Menu ID)</string>
     <string name="nfc_customer_error_invalid_cpf">Invalid CPF format</string>
     <string name="nfc_customer_error_invalid_phone">Invalid phone number format</string>
     <string name="nfc_customer_error_name_too_long">Name must be 30 characters or less</string>
+    <string name="nfc_customer_error_subject_id_required">Subject ID is required</string>
 
     <!-- NFC Cart Update -->
     <string name="nfc_cart_update_title">Update Cart</string>

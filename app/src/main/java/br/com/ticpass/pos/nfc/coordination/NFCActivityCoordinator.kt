@@ -96,7 +96,7 @@ class NFCActivityCoordinator(
                                 is NFCSuccess.CustomerAuthSuccess -> {
                                     // Handle auth success
                                     Log.i("NFCActivityCoordinator", "NFC Auth Success:" +
-                                            " ${result.id} ${result.name} ${result.phone} ${result.nationalId}")
+                                            " ${result.id} ${result.name} ${result.phone} ${result.nationalId} ${result.subjectId}")
                                 }
 
                                 is NFCSuccess.CustomerSetupSuccess -> {
@@ -104,7 +104,8 @@ class NFCActivityCoordinator(
                                     Log.i("NFCActivityCoordinator", "✅ Customer data written successfully" +
                                             " (ID: ${result.id}, Name: ${result.name}, " +
                                             "National Id: ${result.nationalId}, Phone: ${result.phone}, " +
-                                            "PIN: ${result.pin})")
+                                            "PIN: ${result.pin}) " +
+                                            "subjectId: ${result.subjectId}")
                                 }
 
                                 is NFCSuccess.FormatSuccess -> {
@@ -206,6 +207,7 @@ class NFCActivityCoordinator(
                             uiState.requestId,
                             uiState.timeoutMs,
                             uiState.pin,
+                            uiState.subjectId
                         )
                     }
                     else -> {

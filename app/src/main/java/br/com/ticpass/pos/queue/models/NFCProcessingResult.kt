@@ -15,6 +15,7 @@ sealed class NFCSuccess : ProcessingResult.Success() {
         val name: String,
         val nationalId: String,
         val phone: String,
+        val subjectId: String
     ) : NFCSuccess()
     
     /**
@@ -26,6 +27,7 @@ sealed class NFCSuccess : ProcessingResult.Success() {
         val nationalId: String,
         val phone: String,
         val pin: String,
+        val subjectId: String
     ) : NFCSuccess()
     
     /**
