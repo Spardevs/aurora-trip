@@ -261,6 +261,8 @@ class NFCCustomerSetupProcessor : NFCProcessorBase() {
 
         return jsonBytes
     }
+
+    /**
      * Requests to input customer data for the NFC tag.
      */
     private suspend fun requestNFCTagCustomerData(): NFCTagCustomerData {

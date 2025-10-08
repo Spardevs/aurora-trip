@@ -184,7 +184,7 @@ class NFCCartUpdateProcessor : NFCProcessorBase() {
                     
                     if (sum > 255) {
                         Log.e(TAG, "❌ Overflow: product $productId has ${existing.count}, adding $quantity would exceed max (255)")
-                        throw NFCException(ProcessingErrorEvent.INVALID_AMOUNT)
+                        throw NFCException(ProcessingErrorEvent.PRODUCT_QUANTITY_OVERFLOW)
                     }
                     
                     val newQuantity = sum.toUByte()
