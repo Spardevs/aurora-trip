@@ -15,6 +15,7 @@ import br.com.ticpass.pos.feature.nfc.NFCViewModel
 import br.com.ticpass.pos.nfc.coordination.NFCActivityCoordinator
 import br.com.ticpass.pos.nfc.dialogs.NFCDialogManager
 import br.com.ticpass.pos.nfc.events.NFCEventHandler
+import br.com.ticpass.pos.nfc.models.CartOperation
 import br.com.ticpass.pos.nfc.models.SupportedNFCMethods
 import br.com.ticpass.pos.nfc.models.SystemNFCMethod
 import br.com.ticpass.pos.nfc.view.NFCQueueView
@@ -157,7 +158,22 @@ class NFCActivity : AppCompatActivity() {
                     }
                 }
                 setOnClickListener {
-                    enqueueNFC(method)
+                    when (method) {
+                        SystemNFCMethod.CART_UPDATE -> {
+                            // Show dialog to get cart update parameters
+                            dialogManager.showCartUpdateDialog { productId, quantity, operation ->
+                                enqueueNFC(
+                                    method = method,
+                                    productId = productId,
+                                    quantity = quantity,
+                                    operation = operation,
+                                )
+                            }
+                        }
+                        else -> {
+                            enqueueNFC(method)
+                        }
+                    }
                 }
             }
             
@@ -170,6 +186,8 @@ class NFCActivity : AppCompatActivity() {
             SystemNFCMethod.CUSTOMER_AUTH -> getString(R.string.enqueue_auth_nfc)
             SystemNFCMethod.CUSTOMER_SETUP -> getString(R.string.enqueue_setup_nfc)
             SystemNFCMethod.TAG_FORMAT -> getString(R.string.enqueue_format_nfc)
+            SystemNFCMethod.CART_READ -> getString(R.string.enqueue_cart_read_nfc)
+            SystemNFCMethod.CART_UPDATE -> getString(R.string.enqueue_cart_update_nfc)
         }
     }
     
@@ -214,7 +232,7 @@ class NFCActivity : AppCompatActivity() {
             progressDialog?.dismiss()
         }
     }
-    
+
     /**
      * Enqueue a nfc with operation-specific data based on the method type
      */
@@ -237,6 +255,34 @@ class NFCActivity : AppCompatActivity() {
                     timeout = 20000L
                 )
             }
+            SystemNFCMethod.CART_READ -> {
+                nfcViewModel.enqueueCartReadOperation(
+                    timeout = 15000L
+                )
+            }
+            SystemNFCMethod.CART_UPDATE -> {}
+        }
+    }
+
+    /**
+     * Enqueue a nfc with operation-specific data based on the method type
+     */
+    private fun enqueueNFC(
+        method: SystemNFCMethod,
+        productId: UShort,
+        quantity: UByte,
+        operation: CartOperation,
+    ) {
+        when (method) {
+            SystemNFCMethod.CART_UPDATE -> {
+                nfcViewModel.enqueueCartUpdateOperation(
+                    timeout = 15000L,
+                    productId = productId,
+                    quantity = quantity,
+                    operation = operation,
+                )
+            }
+            else -> {}
         }
     }
 }

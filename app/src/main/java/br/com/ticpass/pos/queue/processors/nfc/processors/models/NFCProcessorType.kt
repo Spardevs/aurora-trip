@@ -7,4 +7,6 @@ enum class NFCProcessorType {
     CUSTOMER_AUTH,
     TAG_FORMAT,
     CUSTOMER_SETUP,
+    CART_READ,
+    CART_UPDATE,
 }

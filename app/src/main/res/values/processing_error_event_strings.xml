@@ -25,6 +25,7 @@
     <string name="error_response_tlv_size">TLV size error!</string>
     <string name="error_nfc_reading_tag_customer_data">Error reading customer data from NFC tag.</string>
     <string name="error_nfc_tag_not_found">NFC tag not found.</string>
+    <string name="error_product_quantity_overflow">Product quantity overflow.</string>
     <string name="error_nfc_processing_tag_customer_data">Error processing customer data from NFC tag.</string>
     <string name="error_nfc_tag_customer_pin_incorrect">Incorrect PIN on NFC tag.</string>
     <string name="error_invalid_masterdebit_transaction">Use debit, not credit.</string>

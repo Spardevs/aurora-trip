@@ -6,6 +6,10 @@ import br.com.ticpass.pos.queue.core.BaseProcessingEvent
  * Processing error events emitted during item processing
  */
 sealed class ProcessingErrorEvent : BaseProcessingEvent {
+    /**
+     * Product quantity overflow.
+     */
+    object PRODUCT_QUANTITY_OVERFLOW : ProcessingErrorEvent()
 
     /**
      * NFC tag not found.
@@ -1500,6 +1504,36 @@ sealed class ProcessingErrorEvent : BaseProcessingEvent {
      * The QR code has expired and is no longer valid.
      */
     object QRCODE_EXPIRED : ProcessingErrorEvent()
+
+    /**
+     * NFC cart read error.
+     * Failed to read cart data from NFC tag.
+     */
+    object NFC_CART_READ_ERROR : ProcessingErrorEvent()
+
+    /**
+     * NFC cart write error.
+     * Failed to write cart data to NFC tag.
+     */
+    object NFC_CART_WRITE_ERROR : ProcessingErrorEvent()
+
+    /**
+     * NFC cart header invalid.
+     * The cart header on the NFC tag is invalid or corrupted.
+     */
+    object NFC_CART_HEADER_INVALID : ProcessingErrorEvent()
+
+    /**
+     * NFC insufficient space.
+     * Not enough space on the NFC tag for the requested operation.
+     */
+    object NFC_INSUFFICIENT_SPACE : ProcessingErrorEvent()
+
+    /**
+     * NFC cart item not found.
+     * The specified cart item was not found on the tag.
+     */
+    object NFC_CART_ITEM_NOT_FOUND : ProcessingErrorEvent()
 
     /**
      * Transaction fallback initiated.

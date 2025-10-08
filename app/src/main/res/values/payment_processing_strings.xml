@@ -51,6 +51,10 @@
     <string name="event_nfc_reading_tag_customer_data">Reading customer data</string>
     <string name="event_nfc_authenticating_sectors">Authenticating sectors</string>
     <string name="event_nfc_formatting_tag">Formatting NFC tag</string>
+    <string name="event_nfc_processing_tag_cart_data">Processing cart data</string>
+    <string name="event_nfc_reading_tag_cart_data">Reading cart data</string>
+    <string name="event_nfc_writing_tag_cart_data">Writing cart data</string>
+
     <string name="event_nfc_processing">Processing nfc</string>
     <string name="event_nfc_reach_tag">Reach NFC tag</string>
     <string name="next_nfc_progress_first">Ready for first nfc?</string>

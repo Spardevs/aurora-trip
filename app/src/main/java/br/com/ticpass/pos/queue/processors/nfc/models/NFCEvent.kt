@@ -53,6 +53,21 @@ sealed class NFCEvent : BaseProcessingEvent {
     object SAVING_TAG_CUSTOMER_DATA : NFCEvent()
 
     /**
+     * Reading cart data from the NFC tag.
+     */
+    object READING_TAG_CART_DATA : NFCEvent()
+
+    /**
+     * Processing cart data.
+     */
+    object PROCESSING_TAG_CART_DATA : NFCEvent()
+
+    /**
+     * Writing cart data to the NFC tag.
+     */
+    object WRITING_TAG_CART_DATA : NFCEvent()
+
+    /**
      * User should place the NFC tag on the reader.
      */
     data class REACH_TAG(

@@ -9,11 +9,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import br.com.ticpass.pos.nfc.models.CartOperation
 import br.com.ticpass.pos.nfc.models.NFCTagCustomerDataInput
 import br.com.ticpass.pos.util.BrazilianPhoneUtils
 import br.com.ticpass.pos.util.CpfUtils
@@ -404,6 +406,144 @@ class NFCDialogManager(
         }
     }
     
+
+    /**
+     * Show a dialog to input cart update parameters
+     */
+    fun showCartUpdateDialog(callback: (productId: UShort, quantity: UByte, operation: CartOperation) -> Unit) {
+        // Create a custom dialog view for cart update input
+        val dialogView = layoutInflater.inflate(R.layout.dialog_nfc_cart_update, null)
+        
+        // Get references to the UI elements
+        val layoutOperation = dialogView.findViewById<TextInputLayout>(R.id.layout_operation)
+        val dropdownOperation = dialogView.findViewById<AutoCompleteTextView>(R.id.dropdown_operation)
+        val layoutProductId = dialogView.findViewById<TextInputLayout>(R.id.layout_product_id)
+        val editProductId = dialogView.findViewById<TextInputEditText>(R.id.edit_product_id)
+        val layoutQuantity = dialogView.findViewById<TextInputLayout>(R.id.layout_quantity)
+        val editQuantity = dialogView.findViewById<TextInputEditText>(R.id.edit_quantity)
+        val btnCancel = dialogView.findViewById<Button>(R.id.btn_cancel)
+        val btnConfirm = dialogView.findViewById<Button>(R.id.btn_confirm)
+        
+        // Setup operation dropdown
+        val operations = CartOperation.entries.map { it.name }
+        val operationAdapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, operations)
+        dropdownOperation.setAdapter(operationAdapter)
+        dropdownOperation.setText(CartOperation.INCREMENT.name, false)
+        
+        // Create the dialog
+        val dialog = AlertDialog.Builder(context)
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+        
+        // Function to validate all fields
+        fun validateFields(): Boolean {
+            var isValid = true
+            
+            // Get selected operation
+            val operationText = dropdownOperation.text.toString()
+            val operation = try {
+                CartOperation.valueOf(operationText)
+            } catch (e: Exception) {
+                layoutOperation.error = "Please select an operation"
+                return false
+            }
+            layoutOperation.error = null
+            
+            // Validate product ID (not required for CLEAR operation)
+            val productIdText = editProductId.text.toString().trim()
+            if (operation != CartOperation.CLEAR) {
+                if (productIdText.isEmpty()) {
+                    layoutProductId.error = context.getString(R.string.nfc_cart_error_product_id_required)
+                    isValid = false
+                } else {
+                    val productId = productIdText.toIntOrNull()
+                    if (productId == null || productId < 0 || productId > 65535) {
+                        layoutProductId.error = context.getString(R.string.nfc_cart_error_invalid_product_id)
+                        isValid = false
+                    } else {
+                        layoutProductId.error = null
+                    }
+                }
+            } else {
+                layoutProductId.error = null
+            }
+            
+            // Validate quantity (not required for REMOVE or CLEAR operations)
+            val quantityText = editQuantity.text.toString().trim()
+            if (operation != CartOperation.REMOVE && operation != CartOperation.CLEAR) {
+                if (quantityText.isEmpty()) {
+                    layoutQuantity.error = context.getString(R.string.nfc_cart_error_quantity_required)
+                    isValid = false
+                } else {
+                    val quantity = quantityText.toIntOrNull()
+                    if (quantity == null || quantity < 0 || quantity > 255) {
+                        layoutQuantity.error = context.getString(R.string.nfc_cart_error_invalid_quantity)
+                        isValid = false
+                    } else {
+                        layoutQuantity.error = null
+                    }
+                }
+            } else {
+                layoutQuantity.error = null
+            }
+            
+            return isValid
+        }
+        
+        // Update field requirements based on selected operation
+        dropdownOperation.setOnItemClickListener { _, _, _, _ ->
+            val operation = try {
+                CartOperation.valueOf(dropdownOperation.text.toString())
+            } catch (e: Exception) {
+                return@setOnItemClickListener
+            }
+            
+            when (operation) {
+                CartOperation.CLEAR -> {
+                    // CLEAR doesn't need product ID or quantity
+                    editProductId.isEnabled = false
+                    editQuantity.isEnabled = false
+                    layoutProductId.hint = context.getString(R.string.nfc_cart_product_id_hint) + " (Not required)"
+                    layoutQuantity.hint = context.getString(R.string.nfc_cart_quantity_hint) + " (Not required)"
+                }
+                CartOperation.REMOVE -> {
+                    // REMOVE only needs product ID
+                    editProductId.isEnabled = true
+                    editQuantity.isEnabled = false
+                    layoutProductId.hint = context.getString(R.string.nfc_cart_product_id_hint)
+                    layoutQuantity.hint = context.getString(R.string.nfc_cart_quantity_hint) + " (Not required)"
+                }
+                else -> {
+                    // All other operations need both
+                    editProductId.isEnabled = true
+                    editQuantity.isEnabled = true
+                    layoutProductId.hint = context.getString(R.string.nfc_cart_product_id_hint)
+                    layoutQuantity.hint = context.getString(R.string.nfc_cart_quantity_hint)
+                }
+            }
+        }
+        
+        // Set up button listeners
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+        
+        btnConfirm.setOnClickListener {
+            if (validateFields()) {
+                val operation = CartOperation.valueOf(dropdownOperation.text.toString())
+                val productId = editProductId.text.toString().toIntOrNull()?.toUShort() ?: 0u
+                val quantity = editQuantity.text.toString().toIntOrNull()?.toUByte() ?: 0u
+                
+                callback(productId, quantity, operation)
+                dialog.dismiss()
+            }
+        }
+        
+        // Show dialog and focus on operation dropdown
+        dialog.show()
+        dropdownOperation.requestFocus()
+    }
 
     /**
      * Show a dialog with error retry options.

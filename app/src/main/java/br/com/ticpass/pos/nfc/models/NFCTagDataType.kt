@@ -5,9 +5,10 @@ package br.com.ticpass.pos.nfc.models
  */
 enum class NFCTagDataType(val id: Byte) {
     CUSTOMER(0x01),
-    CONFIGURATION(0x02),
-    SYSTEM(0x03),
-    TEMPORARY(0x04);
+    CART(0x02),
+    CONFIGURATION(0x03),
+    SYSTEM(0x04),
+    TEMPORARY(0x05);
 
     companion object {
         fun fromId(id: Byte): NFCTagDataType? {

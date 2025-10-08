@@ -85,7 +85,7 @@ abstract class NFCProcessorBase :
             requestUserInput(
                 UserInputRequest.CONFIRM_NFC_KEYS()
             )
-        }.value as? Map<NFCTagSectorKeyType, String> ?: emptyMap()
+        }.value as? Map<NFCTagSectorKeyType, String> ?: throw NFCException(ProcessingErrorEvent.NFC_TAG_MISSING_KEYS)
     }
     
     /**
@@ -97,6 +97,8 @@ abstract class NFCProcessorBase :
             is NFCQueueItem.CustomerAuthOperation -> process(item)
             is NFCQueueItem.TagFormatOperation -> process(item)
             is NFCQueueItem.CustomerSetupOperation -> process(item)
+            is NFCQueueItem.CartReadOperation -> process(item)
+            is NFCQueueItem.CartUpdateOperation -> process(item)
         }
     }
     
@@ -114,6 +116,14 @@ abstract class NFCProcessorBase :
     
     protected open suspend fun process(item: NFCQueueItem.CustomerSetupOperation): ProcessingResult {
         throw UnsupportedOperationException("Setup operation not supported by ${this::class.simpleName}")
+    }
+    
+    protected open suspend fun process(item: NFCQueueItem.CartReadOperation): ProcessingResult {
+        throw UnsupportedOperationException("Cart read operation not supported by ${this::class.simpleName}")
+    }
+    
+    protected open suspend fun process(item: NFCQueueItem.CartUpdateOperation): ProcessingResult {
+        throw UnsupportedOperationException("Cart update operation not supported by ${this::class.simpleName}")
     }
     
     /**

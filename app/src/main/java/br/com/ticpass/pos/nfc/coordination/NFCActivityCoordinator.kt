@@ -112,6 +112,22 @@ class NFCActivityCoordinator(
                                     Log.d("NFCActivityCoordinator", "NFC Reset Success")
                                 }
 
+                                is NFCSuccess.CartReadSuccess -> {
+                                    // Handle cart read success
+                                    Log.i("NFCActivityCoordinator", "✅ Cart read successfully: ${result.items.size} items")
+                                    result.items.forEach { item ->
+                                        Log.i("NFCActivityCoordinator", "   - ${item.id}, Qty: ${item.count}")
+                                    }
+                                }
+
+                                is NFCSuccess.CartUpdateSuccess -> {
+                                    // Handle cart update success
+                                    Log.i("NFCActivityCoordinator", "✅ Cart updated successfully: ${result.items.size} items")
+                                    result.items.forEach { item ->
+                                        Log.i("NFCActivityCoordinator", "   - ${item.id}, Qty: ${item.count}")
+                                    }
+                                }
+
                                 else -> {}
                             }
                         }
@@ -254,6 +270,8 @@ class NFCActivityCoordinator(
             SystemNFCMethod.CUSTOMER_AUTH -> context.getString(R.string.enqueue_auth_nfc)
             SystemNFCMethod.CUSTOMER_SETUP -> context.getString(R.string.enqueue_setup_nfc)
             SystemNFCMethod.TAG_FORMAT -> context.getString(R.string.enqueue_format_nfc)
+            SystemNFCMethod.CART_READ -> context.getString(R.string.enqueue_cart_read_nfc)
+            SystemNFCMethod.CART_UPDATE -> context.getString(R.string.enqueue_cart_update_nfc)
         }
     }
 

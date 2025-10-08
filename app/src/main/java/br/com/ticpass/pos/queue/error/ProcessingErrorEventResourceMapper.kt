@@ -38,6 +38,7 @@ object ProcessingErrorEventResourceMapper {
             is ProcessingErrorEvent.RESPONSE_TLV_SIZE -> R.string.error_response_tlv_size
             is ProcessingErrorEvent.NFC_READING_TAG_CUSTOMER_DATA_ERROR -> R.string.error_nfc_reading_tag_customer_data
             is ProcessingErrorEvent.NFC_TAG_NOT_FOUND -> R.string.error_nfc_tag_not_found
+            is ProcessingErrorEvent.PRODUCT_QUANTITY_OVERFLOW -> R.string.error_product_quantity_overflow
             is ProcessingErrorEvent.NFC_PROCESSING_TAG_CUSTOMER_DATA_ERROR -> R.string.error_nfc_processing_tag_customer_data
             is ProcessingErrorEvent.NFC_TAG_CUSTOMER_PIN_INCORRECT -> R.string.error_nfc_tag_customer_pin_incorrect
             is ProcessingErrorEvent.INVALID_PIX_KEY -> R.string.error_invalid_pix_key

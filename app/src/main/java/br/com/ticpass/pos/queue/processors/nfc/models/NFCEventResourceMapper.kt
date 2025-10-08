@@ -25,6 +25,9 @@ object NFCEventResourceMapper {
             is NFCEvent.READING_TAG_CUSTOMER_DATA -> R.string.event_nfc_reading_tag_customer_data
             NFCEvent.AUTHENTICATING_SECTORS -> R.string.event_nfc_authenticating_sectors
             NFCEvent.FORMATTING_TAG -> R.string.event_nfc_formatting_tag
+            NFCEvent.PROCESSING_TAG_CART_DATA -> R.string.event_nfc_processing_tag_cart_data
+            NFCEvent.READING_TAG_CART_DATA -> R.string.event_nfc_reading_tag_cart_data
+            NFCEvent.WRITING_TAG_CART_DATA -> R.string.event_nfc_writing_tag_cart_data
         }
     }
 }

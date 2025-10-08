@@ -19,6 +19,7 @@ import br.com.ticpass.pos.queue.processors.nfc.utils.NFCQueueFactory
 import br.com.ticpass.pos.queue.processors.nfc.data.NFCStorage
 import br.com.ticpass.pos.queue.processors.nfc.models.NFCEvent
 import br.com.ticpass.pos.feature.nfc.state.NFCSideEffect
+import br.com.ticpass.pos.nfc.models.CartOperation
 import br.com.ticpass.pos.nfc.models.NFCTagCustomerDataInput
 import br.com.ticpass.pos.nfc.models.NFCTagSectorKeyType
 import br.com.ticpass.pos.queue.processors.nfc.models.NFCBruteForce
@@ -195,6 +196,32 @@ class NFCViewModel @Inject constructor(
         dispatch(NFCAction.EnqueueTypedNFC(
             NFCQueueItem.CustomerSetupOperation(
                 timeout = timeout
+            )
+        ))
+    }
+
+    fun enqueueCartReadOperation(
+        timeout: Long = 15000L
+    ) {
+        dispatch(NFCAction.EnqueueTypedNFC(
+            NFCQueueItem.CartReadOperation(
+                timeout = timeout
+            )
+        ))
+    }
+
+    fun enqueueCartUpdateOperation(
+        productId: UShort,
+        quantity: UByte,
+        operation: CartOperation,
+        timeout: Long = 15000L
+    ) {
+        dispatch(NFCAction.EnqueueTypedNFC(
+            NFCQueueItem.CartUpdateOperation(
+                productId = productId,
+                quantity = quantity,
+                operation = operation,
+                timeout = timeout,
             )
         ))
     }

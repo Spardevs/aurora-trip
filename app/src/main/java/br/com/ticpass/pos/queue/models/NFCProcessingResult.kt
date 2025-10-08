@@ -32,6 +32,20 @@ sealed class NFCSuccess : ProcessingResult.Success() {
      * NFC Format operation success with reset details
      */
     class FormatSuccess() : NFCSuccess()
+    
+    /**
+     * NFC Cart Read operation success with cart items
+     */
+    class CartReadSuccess(
+        val items: List<br.com.ticpass.pos.nfc.models.NFCCartItem>
+    ) : NFCSuccess()
+    
+    /**
+     * NFC Cart Update operation success with updated cart items
+     */
+    class CartUpdateSuccess(
+        val items: List<br.com.ticpass.pos.nfc.models.NFCCartItem>
+    ) : NFCSuccess()
 }
 
 class NFCError(event: ProcessingErrorEvent) : ProcessingResult.Error(event)

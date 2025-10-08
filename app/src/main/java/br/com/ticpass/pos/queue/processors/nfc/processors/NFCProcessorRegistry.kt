@@ -3,6 +3,8 @@ package br.com.ticpass.pos.queue.processors.nfc.processors
 import br.com.ticpass.pos.queue.processors.nfc.processors.core.DynamicNFCProcessor
 import br.com.ticpass.pos.queue.processors.nfc.processors.models.NFCProcessorType
 import br.com.ticpass.pos.queue.processors.nfc.processors.core.NFCProcessorBase
+import br.com.ticpass.pos.queue.processors.nfc.processors.impl.NFCCartReadProcessor
+import br.com.ticpass.pos.queue.processors.nfc.processors.impl.NFCCartUpdateProcessor
 import br.com.ticpass.pos.queue.processors.nfc.processors.impl.NFCCustomerAuthProcessor
 import br.com.ticpass.pos.queue.processors.nfc.processors.impl.NFCTagFormatProcessor
 import br.com.ticpass.pos.queue.processors.nfc.processors.impl.NFCCustomerSetupProcessor
@@ -17,6 +19,8 @@ object NFCProcessorRegistry {
     private val nfcCustomerAuth by lazy { NFCCustomerAuthProcessor() }
     private val nfcTagFormat by lazy { NFCTagFormatProcessor() }
     private val nfcCustomerSetup by lazy { NFCCustomerSetupProcessor() }
+    private val nfcCartRead by lazy { NFCCartReadProcessor() }
+    private val nfcCartUpdate by lazy { NFCCartUpdateProcessor() }
 
     // Map of processor types to processors (for dynamic processor)
     private val processorMap: Map<NFCProcessorType, NFCProcessorBase> by lazy {
@@ -24,6 +28,8 @@ object NFCProcessorRegistry {
             NFCProcessorType.CUSTOMER_AUTH to nfcCustomerAuth,
             NFCProcessorType.TAG_FORMAT to nfcTagFormat,
             NFCProcessorType.CUSTOMER_SETUP to nfcCustomerSetup,
+            NFCProcessorType.CART_READ to nfcCartRead,
+            NFCProcessorType.CART_UPDATE to nfcCartUpdate
         )
     }
 

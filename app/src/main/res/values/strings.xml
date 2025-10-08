@@ -620,6 +620,19 @@
     <string name="nfc_customer_error_invalid_phone">Invalid phone number format</string>
     <string name="nfc_customer_error_name_too_long">Name must be 30 characters or less</string>
 
+    <!-- NFC Cart Update -->
+    <string name="nfc_cart_update_title">Update Cart</string>
+    <string name="nfc_cart_update_subtitle">Enter cart operation details</string>
+    <string name="nfc_cart_operation_hint">Operation</string>
+    <string name="nfc_cart_product_id_hint">Product ID (0-65535)</string>
+    <string name="nfc_cart_quantity_hint">Quantity (0-255)</string>
+    <string name="nfc_cart_error_invalid_product_id">Product ID must be between 0 and 65535</string>
+    <string name="nfc_cart_error_invalid_quantity">Quantity must be between 0 and 255</string>
+    <string name="nfc_cart_error_product_id_required">Product ID is required</string>
+    <string name="nfc_cart_error_quantity_required">Quantity is required</string>
+    <string name="enqueue_cart_read_nfc">Read Cart</string>
+    <string name="enqueue_cart_update_nfc">Update Cart</string>
+
     <!-- NFC PIN Memorization -->
     <string name="nfc_pin_memorization_title">Memorize Your PIN</string>
     <string name="nfc_pin_memorization_description">Please memorize this PIN. You will need it to authenticate when using your NFC tag for orders.</string>

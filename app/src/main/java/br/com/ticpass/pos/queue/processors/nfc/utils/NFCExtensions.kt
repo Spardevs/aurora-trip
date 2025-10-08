@@ -5,7 +5,6 @@ import br.com.ticpass.pos.queue.processors.nfc.models.NFCBruteForce
 import br.com.ticpass.pos.queue.processors.nfc.models.NFCQueueEntity
 import br.com.ticpass.pos.queue.processors.nfc.models.NFCQueueItem
 import br.com.ticpass.pos.queue.processors.nfc.processors.models.NFCProcessorType
-import kotlinx.serialization.json.Json
 
 /**
  * Extension functions for converting between NFCQueueEntity and NFCQueueItem
@@ -36,6 +35,20 @@ fun NFCQueueItem.toEntity(): NFCQueueEntity {
             processorType = NFCProcessorType.CUSTOMER_SETUP,
             timeout = timeout
         )
+
+        is NFCQueueItem.CartReadOperation -> NFCQueueEntity(
+            id = id,
+            priority = priority,
+            status = status.toString(),
+            processorType = NFCProcessorType.CART_READ,
+        )
+
+        is NFCQueueItem.CartUpdateOperation -> NFCQueueEntity(
+            id = id,
+            priority = priority,
+            status = status.toString(),
+            processorType = NFCProcessorType.CART_UPDATE,
+        )
     }
 }
 
@@ -51,13 +64,29 @@ fun NFCQueueEntity.toQueueItem(): NFCQueueItem {
             priority = priority,
             status = queueStatus,
         )
+
         NFCProcessorType.TAG_FORMAT -> NFCQueueItem.TagFormatOperation(
             id = id,
             priority = priority,
             status = queueStatus,
             bruteForce = bruteForce ?: NFCBruteForce.MOST_LIKELY,
         )
+
         NFCProcessorType.CUSTOMER_SETUP -> NFCQueueItem.CustomerSetupOperation(
+            id = id,
+            priority = priority,
+            status = queueStatus,
+            timeout = timeout ?: 30000L
+        )
+
+        NFCProcessorType.CART_READ -> NFCQueueItem.CustomerSetupOperation(
+            id = id,
+            priority = priority,
+            status = queueStatus,
+            timeout = timeout ?: 30000L
+        )
+
+        NFCProcessorType.CART_UPDATE -> NFCQueueItem.CustomerSetupOperation(
             id = id,
             priority = priority,
             status = queueStatus,
