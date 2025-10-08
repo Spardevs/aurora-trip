@@ -8,5 +8,7 @@ object SupportedNFCMethods {
         SystemNFCMethod.CUSTOMER_AUTH,
         SystemNFCMethod.TAG_FORMAT,
         SystemNFCMethod.CUSTOMER_SETUP,
+        SystemNFCMethod.CART_READ,
+        SystemNFCMethod.CART_UPDATE
     )
 }
