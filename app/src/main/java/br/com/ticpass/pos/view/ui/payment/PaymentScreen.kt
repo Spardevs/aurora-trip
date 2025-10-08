@@ -142,7 +142,7 @@ class PaymentScreen : BaseActivity() {
     }
 
     private fun formatCurrency(valueInCents: BigInteger): String {
-        val valueInReais = valueInCents.toDouble() / 1000
+        val valueInReais = valueInCents.toDouble() / 100000
         val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
         return format.format(valueInReais)
     }

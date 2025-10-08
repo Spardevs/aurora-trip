@@ -1,18 +1,15 @@
 package br.com.ticpass.pos.data.activity
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.Fragment
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.LinearLayoutManager
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.room.repository.PaymentRepository
 import br.com.ticpass.pos.databinding.PaymentSheetBinding
@@ -21,6 +18,7 @@ import br.com.ticpass.pos.view.fragments.payment.CashPaymentFragment
 import br.com.ticpass.pos.view.fragments.payment.PixPaymentFragment
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
 import br.com.ticpass.pos.viewmodel.payment.PaymentViewModel
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.NumberFormat
 import java.util.Locale
@@ -35,10 +33,39 @@ class PaymentActivity : AppCompatActivity() {
     @Inject
     lateinit var shoppingCartManager: ShoppingCartManager
 
+    private lateinit var bottomSheetBehavior: BottomSheetBehavior<View>
+    private lateinit var overlay: View
+
+    @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = PaymentSheetBinding.inflate(layoutInflater)
         setContentView(R.layout.activity_payment)
+
+        overlay = findViewById(R.id.overlay_blocker)
+
+        val paymentContainer = findViewById<View>(R.id.payment_container)
+        bottomSheetBehavior = BottomSheetBehavior.from(paymentContainer)
+
+        bottomSheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                if (newState == BottomSheetBehavior.STATE_EXPANDED) {
+                    overlay.visibility = View.VISIBLE
+                    overlay.isClickable = true
+                } else {
+                    overlay.visibility = View.GONE
+                    overlay.isClickable = false
+                }
+            }
+
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                overlay.alpha = slideOffset
+            }
+        })
+
+        overlay.setOnClickListener {
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        }
 
         // Obter os valores passados
         val paymentType = intent.getStringExtra("payment_type")
@@ -53,9 +80,9 @@ class PaymentActivity : AppCompatActivity() {
                 "credit_card", "debit_card" -> CardPaymentFragment().apply {
                     arguments = Bundle().apply {
                         putString("payment_type", paymentType)
-                        putDouble("value_to_pay", paymentValue) // Valor dividido
-                        putDouble("total_value", totalValue) // Valor total
-                        putDouble("remaining_value", remainingValue) // Valor restante
+                        putDouble("value_to_pay", paymentValue)
+                        putDouble("total_value", totalValue)
+                        putDouble("remaining_value", remainingValue)
                         putBoolean("is_multi_payment", isMultiPayment)
                         putString("progress", progress)
                     }
@@ -63,9 +90,9 @@ class PaymentActivity : AppCompatActivity() {
                 "pix" -> PixPaymentFragment().apply {
                     arguments = Bundle().apply {
                         putString("payment_type", paymentType)
-                        putDouble("value_to_pay", paymentValue) // Valor dividido
-                        putDouble("total_value", totalValue) // Valor total
-                        putDouble("remaining_value", remainingValue) // Valor restante
+                        putDouble("value_to_pay", paymentValue)
+                        putDouble("total_value", totalValue)
+                        putDouble("remaining_value", remainingValue)
                         putBoolean("is_multi_payment", isMultiPayment)
                         putString("progress", progress)
                     }
@@ -73,9 +100,9 @@ class PaymentActivity : AppCompatActivity() {
                 else -> CashPaymentFragment().apply {
                     arguments = Bundle().apply {
                         putString("payment_type", paymentType)
-                        putDouble("value_to_pay", paymentValue) // Valor dividido
-                        putDouble("total_value", totalValue) // Valor total
-                        putDouble("remaining_value", remainingValue) // Valor restante
+                        putDouble("value_to_pay", paymentValue)
+                        putDouble("total_value", totalValue)
+                        putDouble("remaining_value", remainingValue)
                         putBoolean("is_multi_payment", isMultiPayment)
                         putString("progress", progress)
                     }
