@@ -413,7 +413,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
 
-    implementation(files("libs/EasyLayer-SK210-v2.1.7-release.aar"))
+    "proprietaryGertecImplementation"(files("libs/EasyLayer-SK210-v2.1.7-release.aar"))
 
     // PagSeguro
     "pagseguroImplementation"(libs.plugpagservice.wrapper)
