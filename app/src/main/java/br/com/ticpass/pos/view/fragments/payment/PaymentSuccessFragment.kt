@@ -37,17 +37,7 @@ class PaymentSuccessFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val btnClientTicket = view.findViewById<MaterialButton>(R.id.btn_client_ticket)
         val btnFinish = view.findViewById<MaterialButton>(R.id.btn_finish)
-
-        // Aqui você pode implementar impressão de via do cliente, etc.
-        btnClientTicket?.setOnClickListener {
-            // Exemplo: apenas finalizar com OK
-            requireActivity().setResult(AppCompatActivity.RESULT_OK)
-            // Se quiser manter o carrinho, não limpa. Caso contrário:
-            // shoppingCartManager.clearCart()
-            requireActivity().finish()
-        }
 
         btnFinish?.setOnClickListener {
             if (isMultiPayment) {
