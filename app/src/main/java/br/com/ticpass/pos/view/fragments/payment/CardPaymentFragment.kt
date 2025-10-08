@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.view.fragments.payment
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -34,6 +35,7 @@ import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.setFragmentResult
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import org.json.JSONObject
 
 @AndroidEntryPoint
 class CardPaymentFragment : Fragment() {
@@ -68,10 +70,28 @@ class CardPaymentFragment : Fragment() {
         AcquirerSdk.initialize(requireContext())
         super.onCreate(savedInstanceState)
 
-        paymentType = arguments?.getString("payment_type")
-        paymentValue = arguments?.getDouble("value_to_pay") ?: 0.0
-        totalValue = arguments?.getDouble("total_value") ?: paymentValue
-        remainingValue = arguments?.getDouble("remaining_value") ?: paymentValue
+        val sharedPrefs = requireContext().getSharedPreferences("ShoppingCartPrefs", Context.MODE_PRIVATE)
+        val shoppingCartDataJson = sharedPrefs.getString("shopping_cart_data", null)
+
+        if (shoppingCartDataJson != null) {
+            try {
+                val jsonObject = JSONObject(shoppingCartDataJson)
+                val totalPriceInCents = jsonObject.optLong("totalPrice", 0L)
+                val totalPrice = totalPriceInCents / 100000.0
+                totalValue = totalPrice
+                paymentValue = totalPrice
+                remainingValue = totalPrice
+
+            } catch (e: Exception) {
+                Log.e("CardPaymentFragment", "Erro ao parsear totalPrice do SharedPreferences", e)
+            }
+        } else {
+            paymentType = arguments?.getString("payment_type")
+            paymentValue = arguments?.getDouble("value_to_pay") ?: 0.0
+            totalValue = arguments?.getDouble("total_value") ?: paymentValue
+            remainingValue = arguments?.getDouble("remaining_value") ?: paymentValue
+        }
+
         isMultiPayment = arguments?.getBoolean("is_multi_payment") ?: false
         progress = arguments?.getString("progress") ?: ""
 
@@ -222,7 +242,6 @@ class CardPaymentFragment : Fragment() {
     }
 
     private fun replaceWithFragment(fragment: Fragment) {
-        // usa um container chamado R.id.fragment_container se existir; senão usa android.R.id.content
         val containerId = requireActivity().findViewById<View?>(R.id.fragment_container)?.id ?: android.R.id.content
         requireActivity().supportFragmentManager.beginTransaction()
             .replace(containerId, fragment)

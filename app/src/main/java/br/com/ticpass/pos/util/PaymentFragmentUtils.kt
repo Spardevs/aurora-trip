@@ -184,6 +184,7 @@ class PaymentFragmentUtils @Inject constructor(
                     statusTextView.text = "Pagamento contactless detectado"
                 }
                 else -> {
+                    statusTextView.text = "Erro ao processar pagamento"
                     // Outros eventos podem ser tratados conforme necessário
                 }
             }

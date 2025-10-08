@@ -178,7 +178,6 @@ class ShoppingCartScreen : BaseActivity() {
         PaymentMethod("Crédito", R.drawable.credit, "credit_card"),
         PaymentMethod("Débito", R.drawable.debit, "debit_card"),
         PaymentMethod("Pix", R.drawable.pix,  "pix"),
-        PaymentMethod("Debug", R.drawable.icon,  "debug")
 
     )
     private fun setupPaymentMethods() {
@@ -378,7 +377,7 @@ class ShoppingCartScreen : BaseActivity() {
     }
 
     private fun formatCurrency(valueInCents: Double): String {
-        val valueInReais = valueInCents / 10000.0
+        val valueInReais = valueInCents / 100000
         val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
         return format.format(valueInReais)
     }
