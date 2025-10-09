@@ -1,6 +1,7 @@
 package br.com.ticpass.pos.queue.processors.nfc.processors.impl
 
 import android.util.Log
+import br.com.ticpass.pos.nfc.models.NFCTagCartHeader
 import br.com.ticpass.pos.nfc.models.NFCTagCustomerData
 import br.com.ticpass.pos.nfc.models.NFCTagCustomerDataInput
 import br.com.ticpass.pos.nfc.models.NFCTagDataHeader
@@ -18,6 +19,7 @@ import br.com.ticpass.pos.queue.processors.nfc.models.NFCEvent
 import br.com.ticpass.pos.queue.processors.nfc.models.NFCQueueItem
 import br.com.ticpass.pos.queue.processors.nfc.processors.core.NFCProcessorBase
 import br.com.ticpass.pos.queue.processors.nfc.utils.NFCTagReaderAntenna
+import br.com.ticpass.pos.queue.processors.nfc.utils.NFCCartStorage
 import br.com.ticpass.pos.queue.processors.nfc.utils.NFCTagWriter
 import br.com.ticpass.pos.queue.processors.nfc.utils.NFCUtils
 import br.com.ticpass.pos.sdk.AcquirerSdk
@@ -317,6 +319,22 @@ class NFCCustomerSetupProcessor : NFCProcessorBase() {
                 detectTag(30_000L)
                 _events.tryEmit(NFCEvent.SAVING_TAG_CUSTOMER_DATA)
                 setCustomerData(customerDataBytes, ownedKeys)
+
+                // Initialize empty cart header after customer setup
+                val sectorKeys = NFCTagSectorKeys(
+                    typeA = ownedKeys[NFCTagSectorKeyType.A],
+                    typeB = ownedKeys[NFCTagSectorKeyType.B]
+                )
+                val emptyCartHeader = NFCTagCartHeader(
+                    itemCount = 0,
+                    startSector = 0,
+                    startBlock = 0,
+                    endSector = 0,
+                    endBlock = 0,
+                    totalBytes = 0,
+                )
+                NFCCartStorage.writeCartHeader(emptyCartHeader, sectorKeys)
+                Log.i(TAG, "✅ Initialized empty cart header")
 
                 val didSavePin = requestNFCCustomerSavePIN(customerData.pin)
 
