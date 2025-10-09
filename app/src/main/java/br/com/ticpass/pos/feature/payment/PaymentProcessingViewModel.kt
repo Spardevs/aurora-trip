@@ -1,10 +1,10 @@
 package br.com.ticpass.pos.feature.payment
 
-import android.os.Handler
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.ticpass.pos.data.acquirers.workers.jobs.CleanTransactions
+import br.com.ticpass.pos.feature.nfc.state.NFCAction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import br.com.ticpass.pos.queue.error.ErrorHandlingAction
@@ -58,18 +58,10 @@ class PaymentProcessingViewModel @Inject constructor(
 
 ) : ViewModel() {
     inner class ProcessorEventReceived(val event: PaymentProcessingEvent) : PaymentProcessingAction()
-    private val paymentTimeoutHandler = Handler()
 
     private var eventsJob: Job? = null
 
     private val cleanTransactions = CleanTransactions(paymentStorage)
-
-
-    private val PAYMENT_TIMEOUT_MS = 30000L
-    private val paymentTimeoutRunnable = Runnable {
-        _paymentState.value = PaymentState.Error("Tempo limite excedido para o pagamento")
-        abortAllPayments()
-    }
     private val _paymentState = MutableStateFlow<PaymentState>(PaymentState.Initializing)
     val paymentState: StateFlow<PaymentState> = _paymentState.asStateFlow()
     private val _uiEvents = MutableSharedFlow<PaymentProcessingUiEvent>()
@@ -86,11 +78,6 @@ class PaymentProcessingViewModel @Inject constructor(
             updateState = ::updateState
         )
         initializePaymentQueue()
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        clearTimeout()
     }
 
     private fun launchInViewModelScope(block: suspend () -> Unit) {
@@ -136,7 +123,6 @@ class PaymentProcessingViewModel @Inject constructor(
             }
 
             is PaymentProcessingEvent.TRANSACTION_DONE -> {
-                clearTimeout()
                 if (event.transactionId?.isNotBlank() == true) {
                     _paymentState.value = PaymentState.Success(event.transactionId)
                     Log.d("PaymentViewModel", "Transaction done with ID: ${event.transactionId}")
@@ -147,25 +133,21 @@ class PaymentProcessingViewModel @Inject constructor(
             }
 
             is PaymentProcessingEvent.APPROVAL_SUCCEEDED -> {
-                clearTimeout()
                 _paymentState.value = PaymentState.Success(null)
                 Log.d("PaymentViewModel", "Approval succeeded")
             }
 
             is PaymentProcessingEvent.APPROVAL_DECLINED -> {
-                clearTimeout()
                 _paymentState.value = PaymentState.Error("Pagamento recusado")
                 Log.w("PaymentViewModel", "Approval declined")
             }
 
             is PaymentProcessingEvent.CANCELLED -> {
-                clearTimeout()
                 _paymentState.value = PaymentState.Cancelled
                 Log.d("PaymentViewModel", "Payment cancelled")
             }
 
             is PaymentProcessingEvent.GENERIC_ERROR -> {
-                clearTimeout()
                 _paymentState.value = PaymentState.Error("Erro no processamento")
                 Log.e("PaymentViewModel", "Generic error")
             }
@@ -276,7 +258,6 @@ class PaymentProcessingViewModel @Inject constructor(
                         _paymentState.value = PaymentState.Processing
                     }
                     is PaymentProcessingEvent.TRANSACTION_DONE -> {
-                        clearTimeout()
                         if (event.transactionId?.isNotBlank() == true) {
                             _paymentState.value = PaymentState.Success(event.transactionId)
                         } else {
@@ -285,20 +266,16 @@ class PaymentProcessingViewModel @Inject constructor(
                     }
 
                     is PaymentProcessingEvent.APPROVAL_SUCCEEDED -> {
-                        clearTimeout()
                         _paymentState.value = PaymentState.Success(null)
                     }
                     is PaymentProcessingEvent.APPROVAL_DECLINED -> {
-                        clearTimeout()
                         _paymentState.value = PaymentState.Error("Pagamento recusado")
                     }
                     is PaymentProcessingEvent.CANCELLED -> {
-                        clearTimeout()
                         _paymentState.value = PaymentState.Cancelled
                     }
                     is PaymentProcessingEvent.GENERIC_ERROR,
                     is PaymentProcessingEvent.CONTACTLESS_ERROR -> {
-                        clearTimeout()
                         _paymentState.value = PaymentState.Error("Erro no processamento")
                     }
                     is PaymentProcessingEvent.CARD_REMOVAL_REQUESTING,
@@ -347,13 +324,7 @@ class PaymentProcessingViewModel @Inject constructor(
             return
         }
 
-        // Configurar timeout apenas quando o processamento realmente começar
-        paymentTimeoutHandler.removeCallbacks(paymentTimeoutRunnable)
-        paymentTimeoutHandler.postDelayed(paymentTimeoutRunnable, PAYMENT_TIMEOUT_MS)
-    }
-
-    private fun clearTimeout() {
-        paymentTimeoutHandler.removeCallbacks(paymentTimeoutRunnable)
+        dispatch(PaymentProcessingAction.StartProcessing)
     }
 
     /**
@@ -566,7 +537,6 @@ class PaymentProcessingViewModel @Inject constructor(
     }
 
     fun notifyPaymentSuccess() {
-        clearTimeout()
         _paymentState.value = PaymentState.Success(null)
     }
 
