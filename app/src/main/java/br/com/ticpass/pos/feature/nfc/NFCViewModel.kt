@@ -213,6 +213,7 @@ class NFCViewModel @Inject constructor(
     fun enqueueCartUpdateOperation(
         productId: UShort,
         quantity: UByte,
+        price: UInt,
         operation: CartOperation,
         timeout: Long = 15000L
     ) {
@@ -220,6 +221,7 @@ class NFCViewModel @Inject constructor(
             NFCQueueItem.CartUpdateOperation(
                 productId = productId,
                 quantity = quantity,
+                price = price,
                 operation = operation,
                 timeout = timeout,
             )

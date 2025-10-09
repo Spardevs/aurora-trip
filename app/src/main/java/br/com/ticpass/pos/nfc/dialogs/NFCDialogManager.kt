@@ -435,7 +435,7 @@ class NFCDialogManager(
     /**
      * Show a dialog to input cart update parameters
      */
-    fun showCartUpdateDialog(callback: (productId: UShort, quantity: UByte, operation: CartOperation) -> Unit) {
+    fun showCartUpdateDialog(callback: (productId: UShort, quantity: UByte, price: UInt, operation: CartOperation) -> Unit) {
         // Create a custom dialog view for cart update input
         val dialogView = layoutInflater.inflate(R.layout.dialog_nfc_cart_update, null)
         
@@ -446,6 +446,8 @@ class NFCDialogManager(
         val editProductId = dialogView.findViewById<TextInputEditText>(R.id.edit_product_id)
         val layoutQuantity = dialogView.findViewById<TextInputLayout>(R.id.layout_quantity)
         val editQuantity = dialogView.findViewById<TextInputEditText>(R.id.edit_quantity)
+        val layoutPrice = dialogView.findViewById<TextInputLayout>(R.id.layout_price)
+        val editPrice = dialogView.findViewById<TextInputEditText>(R.id.edit_price)
         val btnCancel = dialogView.findViewById<Button>(R.id.btn_cancel)
         val btnConfirm = dialogView.findViewById<Button>(R.id.btn_confirm)
         
@@ -513,6 +515,25 @@ class NFCDialogManager(
                 layoutQuantity.error = null
             }
             
+            // Validate price (not required for REMOVE or CLEAR operations)
+            val priceText = editPrice.text.toString().trim()
+            if (operation != CartOperation.REMOVE && operation != CartOperation.CLEAR) {
+                if (priceText.isEmpty()) {
+                    layoutPrice.error = context.getString(R.string.nfc_cart_error_price_required)
+                    isValid = false
+                } else {
+                    val price = priceText.toDoubleOrNull()
+                    if (price == null || price < 0) {
+                        layoutPrice.error = context.getString(R.string.nfc_cart_error_invalid_price)
+                        isValid = false
+                    } else {
+                        layoutPrice.error = null
+                    }
+                }
+            } else {
+                layoutPrice.error = null
+            }
+            
             return isValid
         }
         
@@ -526,25 +547,31 @@ class NFCDialogManager(
             
             when (operation) {
                 CartOperation.CLEAR -> {
-                    // CLEAR doesn't need product ID or quantity
+                    // CLEAR doesn't need any fields
                     editProductId.isEnabled = false
                     editQuantity.isEnabled = false
+                    editPrice.isEnabled = false
                     layoutProductId.hint = context.getString(R.string.nfc_cart_product_id_hint) + " (Not required)"
                     layoutQuantity.hint = context.getString(R.string.nfc_cart_quantity_hint) + " (Not required)"
+                    layoutPrice.hint = context.getString(R.string.nfc_cart_price_hint) + " (Not required)"
                 }
                 CartOperation.REMOVE -> {
                     // REMOVE only needs product ID
                     editProductId.isEnabled = true
                     editQuantity.isEnabled = false
+                    editPrice.isEnabled = false
                     layoutProductId.hint = context.getString(R.string.nfc_cart_product_id_hint)
                     layoutQuantity.hint = context.getString(R.string.nfc_cart_quantity_hint) + " (Not required)"
+                    layoutPrice.hint = context.getString(R.string.nfc_cart_price_hint) + " (Not required)"
                 }
                 else -> {
-                    // All other operations need both
+                    // All other operations need all fields
                     editProductId.isEnabled = true
                     editQuantity.isEnabled = true
+                    editPrice.isEnabled = true
                     layoutProductId.hint = context.getString(R.string.nfc_cart_product_id_hint)
                     layoutQuantity.hint = context.getString(R.string.nfc_cart_quantity_hint)
+                    layoutPrice.hint = context.getString(R.string.nfc_cart_price_hint)
                 }
             }
         }
@@ -559,8 +586,10 @@ class NFCDialogManager(
                 val operation = CartOperation.valueOf(dropdownOperation.text.toString())
                 val productId = editProductId.text.toString().toIntOrNull()?.toUShort() ?: 0u
                 val quantity = editQuantity.text.toString().toIntOrNull()?.toUByte() ?: 0u
+                val priceInDollars = editPrice.text.toString().toDoubleOrNull() ?: 0.0
+                val priceInCents = (priceInDollars * 100).toUInt()
                 
-                callback(productId, quantity, operation)
+                callback(productId, quantity, priceInCents, operation)
                 dialog.dismiss()
             }
         }

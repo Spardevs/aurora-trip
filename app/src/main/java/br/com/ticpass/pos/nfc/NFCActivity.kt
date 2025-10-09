@@ -161,11 +161,12 @@ class NFCActivity : AppCompatActivity() {
                     when (method) {
                         SystemNFCMethod.CART_UPDATE -> {
                             // Show dialog to get cart update parameters
-                            dialogManager.showCartUpdateDialog { productId, quantity, operation ->
+                            dialogManager.showCartUpdateDialog { productId, quantity, price, operation ->
                                 enqueueNFC(
                                     method = method,
                                     productId = productId,
                                     quantity = quantity,
+                                    price = price,
                                     operation = operation,
                                 )
                             }
@@ -271,6 +272,7 @@ class NFCActivity : AppCompatActivity() {
         method: SystemNFCMethod,
         productId: UShort,
         quantity: UByte,
+        price: UInt,
         operation: CartOperation,
     ) {
         when (method) {
@@ -279,6 +281,7 @@ class NFCActivity : AppCompatActivity() {
                     timeout = 15000L,
                     productId = productId,
                     quantity = quantity,
+                    price = price,
                     operation = operation,
                 )
             }

@@ -14,6 +14,7 @@ import br.com.ticpass.pos.queue.processors.nfc.exceptions.NFCException
 import br.com.ticpass.pos.queue.processors.nfc.models.NFCEvent
 import br.com.ticpass.pos.queue.processors.nfc.models.NFCQueueItem
 import br.com.ticpass.pos.queue.processors.nfc.processors.core.NFCProcessorBase
+import br.com.ticpass.pos.queue.processors.nfc.utils.NFCCartOperations
 import br.com.ticpass.pos.queue.processors.nfc.utils.NFCCartStorage
 import br.com.ticpass.pos.queue.processors.nfc.utils.NFCTagReaderAntenna
 import br.com.ticpass.pos.sdk.AcquirerSdk
@@ -101,7 +102,7 @@ class NFCCartUpdateProcessor : NFCProcessorBase() {
 
                 // Modify cart based on operation
                 _events.tryEmit(NFCEvent.PROCESSING_TAG_CART_DATA)
-                val updatedItems = modifyCart(existingItems, _item.productId, _item.quantity, _item.operation)
+                val updatedItems = NFCCartOperations.modifyCart(existingItems, _item.productId, _item.quantity, _item.price, _item.operation)
 
                 Log.d(TAG, "📝 Updated cart: ${updatedItems.size} items")
 
@@ -154,95 +155,6 @@ class NFCCartUpdateProcessor : NFCProcessorBase() {
         }
     }
 
-    /**
-     * Modifies the cart based on the operation
-     */
-    private fun modifyCart(
-        existingItems: List<NFCCartItem>,
-        productId: UShort,
-        quantity: UByte,
-        operation: CartOperation
-    ): List<NFCCartItem> {
-        val mutableItems = existingItems.toMutableList()
-        val existingIndex = mutableItems.indexOfFirst { it.id == productId }
-
-        when (operation) {
-            CartOperation.SET -> {
-                if (quantity.toInt() == 0) {
-                    // Remove item if quantity is 0
-                    if (existingIndex >= 0) {
-                        mutableItems.removeAt(existingIndex)
-                        Log.d(TAG, "➖ Removed product $productId (quantity set to 0)")
-                    }
-                } else {
-                    if (existingIndex >= 0) {
-                        // Update existing item
-                        mutableItems[existingIndex] = mutableItems[existingIndex].copy(count = quantity)
-                        Log.d(TAG, "🔄 Set product $productId quantity to $quantity")
-                    } else {
-                        // Add new item
-                        mutableItems.add(NFCCartItem(productId, quantity))
-                        Log.d(TAG, "➕ Added product $productId with quantity $quantity")
-                    }
-                }
-            }
-
-            CartOperation.INCREMENT -> {
-                if (existingIndex >= 0) {
-                    // Item exists - check for overflow before incrementing
-                    val existing = mutableItems[existingIndex]
-                    val sum = existing.count.toInt() + quantity.toInt()
-                    
-                    if (sum > 255) {
-                        Log.e(TAG, "❌ Overflow: product $productId has ${existing.count}, adding $quantity would exceed max (255)")
-                        throw NFCException(ProcessingErrorEvent.PRODUCT_QUANTITY_OVERFLOW)
-                    }
-                    
-                    val newQuantity = sum.toUByte()
-                    mutableItems[existingIndex] = existing.copy(count = newQuantity)
-                    Log.d(TAG, "🔄 Incremented product $productId by $quantity: ${existing.count} → $newQuantity")
-                } else {
-                    // Item doesn't exist - add with specified quantity
-                    mutableItems.add(NFCCartItem(productId, quantity))
-                    Log.d(TAG, "➕ Added product $productId with quantity $quantity")
-                }
-            }
-
-            CartOperation.DECREMENT -> {
-                if (existingIndex >= 0) {
-                    val existing = mutableItems[existingIndex]
-                    val newQuantity = (existing.count.toInt() - quantity.toInt()).coerceAtLeast(0)
-                    if (newQuantity == 0) {
-                        mutableItems.removeAt(existingIndex)
-                        Log.d(TAG, "➖ Removed product $productId (quantity reached 0 after decrement by $quantity)")
-                    } else {
-                        mutableItems[existingIndex] = existing.copy(count = newQuantity.toUByte())
-                        Log.d(TAG, "🔄 Decremented product $productId by $quantity: ${existing.count} → $newQuantity")
-                    }
-                } else {
-                    Log.e(TAG, "❌ Product $productId not found in cart for decrement")
-                    throw NFCException(ProcessingErrorEvent.NFC_CART_ITEM_NOT_FOUND)
-                }
-            }
-
-            CartOperation.REMOVE -> {
-                if (existingIndex >= 0) {
-                    mutableItems.removeAt(existingIndex)
-                    Log.d(TAG, "➖ Removed product $productId")
-                } else {
-                    Log.e(TAG, "❌ Product $productId not found in cart for removal")
-                    throw NFCException(ProcessingErrorEvent.NFC_CART_ITEM_NOT_FOUND)
-                }
-            }
-
-            CartOperation.CLEAR -> {
-                mutableItems.clear()
-                Log.d(TAG, "🧹 Cleared entire cart (removed ${existingItems.size} items)")
-            }
-        }
-
-        return mutableItems
-    }
 
     /**
      * PagSeguro-specific abort logic

@@ -117,7 +117,7 @@ class NFCActivityCoordinator(
                                     // Handle cart read success
                                     Log.i("NFCActivityCoordinator", "✅ Cart read successfully: ${result.items.size} items")
                                     result.items.forEach { item ->
-                                        Log.i("NFCActivityCoordinator", "   - ${item.id}, Qty: ${item.count}")
+                                        Log.i("NFCActivityCoordinator", "   - ${item.id}, Qty: ${item.count}, Price : $${item.price.toDouble()/100.0}" )
                                     }
                                 }
 
@@ -125,7 +125,7 @@ class NFCActivityCoordinator(
                                     // Handle cart update success
                                     Log.i("NFCActivityCoordinator", "✅ Cart updated successfully: ${result.items.size} items")
                                     result.items.forEach { item ->
-                                        Log.i("NFCActivityCoordinator", "   - ${item.id}, Qty: ${item.count}")
+                                        Log.i("NFCActivityCoordinator", "   - ${item.id}, Qty: ${item.count}, Price : $${item.price.toDouble()/100.0}" )
                                     }
                                 }
 

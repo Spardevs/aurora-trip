@@ -628,10 +628,13 @@
     <string name="nfc_cart_operation_hint">Operation</string>
     <string name="nfc_cart_product_id_hint">Product ID (0-65535)</string>
     <string name="nfc_cart_quantity_hint">Quantity (0-255)</string>
+    <string name="nfc_cart_price_hint">Price (e.g., 15.50)</string>
     <string name="nfc_cart_error_invalid_product_id">Product ID must be between 0 and 65535</string>
     <string name="nfc_cart_error_invalid_quantity">Quantity must be between 0 and 255</string>
+    <string name="nfc_cart_error_invalid_price">Invalid price format</string>
     <string name="nfc_cart_error_product_id_required">Product ID is required</string>
     <string name="nfc_cart_error_quantity_required">Quantity is required</string>
+    <string name="nfc_cart_error_price_required">Price is required</string>
     <string name="enqueue_cart_read_nfc">Read Cart</string>
     <string name="enqueue_cart_update_nfc">Update Cart</string>
 

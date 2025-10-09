@@ -76,8 +76,8 @@ class CardPaymentFragment : Fragment() {
         if (shoppingCartDataJson != null) {
             try {
                 val jsonObject = JSONObject(shoppingCartDataJson)
-                val totalPriceInCents = jsonObject.optLong("totalPrice", 0L)
-                val totalPrice = totalPriceInCents / 100000.0
+                val totalprice = jsonObject.optLong("totalPrice", 0L)
+                val totalPrice = totalprice / 100000.0
                 totalValue = totalPrice
                 paymentValue = totalPrice
                 remainingValue = totalPrice

@@ -17,7 +17,7 @@ import br.com.ticpass.pos.queue.processors.nfc.exceptions.NFCException
  */
 object NFCCartStorage {
     private const val TAG = "NFCCartStorage"
-    private const val ITEM_SIZE = 3 // 3 bytes per cart item
+    private const val ITEM_SIZE = NFCCartItem.SIZE_BYTES // 7 bytes per cart item
     private const val BLOCK_SIZE = 16
     private const val BLOCKS_PER_SECTOR = 3 // Usable blocks (excluding sector trailer)
     private const val BYTES_PER_SECTOR = BLOCK_SIZE * BLOCKS_PER_SECTOR // 48 bytes

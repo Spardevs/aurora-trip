@@ -68,6 +68,7 @@ sealed class NFCQueueItem : QueueItem {
         val timeout: Long = 20000L, // Update timeout in milliseconds
         val productId: UShort,
         val quantity: UByte,
+        val price: UInt, // Price per unit in cents when adding to cart
         val operation: CartOperation
     ) : NFCQueueItem()
 }
