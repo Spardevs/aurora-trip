@@ -13,6 +13,16 @@
   -->
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="info_pin_requested">Por favor, digite o PIN</string>
+    <string name="info_remove_card">Remova o cartão</string>
+    <string name="info_tap_insert_swipe">Aproxime, insira ou passe o cartão</string>
+    <string name="info_keep_card_near">Mantenha o cartão próximo</string>
+    <string name="info_processing">Processando…</string>
+    <string name="info_success">Pagamento aprovado</string>
+    <string name="info_error_or_cancelled">Não foi possível concluir o pagamento</string>
+    <string name="info_default">Siga as instruções no terminal</string>
+    <string name="info_pix_qrcode_generated">Escaneie o QR Code para pagar</string>
+    <string name="info_card_removed">Cartão removido com sucesso</string>
     <string name="success">Success</string>
     <string name="cash_payment">Pagamento em Dinheiro</string>
     <string name="awaiting_confirmation">Aguardando confirmação</string>

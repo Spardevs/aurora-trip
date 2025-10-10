@@ -11,7 +11,7 @@ import br.com.ticpass.pos.feature.payment.PaymentProcessingViewModel
 import br.com.ticpass.pos.feature.payment.PaymentState
 import br.com.ticpass.pos.payment.events.PaymentEventHandler
 import br.com.ticpass.pos.payment.models.SystemPaymentMethod
-import br.com.ticpass.pos.payment.view.TimeoutCountdownView // Use the correct import
+import br.com.ticpass.pos.payment.view.TimeoutCountdownView
 import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
 import kotlinx.coroutines.launch
@@ -24,6 +24,9 @@ class PaymentFragmentUtils @Inject constructor(
 ) {
 
     companion object {
+        /**
+         * Formata um valor Double para moeda brasileira (R$)
+         */
         fun formatCurrency(value: Double): String {
             val format = NumberFormat.getCurrencyInstance(
                 Locale.Builder()
@@ -34,6 +37,9 @@ class PaymentFragmentUtils @Inject constructor(
             return format.format(value)
         }
 
+        /**
+         * Cria um PaymentEventHandler para uso em Fragments
+         */
         fun createPaymentEventHandler(
             context: Context,
             statusTextView: TextView? = null,
@@ -49,6 +55,18 @@ class PaymentFragmentUtils @Inject constructor(
             )
         }
 
+        /**
+         * Configura os observers para monitorar o estado do pagamento e eventos do processador
+         *
+         * @param fragment Fragment que está observando
+         * @param paymentViewModel ViewModel de processamento de pagamento
+         * @param paymentEventHandler Handler para eventos de pagamento
+         * @param statusTextView TextView para exibir status
+         * @param onSuccess Callback executado quando pagamento é bem-sucedido
+         * @param onError Callback executado quando há erro (recebe mensagem de erro)
+         * @param onCancelled Callback executado quando pagamento é cancelado
+         * @param isPix Se true, trata eventos específicos de PIX
+         */
         fun setupPaymentObservers(
             fragment: Fragment,
             paymentViewModel: PaymentProcessingViewModel,
@@ -59,6 +77,7 @@ class PaymentFragmentUtils @Inject constructor(
             onCancelled: () -> Unit,
             isPix: Boolean = false
         ) {
+            // Observer para eventos do processador (detalhes técnicos do pagamento)
             fragment.viewLifecycleOwner.lifecycleScope.launch {
                 fragment.viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                     paymentViewModel.paymentProcessingEvents.collect { event ->
@@ -72,11 +91,13 @@ class PaymentFragmentUtils @Inject constructor(
                 }
             }
 
+            // Observer para estado geral do pagamento (sucesso, erro, cancelado, etc)
             fragment.viewLifecycleOwner.lifecycleScope.launch {
                 fragment.viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                     paymentViewModel.paymentState.collect { state ->
                         when (state) {
                             is PaymentState.Processing -> {
+                                // Só atualiza se não houver mensagem específica já exibida
                                 if (statusTextView.text.isNullOrEmpty() ||
                                     statusTextView.text.contains("Aprovado") ||
                                     statusTextView.text.contains("Erro") ||
@@ -110,6 +131,7 @@ class PaymentFragmentUtils @Inject constructor(
                 }
             }
 
+            // Observer para eventos de UI (dialogs, inputs, etc)
             fragment.viewLifecycleOwner.lifecycleScope.launch {
                 fragment.viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                     paymentViewModel.uiEvents.collect { event ->
@@ -118,10 +140,17 @@ class PaymentFragmentUtils @Inject constructor(
                 }
             }
         }
+
+        /**
+         * Trata eventos específicos de pagamento PIX
+         */
         private fun handlePixPaymentEvents(event: PaymentProcessingEvent, statusTextView: TextView) {
             when (event) {
                 is PaymentProcessingEvent.QRCODE_SCAN -> {
                     statusTextView.text = "QR Code gerado - Aguardando pagamento"
+                }
+                is PaymentProcessingEvent.PIX_QRCODE_GENERATED -> {
+                    statusTextView.text = "QR Code PIX gerado - Aguardando pagamento"
                 }
                 is PaymentProcessingEvent.TRANSACTION_PROCESSING -> {
                     statusTextView.text = "Processando transação PIX"
@@ -132,13 +161,15 @@ class PaymentFragmentUtils @Inject constructor(
                 is PaymentProcessingEvent.GENERIC_SUCCESS -> {
                     statusTextView.text = "Pagamento PIX confirmado"
                 }
-                is PaymentProcessingEvent.PIX_QRCODE_GENERATED -> {
-                    statusTextView.text = "QR Code PIX gerado - Aguardando pagamento"
-                }
                 else -> {
+                    // Outros eventos PIX podem ser tratados aqui
                 }
             }
         }
+
+        /**
+         * Trata eventos específicos de pagamento com cartão
+         */
         private fun handleCardPaymentEvents(event: PaymentProcessingEvent, statusTextView: TextView) {
             when (event) {
                 is PaymentProcessingEvent.CARD_REACH_OR_INSERT -> {
@@ -184,26 +215,41 @@ class PaymentFragmentUtils @Inject constructor(
                     statusTextView.text = "Pagamento contactless detectado"
                 }
                 else -> {
-                    statusTextView.text = "Erro ao processar pagamento"
-                    // Outros eventos podem ser tratados conforme necessário
+                    // Outros eventos de cartão podem ser tratados aqui
                 }
             }
         }
 
+        /**
+         * Enfileira um pagamento e opcionalmente inicia o processamento imediatamente
+         *
+         * IMPORTANTE: O amount é convertido para centavos (multiplicado por 100)
+         * antes de ser enviado ao ViewModel, pois o processador trabalha com centavos.
+         *
+         * @param paymentViewModel ViewModel de processamento
+         * @param shoppingCartManager Gerenciador do carrinho (usado se amount for null)
+         * @param method Método de pagamento (CREDIT, DEBIT, PIX, etc)
+         * @param amount Valor em reais (será convertido para centavos). Se null, usa o total do carrinho
+         * @param isTransactionless Se true, não gera transação no banco
+         * @param startImmediately Se true, inicia o processamento imediatamente após enfileirar
+         */
         fun enqueuePayment(
             paymentViewModel: PaymentProcessingViewModel,
             shoppingCartManager: ShoppingCartManager,
             method: SystemPaymentMethod,
-            amount: Double? = null, // Novo parâmetro opcional
+            amount: Double? = null,
             isTransactionless: Boolean,
             startImmediately: Boolean
         ) {
             val cart = shoppingCartManager.getCart()
-            val paymentAmount = amount ?: cart.totalPrice.toDouble()
+            val paymentAmountInReais = amount ?: (cart.totalPrice.toDouble() / 100.0)
             val commission = 0
 
+            // Converte para centavos (unidade esperada pelo processador)
+            val amountInCents = (paymentAmountInReais * 100).toInt()
+
             paymentViewModel.enqueuePayment(
-                amount = paymentAmount.toInt(),
+                amount = amountInCents,
                 commission = commission,
                 method = method,
                 isTransactionless = isTransactionless

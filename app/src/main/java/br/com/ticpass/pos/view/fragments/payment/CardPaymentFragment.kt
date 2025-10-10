@@ -1,7 +1,6 @@
 package br.com.ticpass.pos.view.fragments.payment
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -11,10 +10,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.feature.payment.PaymentProcessingViewModel
@@ -28,26 +26,28 @@ import br.com.ticpass.pos.sdk.AcquirerSdk
 import br.com.ticpass.pos.util.PaymentFragmentUtils
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
 import com.google.android.material.button.MaterialButton
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
-import javax.inject.Inject
-import androidx.fragment.app.setFragmentResultListener
-import androidx.fragment.app.setFragmentResult
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import org.json.JSONObject
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class CardPaymentFragment : Fragment() {
+
     private val paymentViewModel: PaymentProcessingViewModel by activityViewModels()
     private lateinit var paymentEventHandler: PaymentEventHandler
+
     @Inject
     lateinit var shoppingCartManager: ShoppingCartManager
+
     @Inject
     lateinit var finishPaymentHandler: FinishPaymentHandler
+
     @Inject
     lateinit var paymentUtils: PaymentFragmentUtils
-    private var shouldStartImmediately = false
+
     private lateinit var titleTextView: TextView
     private lateinit var statusTextView: TextView
     private lateinit var infoTextView: TextView
@@ -56,46 +56,21 @@ class CardPaymentFragment : Fragment() {
     private lateinit var cancelButton: MaterialButton
     private lateinit var retryButton: MaterialButton
     private lateinit var timeoutCountdownView: TimeoutCountdownView
+    private lateinit var pinInputLayout: TextInputLayout
+    private lateinit var pinInput: TextInputEditText
+    private lateinit var submitPinButton: MaterialButton
+
     private var paymentType: String? = null
     private var paymentValue: Double = 0.0
     private var totalValue: Double = 0.0
     private var remainingValue: Double = 0.0
     private var isMultiPayment: Boolean = false
     private var progress: String = ""
-    private lateinit var pinInputLayout: TextInputLayout
-    private lateinit var pinInput: TextInputEditText
-    private lateinit var submitPinButton: MaterialButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         AcquirerSdk.initialize(requireContext())
         super.onCreate(savedInstanceState)
-
-        val sharedPrefs = requireContext().getSharedPreferences("ShoppingCartPrefs", Context.MODE_PRIVATE)
-        val shoppingCartDataJson = sharedPrefs.getString("shopping_cart_data", null)
-
-        if (shoppingCartDataJson != null) {
-            try {
-                val jsonObject = JSONObject(shoppingCartDataJson)
-                val totalprice = jsonObject.optLong("totalPrice", 0L)
-                val totalPrice = totalprice / 100000.0
-                totalValue = totalPrice
-                paymentValue = totalPrice
-                remainingValue = totalPrice
-
-            } catch (e: Exception) {
-                Log.e("CardPaymentFragment", "Erro ao parsear totalPrice do SharedPreferences", e)
-            }
-        } else {
-            paymentType = arguments?.getString("payment_type")
-            paymentValue = arguments?.getDouble("value_to_pay") ?: 0.0
-            totalValue = arguments?.getDouble("total_value") ?: paymentValue
-            remainingValue = arguments?.getDouble("remaining_value") ?: paymentValue
-        }
-
-        isMultiPayment = arguments?.getBoolean("is_multi_payment") ?: false
-        progress = arguments?.getString("progress") ?: ""
-
-        shouldStartImmediately = true
+        loadPaymentData()
     }
 
     override fun onCreateView(
@@ -109,34 +84,80 @@ class CardPaymentFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        pinInputLayout = view.findViewById(R.id.pin_input_layout)
-        pinInput = view.findViewById(R.id.pin_input)
-        submitPinButton = view.findViewById(R.id.btn_submit_pin)
-
-        if (::shoppingCartManager.isInitialized) {
-            setupUI(view)
-            setupPaymentEventHandler(view)
-            setupObservers()
-
-            setFragmentResultListener("retry_payment") { _, _ ->
-                retryPayment()
-            }
-        } else {
-            Log.e("CardPaymentFragment", "ShoppingCartManager not initialized")
+        if (!::shoppingCartManager.isInitialized) {
+            Log.e(TAG, "ShoppingCartManager not initialized")
             requireActivity().finish()
+            return
+        }
+
+        setupUI(view)
+        setupPaymentEventHandler(view)
+        setupObservers()
+
+        setFragmentResultListener("retry_payment") { _, _ ->
+            retryPayment()
         }
     }
 
     override fun onResume() {
         super.onResume()
         if (::shoppingCartManager.isInitialized) {
-            enqueuePayment(startImmediately = true)
+            enqueueAndStartPayment()
+        }
+    }
+
+    /**
+     * Lê dados do carrinho e o tipo de pagamento.
+     * Prioridade:
+     * 1) Argumentos do Fragment (payment_type)
+     * 2) Intent extra da Activity (payment_type)
+     * 3) Default seguro: credit_card
+     */
+    private fun loadPaymentData() {
+        val sharedPrefs = requireContext().getSharedPreferences("ShoppingCartPrefs", Context.MODE_PRIVATE)
+        val shoppingCartDataJson = sharedPrefs.getString("shopping_cart_data", null)
+
+        if (shoppingCartDataJson != null) {
+            try {
+                val jsonObject = JSONObject(shoppingCartDataJson)
+                val totalPriceCents = jsonObject.optLong("totalPrice", 0L)
+                val totalPriceReais = totalPriceCents / 100.0
+
+                totalValue = totalPriceReais
+                paymentValue = totalPriceReais
+                remainingValue = totalPriceReais
+            } catch (e: Exception) {
+                Log.e(TAG, "Erro ao parsear totalPrice do SharedPreferences", e)
+            }
+        } else {
+            paymentType = arguments?.getString("payment_type")
+            paymentValue = arguments?.getDouble("value_to_pay") ?: 0.0
+            totalValue = arguments?.getDouble("total_value") ?: paymentValue
+            remainingValue = arguments?.getDouble("remaining_value") ?: paymentValue
+        }
+
+        isMultiPayment = arguments?.getBoolean("is_multi_payment") ?: false
+        progress = arguments?.getString("progress") ?: ""
+
+        // Fallback: Intent extra da Activity
+        if (paymentType.isNullOrBlank()) {
+            val methodFromIntent = requireActivity().intent.getStringExtra("payment_type")
+            if (!methodFromIntent.isNullOrBlank()) {
+                paymentType = methodFromIntent
+                Log.d(TAG, "payment_type obtido do Intent: $paymentType")
+            }
+        }
+
+        // Normaliza e valida
+        paymentType = paymentType?.lowercase()
+        if (paymentType != "credit_card" && paymentType != "debit_card") {
+            Log.w(TAG, "payment_type ausente/ambíguo/ inválido ($paymentType). Aplicando default: credit_card")
+            paymentType = "credit_card"
         }
     }
 
     private fun setupPaymentEventHandler(view: View) {
         timeoutCountdownView = view.findViewById(R.id.timeout_countdown)
-
         paymentEventHandler = PaymentEventHandler(
             context = requireContext(),
             dialogEventTextView = infoTextView,
@@ -153,15 +174,17 @@ class CardPaymentFragment : Fragment() {
         priceTextView = view.findViewById(R.id.payment_price)
         cancelButton = view.findViewById(R.id.btn_cancel)
         retryButton = view.findViewById(R.id.btn_retry)
+        pinInputLayout = view.findViewById(R.id.pin_input_layout)
+        pinInput = view.findViewById(R.id.pin_input)
+        submitPinButton = view.findViewById(R.id.btn_submit_pin)
+
         priceTextView.text = PaymentFragmentUtils.formatCurrency(paymentValue)
 
         if (isMultiPayment) {
             val progressTextView = view.findViewById<TextView>(R.id.tv_progress)
             progressTextView?.visibility = View.VISIBLE
-            progressTextView?.text = "Pagamento ${progress}"
+            progressTextView?.text = "Pagamento $progress"
         }
-
-        priceTextView.text = PaymentFragmentUtils.formatCurrency(paymentValue)
 
         when (paymentType) {
             "credit_card" -> {
@@ -182,6 +205,8 @@ class CardPaymentFragment : Fragment() {
             paymentViewModel.abortAllPayments()
             requireActivity().finish()
         }
+
+        retryButton.visibility = View.GONE
     }
 
     private fun setupObservers() {
@@ -192,24 +217,29 @@ class CardPaymentFragment : Fragment() {
             statusTextView = statusTextView,
             onSuccess = { handleSuccessfulPayment() },
             onError = { errorMessage -> showErrorFragment(errorMessage) },
-            onCancelled = { showErrorFragment("Pagamento cancelado") }
+            onCancelled = { showErrorFragment("Pagamento cancelado") },
+            isPix = false
         )
     }
 
-    private fun enqueuePayment(startImmediately: Boolean) {
+    private fun enqueueAndStartPayment() {
         val method = when (paymentType) {
             "credit_card" -> SystemPaymentMethod.CREDIT
             "debit_card" -> SystemPaymentMethod.DEBIT
-            else -> return
+            else -> {
+                Log.e(TAG, "Tipo de pagamento inválido: $paymentType")
+                showErrorFragment("Tipo de pagamento inválido")
+                return
+            }
         }
 
         PaymentFragmentUtils.enqueuePayment(
             paymentViewModel = paymentViewModel,
             shoppingCartManager = shoppingCartManager,
             method = method,
-            amount = paymentValue,
-            isTransactionless = true,
-            startImmediately = startImmediately
+            amount = paymentValue,          // valor em reais
+            isTransactionless = false,      // IMPORTANTE: gerar transactionId
+            startImmediately = true
         )
     }
 
@@ -218,15 +248,17 @@ class CardPaymentFragment : Fragment() {
             retryButton.visibility = View.GONE
             statusTextView.text = "Preparando nova tentativa..."
             infoTextView.text = "Aguarde..."
-            imageView.setImageResource(when (paymentType) {
-                "credit_card" -> R.drawable.ic_credit_card
-                "debit_card" -> R.drawable.ic_credit_card
-                else -> R.drawable.ic_credit_card
-            })
+            imageView.setImageResource(
+                when (paymentType) {
+                    "credit_card" -> R.drawable.ic_credit_card
+                    "debit_card" -> R.drawable.ic_credit_card
+                    else -> R.drawable.ic_credit_card
+                }
+            )
             imageView.clearColorFilter()
 
             Handler(Looper.getMainLooper()).postDelayed({
-                enqueuePayment(startImmediately = true)
+                enqueueAndStartPayment()
             }, 1000)
         }
     }
@@ -242,7 +274,8 @@ class CardPaymentFragment : Fragment() {
     }
 
     private fun replaceWithFragment(fragment: Fragment) {
-        val containerId = requireActivity().findViewById<View?>(R.id.fragment_container)?.id ?: android.R.id.content
+        val containerId = requireActivity().findViewById<View?>(R.id.fragment_container)?.id
+            ?: android.R.id.content
         requireActivity().supportFragmentManager.beginTransaction()
             .replace(containerId, fragment)
             .addToBackStack(null)
@@ -258,21 +291,28 @@ class CardPaymentFragment : Fragment() {
                     else -> SystemPaymentMethod.CREDIT
                 }
 
+                val amountInCents = (paymentValue * 100).toInt() // manter centavos
+
                 finishPaymentHandler.handlePayment(
                     PaymentType.SINGLE_PAYMENT,
                     PaymentUIUtils.PaymentData(
-                        amount = (paymentValue * 1000).toInt(),
+                        amount = amountInCents,
                         commission = 0,
                         method = method,
-                        isTransactionless = true
+                        isTransactionless = false    // consistente com o enfileiramento
                     )
                 )
 
                 showSuccessFragment()
 
             } catch (e: Exception) {
+                Log.e(TAG, "Erro ao finalizar pagamento", e)
                 showErrorFragment("Erro ao finalizar pagamento")
             }
         }
+    }
+
+    companion object {
+        private const val TAG = "CardPaymentFragment"
     }
 }
