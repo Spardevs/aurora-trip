@@ -2,17 +2,17 @@ package br.com.ticpass.pos.data.activity
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.lifecycle.Observer
 import dagger.hilt.android.AndroidEntryPoint
 import br.com.ticpass.pos.R
+import br.com.ticpass.pos.data.event.ForYouViewModel
 import br.com.ticpass.pos.view.ui.products.ProductsListScreen
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
-import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartScreen
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -23,6 +23,9 @@ class ProductsActivity : DrawerBaseActivity() {
     @Inject
     lateinit var shoppingCartManager: ShoppingCartManager
 
+    // Obter o ForYouViewModel via Hilt
+    private val forYouViewModel: ForYouViewModel by viewModels()
+
     private val cartUpdatesObserver = Observer<Any> {
         updateCartBadge()
     }
@@ -30,6 +33,17 @@ class ProductsActivity : DrawerBaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setSyncLauncher {
+            runSyncJob(
+                viewModel = forYouViewModel,
+                onStart = { /* já acendemos a barra no Base */ },
+                onProgress = { /* opcional: atualizar algo local */ },
+                onSuccess = { /* opcional: algo após "Sync ok" */ },
+                onError = { cause -> Toast.makeText(this, cause, Toast.LENGTH_LONG).show() }
+            )
+        }
+
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
                 .replace(R.id.content_frame, ProductsListScreen())
@@ -37,6 +51,15 @@ class ProductsActivity : DrawerBaseActivity() {
         }
     }
 
+    private fun launchSyncWithViewModel(vm: ForYouViewModel) {
+        // Esta função roda quando o usuário clica em "Sincronizar"
+        runSyncJob(
+            viewModel = vm,
+            onStart = { /* Opcional: adicionar lógica extra ao iniciar */ },
+            onSuccess = { /* Opcional: adicionar lógica extra ao sucesso */ },
+            onError = { cause -> /* Opcional: adicionar lógica extra ao erro */ }
+        )
+    }
 
     override fun onResume() {
         super.onResume()
@@ -68,7 +91,6 @@ class ProductsActivity : DrawerBaseActivity() {
         }
     }
 
-
     override fun onDestroy() {
         super.onDestroy()
         observerId?.let {
@@ -81,23 +103,29 @@ class ProductsActivity : DrawerBaseActivity() {
         startActivity(Intent(this, ProductsActivity::class.java))
         finish()
     }
+
     override fun openHistory() {
         startActivity(Intent(this, HistoryActivity::class.java))
         finish()
     }
+
     override fun openReport() {
-         startActivity(Intent(this, ReportActivity::class.java))
+        startActivity(Intent(this, ReportActivity::class.java))
     }
+
     override fun openPasses() {
-         startActivity(Intent(this, PassesActivity::class.java))
+        startActivity(Intent(this, PassesActivity::class.java))
     }
+
     override fun openWithdrawal() {
-         startActivity(Intent(this, WithdrawalActivity::class.java))
+        startActivity(Intent(this, WithdrawalActivity::class.java))
     }
+
     override fun openSupport() {
-         startActivity(Intent(this, SupportActivity::class.java))
+        startActivity(Intent(this, SupportActivity::class.java))
     }
+
     override fun openSettings() {
-         startActivity(Intent(this, SettingsActivity::class.java))
+        startActivity(Intent(this, SettingsActivity::class.java))
     }
 }

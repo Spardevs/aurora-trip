@@ -23,8 +23,9 @@ import java.net.URL
 
 fun syncPos(
     forYouViewModel: ForYouViewModel,
-    onFailure: (cause: String) -> Unit = {},
-    onDone: () -> Unit,
+    onProgress: (Int) -> Unit,
+    onFailure: (String) -> Unit,
+    onDone: () -> Unit
 ) {
     try{
         val defaultScope = CoroutineScope(Dispatchers.Default)

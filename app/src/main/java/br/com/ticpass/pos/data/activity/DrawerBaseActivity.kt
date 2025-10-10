@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.text.InputType
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -13,12 +12,12 @@ import android.view.View
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.graphics.drawable.DrawableCompat
@@ -26,6 +25,8 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
+import br.com.ticpass.pos.data.acquirers.workers.jobs.syncPos
+import br.com.ticpass.pos.data.event.ForYouViewModel
 import br.com.ticpass.pos.data.room.AppDatabase
 import br.com.ticpass.pos.data.room.repository.CashierRepository
 import br.com.ticpass.pos.data.room.repository.CategoryRepository
@@ -71,7 +72,7 @@ data class ShoppingCart(
         fun startSession(context: Context, durationMinutes: Int = DEFAULT_SESSION_DURATION_MIN) {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val validUntil = System.currentTimeMillis() + (durationMinutes * 60 * 1000)
-            prefs.edit { putLong(KEY_SESSION_VALID_UNTIL, validUntil)}
+            prefs.edit { putLong(KEY_SESSION_VALID_UNTIL, validUntil) }
         }
 
         fun isSessionValid(context: Context): Boolean {
@@ -92,9 +93,11 @@ data class ShoppingCart(
 abstract class DrawerBaseActivity : BaseActivity() {
     protected lateinit var drawerLayout: DrawerLayout
     protected lateinit var navView: NavigationView
+
     private val qrScannerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result -> handleQrResult(result) }
+
     @Inject
     lateinit var posRepository: PosRepository
     @Inject
@@ -106,14 +109,24 @@ abstract class DrawerBaseActivity : BaseActivity() {
     @Inject
     lateinit var categoryRepository: CategoryRepository
 
+    // Controle do sync inline
+    private var isSyncing = false
+    private var syncActionView: View? = null
+    private var syncProgressBar: ProgressBar? = null
+    private var syncTitleView: TextView? = null
+    private var syncIconView: ImageView? = null
+    private var syncLauncher: (() -> Unit)? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_drawer_base)
 
+        // IMPORTANTE: Inicializar navView ANTES de qualquer uso
         drawerLayout = findViewById(R.id.drawer_layout)
+        navView = findViewById(R.id.nav_view)
+
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
         drawerLayout.drawerElevation = 0f
-        navView = findViewById(R.id.nav_view)
 
         val db = AppDatabase.getInstance(this)
 
@@ -123,8 +136,7 @@ abstract class DrawerBaseActivity : BaseActivity() {
         productsRepository = ProductRepository(db.productDao())
         categoryRepository = CategoryRepository(db.categoryDao())
 
-        navView      = findViewById(R.id.nav_view)
-        val toolbar  = findViewById<MaterialToolbar>(R.id.drawer_toolbar)
+        val toolbar = findViewById<MaterialToolbar>(R.id.drawer_toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -135,12 +147,22 @@ abstract class DrawerBaseActivity : BaseActivity() {
             supportActionBar?.setHomeAsUpIndicator(it)
         }
 
+        // Header
+        val header = navView.getHeaderView(0)
+        val operatorNameTv: TextView = header.findViewById(R.id.operatorName)
+        val name = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+            .getString("operator_name", null)
+        operatorNameTv.text = name
+
+        // Footer
         val footer = layoutInflater.inflate(R.layout.nav_drawer_footer, navView, false)
-        navView.addView(footer, FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT,
-            FrameLayout.LayoutParams.WRAP_CONTENT,
-            Gravity.BOTTOM
-        ))
+        navView.addView(
+            footer, FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.BOTTOM
+            )
+        )
         footer.setOnClickListener {
             getSharedPreferences("UserPrefs", MODE_PRIVATE).edit { clear() }
             getSharedPreferences("SessionPrefs", MODE_PRIVATE).edit { clear() }
@@ -151,29 +173,189 @@ abstract class DrawerBaseActivity : BaseActivity() {
             }
         }
 
-        val header = navView.getHeaderView(0)
-        val operatorNameTv: TextView = header.findViewById(R.id.operatorName)
-        val name = getSharedPreferences("UserPrefs", MODE_PRIVATE)
-            .getString("operator_name", null)
-        operatorNameTv.text = name
+        // Configurar item de Sync com actionLayout customizado
+        setupSyncMenuItem()
 
+        // Listener do menu
         navView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_products    -> openProducts()
-                R.id.nav_passes    -> openPasses()
-                R.id.nav_history -> openHistory()
-                R.id.nav_report -> openReport()
-                R.id.nav_withdrawal -> openWithdrawal()
-                R.id.nav_support -> openSupport()
-                R.id.nav_settings -> openSettings()
+                R.id.nav_products -> {
+                    openProducts()
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                }
+                R.id.nav_passes -> {
+                    openPasses()
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                }
+                R.id.nav_history -> {
+                    openHistory()
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                }
+                R.id.nav_report -> {
+                    openReport()
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                }
+                R.id.nav_withdrawal -> {
+                    openWithdrawal()
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                }
+                R.id.nav_support -> {
+                    openSupport()
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                }
+                R.id.nav_settings -> {
+                    openSettings()
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                }
+                R.id.button_sync -> {
+                    // Não navega; apenas dispara o sync
+                    Log.d("DrawerBaseActivity", "Clique no item Sync via listener")
+                    if (!isSyncing) startInlineSync()
+                    // Mantém o drawer aberto para ver a barra
+                }
             }
-            drawerLayout.closeDrawer(GravityCompat.START)
             true
         }
-        updateHeaderInfo()
 
+        updateHeaderInfo()
     }
 
+    private fun setupSyncMenuItem() {
+        val syncMenuItem = navView.menu.findItem(R.id.button_sync)
+        if (syncMenuItem == null) {
+            Log.e("DrawerBaseActivity", "button_sync NÃO encontrado no menu")
+            return
+        }
+
+        syncActionView = syncMenuItem.actionView
+        if (syncActionView == null) {
+            Log.e("DrawerBaseActivity", "actionView do button_sync é null. Verifique app:actionLayout no XML.")
+            return
+        }
+
+        // Bind das views do layout customizado
+        syncProgressBar = syncActionView?.findViewById(R.id.progress)
+        syncTitleView = syncActionView?.findViewById(R.id.title)
+        syncIconView = syncActionView?.findViewById(R.id.icon)
+
+        if (syncProgressBar == null || syncTitleView == null || syncIconView == null) {
+            Log.e("DrawerBaseActivity", "IDs progress/title/icon não encontrados em menu_item_sync.xml")
+            return
+        }
+
+        // Configurar texto e ícone
+        syncTitleView?.text = getString(R.string.sync)
+        syncIconView?.setImageResource(R.drawable.ic_cloud_sync)
+
+        // Clique na actionView
+        syncActionView?.isClickable = true
+        syncActionView?.isFocusable = true
+        syncActionView?.setOnClickListener {
+            Log.d("DrawerBaseActivity", "Clique no actionView do Sync")
+            if (!isSyncing) startInlineSync()
+        }
+
+        Log.d("DrawerBaseActivity", "Item de sync configurado com sucesso")
+    }
+
+    protected fun setSyncLauncher(block: () -> Unit) {
+        syncLauncher = block
+    }
+
+    private fun startInlineSync() {
+        if (isSyncing) return
+        isSyncing = true
+        showSyncUIStartingDeterminate()
+
+        if (syncLauncher != null) {
+            syncLauncher?.invoke()
+        } else {
+            // se não configurou o launcher, tratamos como erro de config
+            onSyncErrorInternal()
+            Toast.makeText(this, "ViewModel não disponível. Configure setSyncLauncher { ... }.", Toast.LENGTH_LONG).show()
+        }
+    }
+    private fun showSyncUIStarting() {
+        Log.d("DrawerBaseActivity", "showSyncUIStarting() - mostrando barra")
+        syncProgressBar?.apply {
+            isIndeterminate = true
+            visibility = View.VISIBLE
+            alpha = 1f
+        }
+        syncTitleView?.alpha = 0.6f
+        syncIconView?.alpha = 0.6f
+        syncActionView?.requestLayout()
+        syncActionView?.invalidate()
+    }
+
+    protected fun runSyncJob(
+        viewModel: ForYouViewModel,
+        onStart: () -> Unit = {},
+        onProgress: (Int) -> Unit = { _ -> },
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
+        onStart()
+        lifecycleScope.launch {
+            try {
+                withContext(Dispatchers.Default) {
+                    syncPos(
+                        forYouViewModel = viewModel,
+                        onProgress = { p ->
+                            runOnUiThread {
+                                updateSyncProgress(p)
+                                onProgress(p)
+                            }
+                        },
+                        onFailure = { cause ->
+                            runOnUiThread {
+                                onError(cause.ifBlank { "Falha ao sincronizar." })
+                                onSyncErrorInternal()
+                            }
+                        },
+                        onDone = {
+                            runOnUiThread {
+                                onSyncSuccessInternal()
+                                onSuccess()
+                            }
+                        }
+                    )
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    onError(e.message ?: "Erro inesperado")
+                    onSyncErrorInternal()
+                }
+            }
+        }
+    }
+
+    private fun onSyncSuccess() {
+        isSyncing = false
+        syncProgressBar?.visibility = View.GONE
+        syncTitleView?.alpha = 1f
+        syncIconView?.alpha = 1f
+
+        Toast.makeText(this, "Sync ok", Toast.LENGTH_SHORT).show()
+
+        val original = syncTitleView?.text
+        syncTitleView?.text = "Sync ok"
+        syncTitleView?.postDelayed({
+            syncTitleView?.text = original
+        }, 1200)
+    }
+
+    private fun onSyncSuccessInternal() {
+        isSyncing = false
+        updateSyncProgress(100)
+        hideSyncUI()
+        Toast.makeText(this, "Sync ok", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun onSyncErrorInternal() {
+        isSyncing = false
+        hideSyncUI()
+    }
     private fun updateHeaderInfo() {
         lifecycleScope.launch {
             try {
@@ -269,7 +451,6 @@ abstract class DrawerBaseActivity : BaseActivity() {
         dialogView.findViewById<View>(R.id.btn_confirm_password).setOnClickListener {
             val password = passwordInput.text.toString()
             if (password == "1337") {
-                // Inicia a sessão ao validar a senha
                 ShoppingCart.SessionPrefs.startSession(this, 1)
                 dialog.dismiss()
                 drawerLayout.openDrawer(GravityCompat.START)
@@ -296,7 +477,8 @@ abstract class DrawerBaseActivity : BaseActivity() {
             }
 
             dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.setTextColor(
-                ContextCompat.getColor(this, R.color.cardview_dark_background))
+                ContextCompat.getColor(this, R.color.cardview_dark_background)
+            )
         }
 
         dialog.show()
@@ -356,4 +538,31 @@ abstract class DrawerBaseActivity : BaseActivity() {
             throw e
         }
     }
+
+    private fun showSyncUIStartingDeterminate() {
+        syncProgressBar?.apply {
+            visibility = View.VISIBLE
+            isIndeterminate = false
+            max = 100
+            progress = 0
+        }
+        syncTitleView?.alpha = 0.6f
+        syncIconView?.alpha = 0.6f
+    }
+
+    private fun updateSyncProgress(percent: Int) {
+        syncProgressBar?.apply {
+            if (visibility != View.VISIBLE) visibility = View.VISIBLE
+            if (isIndeterminate) isIndeterminate = false
+            progress = percent.coerceIn(0, 100)
+        }
+    }
+
+    private fun hideSyncUI() {
+        syncProgressBar?.visibility = View.GONE
+        syncTitleView?.alpha = 1f
+        syncIconView?.alpha = 1f
+    }
+
+
 }

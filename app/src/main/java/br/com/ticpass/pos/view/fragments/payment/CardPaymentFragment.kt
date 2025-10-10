@@ -35,19 +35,14 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class CardPaymentFragment : Fragment() {
-
     private val paymentViewModel: PaymentProcessingViewModel by activityViewModels()
     private lateinit var paymentEventHandler: PaymentEventHandler
-
     @Inject
     lateinit var shoppingCartManager: ShoppingCartManager
-
     @Inject
     lateinit var finishPaymentHandler: FinishPaymentHandler
-
     @Inject
     lateinit var paymentUtils: PaymentFragmentUtils
-
     private lateinit var titleTextView: TextView
     private lateinit var statusTextView: TextView
     private lateinit var infoTextView: TextView
@@ -59,7 +54,6 @@ class CardPaymentFragment : Fragment() {
     private lateinit var pinInputLayout: TextInputLayout
     private lateinit var pinInput: TextInputEditText
     private lateinit var submitPinButton: MaterialButton
-
     private var paymentType: String? = null
     private var paymentValue: Double = 0.0
     private var totalValue: Double = 0.0
@@ -121,7 +115,7 @@ class CardPaymentFragment : Fragment() {
             try {
                 val jsonObject = JSONObject(shoppingCartDataJson)
                 val totalPriceCents = jsonObject.optLong("totalPrice", 0L)
-                val totalPriceReais = totalPriceCents / 100.0
+                val totalPriceReais = totalPriceCents / 100000.0
 
                 totalValue = totalPriceReais
                 paymentValue = totalPriceReais
@@ -139,7 +133,6 @@ class CardPaymentFragment : Fragment() {
         isMultiPayment = arguments?.getBoolean("is_multi_payment") ?: false
         progress = arguments?.getString("progress") ?: ""
 
-        // Fallback: Intent extra da Activity
         if (paymentType.isNullOrBlank()) {
             val methodFromIntent = requireActivity().intent.getStringExtra("payment_type")
             if (!methodFromIntent.isNullOrBlank()) {
@@ -148,7 +141,6 @@ class CardPaymentFragment : Fragment() {
             }
         }
 
-        // Normaliza e valida
         paymentType = paymentType?.lowercase()
         if (paymentType != "credit_card" && paymentType != "debit_card") {
             Log.w(TAG, "payment_type ausente/ambíguo/ inválido ($paymentType). Aplicando default: credit_card")
@@ -237,8 +229,8 @@ class CardPaymentFragment : Fragment() {
             paymentViewModel = paymentViewModel,
             shoppingCartManager = shoppingCartManager,
             method = method,
-            amount = paymentValue,          // valor em reais
-            isTransactionless = false,      // IMPORTANTE: gerar transactionId
+            amount = paymentValue,
+            isTransactionless = false,
             startImmediately = true
         )
     }
@@ -291,7 +283,7 @@ class CardPaymentFragment : Fragment() {
                     else -> SystemPaymentMethod.CREDIT
                 }
 
-                val amountInCents = (paymentValue * 100).toInt() // manter centavos
+                val amountInCents = (paymentValue * 100).toInt()
 
                 finishPaymentHandler.handlePayment(
                     PaymentType.SINGLE_PAYMENT,
@@ -299,7 +291,7 @@ class CardPaymentFragment : Fragment() {
                         amount = amountInCents,
                         commission = 0,
                         method = method,
-                        isTransactionless = false    // consistente com o enfileiramento
+                        isTransactionless = false
                     )
                 )
 

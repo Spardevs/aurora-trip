@@ -22,7 +22,7 @@
                 app:popupTheme="@style/ThemeOverlay.MaterialComponents.Light"
                 app:navigationIconTint="@color/colorWhite"
                 app:navigationIcon="@drawable/ic_apps"
-                />
+            />
         </com.google.android.material.appbar.AppBarLayout>
 
         <FrameLayout
@@ -38,5 +38,6 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         app:headerLayout="@layout/drawer_header"
+        app:itemVerticalPadding="1dp"
         app:menu="@menu/drawer_menu"/>
 </androidx.drawerlayout.widget.DrawerLayout>
