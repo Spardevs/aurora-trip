@@ -161,8 +161,11 @@ class PixPaymentFragment : Fragment() {
     private fun generateAndDisplayPixQrCode() {
         val amount = (paymentValue * 100).toInt() // Converter para centavos
 
+        // TODO: Substituir pela chave PIX real da sua empresa/estabelecimento
+        val pixKey = "sua-chave-pix-real@exemplo.com" // Pode ser CPF, CNPJ, email, telefone ou chave aleatória
+
         val pixCode = pixCodeGenerator.generate(
-            pixKey = "sua-chave-pix-aqui",
+            pixKey = pixKey,
             amount = amount,
             options = PixOptions(
                 description = "Pagamento TicPass",

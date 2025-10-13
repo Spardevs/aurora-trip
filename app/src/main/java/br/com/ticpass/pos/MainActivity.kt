@@ -76,7 +76,13 @@ class POSSYNCTaskRunnable @Inject constructor(
         defaultScope.launch(exceptionHandler) {
             try{
                 withContext(Dispatchers.Default) {
-                    syncPos(forYouViewModel) {}
+                    syncPos(
+                        forYouViewModel = forYouViewModel,
+                        onProgress = {},
+                        onFailure = {},
+                        onDone = {}
+                    )
+
                 }
             }
             catch (e: Exception) {
