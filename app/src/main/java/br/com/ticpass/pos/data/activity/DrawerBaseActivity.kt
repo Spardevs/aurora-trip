@@ -3,6 +3,8 @@ package br.com.ticpass.pos.data.activity
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -23,6 +25,7 @@ import androidx.core.content.edit
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.acquirers.workers.jobs.syncPos
@@ -33,6 +36,13 @@ import br.com.ticpass.pos.data.room.repository.CategoryRepository
 import br.com.ticpass.pos.data.room.repository.EventRepository
 import br.com.ticpass.pos.data.room.repository.PosRepository
 import br.com.ticpass.pos.data.room.repository.ProductRepository
+import br.com.ticpass.pos.feature.printing.PrintingViewModel
+import br.com.ticpass.pos.printing.events.PrintingHandler
+import br.com.ticpass.pos.queue.models.ProcessingState
+import br.com.ticpass.pos.sdk.AcquirerSdk
+import br.com.ticpass.pos.view.fragments.printing.PrintingErrorDialogFragment
+import br.com.ticpass.pos.view.fragments.printing.PrintingLoadingDialogFragment
+import br.com.ticpass.pos.view.fragments.printing.PrintingSuccessDialogFragment
 import br.com.ticpass.pos.view.ui.login.LoginScreen
 import com.bumptech.glide.Glide
 import com.google.android.material.appbar.MaterialToolbar
@@ -42,6 +52,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -213,12 +224,175 @@ abstract class DrawerBaseActivity : BaseActivity() {
                     if (!isSyncing) startInlineSync()
                     // Mantém o drawer aberto para ver a barra
                 }
+                R.id.nav_print_last_order -> {
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                    printLastOrder()
+                    true
+                }
+                else -> false
             }
             true
         }
 
         updateHeaderInfo()
     }
+
+    private fun printLastOrder() {
+        lifecycleScope.launch {
+            try {
+                val lastOrder = withContext(Dispatchers.IO) {
+                    null
+                }
+
+                if (lastOrder == null) {
+                    runOnUiThread {
+                        Toast.makeText(
+                            this@DrawerBaseActivity,
+                            "Nenhum pedido encontrado para impressão",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    return@launch
+                }
+
+                AcquirerSdk.initialize(this@DrawerBaseActivity)
+
+                val latestBitmap = getLatestPassBitmap()
+
+                if (latestBitmap == null) {
+                    runOnUiThread {
+                        Toast.makeText(
+                            this@DrawerBaseActivity,
+                            "Imagem do pedido não encontrada",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    return@launch
+                }
+
+                runOnUiThread {
+                    showPrintingLoadingDialog()
+                }
+
+                val printingHandler = PrintingHandler(
+                    context = this@DrawerBaseActivity,
+                    lifecycleOwner = this@DrawerBaseActivity
+                )
+
+                printingHandler.enqueueAndStartPrinting(
+                    printingViewModel = printingViewModel,
+                    imageBitmap = latestBitmap
+                )
+
+                observePrintingStateForReprint()
+
+            } catch (e: Exception) {
+                Log.e("DrawerBaseActivity", "Erro ao imprimir último pedido: ${e.message}")
+                runOnUiThread {
+                    dismissPrintingLoadingDialog()
+                    Toast.makeText(
+                        this@DrawerBaseActivity,
+                        "Erro ao imprimir: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+    }
+
+    private fun getLatestPassBitmap(): Bitmap? {
+        return try {
+            val dir = File(cacheDir, "printing")
+            if (!dir.exists()) return null
+            val files = dir.listFiles()?.filter { it.isFile } ?: return null
+            val latest = files.maxByOrNull { it.lastModified() } ?: return null
+            BitmapFactory.decodeFile(latest.absolutePath)
+        } catch (e: Exception) {
+            Log.e("DrawerBaseActivity", "Erro ao buscar bitmap: ${e.message}")
+            null
+        }
+    }
+
+    // Variáveis para os diálogos de impressão
+    private var printingLoadingDialog: PrintingLoadingDialogFragment? = null
+    private var printingSuccessDialog: PrintingSuccessDialogFragment? = null
+    private var printingErrorDialog: PrintingErrorDialogFragment? = null
+
+    private fun showPrintingLoadingDialog() {
+        if (printingLoadingDialog?.isAdded == true) return
+        printingLoadingDialog = PrintingLoadingDialogFragment()
+        printingLoadingDialog?.show(supportFragmentManager, "printing_loading_reprint")
+    }
+
+    private fun dismissPrintingLoadingDialog() {
+        printingLoadingDialog?.dismissAllowingStateLoss()
+        printingLoadingDialog = null
+    }
+
+    private fun showPrintingSuccessDialog() {
+        printingSuccessDialog = PrintingSuccessDialogFragment().apply {
+            onFinishListener = object : PrintingSuccessDialogFragment.OnFinishListener {
+                override fun onFinish() {
+                    dismissAllowingStateLoss()
+                }
+            }
+        }
+        printingSuccessDialog?.show(supportFragmentManager, "printing_success_reprint")
+
+        // Auto-dismiss após 1.2 segundos
+        printingSuccessDialog?.dialog?.window?.decorView?.postDelayed({
+            printingSuccessDialog?.dismissAllowingStateLoss()
+        }, 1200L)
+    }
+
+    private fun showPrintingErrorDialog() {
+        printingErrorDialog = PrintingErrorDialogFragment()
+        printingErrorDialog?.cancelPrintingListener = object : PrintingErrorDialogFragment.OnCancelPrintingListener {
+            override fun onCancelPrinting() {
+                printingViewModel.cancelAllPrintings()
+                printingErrorDialog?.dismissAllowingStateLoss()
+            }
+        }
+        printingErrorDialog?.show(supportFragmentManager, "printing_error_reprint")
+    }
+
+    private fun observePrintingStateForReprint() {
+        lifecycleScope.launch {
+            printingViewModel.processingState.collect { state ->
+                when (state) {
+                    is ProcessingState.QueueDone<*> -> {
+                        dismissPrintingLoadingDialog()
+                        showPrintingSuccessDialog()
+                    }
+
+                    is ProcessingState.ItemFailed<*> -> {
+                        dismissPrintingLoadingDialog()
+                        showPrintingErrorDialog()
+                    }
+
+                    is ProcessingState.QueueAborted<*>,
+                    is ProcessingState.QueueCanceled<*> -> {
+                        dismissPrintingLoadingDialog()
+                        showPrintingErrorDialog()
+                    }
+
+                    is ProcessingState.ItemDone<*> -> {
+                        dismissPrintingLoadingDialog()
+                        showPrintingSuccessDialog()
+                    }
+
+                    else -> {
+                        // Estados intermediários
+                    }
+                }
+            }
+        }
+    }
+
+    private val printingViewModel: PrintingViewModel by lazy {
+        ViewModelProvider(this)[PrintingViewModel::class.java]
+    }
+
 
     private fun setupSyncMenuItem() {
         val syncMenuItem = navView.menu.findItem(R.id.button_sync)

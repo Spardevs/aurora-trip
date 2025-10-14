@@ -7,14 +7,15 @@
     android:gravity="center_vertical"
     android:background="?attr/selectableItemBackground"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    android:paddingStart="20dp"
+    android:paddingEnd="16dp">
 
     <ImageView
         android:id="@+id/icon"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:src="@drawable/ic_cloud_sync"
-        android:contentDescription="@string/sync"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:contentDescription="@null"
         app:tint="@color/cardview_dark_background" />
 
     <Space
@@ -26,20 +27,9 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="@string/sync"
-        android:textSize="16sp"
+        android:textSize="12sp"
         android:textColor="@color/cardview_dark_background"
         android:fontFamily="sans-serif-medium"
         android:maxLines="1"
         android:ellipsize="end" />
-
-    <ProgressBar
-        android:id="@+id/progress"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="96dp"
-        android:layout_height="6dp"
-        android:indeterminate="false"
-        android:max="100"
-        android:progress="0"
-        android:visibility="gone" />
 </LinearLayout>

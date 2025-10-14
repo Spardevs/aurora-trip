@@ -8,7 +8,6 @@ import android.widget.Button
 import androidx.fragment.app.DialogFragment
 import br.com.ticpass.pos.R
 
-
 class PrintingLoadingDialogFragment : DialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,7 +32,6 @@ class PrintingLoadingDialogFragment : DialogFragment() {
         dialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
     }
 }
-
 class PrintingSuccessDialogFragment : DialogFragment() {
 
     interface OnFinishListener {

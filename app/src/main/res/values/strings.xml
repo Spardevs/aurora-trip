@@ -14,6 +14,7 @@
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="info_pin_requested">Por favor, digite o PIN</string>
+    <string name="menu_print_last_order">Imprimir ultimo pedido</string>
     <string name="info_remove_card">Remova o cartão</string>
     <string name="info_tap_insert_swipe">Aproxime, insira ou passe o cartão</string>
     <string name="info_keep_card_near">Mantenha o cartão próximo</string>
