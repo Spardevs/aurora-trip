@@ -93,6 +93,7 @@ class CashPaymentFragment : Fragment() {
     private var successDialog: PrintingSuccessDialogFragment? = null
     private var errorDialog: PrintingErrorDialogFragment? = null
     private var observingPrintingState = false
+    private var isPrintingInProgress = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         AcquirerSdk.initialize(requireContext())
@@ -139,6 +140,7 @@ class CashPaymentFragment : Fragment() {
         passGeneratorService = PassGeneratorService(requireContext())
         setupPrintingHandler()
         setupObservers()
+        observePrintingState() // Observa uma única vez
 
         setupViews(view)
         setupListeners()
@@ -213,7 +215,7 @@ class CashPaymentFragment : Fragment() {
 
     private fun setupListeners() {
         btnCancel?.setOnClickListener {
-            requireActivity().finish()
+            finishNormally()
         }
 
         btnConfirm?.setOnClickListener {
@@ -284,16 +286,26 @@ class CashPaymentFragment : Fragment() {
     }
 
     private fun startPrintingProcess() {
+        if (isPrintingInProgress) {
+            Log.w("CashPaymentFragment", "Impressão já em andamento, ignorando nova tentativa")
+            return
+        }
+
         try {
             AcquirerSdk.initialize(requireContext())
+            isPrintingInProgress = true
+
+            // Limpa a fila antes de enfileirar novamente
+            printingViewModel.cancelAllPrintings()
 
             val latestBitmap = getLatestPassBitmap()
             printingHandler.enqueueAndStartPrinting(
                 printingViewModel = printingViewModel,
                 imageBitmap = latestBitmap
             )
-            observePrintingState()
+            // NÃO chamar observePrintingState aqui - já está observando
         } catch (e: Exception) {
+            isPrintingInProgress = false
             Log.e("CashPaymentFragment", "Erro ao iniciar impressão: ${e.message}")
             updateUIForError("Erro ao iniciar impressão")
         }
@@ -312,8 +324,6 @@ class CashPaymentFragment : Fragment() {
         }
     }
 
-
-
     private fun observePrintingState() {
         if (observingPrintingState) return
         observingPrintingState = true
@@ -323,36 +333,27 @@ class CashPaymentFragment : Fragment() {
                 printingViewModel.processingState.collect { state ->
                     when (state) {
                         is ProcessingState.QueueDone<*> -> {
+                            isPrintingInProgress = false
                             dismissLoadingModal()
-                            showSuccessModal(autoDismissMs = 1200L) {
-                                shoppingCartManager.clearCart()
-                                requireActivity().setResult(AppCompatActivity.RESULT_OK)
-                                requireActivity().finish()
-                            }
+                            showSuccessModal(autoDismissMs = 200L)
                         }
 
                         is ProcessingState.ItemFailed<*> -> {
+                            isPrintingInProgress = false
                             dismissLoadingModal()
-                            showErrorModal {
-                                requireActivity().finish()
-                            }
+                            showErrorModal()
                         }
 
                         is ProcessingState.QueueAborted<*>,
                         is ProcessingState.QueueCanceled<*> -> {
+                            isPrintingInProgress = false
                             dismissLoadingModal()
-                            showErrorModal {
-                                requireActivity().finish()
-                            }
                         }
 
                         is ProcessingState.ItemDone<*> -> {
-                            dismissLoadingModal()
-                            showSuccessModal(autoDismissMs = 1200L)
                         }
 
                         else -> {
-                            dismissLoadingModal()
                         }
                     }
                 }
@@ -376,8 +377,7 @@ class CashPaymentFragment : Fragment() {
             btnCancel?.text = "Finalizar"
             btnCancel?.isEnabled = true
             btnCancel?.setOnClickListener {
-                shoppingCartManager.clearCart()
-                requireActivity().finish()
+                finishNormally()
             }
 
             btnConfirm?.visibility = View.GONE
@@ -395,7 +395,7 @@ class CashPaymentFragment : Fragment() {
             btnCancel?.isEnabled = true
             btnCancel?.text = "Cancelar"
             btnCancel?.setOnClickListener {
-                requireActivity().finish()
+                finishNormally()
             }
 
             btnConfirm?.visibility = View.VISIBLE
@@ -423,7 +423,7 @@ class CashPaymentFragment : Fragment() {
             btnCancel?.isEnabled = true
             btnCancel?.text = "Cancelar"
             btnCancel?.setOnClickListener {
-                requireActivity().finish()
+                finishNormally()
             }
         }
     }
@@ -497,38 +497,55 @@ class CashPaymentFragment : Fragment() {
         loadingDialog = null
     }
 
-    private fun showSuccessModal(autoDismissMs: Long = 1200L, onDismiss: (() -> Unit)? = null) {
+    private fun showSuccessModal(autoDismissMs: Long = 800L) {
         successDialog = PrintingSuccessDialogFragment().apply {
             onFinishListener = object : PrintingSuccessDialogFragment.OnFinishListener {
                 override fun onFinish() {
-                    try {
-                        dismissAllowingStateLoss()
-                    } catch (_: Exception) {}
-                    requireActivity().finish()
-                    onDismiss?.invoke()
+                    finishNormally()
                 }
             }
         }
-
         successDialog?.show(parentFragmentManager, "printing_success")
-
         successDialog?.dialog?.window?.decorView?.postDelayed({
             successDialog?.onFinishListener?.onFinish()
         }, autoDismissMs)
     }
 
-    private fun showErrorModal(onDismiss: (() -> Unit)? = null) {
-        errorDialog = PrintingErrorDialogFragment()
-        errorDialog?.cancelPrintingListener = object : PrintingErrorDialogFragment.OnCancelPrintingListener {
-            override fun onCancelPrinting() {
-                printingViewModel.cancelAllPrintings()
-                dismissLoadingModal()
-                errorDialog?.dismissAllowingStateLoss()
-                requireActivity().finish()
-                onDismiss?.invoke()
+    private fun showErrorModal() {
+        errorDialog = PrintingErrorDialogFragment().apply {
+            cancelPrintingListener = object : PrintingErrorDialogFragment.OnCancelPrintingListener {
+                override fun onCancelPrinting() {
+                    printingViewModel.cancelAllPrintings()
+                    isPrintingInProgress = false
+                    finishNormally()
+                }
+            }
+            retryPrintingListener = object : PrintingErrorDialogFragment.OnRetryPrintingListener {
+                override fun onRetryPrinting() {
+                    dismissLoadingModal()
+                    errorDialog?.dismissAllowingStateLoss()
+
+                    // Aguarda um pouco antes de reiniciar para garantir que o estado foi limpo
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        kotlinx.coroutines.delay(200)
+                        showLoadingModal()
+                        startPrintingProcess()
+                    }
+                }
             }
         }
         errorDialog?.show(parentFragmentManager, "printing_error")
+    }
+
+    private fun finishNormally() {
+        try {
+            dismissLoadingModal()
+            successDialog?.dismissAllowingStateLoss()
+            errorDialog?.dismissAllowingStateLoss()
+        } catch (_: Exception) {}
+        shoppingCartManager.clearCart()
+        requireActivity().setResult(AppCompatActivity.RESULT_OK)
+        requireActivity().finish()
     }
 
     private fun getLatestPassBitmap(): Bitmap? {

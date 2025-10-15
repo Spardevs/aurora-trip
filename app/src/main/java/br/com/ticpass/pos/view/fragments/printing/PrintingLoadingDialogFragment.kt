@@ -32,6 +32,7 @@ class PrintingLoadingDialogFragment : DialogFragment() {
         dialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
     }
 }
+
 class PrintingSuccessDialogFragment : DialogFragment() {
 
     interface OnFinishListener {
@@ -72,13 +73,19 @@ class PrintingSuccessDialogFragment : DialogFragment() {
         dialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
     }
 }
+
 class PrintingErrorDialogFragment : DialogFragment() {
 
     interface OnCancelPrintingListener {
         fun onCancelPrinting()
     }
 
+    interface OnRetryPrintingListener {
+        fun onRetryPrinting()
+    }
+
     var cancelPrintingListener: OnCancelPrintingListener? = null
+    var retryPrintingListener: OnRetryPrintingListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -96,8 +103,14 @@ class PrintingErrorDialogFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        view.findViewById<Button>(R.id.btn_cancel).setOnClickListener {
+        view.findViewById<Button>(R.id.btn_cancel)?.setOnClickListener {
             cancelPrintingListener?.onCancelPrinting()
+            dismiss()
+        }
+
+        view.findViewById<Button>(R.id.btn_retry)?.setOnClickListener {
+            retryPrintingListener?.onRetryPrinting()
+            dismiss()
         }
     }
 

@@ -1,21 +1,17 @@
 package br.com.ticpass.pos.view.ui.pass
 
-import android.view.LayoutInflater
-import android.view.View
+import android.content.Context
+import android.content.SharedPreferences
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import br.com.ticpass.pos.R
-import br.com.ticpass.pos.util.generateEAN13BarcodeBitmap
 import br.com.ticpass.pos.view.ui.pass.adapter.PassAdapter
 import kotlinx.serialization.Serializable
 
@@ -25,6 +21,11 @@ fun PassScreen(
     passList: List<PassData>,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+
+    // Resolve PassType a partir do SharedPreferences "ConfigPrefs"
+    val effectiveType = resolvePassTypeFromPrefs(context, passType)
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -36,13 +37,13 @@ fun PassScreen(
             modifier = Modifier
                 .wrapContentWidth()
                 .wrapContentHeight(),
-            factory = { context ->
-                RecyclerView(context).apply {
-                    layoutManager = LinearLayoutManager(context)
-                    adapter = PassAdapter(passType, passList)
+            factory = { ctx ->
+                RecyclerView(ctx).apply {
+                    layoutManager = LinearLayoutManager(ctx)
+                    adapter = PassAdapter(effectiveType, passList).also {
+                        it.initTypeFromPrefs(ctx)
+                    }
                     setHasFixedSize(true)
-
-                    // Configuração para centralizar os itens
                     layoutParams = ViewGroup.LayoutParams(
                         ViewGroup.LayoutParams.WRAP_CONTENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
@@ -50,10 +51,18 @@ fun PassScreen(
                 }
             },
             update = { recyclerView ->
-                (recyclerView.adapter as? PassAdapter)?.updateData(passType, passList)
+                val adapter = recyclerView.adapter as? PassAdapter ?: return@AndroidView
+                // Atualiza dados e tipo a partir das prefs
+                adapter.updateDataFromPrefs(context, passList)
             }
         )
     }
+}
+
+private fun resolvePassTypeFromPrefs(context: Context, fallback: PassType): PassType {
+    val prefs = context.getSharedPreferences("ConfigPrefs", Context.MODE_PRIVATE)
+    val format = prefs.getString("print_format", "DEFAULT")
+    return PassAdapter.mapFormatToPassType(format) ?: fallback
 }
 
 sealed class PassType {
@@ -107,7 +116,6 @@ data class PassData(
             val name: String,
             val price: String,
             val observation: String? = null
-
         )
     }
 }

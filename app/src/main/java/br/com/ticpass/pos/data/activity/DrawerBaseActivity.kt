@@ -377,12 +377,9 @@ abstract class DrawerBaseActivity : BaseActivity() {
                     }
 
                     is ProcessingState.ItemDone<*> -> {
-                        dismissPrintingLoadingDialog()
-                        showPrintingSuccessDialog()
                     }
 
                     else -> {
-                        // Estados intermediários
                     }
                 }
             }

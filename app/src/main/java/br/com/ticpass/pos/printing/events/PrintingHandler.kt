@@ -32,6 +32,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
+
 class PrintingHandler(
     private val context: Context,
     private val lifecycleOwner: LifecycleOwner

@@ -83,18 +83,29 @@ fun generateEAN13BarcodeBitmap(code: String, width: Int = 350): Bitmap {
 }
 
 fun savePassAsBitmap(context: Context, passType: PassType, passData: PassData): File? {
+    val configPrefs = context.getSharedPreferences("ConfigPrefs", Context.MODE_PRIVATE)
+    val rawFormat = (configPrefs.getString("print_format", "DEFAULT") ?: "DEFAULT").uppercase()
+    // DEFAULT deve se comportar como EXPANDED
+    val printFormat = if (rawFormat == "DEFAULT") "EXPANDED" else rawFormat
+
     return try {
         val inflater = LayoutInflater.from(context)
-        val view: View = when (passType) {
-            is PassType.ProductCompact ->
-                inflateProductLayout(inflater, R.layout.printer_pass_compact, passData)
-            is PassType.ProductExpanded ->
-                inflateProductLayout(inflater, R.layout.printer_pass_expanded, passData)
-            is PassType.ProductGrouped ->
-                inflateGroupedLayout(inflater, passData)
+
+        // Seleção do layout pelo formato normalizado
+        val layoutRes = when (printFormat) {
+            "COMPACT" -> R.layout.printer_pass_compact
+            "EXPANDED" -> R.layout.printer_pass_expanded
+            "GROUPED" -> R.layout.printer_pass_grouped
+            else -> R.layout.printer_pass_expanded // fallback seguro
         }
 
-        // Ensure proper layout before capturing
+        val view: View =
+            if (layoutRes == R.layout.printer_pass_grouped) {
+                inflateGroupedLayout(inflater, passData)
+            } else {
+                inflateProductLayout(inflater, layoutRes, passData)
+            }
+
         view.measure(
             View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
             View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
@@ -103,28 +114,19 @@ fun savePassAsBitmap(context: Context, passType: PassType, passData: PassData): 
 
         val bitmap = view.drawToBitmap()
 
-        val passTypeName = when (passType) {
-            is PassType.ProductCompact -> "ProductCompact"
-            is PassType.ProductExpanded -> "ProductExpanded"
-            is PassType.ProductGrouped -> "ProductGrouped"
-        }
-
-        // Create directory with pass type name and save the image inside
-        val outputDir = File(context.filesDir, passTypeName).apply { mkdirs() }
-        Log.d("SavePassAsBitmap", "Diretório criado: ${outputDir.absolutePath}")
-
+        // Salvar em filesDir/<print_format>/, com DEFAULT redirecionado para EXPANDED
+        val outputDir = File(context.filesDir, printFormat).apply { mkdirs() }
         File(outputDir, "pass_${System.currentTimeMillis()}.png").apply {
             FileOutputStream(this).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             }
-            Log.d("SavePassAsBitmap", "Imagem salva em: ${this.absolutePath}")
         }
     } catch (e: Exception) {
         Log.e("SavePassAsBitmap", "Erro ao salvar imagem: ${e.message}", e)
-        e.printStackTrace()
         null
     }
 }
+
 private fun inflateProductLayout(inflater: LayoutInflater, layoutRes: Int, data: PassData): View {
     val view = inflater.inflate(layoutRes, null)
 
