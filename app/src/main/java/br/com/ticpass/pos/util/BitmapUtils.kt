@@ -85,18 +85,16 @@ fun generateEAN13BarcodeBitmap(code: String, width: Int = 350): Bitmap {
 fun savePassAsBitmap(context: Context, passType: PassType, passData: PassData): File? {
     val configPrefs = context.getSharedPreferences("ConfigPrefs", Context.MODE_PRIVATE)
     val rawFormat = (configPrefs.getString("print_format", "DEFAULT") ?: "DEFAULT").uppercase()
-    // DEFAULT deve se comportar como EXPANDED
     val printFormat = if (rawFormat == "DEFAULT") "EXPANDED" else rawFormat
 
     return try {
         val inflater = LayoutInflater.from(context)
 
-        // Seleção do layout pelo formato normalizado
         val layoutRes = when (printFormat) {
             "COMPACT" -> R.layout.printer_pass_compact
             "EXPANDED" -> R.layout.printer_pass_expanded
             "GROUPED" -> R.layout.printer_pass_grouped
-            else -> R.layout.printer_pass_expanded // fallback seguro
+            else -> R.layout.printer_pass_expanded
         }
 
         val view: View =
@@ -114,7 +112,6 @@ fun savePassAsBitmap(context: Context, passType: PassType, passData: PassData): 
 
         val bitmap = view.drawToBitmap()
 
-        // Salvar em filesDir/<print_format>/, com DEFAULT redirecionado para EXPANDED
         val outputDir = File(context.filesDir, printFormat).apply { mkdirs() }
         File(outputDir, "pass_${System.currentTimeMillis()}.png").apply {
             FileOutputStream(this).use { out ->
@@ -138,7 +135,6 @@ private fun inflateProductLayout(inflater: LayoutInflater, layoutRes: Int, data:
     }
     barcodeImage?.setImageBitmap(barcodeBitmap)
 
-    // Preencher dados do produto
     data.productData?.let { product ->
         view.findViewById<TextView>(R.id.productName)?.text = product.name
         view.findViewById<TextView>(R.id.productPrice)?.text = product.price
@@ -161,11 +157,9 @@ private fun inflateProductLayout(inflater: LayoutInflater, layoutRes: Int, data:
 private fun inflateGroupedLayout(inflater: LayoutInflater, data: PassData): View {
     val view = inflater.inflate(R.layout.printer_pass_grouped, null)
 
-    // Header
     view.findViewById<TextView>(R.id.headerTitle)?.text = data.header.title
     view.findViewById<TextView>(R.id.headerDate)?.text = data.header.date
 
-    // Barcode
     val barcodeImage = view.findViewById<ImageView>(R.id.barcodeImageView)
     val barcodeBitmap = try {
         generateEAN13BarcodeBitmap(data.header.barcode)
@@ -174,7 +168,6 @@ private fun inflateGroupedLayout(inflater: LayoutInflater, data: PassData): View
     }
     barcodeImage?.setImageBitmap(barcodeBitmap)
 
-    // Lista de itens agrupados
     val container = view.findViewById<LinearLayout>(R.id.itemsContainer)
     container?.removeAllViews()
 
@@ -186,23 +179,17 @@ private fun inflateGroupedLayout(inflater: LayoutInflater, data: PassData): View
         container?.addView(itemView)
     }
 
-    // Total de itens
     data.groupedData?.let {
         view.findViewById<TextView>(R.id.totalItems)?.text =
             "${it.totalItems} itens - ${it.totalPrice}"
     }
 
-    // Footer
     view.findViewById<TextView>(R.id.cashierInfo)?.text =
         "Caixa: ${data.footer.menuName}\nOperador: ${data.footer.cashierName}"
     view.findViewById<TextView>(R.id.footerText)?.text = data.footer.description
     view.findViewById<TextView>(R.id.printTime)?.text = data.footer.printTime
 
     return view
-}
-
-fun splitString(input: String, chunkSize: Int): String {
-    return input.chunked(chunkSize).joinToString(" ")
 }
 
 fun saveVoucherAsBitmap(context: Context): File? {
@@ -252,13 +239,6 @@ fun saveRefundAsBitmap(context: Context): File? {
     } catch (e: Exception) {
         e.printStackTrace()
         null
-    }
-}
-
-@Composable
-fun rememberBitmapImage(bitmap: Bitmap?): ImageBitmap? {
-    return remember(bitmap) {
-        bitmap?.asImageBitmap()
     }
 }
 

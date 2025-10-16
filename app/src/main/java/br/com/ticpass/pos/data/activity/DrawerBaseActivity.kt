@@ -31,6 +31,8 @@ import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.acquirers.workers.jobs.syncPos
 import br.com.ticpass.pos.data.event.ForYouViewModel
 import br.com.ticpass.pos.data.room.AppDatabase
+import br.com.ticpass.pos.data.room.entity.AcquisitionEntity
+import br.com.ticpass.pos.data.room.repository.AcquisitionRepository
 import br.com.ticpass.pos.data.room.repository.CashierRepository
 import br.com.ticpass.pos.data.room.repository.CategoryRepository
 import br.com.ticpass.pos.data.room.repository.EventRepository
@@ -39,11 +41,14 @@ import br.com.ticpass.pos.data.room.repository.ProductRepository
 import br.com.ticpass.pos.feature.printing.PrintingViewModel
 import br.com.ticpass.pos.printing.events.PrintingHandler
 import br.com.ticpass.pos.queue.models.ProcessingState
+import br.com.ticpass.pos.queue.processors.printing.processors.models.PrintingProcessorType
 import br.com.ticpass.pos.sdk.AcquirerSdk
 import br.com.ticpass.pos.view.fragments.printing.PrintingErrorDialogFragment
 import br.com.ticpass.pos.view.fragments.printing.PrintingLoadingDialogFragment
 import br.com.ticpass.pos.view.fragments.printing.PrintingSuccessDialogFragment
 import br.com.ticpass.pos.view.ui.login.LoginScreen
+import br.com.ticpass.pos.view.ui.pass.PassData
+import br.com.ticpass.pos.view.ui.pass.PassType
 import com.bumptech.glide.Glide
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.navigation.NavigationView
@@ -119,8 +124,6 @@ abstract class DrawerBaseActivity : BaseActivity() {
     lateinit var productsRepository: ProductRepository
     @Inject
     lateinit var categoryRepository: CategoryRepository
-
-    // Controle do sync inline
     private var isSyncing = false
     private var syncActionView: View? = null
     private var syncProgressBar: ProgressBar? = null
@@ -132,7 +135,6 @@ abstract class DrawerBaseActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_drawer_base)
 
-        // IMPORTANTE: Inicializar navView ANTES de qualquer uso
         drawerLayout = findViewById(R.id.drawer_layout)
         navView = findViewById(R.id.nav_view)
 
@@ -158,14 +160,13 @@ abstract class DrawerBaseActivity : BaseActivity() {
             supportActionBar?.setHomeAsUpIndicator(it)
         }
 
-        // Header
+
         val header = navView.getHeaderView(0)
         val operatorNameTv: TextView = header.findViewById(R.id.operatorName)
         val name = getSharedPreferences("UserPrefs", MODE_PRIVATE)
             .getString("operator_name", null)
         operatorNameTv.text = name
 
-        // Footer
         val footer = layoutInflater.inflate(R.layout.nav_drawer_footer, navView, false)
         navView.addView(
             footer, FrameLayout.LayoutParams(
@@ -184,10 +185,8 @@ abstract class DrawerBaseActivity : BaseActivity() {
             }
         }
 
-        // Configurar item de Sync com actionLayout customizado
         setupSyncMenuItem()
 
-        // Listener do menu
         navView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_products -> {
@@ -219,10 +218,8 @@ abstract class DrawerBaseActivity : BaseActivity() {
                     drawerLayout.closeDrawer(GravityCompat.START)
                 }
                 R.id.button_sync -> {
-                    // Não navega; apenas dispara o sync
                     Log.d("DrawerBaseActivity", "Clique no item Sync via listener")
                     if (!isSyncing) startInlineSync()
-                    // Mantém o drawer aberto para ver a barra
                 }
                 R.id.nav_print_last_order -> {
                     drawerLayout.closeDrawer(GravityCompat.START)
@@ -240,11 +237,13 @@ abstract class DrawerBaseActivity : BaseActivity() {
     private fun printLastOrder() {
         lifecycleScope.launch {
             try {
-                val lastOrder = withContext(Dispatchers.IO) {
-                    null
+                val lastAcq: AcquisitionEntity? = withContext(Dispatchers.IO) {
+                    val db = AppDatabase.getInstance(this@DrawerBaseActivity)
+                    val repo = AcquisitionRepository.getInstance(db.acquisitionDao())
+                    repo.getLastAcquisition()
                 }
 
-                if (lastOrder == null) {
+                if (lastAcq == null) {
                     runOnUiThread {
                         Toast.makeText(
                             this@DrawerBaseActivity,
@@ -255,39 +254,111 @@ abstract class DrawerBaseActivity : BaseActivity() {
                     return@launch
                 }
 
-                AcquirerSdk.initialize(this@DrawerBaseActivity)
+                val acquisitions: List<AcquisitionEntity> = withContext(Dispatchers.IO) {
+                    val db = AppDatabase.getInstance(this@DrawerBaseActivity)
+                    val repo = AcquisitionRepository.getInstance(db.acquisitionDao())
+                    repo.getAllByOrderIdRaw(lastAcq.order)
+                }
 
-                val latestBitmap = getLatestPassBitmap()
-
-                if (latestBitmap == null) {
+                if (acquisitions.isEmpty()) {
                     runOnUiThread {
                         Toast.makeText(
                             this@DrawerBaseActivity,
-                            "Imagem do pedido não encontrada",
+                            "Nenhum item encontrado no último pedido",
                             Toast.LENGTH_SHORT
                         ).show()
                     }
                     return@launch
                 }
 
-                runOnUiThread {
-                    showPrintingLoadingDialog()
+                val operatorName = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+                    .getString("operator_name", "Atendente") ?: "Atendente"
+
+                val (posName, eventName, eventDate) = withContext(Dispatchers.IO) {
+                    val db = AppDatabase.getInstance(this@DrawerBaseActivity)
+                    val pos = db.posDao().getAll().firstOrNull { it.isSelected }
+                    val event = db.eventDao().getAllEvents().firstOrNull { it.isSelected }
+                    Triple(pos?.name ?: "POS", event?.name ?: "ticpass", event?.getFormattedStartDate() ?: "")
                 }
+
+                val printTs = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("pt", "BR"))
+                    .format(Date())
+
+                val passList: List<PassData> =
+                    acquisitions.flatMap { acq ->
+                        listOf(
+                            PassData(
+                                header = PassData.HeaderData(
+                                    title = eventName,
+                                    date = eventDate,
+                                    barcode = acq.pass
+                                ),
+                                productData = PassData.ProductData(
+                                    name = acq.name,
+                                    price = formatPriceReais(acq.price),
+                                    eventTitle = eventName,
+                                    eventTime = eventDate
+                                ),
+                                footer = PassData.FooterData(
+                                    cashierName = operatorName,
+                                    menuName = posName,
+                                    description = "Ficha válida por 15 dias após a emissão...",
+                                    printTime = printTs
+                                ),
+                                showCutLine = true
+                            )
+                        )
+                    }
+
+                if (passList.isEmpty()) {
+                    runOnUiThread {
+                        Toast.makeText(this@DrawerBaseActivity, "Nada para imprimir", Toast.LENGTH_SHORT).show()
+                    }
+                    return@launch
+                }
+
+                val passFiles: List<File> = withContext(Dispatchers.IO) {
+                    passList.mapNotNull { passData ->
+                        br.com.ticpass.pos.util.savePassAsBitmap(
+                            context = this@DrawerBaseActivity,
+                            passType = PassType.ProductCompact,
+                            passData = passData
+                        )
+                    }
+                }
+
+                if (passFiles.isEmpty()) {
+                    runOnUiThread {
+                        Toast.makeText(
+                            this@DrawerBaseActivity,
+                            "Falha ao gerar imagens de impressão",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    return@launch
+                }
+
+                AcquirerSdk.initialize(this@DrawerBaseActivity)
+                runOnUiThread { showPrintingLoadingDialog() }
 
                 val printingHandler = PrintingHandler(
                     context = this@DrawerBaseActivity,
                     lifecycleOwner = this@DrawerBaseActivity
                 )
 
-                printingHandler.enqueueAndStartPrinting(
-                    printingViewModel = printingViewModel,
-                    imageBitmap = latestBitmap
-                )
+                passFiles.forEach { file ->
+                    printingViewModel.enqueuePrinting(
+                        file.absolutePath,
+                        PrintingProcessorType.ACQUIRER
+                    )
+                }
+
+                printingViewModel.startProcessing()
 
                 observePrintingStateForReprint()
 
             } catch (e: Exception) {
-                Log.e("DrawerBaseActivity", "Erro ao imprimir último pedido: ${e.message}")
+                Log.e("DrawerBaseActivity", "Erro ao imprimir último pedido: ${e.message}", e)
                 runOnUiThread {
                     dismissPrintingLoadingDialog()
                     Toast.makeText(
@@ -298,6 +369,11 @@ abstract class DrawerBaseActivity : BaseActivity() {
                 }
             }
         }
+    }
+
+    private fun formatPriceReais(priceInCents: Long): String {
+        val nf = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+        return nf.format(priceInCents / 100.0)
     }
 
     private fun getLatestPassBitmap(): Bitmap? {
@@ -313,7 +389,6 @@ abstract class DrawerBaseActivity : BaseActivity() {
         }
     }
 
-    // Variáveis para os diálogos de impressão
     private var printingLoadingDialog: PrintingLoadingDialogFragment? = null
     private var printingSuccessDialog: PrintingSuccessDialogFragment? = null
     private var printingErrorDialog: PrintingErrorDialogFragment? = null
@@ -339,7 +414,6 @@ abstract class DrawerBaseActivity : BaseActivity() {
         }
         printingSuccessDialog?.show(supportFragmentManager, "printing_success_reprint")
 
-        // Auto-dismiss após 1.2 segundos
         printingSuccessDialog?.dialog?.window?.decorView?.postDelayed({
             printingSuccessDialog?.dismissAllowingStateLoss()
         }, 1200L)
@@ -404,7 +478,6 @@ abstract class DrawerBaseActivity : BaseActivity() {
             return
         }
 
-        // Bind das views do layout customizado
         syncProgressBar = syncActionView?.findViewById(R.id.progress)
         syncTitleView = syncActionView?.findViewById(R.id.title)
         syncIconView = syncActionView?.findViewById(R.id.icon)
@@ -414,11 +487,9 @@ abstract class DrawerBaseActivity : BaseActivity() {
             return
         }
 
-        // Configurar texto e ícone
         syncTitleView?.text = getString(R.string.sync)
         syncIconView?.setImageResource(R.drawable.ic_cloud_sync)
 
-        // Clique na actionView
         syncActionView?.isClickable = true
         syncActionView?.isFocusable = true
         syncActionView?.setOnClickListener {
@@ -441,7 +512,6 @@ abstract class DrawerBaseActivity : BaseActivity() {
         if (syncLauncher != null) {
             syncLauncher?.invoke()
         } else {
-            // se não configurou o launcher, tratamos como erro de config
             onSyncErrorInternal()
             Toast.makeText(this, "ViewModel não disponível. Configure setSyncLauncher { ... }.", Toast.LENGTH_LONG).show()
         }

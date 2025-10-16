@@ -122,4 +122,10 @@ interface AcquisitionDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertMany(passes: List<AcquisitionEntity>)
+
+    @Query("SELECT * FROM acquisitions ORDER BY createdAt DESC LIMIT 1")
+    suspend fun getLastAcquisition(): AcquisitionEntity?
+
+    @Query("SELECT * FROM acquisitions WHERE `order` = :orderId")
+    suspend fun getByOrderIdRaw(orderId: String): List<AcquisitionEntity>
 }

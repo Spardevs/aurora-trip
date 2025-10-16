@@ -197,4 +197,10 @@ class AcquisitionRepository @Inject constructor(
                 instance ?: AcquisitionRepository(acquisitionDao).also { instance = it }
             }
     }
+
+    suspend fun getLastAcquisition(): AcquisitionEntity? =
+        acquisitionDao.getLastAcquisition()
+
+    suspend fun getAllByOrderIdRaw(orderId: String): List<AcquisitionEntity> =
+        acquisitionDao.getByOrderIdRaw(orderId)
 }

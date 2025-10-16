@@ -59,7 +59,6 @@ class PrintingSuccessDialogFragment : DialogFragment() {
 
         view.findViewById<Button>(R.id.btn_finish)?.setOnClickListener {
             onFinishListener?.onFinish()
-            activity?.finish()
             dismiss()
         }
     }

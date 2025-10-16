@@ -2,14 +2,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:layout_width="166dp"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/colorWhite"
     >
 
     <ImageView
         android:id="@+id/passCutInHere"
-        android:layout_width="166dp"
+    android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:src="@drawable/cut_in_here"
         android:visibility="gone"
