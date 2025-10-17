@@ -6,16 +6,12 @@ import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.view.ui.pass.PassScreen
 import br.com.ticpass.pos.view.ui.pass.PassType
 import br.com.ticpass.pos.view.ui.pass.PassData
 import br.com.ticpass.pos.data.room.AppDatabase
-import br.com.ticpass.pos.data.room.dao.EventDao
-import br.com.ticpass.pos.data.room.dao.PosDao
-import br.com.ticpass.pos.data.room.dao.ProductDao
 import br.com.ticpass.pos.data.room.entity.EventEntity
 import br.com.ticpass.pos.data.room.entity.PosEntity
 import br.com.ticpass.pos.data.room.entity.ProductEntity
@@ -42,7 +38,9 @@ class PrintingHandler(
         passType: PassType,
         printingViewModel: PrintingViewModel,
         imagePath: String? = null,
-        imageBitmap: Bitmap? = null
+        imageBitmap: Bitmap? = null,
+        atk: String? = null,
+        transactionId: String? = null
     ) {
         lifecycleOwner.lifecycleScope.launch {
             try {
@@ -65,10 +63,10 @@ class PrintingHandler(
 
                 val operatorName = getOperatorName()
                 val (products, pos, event) = loadDataFromDatabase()
-                val passList = buildPassList(products, pos, event, operatorName, passType)
+                val passList = buildPassList(products, pos, event, operatorName, passType, atk, transactionId)
 
                 passList.forEach { passData ->
-                    val file = savePassAsBitmap(context, passType, passData)
+                    val file = savePassAsBitmap(context, passData)
                     if (file == null) {
                         Log.e("PrintingHandler", "Falha ao salvar pass como bitmap para product ${passData.productData?.name}")
                     } else {
@@ -152,9 +150,18 @@ class PrintingHandler(
         pos: PosEntity?,
         event: EventEntity?,
         operatorName: String,
-        passType: PassType
+        passType: PassType,
+        atk: String?,
+        transactionId: String?
     ): List<PassData> {
         val cartItems = getCartItems()
+
+        // Composição do payload do barcode usando atk() e transactionId
+        val barcodePayloadBase: String = when {
+            !atk.isNullOrBlank() && !transactionId.isNullOrBlank() -> "${atk}|${transactionId}"
+            !transactionId.isNullOrBlank() -> transactionId
+            else -> "0000000000000" // fallback para não quebrar
+        }
 
         return if (products.isNotEmpty()) {
             when (passType) {
@@ -163,11 +170,14 @@ class PrintingHandler(
                         val quantity = cartItems[product.id] ?: 1
                         // Cria uma entrada separada para cada unidade do produto
                         (1..quantity).map { unitIndex ->
+                            // Individualiza cada unidade com sufixo
+                            val barcodePayload = if (quantity > 1) "$barcodePayloadBase-$unitIndex" else barcodePayloadBase
+
                             PassData(
                                 header = PassData.HeaderData(
                                     title = event?.name ?: "ticpass",
                                     date = event?.getFormattedStartDate() ?: "",
-                                    barcode = "0000000002879" // pode ser dinâmico depois
+                                    barcode = barcodePayload
                                 ),
                                 productData = PassData.ProductData(
                                     name = "${product.name} (${unitIndex}/$quantity)",
@@ -202,12 +212,15 @@ class PrintingHandler(
                         it.price.replace("R$", "").replace(",", ".").trim().toDouble()
                     }
 
+                    // Para agrupado, usamos sufixo "-G"
+                    val barcodePayload = "$barcodePayloadBase-G"
+
                     listOf(
                         PassData(
                             header = PassData.HeaderData(
                                 title = event?.name ?: "ticpass",
                                 date = event?.getFormattedStartDate() ?: "",
-                                barcode = "0000000002879"
+                                barcode = barcodePayload
                             ),
                             groupedData = PassData.GroupedData(
                                 items = groupedItems,
@@ -232,7 +245,9 @@ class PrintingHandler(
     // Add this method to PrintingHandler class
     fun enqueueAndStartPrinting(
         printingViewModel: PrintingViewModel,
-        imageBitmap: Bitmap? = null
+        imageBitmap: Bitmap? = null,
+        atk: String? = null,
+        transactionId: String? = null
     ) {
         lifecycleOwner.lifecycleScope.launch {
             try {
@@ -248,10 +263,10 @@ class PrintingHandler(
 
                 val operatorName = getOperatorName()
                 val (products, pos, event) = loadDataFromDatabase()
-                val passList = buildPassList(products, pos, event, operatorName, PassType.ProductCompact)
+                val passList = buildPassList(products, pos, event, operatorName, PassType.ProductCompact, atk, transactionId)
 
                 passList.forEach { passData ->
-                    val file = savePassAsBitmap(context, PassType.ProductCompact, passData)
+                    val file = savePassAsBitmap(context, passData)
                     if (file != null) {
                         printingViewModel.enqueuePrinting(file.absolutePath, PrintingProcessorType.ACQUIRER)
                     }

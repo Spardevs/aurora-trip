@@ -6,31 +6,25 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
+import kotlin.math.max
 import kotlin.math.min
 
-class ViewFinderView @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null
+class ViewFinderBarcodeOverlay @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null
 ) : View(context, attrs) {
 
-    // Fundo escurecido
     private val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#B3000000")
+        color = Color.parseColor("#99000000")
         style = Paint.Style.FILL
     }
 
-    // Pintura para “apagar” (recorte transparente)
-    private val clearPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
-    }
-
-    // Borda
-    private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val rectPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
         style = Paint.Style.STROKE
         strokeWidth = dp(3f)
     }
 
-    // Linha vermelha animada
     private val scanLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#FF3B30")
         style = Paint.Style.STROKE
@@ -38,26 +32,17 @@ class ViewFinderView @JvmOverloads constructor(
         strokeCap = Paint.Cap.ROUND
     }
 
-    // Personalização
-    var sizeFraction: Float = 0.7f
-        set(value) {
-            field = value.coerceIn(0.2f, 0.95f)
-            invalidate()
-        }
+    // Parâmetros do retângulo
+    private var aspectW = 4f
+    private var aspectH = 3f
+    private var horizontalMarginDp = 24f
+    private var maxHeightFactor = 0.40f
+    private var cornerRadiusDp = 8f
+    private var linePaddingDp = 10f
 
-    var cornerRadius: Float = 12f // já arredondado por padrão
-        set(value) {
-            field = value.coerceAtLeast(0f)
-            invalidate()
-        }
-
-    var linePaddingDp: Float = 10f
-
-    // Retângulo de recorte e posição da linha
+    // Retângulo e animação
     private val cutout = RectF()
     private var scanPosY: Float = 0f
-
-    // Animação
     private var animator: ValueAnimator? = null
     var animationDurationMs: Long = 1600L
 
@@ -68,36 +53,51 @@ class ViewFinderView @JvmOverloads constructor(
         val h = height.toFloat()
         if (w <= 0f || h <= 0f) return
 
-        // Quadrado central
-        val side = min(w, h) * sizeFraction
-        val left = (w - side) / 2f
-        val top = (h - side) / 2f
-        val right = left + side
-        val bottom = top + side
+        // 1) Calcula dimensões
+        val margin = dp(horizontalMarginDp)
+        val radius = dp(cornerRadiusDp)
+
+        val availW = max(w - margin * 2f, dp(120f))
+        var rectW = availW
+        var rectH = rectW * (aspectH / aspectW)
+
+        val maxH = max(h * maxHeightFactor, dp(120f))
+        if (rectH > maxH) {
+            rectH = maxH
+            rectW = rectH * (aspectW / aspectH)
+        }
+
+        var left = (w - rectW) / 2f
+        var top = (h - rectH) / 2f - dp(10f)
+        var right = left + rectW
+        var bottom = top + rectH
+
+        if (top < dp(24f)) {
+            val d = dp(24f) - top
+            top += d; bottom += d
+        }
+        if (bottom > h - dp(120f)) {
+            val d = bottom - (h - dp(120f))
+            top -= d; bottom -= d
+        }
+        left = max(left, dp(12f))
+        right = min(right, w - dp(12f))
+
         cutout.set(left, top, right, bottom)
 
+        // 2) Máscara + recorte transparente
         val checkpoint = canvas.saveLayer(0f, 0f, w, h, null)
-
-        // Máscara
         canvas.drawRect(0f, 0f, w, h, maskPaint)
-
-        // Recorte transparente
-        if (cornerRadius > 0f) {
-            canvas.drawRoundRect(cutout, cornerRadius, cornerRadius, clearPaint)
-        } else {
-            canvas.drawRect(cutout, clearPaint)
+        val clearPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
         }
-
+        canvas.drawRoundRect(cutout, radius, radius, clearPaint)
         canvas.restoreToCount(checkpoint)
 
-        // Borda
-        if (cornerRadius > 0f) {
-            canvas.drawRoundRect(cutout, cornerRadius, cornerRadius, borderPaint)
-        } else {
-            canvas.drawRect(cutout, borderPaint)
-        }
+        // 3) Borda
+        canvas.drawRoundRect(cutout, radius, radius, rectPaint)
 
-        // Linha vermelha animada
+        // 4) Linha vermelha animada
         val padding = dp(linePaddingDp)
         val y = scanPosY.coerceIn(cutout.top + padding, cutout.bottom - padding)
         canvas.drawLine(cutout.left + padding, y, cutout.right - padding, y, scanLinePaint)
@@ -111,7 +111,6 @@ class ViewFinderView @JvmOverloads constructor(
             repeatCount = ValueAnimator.INFINITE
             repeatMode = ValueAnimator.RESTART
             addUpdateListener {
-                // Mapear 0..1 para top..bottom
                 val padding = dp(linePaddingDp)
                 val start = cutout.top + padding
                 val end = cutout.bottom - padding
@@ -140,6 +139,21 @@ class ViewFinderView @JvmOverloads constructor(
     override fun onDetachedFromWindow() {
         stopScan()
         super.onDetachedFromWindow()
+    }
+
+    fun getFramingRect(): RectF = RectF(cutout)
+
+    fun setAspect(width: Float, height: Float) {
+        if (width > 0 && height > 0) {
+            aspectW = width
+            aspectH = height
+            invalidate()
+        }
+    }
+
+    fun setMaxHeightFactor(f: Float) {
+        maxHeightFactor = f.coerceIn(0.2f, 0.7f)
+        invalidate()
     }
 
     private fun dp(v: Float) = v * resources.displayMetrics.density

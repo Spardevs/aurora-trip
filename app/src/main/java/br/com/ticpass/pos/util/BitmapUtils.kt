@@ -6,26 +6,23 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Environment
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.createBitmap
 import androidx.core.view.drawToBitmap
 import br.com.ticpass.pos.view.ui.pass.PassData
-import br.com.ticpass.pos.view.ui.pass.PassType
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import java.io.File
 import java.io.FileOutputStream
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.viewmodel.report.ReportData
+import androidx.core.graphics.set
+import com.journeyapps.barcodescanner.BarcodeResult
+import timber.log.Timber
 
 
 fun calculateEAN13Checksum(code: String): String {
@@ -82,7 +79,42 @@ fun generateEAN13BarcodeBitmap(code: String, width: Int = 350): Bitmap {
     return barcodeBitmap
 }
 
-fun savePassAsBitmap(context: Context, passType: PassType, passData: PassData): File? {
+/**
+ * Gera código de barras automaticamente, usando EAN-13 para payloads numéricos de 12/13 dígitos
+ * ou CODE_128 para strings alfanuméricas (como "atk|transactionId").
+ */
+fun generateBarcodeBitmapAuto(payload: String, width: Int = 350, height: Int = (width / 2.5).toInt()): Bitmap {
+    if (payload.isBlank()) throw IllegalArgumentException("Barcode cannot be empty")
+
+    val numeric = payload.replace("[^0-9]".toRegex(), "")
+    return try {
+        if (numeric.length == 12 || numeric.length == 13 && payload == numeric) {
+            generateEAN13BarcodeBitmap(payload, width)
+        } else {
+            val writer = MultiFormatWriter()
+            val matrix = writer.encode(payload, BarcodeFormat.CODE_128, width, height)
+            val bmp = createBitmap(matrix.width, matrix.height, Bitmap.Config.RGB_565)
+            for (x in 0 until matrix.width) {
+                for (y in 0 until matrix.height) {
+                    bmp[x, y] = if (matrix[x, y]) Color.BLACK else Color.WHITE
+                }
+            }
+            bmp
+        }
+    } catch (_: Exception) {
+        val writer = MultiFormatWriter()
+        val matrix = writer.encode(payload, BarcodeFormat.CODE_128, width, height)
+        val bmp = createBitmap(matrix.width, matrix.height, Bitmap.Config.RGB_565)
+        for (x in 0 until matrix.width) {
+            for (y in 0 until matrix.height) {
+                bmp[x, y] = if (matrix[x, y]) Color.BLACK else Color.WHITE
+            }
+        }
+        bmp
+    }
+}
+
+fun savePassAsBitmap(context: Context, passData: PassData): File? {
     val configPrefs = context.getSharedPreferences("ConfigPrefs", Context.MODE_PRIVATE)
     val rawFormat = (configPrefs.getString("print_format", "DEFAULT") ?: "DEFAULT").uppercase()
     val printFormat = if (rawFormat == "DEFAULT") "EXPANDED" else rawFormat
@@ -119,7 +151,7 @@ fun savePassAsBitmap(context: Context, passType: PassType, passData: PassData): 
             }
         }
     } catch (e: Exception) {
-        Log.e("SavePassAsBitmap", "Erro ao salvar imagem: ${e.message}", e)
+        Timber.tag("SavePassAsBitmap").e(e, "Erro ao salvar imagem: ${e.message}")
         null
     }
 }
@@ -129,8 +161,8 @@ private fun inflateProductLayout(inflater: LayoutInflater, layoutRes: Int, data:
 
     val barcodeImage = view.findViewById<ImageView>(R.id.barcodeImageView)
     val barcodeBitmap = try {
-        generateEAN13BarcodeBitmap(data.header.barcode)
-    } catch (e: Exception) {
+        generateBarcodeBitmapAuto(data.header.barcode)
+    } catch (_: Exception) {
         null
     }
     barcodeImage?.setImageBitmap(barcodeBitmap)
@@ -160,13 +192,13 @@ private fun inflateGroupedLayout(inflater: LayoutInflater, data: PassData): View
     view.findViewById<TextView>(R.id.headerTitle)?.text = data.header.title
     view.findViewById<TextView>(R.id.headerDate)?.text = data.header.date
 
-    val barcodeImage = view.findViewById<ImageView>(R.id.barcodeImageView)
+//    val barcodeImage = view.findViewById<ImageView>(R.id.barcodeImageView)
     val barcodeBitmap = try {
-        generateEAN13BarcodeBitmap(data.header.barcode)
+        generateBarcodeBitmapAuto(data.header.barcode)
     } catch (e: Exception) {
         null
     }
-    barcodeImage?.setImageBitmap(barcodeBitmap)
+//    barcodeImage?.setImageBitmap(barcodeBitmap)
 
     val container = view.findViewById<LinearLayout>(R.id.itemsContainer)
     container?.removeAllViews()
@@ -309,7 +341,117 @@ fun saveReportAsBitmap(context: Context, reportData: ReportData): File? {
             return this
         }
     } catch (e: Exception) {
-        Log.e("ReportGenerator", "Erro ao gerar relatório", e)
+        Timber.tag("ReportGenerator").e(e, "Erro ao gerar relatório")
         null
     }
 }
+
+/**
+ * Valida e processa informações de um código de barras
+ * @param barcodeResult Resultado do scan do barcode
+ * @return BarcodeInfo se válido, null se inválido
+ */
+fun validateAndReadBarcode(barcodeResult: BarcodeResult?): BarcodeInfo? {
+    // Verifica se o resultado não é nulo
+    if (barcodeResult == null) {
+        Timber.tag("BarcodeValidator").w("Resultado do barcode é nulo")
+        return null
+    }
+
+    val text = barcodeResult.text
+    val format = barcodeResult.barcodeFormat
+
+    // Valida se o texto não está vazio
+    if (text.isNullOrBlank()) {
+        Timber.tag("BarcodeValidator").w("Texto do barcode está vazio")
+        return null
+    }
+
+    // Valida o formato e comprimento do código
+    val isValid = when (format) {
+        BarcodeFormat.EAN_13 -> text.length == 13 && text.all { it.isDigit() } && validateEAN13(text)
+        BarcodeFormat.EAN_8 -> text.length == 8 && text.all { it.isDigit() } && validateEAN8(text)
+        BarcodeFormat.UPC_A -> text.length == 12 && text.all { it.isDigit() } && validateUPCA(text)
+        BarcodeFormat.UPC_E -> text.length == 8 && text.all { it.isDigit() }
+        BarcodeFormat.CODE_128 -> text.isNotEmpty()
+        BarcodeFormat.CODE_39 -> text.isNotEmpty()
+        BarcodeFormat.CODE_93 -> text.isNotEmpty()
+        BarcodeFormat.ITF -> text.length % 2 == 0 && text.all { it.isDigit() }
+        else -> false
+    }
+
+    if (!isValid) {
+        Timber.tag("BarcodeValidator").w("Barcode inválido: formato=$format, texto=$text")
+        return null
+    }
+
+    // Retorna informações do barcode validado
+    return BarcodeInfo(
+        text = text,
+        format = format.toString(),
+        timestamp = barcodeResult.timestamp,
+        isValid = true
+    )
+}
+
+/**
+ * Valida checksum de código EAN-13
+ */
+private fun validateEAN13(code: String): Boolean {
+    if (code.length != 13) return false
+
+    val digits = code.map { it.toString().toInt() }
+    val checksum = digits.last()
+
+    val sum = digits.dropLast(1).mapIndexed { index, digit ->
+        if (index % 2 == 0) digit else digit * 3
+    }.sum()
+
+    val calculatedChecksum = (10 - (sum % 10)) % 10
+    return checksum == calculatedChecksum
+}
+
+/**
+ * Valida checksum de código EAN-8
+ */
+private fun validateEAN8(code: String): Boolean {
+    if (code.length != 8) return false
+
+    val digits = code.map { it.toString().toInt() }
+    val checksum = digits.last()
+
+    val sum = digits.dropLast(1).mapIndexed { index, digit ->
+        if (index % 2 == 0) digit * 3 else digit
+    }.sum()
+
+    val calculatedChecksum = (10 - (sum % 10)) % 10
+    return checksum == calculatedChecksum
+}
+
+/**
+ * Valida checksum de código UPC-A
+ */
+private fun validateUPCA(code: String): Boolean {
+    if (code.length != 12) return false
+
+    val digits = code.map { it.toString().toInt() }
+    val checksum = digits.last()
+
+    val sum = digits.dropLast(1).mapIndexed { index, digit ->
+        if (index % 2 == 0) digit * 3 else digit
+    }.sum()
+
+    val calculatedChecksum = (10 - (sum % 10)) % 10
+    return checksum == calculatedChecksum
+}
+
+/**
+ * Classe de dados para informações do barcode
+ */
+data class BarcodeInfo(
+    val text: String,
+    val format: String,
+    val timestamp: Long,
+    val isValid: Boolean,
+    val metadata: Map<String, String> = emptyMap()
+)

@@ -18,7 +18,6 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -28,27 +27,31 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import br.com.ticpass.pos.R
+import br.com.ticpass.pos.data.room.AppDatabase
+import br.com.ticpass.pos.data.room.repository.AcquisitionRepository
 import br.com.ticpass.pos.data.room.service.PassGeneratorService
 import br.com.ticpass.pos.feature.payment.PaymentProcessingViewModel
 import br.com.ticpass.pos.feature.payment.PaymentState
 import br.com.ticpass.pos.feature.printing.PrintingViewModel
-import br.com.ticpass.pos.feature.printing.state.PrintingAction
 import br.com.ticpass.pos.payment.events.FinishPaymentHandler
 import br.com.ticpass.pos.payment.events.PaymentType
 import br.com.ticpass.pos.payment.models.SystemPaymentMethod
 import br.com.ticpass.pos.payment.utils.PaymentUIUtils
 import br.com.ticpass.pos.printing.events.PrintingHandler
+import br.com.ticpass.pos.queue.models.ProcessingState
 import br.com.ticpass.pos.sdk.AcquirerSdk
 import br.com.ticpass.pos.util.PaymentFragmentUtils
-import br.com.ticpass.pos.view.ui.pass.PassType
-import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
-import br.com.ticpass.pos.queue.models.ProcessingState
 import br.com.ticpass.pos.view.fragments.printing.PrintingErrorDialogFragment
 import br.com.ticpass.pos.view.fragments.printing.PrintingLoadingDialogFragment
 import br.com.ticpass.pos.view.fragments.printing.PrintingSuccessDialogFragment
+import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
@@ -96,8 +99,8 @@ class CashPaymentFragment : Fragment() {
     private var isPrintingInProgress = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        AcquirerSdk.initialize(requireContext())
         super.onCreate(savedInstanceState)
+        AcquirerSdk.initialize(requireContext())
 
         arguments?.let {
             paymentValue = it.getDouble("value_to_pay", 0.0)
@@ -140,7 +143,7 @@ class CashPaymentFragment : Fragment() {
         passGeneratorService = PassGeneratorService(requireContext())
         setupPrintingHandler()
         setupObservers()
-        observePrintingState() // Observa uma única vez
+        observePrintingState()
 
         setupViews(view)
         setupListeners()
@@ -191,6 +194,12 @@ class CashPaymentFragment : Fragment() {
         return formatCurrencyFromReais(reais)
     }
 
+    private fun formatCurrency(valueInCents: BigInteger): String {
+        val valueInReais = valueInCents.toDouble() / 1000.0
+        val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+        return format.format(valueInReais)
+    }
+
     private fun setupPrintingHandler() {
         printingHandler = PrintingHandler(
             context = requireContext(),
@@ -207,6 +216,45 @@ class CashPaymentFragment : Fragment() {
                         is PaymentState.Error -> updateUIForError(state.errorMessage)
                         is PaymentState.Cancelled -> updateUIForCancelled()
                         else -> {}
+                    }
+                }
+            }
+        }
+    }
+
+    private fun observePrintingState() {
+        if (observingPrintingState) return
+        observingPrintingState = true
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                printingViewModel.processingState.collect { state ->
+                    when (state) {
+                        is ProcessingState.QueueDone<*> -> {
+                            isPrintingInProgress = false
+                            dismissLoadingModal()
+                            showSuccessModal(autoDismissMs = 200L)
+                        }
+
+                        is ProcessingState.ItemFailed<*> -> {
+                            isPrintingInProgress = false
+                            dismissLoadingModal()
+                            showErrorModal()
+                        }
+
+                        is ProcessingState.QueueAborted<*>,
+                        is ProcessingState.QueueCanceled<*> -> {
+                            isPrintingInProgress = false
+                            dismissLoadingModal()
+                        }
+
+                        is ProcessingState.ItemDone<*> -> {
+                            // Item concluído, mas aguardando fila completa
+                        }
+
+                        else -> {
+                            // Outros estados
+                        }
                     }
                 }
             }
@@ -285,7 +333,44 @@ class CashPaymentFragment : Fragment() {
         }
     }
 
-    private fun startPrintingProcess() {
+    /**
+     * Obtém o último transactionId (order) salvo no banco após finalizar o pagamento.
+     */
+    private suspend fun getLastTransactionIdOrNull(): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val db = AppDatabase.getInstance(requireContext())
+                val repo = AcquisitionRepository.getInstance(db.acquisitionDao())
+                val last = repo.getLastAcquisition()
+                last?.order?.toString()
+            } catch (e: Exception) {
+                Log.e("CashPaymentFragment", "Erro ao buscar transactionId: ${e.message}")
+                null
+            }
+        }
+    }
+
+    /**
+     * Obtém o valor de atk() do SDK ou fonte configurada.
+     * AJUSTE CONFORME SUA IMPLEMENTAÇÃO REAL.
+     */
+    private fun getAtk(): String? {
+        return try {
+            // OPÇÃO 1: Se você tem um método AcquirerSdk.atk()
+            // AcquirerSdk.atk()
+
+            // OPÇÃO 2: Se atk está em SharedPreferences
+            val prefs = requireContext().getSharedPreferences("AuthPrefs", Context.MODE_PRIVATE)
+            prefs.getString("atk", null)
+
+            // OPÇÃO 3: Se atk está em outro lugar, ajuste aqui
+        } catch (e: Exception) {
+            Log.e("CashPaymentFragment", "Erro ao obter atk: ${e.message}")
+            null
+        }
+    }
+
+    private fun startPrintingProcessWithIds(atk: String?, transactionId: String?) {
         if (isPrintingInProgress) {
             Log.w("CashPaymentFragment", "Impressão já em andamento, ignorando nova tentativa")
             return
@@ -301,9 +386,10 @@ class CashPaymentFragment : Fragment() {
             val latestBitmap = getLatestPassBitmap()
             printingHandler.enqueueAndStartPrinting(
                 printingViewModel = printingViewModel,
-                imageBitmap = latestBitmap
+                imageBitmap = latestBitmap,
+                atk = atk,
+                transactionId = transactionId
             )
-            // NÃO chamar observePrintingState aqui - já está observando
         } catch (e: Exception) {
             isPrintingInProgress = false
             Log.e("CashPaymentFragment", "Erro ao iniciar impressão: ${e.message}")
@@ -324,39 +410,34 @@ class CashPaymentFragment : Fragment() {
         }
     }
 
-    private fun observePrintingState() {
-        if (observingPrintingState) return
-        observingPrintingState = true
-
+    private fun handleSuccessfulPayment() {
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                printingViewModel.processingState.collect { state ->
-                    when (state) {
-                        is ProcessingState.QueueDone<*> -> {
-                            isPrintingInProgress = false
-                            dismissLoadingModal()
-                            showSuccessModal(autoDismissMs = 200L)
-                        }
+            try {
+                showLoadingModal()
+                val method = SystemPaymentMethod.CASH
 
-                        is ProcessingState.ItemFailed<*> -> {
-                            isPrintingInProgress = false
-                            dismissLoadingModal()
-                            showErrorModal()
-                        }
+                finishPaymentHandler.handlePayment(
+                    PaymentType.SINGLE_PAYMENT,
+                    PaymentUIUtils.PaymentData(
+                        amount = (paymentValue * 1000.0).toInt(),
+                        commission = 0,
+                        method = method,
+                        isTransactionless = true
+                    )
+                )
 
-                        is ProcessingState.QueueAborted<*>,
-                        is ProcessingState.QueueCanceled<*> -> {
-                            isPrintingInProgress = false
-                            dismissLoadingModal()
-                        }
+                // Obtém atk e transactionId após finalizar o pagamento
+                val transactionId = getLastTransactionIdOrNull()
+                val atk = getAtk()
 
-                        is ProcessingState.ItemDone<*> -> {
-                        }
+                Log.d("CashPaymentFragment", "atk=$atk, transactionId=$transactionId")
 
-                        else -> {
-                        }
-                    }
-                }
+                // Inicia o processo de impressão centralizado com os IDs
+                startPrintingProcessWithIds(atk, transactionId)
+
+            } catch (e: Exception) {
+                dismissLoadingModal()
+                updateUIForError("Erro ao finalizar pagamento")
             }
         }
     }
@@ -433,59 +514,6 @@ class CashPaymentFragment : Fragment() {
         infoTextView?.text = "A transação foi cancelada"
     }
 
-    private fun handleSuccessfulPayment() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                showLoadingModal()
-                val method = SystemPaymentMethod.CASH
-
-                finishPaymentHandler.handlePayment(
-                    PaymentType.SINGLE_PAYMENT,
-                    PaymentUIUtils.PaymentData(
-                        amount = (paymentValue * 1000.0).toInt(),
-                        commission = 0,
-                        method = method,
-                        isTransactionless = true
-                    )
-                )
-
-                // Inicia o processo de impressão centralizado
-                startPrintingProcess()
-
-            } catch (e: Exception) {
-                updateUIForError("Erro ao finalizar pagamento")
-            }
-        }
-    }
-
-    private fun navigateBackToSelection() {
-        val newRemainingValue = remainingValue - paymentValue
-
-        if (newRemainingValue > 0) {
-            requireActivity().setResult(AppCompatActivity.RESULT_OK)
-            requireActivity().finish()
-        } else {
-            shoppingCartManager.clearCart()
-            requireActivity().setResult(AppCompatActivity.RESULT_OK)
-            requireActivity().finish()
-        }
-    }
-
-    private fun getNextProgress(currentProgress: String): String {
-        return try {
-            val parts = currentProgress.split("/")
-            if (parts.size == 2) {
-                val current = parts[0].toInt()
-                val total = parts[1].toInt()
-                "${current + 1}/$total"
-            } else {
-                "2/?"
-            }
-        } catch (e: Exception) {
-            "2/?"
-        }
-    }
-
     private fun showLoadingModal() {
         if (loadingDialog?.isAdded == true) return
         loadingDialog = PrintingLoadingDialogFragment()
@@ -525,11 +553,13 @@ class CashPaymentFragment : Fragment() {
                     dismissLoadingModal()
                     errorDialog?.dismissAllowingStateLoss()
 
-                    // Aguarda um pouco antes de reiniciar para garantir que o estado foi limpo
                     viewLifecycleOwner.lifecycleScope.launch {
                         kotlinx.coroutines.delay(200)
                         showLoadingModal()
-                        startPrintingProcess()
+
+                        val transactionId = getLastTransactionIdOrNull()
+                        val atk = getAtk()
+                        startPrintingProcessWithIds(atk, transactionId)
                     }
                 }
             }
@@ -559,11 +589,5 @@ class CashPaymentFragment : Fragment() {
             e.printStackTrace()
             null
         }
-    }
-
-    private fun formatCurrency(valueInCents: BigInteger): String {
-        val valueInReais = valueInCents.toDouble() / 1000
-        val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
-        return format.format(valueInReais)
     }
 }

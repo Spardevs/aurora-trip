@@ -7,7 +7,7 @@
 
     <!-- Scanner -->
     <com.journeyapps.barcodescanner.BarcodeView
-        android:id="@+id/zxing_barcode_scanner"
+        android:id="@+id/zxing_qr_scanner"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

@@ -48,7 +48,6 @@ import br.com.ticpass.pos.view.fragments.printing.PrintingLoadingDialogFragment
 import br.com.ticpass.pos.view.fragments.printing.PrintingSuccessDialogFragment
 import br.com.ticpass.pos.view.ui.login.LoginScreen
 import br.com.ticpass.pos.view.ui.pass.PassData
-import br.com.ticpass.pos.view.ui.pass.PassType
 import com.bumptech.glide.Glide
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.navigation.NavigationView
@@ -226,12 +225,22 @@ abstract class DrawerBaseActivity : BaseActivity() {
                     printLastOrder()
                     true
                 }
+                R.id.nav_refund -> {
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                    refundOrder()
+                    true
+                }
                 else -> false
             }
             true
         }
 
         updateHeaderInfo()
+    }
+
+    private fun refundOrder() {
+        val intent = Intent(this, BarcodeScannerActivity::class.java)
+        startActivity(intent)
     }
 
     private fun printLastOrder() {
@@ -321,7 +330,6 @@ abstract class DrawerBaseActivity : BaseActivity() {
                     passList.mapNotNull { passData ->
                         br.com.ticpass.pos.util.savePassAsBitmap(
                             context = this@DrawerBaseActivity,
-                            passType = PassType.ProductCompact,
                             passData = passData
                         )
                     }

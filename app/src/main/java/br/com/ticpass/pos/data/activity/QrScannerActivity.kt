@@ -72,7 +72,7 @@ class QrScannerActivity() : BaseActivity(), BarcodeCallback {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         setContentView(R.layout.activity_qr_scanner)
 
-        barcodeView = findViewById(R.id.zxing_barcode_scanner)
+        barcodeView = findViewById(R.id.zxing_qr_scanner)
         barcodeView.decoderFactory = DefaultDecoderFactory(FORMATS)
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)

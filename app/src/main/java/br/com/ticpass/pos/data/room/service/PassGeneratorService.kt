@@ -1,7 +1,6 @@
 package br.com.ticpass.pos.data.room.service
 
 import android.content.Context
-import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.data.room.AppDatabase
 import br.com.ticpass.pos.data.room.dao.EventDao
 import br.com.ticpass.pos.data.room.dao.PosDao
@@ -46,7 +45,7 @@ class PassGeneratorService @Inject constructor(
 
                 // Salva cada pass como bitmap e retorna os caminhos dos arquivos
                 passList.mapNotNull { passData ->
-                    savePassAsBitmap(context, passType, passData)?.absolutePath
+                    savePassAsBitmap(context, passData)?.absolutePath
                 }
             } catch (e: Exception) {
                 emptyList()

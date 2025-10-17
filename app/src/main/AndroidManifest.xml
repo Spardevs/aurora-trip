@@ -202,9 +202,13 @@
         <activity
             android:windowSoftInputMode="adjustResize"
             android:name=".data.activity.ConfigMenuProductsActivity"
-
             android:theme="@style/FullscreenTheme"
         />
+
+        <activity
+            android:name=".data.activity.BarcodeScannerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
 
         <activity
             android:name=".data.activity.PaymentActivity"

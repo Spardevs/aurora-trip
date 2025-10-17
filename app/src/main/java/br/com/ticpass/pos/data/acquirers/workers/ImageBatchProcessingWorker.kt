@@ -192,7 +192,7 @@ class ImageBatchProcessingWorker(
                 else -> throw IllegalArgumentException("Tipo desconhecido: $passTypeName")
             }
 
-            val file = savePassAsBitmap(applicationContext, passType, passData)
+            val file = savePassAsBitmap(applicationContext, passData)
             val processingTime = System.currentTimeMillis() - startTime
 
             return file?.absolutePath ?: ""

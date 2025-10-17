@@ -29,6 +29,12 @@
             app:actionLayout="@layout/nav_item"/>
 
         <item
+            android:id="@+id/nav_refund"
+            android:icon="@drawable/ic_refund"
+            android:title="@string/menu_refund"
+            app:actionLayout="@layout/nav_item"/>
+
+        <item
             android:id="@+id/nav_report"
             android:icon="@drawable/ic_file_copy"
             android:title="@string/menu_report"
