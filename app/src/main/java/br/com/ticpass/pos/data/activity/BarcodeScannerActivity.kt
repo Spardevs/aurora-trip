@@ -79,7 +79,11 @@ class BarcodeScannerActivity : AppCompatActivity() {
                     Timber.tag(TAG).i("✓ Barcode válido lido: ${barcodeInfo.text}")
 
                     displayBarcodeInfo(result)
-                    deliverResultAndFinish(barcodeInfo.text)
+
+                    // Aguarda 2 segundos para mostrar as informações antes de finalizar
+                    binding.root.postDelayed({
+                        deliverResultAndFinish(barcodeInfo.text)
+                    }, 2000)
                 } else {
                     // Barcode inválido - mostra erro e continua escaneando
                     Timber.tag(TAG).w("✗ Código de barras inválido detectado")
@@ -171,13 +175,13 @@ class BarcodeScannerActivity : AppCompatActivity() {
         val barcodeFormat = result.barcodeFormat.toString()
 
         // Log detalhado no Logcat
-        Timber.tag(TAG).d("═══════════════════════════════════════")
+        Timber.tag(TAG).d("════")
         Timber.tag(TAG).d("CÓDIGO DE BARRAS DETECTADO")
-        Timber.tag(TAG).d("═══════════════════════════════════════")
+        Timber.tag(TAG).d("════")
         Timber.tag(TAG).d("Formato: $barcodeFormat")
         Timber.tag(TAG).d("Conteúdo: $barcodeText")
         Timber.tag(TAG).d("Timestamp: ${result.timestamp}")
-        Timber.tag(TAG).d("═══════════════════════════════════════")
+        Timber.tag(TAG).d("════")
 
         // Exibir na tela (TextView)
         binding.overlayPrompt.text = "✓ $barcodeFormat\n$barcodeText"
@@ -211,23 +215,8 @@ class BarcodeScannerActivity : AppCompatActivity() {
             return null
         }
 
-        // Valida o formato e comprimento do código
-        val isValid = when (format) {
-            BarcodeFormat.EAN_13 -> text.length == 13 && text.all { it.isDigit() } && validateEAN13(text)
-            BarcodeFormat.EAN_8 -> text.length == 8 && text.all { it.isDigit() } && validateEAN8(text)
-            BarcodeFormat.UPC_A -> text.length == 12 && text.all { it.isDigit() } && validateUPCA(text)
-            BarcodeFormat.UPC_E -> text.length == 8 && text.all { it.isDigit() }
-            BarcodeFormat.CODE_128 -> text.isNotEmpty()
-            BarcodeFormat.CODE_39 -> text.isNotEmpty()
-            BarcodeFormat.CODE_93 -> text.isNotEmpty()
-            BarcodeFormat.ITF -> text.length % 2 == 0 && text.all { it.isDigit() }
-            else -> false
-        }
-
-        if (!isValid) {
-            Timber.tag("BarcodeValidator").w("Barcode inválido: formato=$format, texto=$text")
-            return null
-        }
+        // Aceita qualquer código que a biblioteca ZXing conseguiu ler
+        Timber.tag("BarcodeValidator").i("✓ Barcode lido: formato=$format, texto=$text")
 
         // Retorna informações do barcode validado
         return BarcodeInfo(
@@ -236,57 +225,6 @@ class BarcodeScannerActivity : AppCompatActivity() {
             timestamp = barcodeResult.timestamp,
             isValid = true
         )
-    }
-
-    /**
-     * Valida checksum de código EAN-13
-     */
-    private fun validateEAN13(code: String): Boolean {
-        if (code.length != 13) return false
-
-        val digits = code.map { it.toString().toInt() }
-        val checksum = digits.last()
-
-        val sum = digits.dropLast(1).mapIndexed { index, digit ->
-            if (index % 2 == 0) digit else digit * 3
-        }.sum()
-
-        val calculatedChecksum = (10 - (sum % 10)) % 10
-        return checksum == calculatedChecksum
-    }
-
-    /**
-     * Valida checksum de código EAN-8
-     */
-    private fun validateEAN8(code: String): Boolean {
-        if (code.length != 8) return false
-
-        val digits = code.map { it.toString().toInt() }
-        val checksum = digits.last()
-
-        val sum = digits.dropLast(1).mapIndexed { index, digit ->
-            if (index % 2 == 0) digit * 3 else digit
-        }.sum()
-
-        val calculatedChecksum = (10 - (sum % 10)) % 10
-        return checksum == calculatedChecksum
-    }
-
-    /**
-     * Valida checksum de código UPC-A
-     */
-    private fun validateUPCA(code: String): Boolean {
-        if (code.length != 12) return false
-
-        val digits = code.map { it.toString().toInt() }
-        val checksum = digits.last()
-
-        val sum = digits.dropLast(1).mapIndexed { index, digit ->
-            if (index % 2 == 0) digit * 3 else digit
-        }.sum()
-
-        val calculatedChecksum = (10 - (sum % 10)) % 10
-        return checksum == calculatedChecksum
     }
 
     /**

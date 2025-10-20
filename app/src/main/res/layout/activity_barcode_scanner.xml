@@ -42,7 +42,67 @@
         android:src="@drawable/ic_close"
         app:tint="@android:color/white" />
 
-    <!-- Texto centralizado abaixo -->
+    <!-- Container de informações do código de barras -->
+    <LinearLayout
+        android:id="@+id/barcodeInfoContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginBottom="64dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@drawable/bg_barcode_info"
+        android:visibility="gone">
+
+        <!-- Status do scan -->
+        <TextView
+            android:id="@+id/tvScanStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="@android:color/white"
+            tools:text="✓ Código Válido" />
+
+        <!-- Formato do código -->
+        <TextView
+            android:id="@+id/tvBarcodeFormat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:textSize="14sp"
+            android:textColor="#CCCCCC"
+            tools:text="Formato: EAN-13" />
+
+        <!-- Código de barras (texto) -->
+        <TextView
+            android:id="@+id/tvBarcodeText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:textSize="24sp"
+            android:textColor="@android:color/white"
+            android:fontFamily="monospace"
+            tools:text="7891234567890" />
+
+        <!-- Código de barras visual (ImageView) -->
+        <ImageView
+            android:id="@+id/ivBarcodeImage"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_marginTop="16dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="Código de barras visual" />
+
+    </LinearLayout>
+
+    <!-- Texto de prompt (quando não há código lido) -->
     <TextView
         android:id="@+id/overlayPrompt"
         android:layout_width="match_parent"
