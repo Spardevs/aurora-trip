@@ -342,7 +342,8 @@ class CashPaymentFragment : Fragment() {
                 val db = AppDatabase.getInstance(requireContext())
                 val repo = AcquisitionRepository.getInstance(db.acquisitionDao())
                 val last = repo.getLastAcquisition()
-                last?.order?.toString()
+                Log.d("CashPaymentFragment", "last = $last")
+                last?.order
             } catch (e: Exception) {
                 Log.e("CashPaymentFragment", "Erro ao buscar transactionId: ${e.message}")
                 null
@@ -430,7 +431,14 @@ class CashPaymentFragment : Fragment() {
                 val transactionId = getLastTransactionIdOrNull()
                 val atk = getAtk()
 
-                Log.d("CashPaymentFragment", "atk=$atk, transactionId=$transactionId")
+                // Monta o payload e o parse destruturado do barcode
+                val payload = "${atk ?: ""}|${transactionId ?: ""}"
+                val (parsedAtk, parsedTxId) = payload.split("|").let {
+                    val a = it.getOrNull(0)?.takeIf { s -> s.isNotEmpty() } ?: "(atk não disponível)"
+                    val t = it.getOrNull(1)?.takeIf { s -> s.isNotEmpty() } ?: "(transactionId não disponível)"
+                    Pair(a, t)
+                }
+                Log.d("CashPaymentFragment", "parsedAtk=$parsedAtk, parsedTransactionId=$parsedTxId")
 
                 // Inicia o processo de impressão centralizado com os IDs
                 startPrintingProcessWithIds(atk, transactionId)

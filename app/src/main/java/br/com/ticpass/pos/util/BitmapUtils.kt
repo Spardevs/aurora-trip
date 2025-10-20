@@ -192,13 +192,8 @@ private fun inflateGroupedLayout(inflater: LayoutInflater, data: PassData): View
     view.findViewById<TextView>(R.id.headerTitle)?.text = data.header.title
     view.findViewById<TextView>(R.id.headerDate)?.text = data.header.date
 
-//    val barcodeImage = view.findViewById<ImageView>(R.id.barcodeImageView)
-    val barcodeBitmap = try {
-        generateBarcodeBitmapAuto(data.header.barcode)
-    } catch (e: Exception) {
-        null
-    }
-//    barcodeImage?.setImageBitmap(barcodeBitmap)
+    generateBarcodeBitmapAuto(data.header.barcode)
+
 
     val container = view.findViewById<LinearLayout>(R.id.itemsContainer)
     container?.removeAllViews()

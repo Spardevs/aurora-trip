@@ -22,6 +22,9 @@ import com.journeyapps.barcodescanner.BarcodeCallback
 import com.journeyapps.barcodescanner.BarcodeResult
 import com.journeyapps.barcodescanner.DefaultDecoderFactory
 import timber.log.Timber
+import androidx.appcompat.app.AlertDialog
+import android.content.ClipData
+import android.content.ClipboardManager
 
 class BarcodeScannerActivity : AppCompatActivity() {
 
@@ -71,21 +74,14 @@ class BarcodeScannerActivity : AppCompatActivity() {
             override fun barcodeResult(result: BarcodeResult) {
                 binding.zxingBarcodeScanner.pause()
 
-                // Valida e lê o barcode
                 val barcodeInfo = validateAndReadBarcode(result)
 
-                if (barcodeInfo != null) {
-                    // Barcode válido - processa a informação
-                    Timber.tag(TAG).i("✓ Barcode válido lido: ${barcodeInfo.text}")
+                if (barcodeInfo != null) { Timber.tag(TAG).i("✓ Barcode válido lido: ${barcodeInfo.text}")
 
                     displayBarcodeInfo(result)
 
-                    // Aguarda 2 segundos para mostrar as informações antes de finalizar
-                    binding.root.postDelayed({
-                        deliverResultAndFinish(barcodeInfo.text)
-                    }, 2000)
+                    showParsedBarcodeDialog(barcodeInfo.text)
                 } else {
-                    // Barcode inválido - mostra erro e continua escaneando
                     Timber.tag(TAG).w("✗ Código de barras inválido detectado")
 
                     binding.overlayPrompt.text = "✗ Código inválido\nTente novamente"
@@ -96,7 +92,6 @@ class BarcodeScannerActivity : AppCompatActivity() {
                         Toast.LENGTH_SHORT
                     ).show()
 
-                    // Retoma o scan após 1.5 segundos
                     binding.zxingBarcodeScanner.postDelayed({
                         binding.overlayPrompt.text = "Posicione o código de barras"
                         binding.zxingBarcodeScanner.resume()
@@ -107,6 +102,40 @@ class BarcodeScannerActivity : AppCompatActivity() {
         }
         binding.zxingBarcodeScanner.decodeContinuous(callback)
         binding.zxingBarcodeScanner.resume()
+    }
+
+    private fun showParsedBarcodeDialog(text: String?) {
+        val payload = text ?: ""
+        val (atk, txId) = payload.split("|").let {
+            val a = it.getOrNull(0)?.takeIf { s -> s.isNotBlank() } ?: "(atk não disponível)"
+            val t = it.getOrNull(1)?.takeIf { s -> s.isNotBlank() } ?: "(transactionId não disponível)"
+            Pair(a, t)
+        }
+
+        // Log destruturado
+        Timber.tag(TAG).d("parsedAtk=$atk, parsedTransactionId=$txId")
+
+        val message = "atk: $atk\ntransactionId: $txId\n\nPayload original:\n$payload"
+
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Informações lidas")
+            .setMessage(message)
+            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+            .setNeutralButton("Copiar payload") { _, _ ->
+                try {
+                    val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip = ClipData.newPlainText("barcode_payload", payload)
+                    clipboard.setPrimaryClip(clip)
+                    Toast.makeText(this, "Payload copiado", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Toast.makeText(this, "Erro ao copiar", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Usar") { _, _ ->
+                // Retorna o payload (ou os campos separados) para a Activity que abriu o scanner
+                deliverResultAndFinish(payload)
+            }
+        builder.show()
     }
 
     private fun deliverResultAndFinish(text: String?) {
@@ -174,7 +203,6 @@ class BarcodeScannerActivity : AppCompatActivity() {
         val barcodeText = result.text
         val barcodeFormat = result.barcodeFormat.toString()
 
-        // Log detalhado no Logcat
         Timber.tag(TAG).d("════")
         Timber.tag(TAG).d("CÓDIGO DE BARRAS DETECTADO")
         Timber.tag(TAG).d("════")
@@ -183,10 +211,8 @@ class BarcodeScannerActivity : AppCompatActivity() {
         Timber.tag(TAG).d("Timestamp: ${result.timestamp}")
         Timber.tag(TAG).d("════")
 
-        // Exibir na tela (TextView)
         binding.overlayPrompt.text = "✓ $barcodeFormat\n$barcodeText"
 
-        // Toast para feedback rápido
         Toast.makeText(
             this,
             "Código lido: $barcodeText",
@@ -200,7 +226,6 @@ class BarcodeScannerActivity : AppCompatActivity() {
      * @return BarcodeInfo se válido, null se inválido
      */
     private fun validateAndReadBarcode(barcodeResult: BarcodeResult?): BarcodeInfo? {
-        // Verifica se o resultado não é nulo
         if (barcodeResult == null) {
             Timber.tag("BarcodeValidator").w("Resultado do barcode é nulo")
             return null
@@ -209,16 +234,13 @@ class BarcodeScannerActivity : AppCompatActivity() {
         val text = barcodeResult.text
         val format = barcodeResult.barcodeFormat
 
-        // Valida se o texto não está vazio
         if (text.isNullOrBlank()) {
             Timber.tag("BarcodeValidator").w("Texto do barcode está vazio")
             return null
         }
 
-        // Aceita qualquer código que a biblioteca ZXing conseguiu ler
         Timber.tag("BarcodeValidator").i("✓ Barcode lido: formato=$format, texto=$text")
 
-        // Retorna informações do barcode validado
         return BarcodeInfo(
             text = text,
             format = format.toString(),
