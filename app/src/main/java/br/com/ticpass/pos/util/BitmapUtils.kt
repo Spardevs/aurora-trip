@@ -24,7 +24,6 @@ import androidx.core.graphics.set
 import com.journeyapps.barcodescanner.BarcodeResult
 import timber.log.Timber
 
-
 fun calculateEAN13Checksum(code: String): String {
     val cleanCode = code.replace("[^0-9]".toRegex(), "")
     require(cleanCode.length == 12) { "EAN-13 requires 12 digits to calculate checksum" }
@@ -80,28 +79,18 @@ fun generateEAN13BarcodeBitmap(code: String, width: Int = 350): Bitmap {
 }
 
 /**
- * Gera código de barras automaticamente, usando EAN-13 para payloads numéricos de 12/13 dígitos
- * ou CODE_128 para strings alfanuméricas (como "atk|transactionId").
+ * Gera código de barras automaticamente:
+ * - Força CODE_128 quando o payload contém '|' ou qualquer caractere não numérico
+ * - Para payloads numéricos adequados (12/13) usa EAN-13
+ * - Fallback para CODE_128
  */
 fun generateBarcodeBitmapAuto(payload: String, width: Int = 350, height: Int = (width / 2.5).toInt()): Bitmap {
     if (payload.isBlank()) throw IllegalArgumentException("Barcode cannot be empty")
 
     val numeric = payload.replace("[^0-9]".toRegex(), "")
-    return try {
-        if (numeric.length == 12 || numeric.length == 13 && payload == numeric) {
-            generateEAN13BarcodeBitmap(payload, width)
-        } else {
-            val writer = MultiFormatWriter()
-            val matrix = writer.encode(payload, BarcodeFormat.CODE_128, width, height)
-            val bmp = createBitmap(matrix.width, matrix.height, Bitmap.Config.RGB_565)
-            for (x in 0 until matrix.width) {
-                for (y in 0 until matrix.height) {
-                    bmp[x, y] = if (matrix[x, y]) Color.BLACK else Color.WHITE
-                }
-            }
-            bmp
-        }
-    } catch (_: Exception) {
+
+    // Se o payload contiver '|' (separador) ou qualquer caractere não numérico, forçar CODE_128
+    if (payload.contains("|") || payload.any { !it.isDigit() }) {
         val writer = MultiFormatWriter()
         val matrix = writer.encode(payload, BarcodeFormat.CODE_128, width, height)
         val bmp = createBitmap(matrix.width, matrix.height, Bitmap.Config.RGB_565)
@@ -110,14 +99,35 @@ fun generateBarcodeBitmapAuto(payload: String, width: Int = 350, height: Int = (
                 bmp[x, y] = if (matrix[x, y]) Color.BLACK else Color.WHITE
             }
         }
-        bmp
+        return bmp
     }
+
+    // Caso totalmente numérico: decide entre EAN13 e CODE128 conforme tamanho
+    if (numeric.length == 12 || (numeric.length == 13 && payload == numeric)) {
+        return generateEAN13BarcodeBitmap(payload, width)
+    }
+
+    // Fallback: CODE_128
+    val writer = MultiFormatWriter()
+    val matrix = writer.encode(payload, BarcodeFormat.CODE_128, width, height)
+    val bmp = createBitmap(matrix.width, matrix.height, Bitmap.Config.RGB_565)
+    for (x in 0 until matrix.width) {
+        for (y in 0 until matrix.height) {
+            bmp[x, y] = if (matrix[x, y]) Color.BLACK else Color.WHITE
+        }
+    }
+    return bmp
 }
 
 fun savePassAsBitmap(context: Context, passData: PassData): File? {
     val configPrefs = context.getSharedPreferences("ConfigPrefs", Context.MODE_PRIVATE)
     val rawFormat = (configPrefs.getString("print_format", "DEFAULT") ?: "DEFAULT").uppercase()
     val printFormat = if (rawFormat == "DEFAULT") "EXPANDED" else rawFormat
+
+    // Log do barcode usado para gerar o passe — útil para debug
+    try {
+        Timber.tag("SavePassAsBitmap").d("Gerando passe com barcode: ${passData.header.barcode}")
+    } catch (_: Exception) {}
 
     return try {
         val inflater = LayoutInflater.from(context)
@@ -186,14 +196,16 @@ private fun inflateProductLayout(inflater: LayoutInflater, layoutRes: Int, data:
     return view
 }
 
+@SuppressLint("MissingInflatedId")
 private fun inflateGroupedLayout(inflater: LayoutInflater, data: PassData): View {
     val view = inflater.inflate(R.layout.printer_pass_grouped, null)
 
     view.findViewById<TextView>(R.id.headerTitle)?.text = data.header.title
     view.findViewById<TextView>(R.id.headerDate)?.text = data.header.date
 
-    generateBarcodeBitmapAuto(data.header.barcode)
-
+    // Gera e seta o bitmap no ImageView do layout agrupado (corrigido)
+    val barcodeBitmap = try { generateBarcodeBitmapAuto(data.header.barcode) } catch (_: Exception) { null }
+    view.findViewById<ImageView>(R.id.barcodeImageView)?.setImageBitmap(barcodeBitmap)
 
     val container = view.findViewById<LinearLayout>(R.id.itemsContainer)
     container?.removeAllViews()

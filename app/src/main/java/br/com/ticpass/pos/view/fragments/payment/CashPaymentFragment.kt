@@ -49,6 +49,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -235,6 +236,7 @@ class CashPaymentFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 printingViewModel.processingState.collect { state ->
+                        Log.d("CashPaymentFragment", "ProcessingState: $state")
                     when (state) {
                         is ProcessingState.QueueDone<*> -> {
                             isPrintingInProgress = false
@@ -255,6 +257,8 @@ class CashPaymentFragment : Fragment() {
                         }
 
                         is ProcessingState.ItemDone<*> -> {
+                            Timber.tag("Teste").d("${state.item}")
+                            Timber.tag("Teste").d("${state.result}")
                             // Item concluído, mas aguardando fila completa
                         }
 

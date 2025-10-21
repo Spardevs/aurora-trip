@@ -128,8 +128,6 @@ class PaymentProcessingViewModel @Inject constructor(
             is PaymentProcessingEvent.TRANSACTION_DONE -> {
                 if (event.transactionId?.isNotBlank() == true) {
                     _paymentState.value = PaymentState.Success(event.transactionId)
-                    // Emite o transactionId final para que as views possam utilizá-lo (por exemplo, impressão)
-                    viewModelScope.launch { _transactionIdFlow.emit(event.transactionId) }
                     Log.d("PaymentViewModel", "Transaction done with ID: ${event.transactionId}")
                 } else {
                     _paymentState.value = PaymentState.Error("Transação sem ID válido")

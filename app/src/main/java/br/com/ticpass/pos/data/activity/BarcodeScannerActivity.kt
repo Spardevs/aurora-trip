@@ -1,6 +1,8 @@
 package br.com.ticpass.pos.data.activity
 
 import android.Manifest
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -8,10 +10,10 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.util.Log
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -22,9 +24,6 @@ import com.journeyapps.barcodescanner.BarcodeCallback
 import com.journeyapps.barcodescanner.BarcodeResult
 import com.journeyapps.barcodescanner.DefaultDecoderFactory
 import timber.log.Timber
-import androidx.appcompat.app.AlertDialog
-import android.content.ClipData
-import android.content.ClipboardManager
 
 class BarcodeScannerActivity : AppCompatActivity() {
 
@@ -32,7 +31,7 @@ class BarcodeScannerActivity : AppCompatActivity() {
     private var hiddenEdit: EditText? = null
 
     companion object {
-        private const val TAG = "BarcodeScannerActivity"
+        private const val TAG = "CashPaymentFragment"
         private const val REQ_CAMERA = 2001
         const val EXTRA_SCAN_TEXT = "extra_scan_text"
 
@@ -76,7 +75,8 @@ class BarcodeScannerActivity : AppCompatActivity() {
 
                 val barcodeInfo = validateAndReadBarcode(result)
 
-                if (barcodeInfo != null) { Timber.tag(TAG).i("✓ Barcode válido lido: ${barcodeInfo.text}")
+                if (barcodeInfo != null) {
+                    Timber.tag(TAG).i("✓ Barcode válido lido: ${barcodeInfo.text}")
 
                     displayBarcodeInfo(result)
 
@@ -112,7 +112,6 @@ class BarcodeScannerActivity : AppCompatActivity() {
             Pair(a, t)
         }
 
-        // Log destruturado
         Timber.tag(TAG).d("parsedAtk=$atk, parsedTransactionId=$txId")
 
         val message = "atk: $atk\ntransactionId: $txId\n\nPayload original:\n$payload"
@@ -123,7 +122,7 @@ class BarcodeScannerActivity : AppCompatActivity() {
             .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
             .setNeutralButton("Copiar payload") { _, _ ->
                 try {
-                    val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
                     val clip = ClipData.newPlainText("barcode_payload", payload)
                     clipboard.setPrimaryClip(clip)
                     Toast.makeText(this, "Payload copiado", Toast.LENGTH_SHORT).show()
@@ -132,7 +131,6 @@ class BarcodeScannerActivity : AppCompatActivity() {
                 }
             }
             .setNegativeButton("Usar") { _, _ ->
-                // Retorna o payload (ou os campos separados) para a Activity que abriu o scanner
                 deliverResultAndFinish(payload)
             }
         builder.show()
