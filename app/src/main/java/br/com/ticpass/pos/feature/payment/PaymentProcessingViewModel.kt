@@ -62,6 +62,9 @@ class PaymentProcessingViewModel @Inject constructor(
     private var eventsJob: Job? = null
 
     private val cleanTransactions = CleanTransactions(paymentStorage)
+    private val _transactionIdFlow = MutableSharedFlow<String>(replay = 1)
+    val transactionIdFlow = _transactionIdFlow.asSharedFlow()
+
     private val _paymentState = MutableStateFlow<PaymentState>(PaymentState.Initializing)
     val paymentState: StateFlow<PaymentState> = _paymentState.asStateFlow()
     private val _uiEvents = MutableSharedFlow<PaymentProcessingUiEvent>()
@@ -125,6 +128,8 @@ class PaymentProcessingViewModel @Inject constructor(
             is PaymentProcessingEvent.TRANSACTION_DONE -> {
                 if (event.transactionId?.isNotBlank() == true) {
                     _paymentState.value = PaymentState.Success(event.transactionId)
+                    // Emite o transactionId final para que as views possam utilizá-lo (por exemplo, impressão)
+                    viewModelScope.launch { _transactionIdFlow.emit(event.transactionId) }
                     Log.d("PaymentViewModel", "Transaction done with ID: ${event.transactionId}")
                 } else {
                     _paymentState.value = PaymentState.Error("Transação sem ID válido")
@@ -324,8 +329,20 @@ class PaymentProcessingViewModel @Inject constructor(
             return
         }
 
+        val transactionId = java.util.UUID.randomUUID().toString()
+
+        viewModelScope.launch {
+            _transactionIdFlow.emit(transactionId)
+        }
+
+        Log.d("PaymentProcessingViewModel", "Iniciando processamento de pagamento com transactionId=$transactionId")
+
+        _paymentState.value = PaymentState.Processing
+
         dispatch(PaymentProcessingAction.StartProcessing)
     }
+
+
 
     /**
      * Process a payment with the specified processor type

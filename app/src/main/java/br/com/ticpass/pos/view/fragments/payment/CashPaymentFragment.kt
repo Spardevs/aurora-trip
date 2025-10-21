@@ -88,6 +88,8 @@ class CashPaymentFragment : Fragment() {
     private lateinit var tvTotalValue: TextView
     private lateinit var tvChangeValue: TextView
     private lateinit var etReceivedValue: EditText
+    private var currentTransactionId: String? = null
+
     private var btnCancel: Button? = null
     private var btnConfirm: Button? = null
     private var totalAmount: BigDecimal = BigDecimal.ZERO
@@ -189,13 +191,8 @@ class CashPaymentFragment : Fragment() {
         return nf.format(value)
     }
 
-    private fun formatCurrencyFromCents(valueInCents: Long): String {
-        val reais = BigDecimal.valueOf(valueInCents, 2).setScale(2, RoundingMode.HALF_EVEN)
-        return formatCurrencyFromReais(reais)
-    }
-
     private fun formatCurrency(valueInCents: BigInteger): String {
-        val valueInReais = valueInCents.toDouble() / 1000.0
+        val valueInReais = valueInCents.toDouble() / 100000.0
         val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
         return format.format(valueInReais)
     }
@@ -217,6 +214,15 @@ class CashPaymentFragment : Fragment() {
                         is PaymentState.Cancelled -> updateUIForCancelled()
                         else -> {}
                     }
+                }
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                paymentViewModel.transactionIdFlow.collect { transactionId ->
+                    currentTransactionId = transactionId
+                    Log.d("CashPaymentFragment", "Transaction ID inicial: $transactionId")
                 }
             }
         }
@@ -357,14 +363,9 @@ class CashPaymentFragment : Fragment() {
      */
     private fun getAtk(): String? {
         return try {
-            // OPÇÃO 1: Se você tem um método AcquirerSdk.atk()
-            // AcquirerSdk.atk()
+//             AcquirerSdk.atk()
+            "1234567890"
 
-            // OPÇÃO 2: Se atk está em SharedPreferences
-            val prefs = requireContext().getSharedPreferences("AuthPrefs", Context.MODE_PRIVATE)
-            prefs.getString("atk", null)
-
-            // OPÇÃO 3: Se atk está em outro lugar, ajuste aqui
         } catch (e: Exception) {
             Log.e("CashPaymentFragment", "Erro ao obter atk: ${e.message}")
             null
@@ -428,8 +429,10 @@ class CashPaymentFragment : Fragment() {
                 )
 
                 // Obtém atk e transactionId após finalizar o pagamento
-                val transactionId = getLastTransactionIdOrNull()
+                val transactionId = currentTransactionId ?: getLastTransactionIdOrNull()
                 val atk = getAtk()
+                startPrintingProcessWithIds(atk, transactionId)
+                Log.d("CashPaymentFragment", "atk=$atk, transactionId=$transactionId")
 
                 // Monta o payload e o parse destruturado do barcode
                 val payload = "${atk ?: ""}|${transactionId ?: ""}"
@@ -438,9 +441,7 @@ class CashPaymentFragment : Fragment() {
                     val t = it.getOrNull(1)?.takeIf { s -> s.isNotEmpty() } ?: "(transactionId não disponível)"
                     Pair(a, t)
                 }
-                Log.d("CashPaymentFragment", "parsedAtk=$parsedAtk, parsedTransactionId=$parsedTxId")
 
-                // Inicia o processo de impressão centralizado com os IDs
                 startPrintingProcessWithIds(atk, transactionId)
 
             } catch (e: Exception) {
