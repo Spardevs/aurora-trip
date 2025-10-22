@@ -29,6 +29,7 @@ import br.com.ticpass.pos.payment.models.SystemPaymentMethod
 import br.com.ticpass.pos.payment.utils.PaymentUIUtils
 import br.com.ticpass.pos.payment.view.TimeoutCountdownView
 import br.com.ticpass.pos.printing.events.PrintingHandler
+import br.com.ticpass.pos.queue.models.PaymentSuccess
 import br.com.ticpass.pos.queue.models.ProcessingState
 import br.com.ticpass.pos.sdk.AcquirerSdk
 import br.com.ticpass.pos.util.PaymentFragmentUtils
@@ -132,7 +133,7 @@ class CardPaymentFragment : Fragment() {
             try {
                 val jsonObject = JSONObject(shoppingCartDataJson)
                 val totalPriceCents = jsonObject.optLong("totalPrice", 0L)
-                val totalPriceReais = totalPriceCents / 100000.0
+                val totalPriceReais = totalPriceCents / 10000.0
 
                 totalValue = totalPriceReais
                 paymentValue = totalPriceReais
@@ -257,6 +258,12 @@ class CardPaymentFragment : Fragment() {
             isTransactionless = false,
             startImmediately = true
         )
+
+        try {
+            paymentViewModel.startProcessing()
+        } catch (e: Exception) {
+            Log.e(TAG, "Falha ao iniciar o processamento de pagamentos: ${e.message}", e)
+        }
     }
 
     private fun retryPayment() {
@@ -277,11 +284,6 @@ class CardPaymentFragment : Fragment() {
                 enqueueAndStartPayment()
             }, 1000)
         }
-    }
-
-    private fun showSuccessFragment() {
-        val frag = PaymentSuccessFragment.newInstance(isMultiPayment, progress)
-        replaceWithFragment(frag)
     }
 
     private fun showErrorFragment(errorMessage: String) {
@@ -321,7 +323,6 @@ class CardPaymentFragment : Fragment() {
                     )
                 )
 
-                // Inicia o processo de impressão
                 startPrintingProcess()
 
             } catch (e: Exception) {
@@ -356,6 +357,7 @@ class CardPaymentFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 printingViewModel.processingState.collect { state ->
+
                     when (state) {
                         is ProcessingState.QueueDone<*> -> {
                             dismissLoadingModal()
@@ -382,6 +384,12 @@ class CardPaymentFragment : Fragment() {
                         }
 
                         is ProcessingState.ItemDone<*> -> {
+
+                            val result = state.result as PaymentSuccess
+
+                            Log.d("Teste", "Teste: ${state.item}")
+                            Log.d("Teste", "Teste: ${result.atk}")
+
                             dismissLoadingModal()
                             showSuccessModal(autoDismissMs = 1200L)
                         }

@@ -218,15 +218,6 @@ class CashPaymentFragment : Fragment() {
                 }
             }
         }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                paymentViewModel.transactionIdFlow.collect { transactionId ->
-                    currentTransactionId = transactionId
-                    Log.d("CashPaymentFragment", "Transaction ID inicial: $transactionId")
-                }
-            }
-        }
     }
 
     private fun observePrintingState() {
