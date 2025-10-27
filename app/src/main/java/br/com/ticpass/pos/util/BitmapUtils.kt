@@ -119,14 +119,27 @@ fun generateBarcodeBitmapAuto(payload: String, width: Int = 350, height: Int = (
     return bmp
 }
 
-fun savePassAsBitmap(context: Context, passData: PassData): File? {
+/**
+ * Monta o payload do barcode combinando o barcode original com ATK e Transaction ID quando disponíveis.
+ * Exemplo de saída: "1234567890123|ATK:abcd|TX:tx123"
+ */
+private fun buildBarcodePayload(originalBarcode: String?, atk: String?, transactionId: String?): String {
+    val parts = mutableListOf<String>()
+    if (!originalBarcode.isNullOrBlank()) parts.add(originalBarcode)
+    if (!atk.isNullOrBlank()) parts.add("ATK:$atk")
+    if (!transactionId.isNullOrBlank()) parts.add("TX:$transactionId")
+    return parts.joinToString("|")
+}
+
+fun savePassAsBitmap(context: Context, passData: PassData, atk: String? = null, transactionId: String? = null): File? {
     val configPrefs = context.getSharedPreferences("ConfigPrefs", Context.MODE_PRIVATE)
     val rawFormat = (configPrefs.getString("print_format", "DEFAULT") ?: "DEFAULT").uppercase()
     val printFormat = if (rawFormat == "DEFAULT") "EXPANDED" else rawFormat
 
     // Log do barcode usado para gerar o passe — útil para debug
     try {
-        Timber.tag("SavePassAsBitmap").d("Gerando passe com barcode: ${passData.header.barcode}")
+        val payload = buildBarcodePayload(passData.header.barcode, atk, transactionId)
+        Timber.tag("SavePassAsBitmap").d("Gerando passe com barcode payload: $payload")
     } catch (_: Exception) {}
 
     return try {
@@ -141,9 +154,9 @@ fun savePassAsBitmap(context: Context, passData: PassData): File? {
 
         val view: View =
             if (layoutRes == R.layout.printer_pass_grouped) {
-                inflateGroupedLayout(inflater, passData)
+                inflateGroupedLayout(inflater, passData, atk, transactionId)
             } else {
-                inflateProductLayout(inflater, layoutRes, passData)
+                inflateProductLayout(inflater, layoutRes, passData, atk, transactionId)
             }
 
         view.measure(
@@ -166,13 +179,22 @@ fun savePassAsBitmap(context: Context, passData: PassData): File? {
     }
 }
 
-private fun inflateProductLayout(inflater: LayoutInflater, layoutRes: Int, data: PassData): View {
+private fun inflateProductLayout(
+    inflater: LayoutInflater,
+    layoutRes: Int,
+    data: PassData,
+    atk: String?,
+    transactionId: String?
+): View {
     val view = inflater.inflate(layoutRes, null)
 
     val barcodeImage = view.findViewById<ImageView>(R.id.barcodeImageView)
+    val payload = buildBarcodePayload(data.header.barcode, atk, transactionId)
     val barcodeBitmap = try {
-        generateBarcodeBitmapAuto(data.header.barcode)
-    } catch (_: Exception) {
+        Timber.tag("inflateProductLayout").d("Payload para barcode: $payload")
+        generateBarcodeBitmapAuto(payload)
+    } catch (e: Exception) {
+        Timber.tag("inflateProductLayout").e(e, "Erro ao gerar bitmap do barcode: ${e.message}")
         null
     }
     barcodeImage?.setImageBitmap(barcodeBitmap)
@@ -197,14 +219,21 @@ private fun inflateProductLayout(inflater: LayoutInflater, layoutRes: Int, data:
 }
 
 @SuppressLint("MissingInflatedId")
-private fun inflateGroupedLayout(inflater: LayoutInflater, data: PassData): View {
+private fun inflateGroupedLayout(inflater: LayoutInflater, data: PassData, atk: String?, transactionId: String?): View {
     val view = inflater.inflate(R.layout.printer_pass_grouped, null)
 
     view.findViewById<TextView>(R.id.headerTitle)?.text = data.header.title
     view.findViewById<TextView>(R.id.headerDate)?.text = data.header.date
 
     // Gera e seta o bitmap no ImageView do layout agrupado (corrigido)
-    val barcodeBitmap = try { generateBarcodeBitmapAuto(data.header.barcode) } catch (_: Exception) { null }
+    val payload = buildBarcodePayload(data.header.barcode, atk, transactionId)
+    val barcodeBitmap = try {
+        Timber.tag("inflateGroupedLayout").d("Payload para barcode (grouped): $payload")
+        generateBarcodeBitmapAuto(payload)
+    } catch (e: Exception) {
+        Timber.tag("inflateGroupedLayout").e(e, "Erro ao gerar bitmap do barcode agrupado: ${e.message}")
+        null
+    }
     view.findViewById<ImageView>(R.id.barcodeImageView)?.setImageBitmap(barcodeBitmap)
 
     val container = view.findViewById<LinearLayout>(R.id.itemsContainer)

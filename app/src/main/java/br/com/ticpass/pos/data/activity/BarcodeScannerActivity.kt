@@ -19,6 +19,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import br.com.ticpass.pos.databinding.ActivityBarcodeScannerBinding
 import com.google.zxing.BarcodeFormat
+import com.google.zxing.DecodeHintType
 import com.google.zxing.ResultPoint
 import com.journeyapps.barcodescanner.BarcodeCallback
 import com.journeyapps.barcodescanner.BarcodeResult
@@ -59,6 +60,7 @@ class BarcodeScannerActivity : AppCompatActivity() {
             BarcodeFormat.CODE_93,
             BarcodeFormat.ITF
         )
+        val hints = mapOf(DecodeHintType.TRY_HARDER to true)
         binding.zxingBarcodeScanner.decoderFactory = DefaultDecoderFactory(formats)
 
         binding.btnOpenKeyboard.setOnClickListener { showKeyboard() }
@@ -106,15 +108,47 @@ class BarcodeScannerActivity : AppCompatActivity() {
 
     private fun showParsedBarcodeDialog(text: String?) {
         val payload = text ?: ""
-        val (atk, txId) = payload.split("|").let {
-            val a = it.getOrNull(0)?.takeIf { s -> s.isNotBlank() } ?: "(atk não disponível)"
-            val t = it.getOrNull(1)?.takeIf { s -> s.isNotBlank() } ?: "(transactionId não disponível)"
-            Pair(a, t)
+
+        fun parsePayload(p: String): Triple<String?, String?, String?> {
+            val parts = p.split("|").map { it.trim() }.filter { it.isNotEmpty() }
+            var original: String? = null
+            var atk: String? = null
+            var tx: String? = null
+
+            if (parts.isNotEmpty() && !parts[0].contains(":")) original = parts[0]
+
+            parts.forEach { part ->
+                when {
+                    part.startsWith("ATK:", ignoreCase = true) -> atk = part.substringAfter("ATK:", "").takeIf { it.isNotBlank() }
+                    part.startsWith("TX:", ignoreCase = true) || part.startsWith("TXID:", ignoreCase = true) -> tx = part.substringAfter(":", "").takeIf { it.isNotBlank() }
+                    part.contains("atk=", ignoreCase = true) -> atk = part.substringAfter("=").takeIf { it.isNotBlank() }
+                    part.contains("tx=", ignoreCase = true) -> tx = part.substringAfter("=").takeIf { it.isNotBlank() }
+                    // heurística para payloads sem labels: se contém letras A-F (hex) trata como ATK/tx
+                    else -> {
+                        // Se há exatamente 2 partes sem labels, tenta inferir:
+                        if (parts.size == 2) {
+                            val p0 = parts[0]
+                            val p1 = parts[1]
+                            // se p0 contém letras (hex-like) assume ATK, p1 tx
+                            if (p0.any { it.isLetter() } || p1.any { it.isLetter() }) {
+                                if (atk == null && p0.any { it.isLetter() }) atk = p0
+                                if (tx == null) tx = p1
+                            }
+                        }
+                    }
+                }
+            }
+
+            return Triple(original, atk, tx)
         }
 
-        Timber.tag(TAG).d("parsedAtk=$atk, parsedTransactionId=$txId")
+        val (originalBarcode, atk, txId) = parsePayload(payload)
+        val atkToShow = atk ?: originalBarcode
 
-        val message = "atk: $atk\ntransactionId: $txId\n\nPayload original:\n$payload"
+        Timber.tag(TAG).d("Parsed payload => originalBarcode=$originalBarcode, atk=$atk, txId=$txId")
+        Timber.tag(TAG).d("Scanner raw payload: $payload")
+
+        val message = "atk: ${atkToShow ?: "(atk não disponível)"}\ntransactionId: ${txId ?: "(transactionId não disponível)"}\n\nPayload original:\n$payload"
 
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Informações lidas")
@@ -126,16 +160,11 @@ class BarcodeScannerActivity : AppCompatActivity() {
                     val clip = ClipData.newPlainText("barcode_payload", payload)
                     clipboard.setPrimaryClip(clip)
                     Toast.makeText(this, "Payload copiado", Toast.LENGTH_SHORT).show()
-                } catch (e: Exception) {
-                    Toast.makeText(this, "Erro ao copiar", Toast.LENGTH_SHORT).show()
-                }
+                } catch (e: Exception) { Toast.makeText(this, "Erro ao copiar", Toast.LENGTH_SHORT).show() }
             }
-            .setNegativeButton("Usar") { _, _ ->
-                deliverResultAndFinish(payload)
-            }
+            .setNegativeButton("Usar") { _, _ -> deliverResultAndFinish(payload) }
         builder.show()
     }
-
     private fun deliverResultAndFinish(text: String?) {
         val data = Intent().apply { putExtra(EXTRA_SCAN_TEXT, text ?: "") }
         setResult(RESULT_OK, data)

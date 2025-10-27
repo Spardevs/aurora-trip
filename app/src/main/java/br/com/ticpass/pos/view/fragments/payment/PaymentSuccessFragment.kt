@@ -71,7 +71,6 @@ class PaymentSuccessFragment : Fragment() {
         val btnFinish = view.findViewById<MaterialButton>(R.id.btn_finish)
 
         btnFinish?.setOnClickListener {
-            // permitir que o usuário finalize manualmente se desejado (mantido comportamento anterior)
             if (isMultiPayment) {
                 requireActivity().setResult(AppCompatActivity.RESULT_OK)
                 requireActivity().finish()
@@ -81,7 +80,6 @@ class PaymentSuccessFragment : Fragment() {
             }
         }
 
-        // Inicia impressão automaticamente ao abrir este fragment
         startPrintingProcess(txId.takeIf { it.isNotBlank() }, atk.takeIf { it.isNotBlank() })
     }
 
@@ -136,7 +134,6 @@ class PaymentSuccessFragment : Fragment() {
                             }
                         }
                         else -> {
-                            // ignora outros estados
                         }
                     }
                 }
