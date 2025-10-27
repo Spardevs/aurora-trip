@@ -18,7 +18,9 @@ import br.com.ticpass.pos.data.room.entity.ProductEntity
 import br.com.ticpass.pos.feature.printing.PrintingViewModel
 import br.com.ticpass.pos.queue.processors.printing.processors.models.PrintingProcessorType
 import br.com.ticpass.pos.util.savePassAsBitmap
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -242,7 +244,50 @@ class PrintingHandler(
         }
     }
 
-    // Add this method to PrintingHandler class
+    // Dentro da sua classe PrintingHandler, adicione este método suspend:
+    suspend fun enqueuePrintFiles(
+        printingViewModel: PrintingViewModel,
+        imageBitmap: Bitmap? = null,
+        atk: String? = null,
+        transactionId: String? = null,
+        passType: PassType = PassType.ProductCompact
+    ) {
+        withContext(Dispatchers.IO) {
+            try {
+                Log.d("PrintingHandler", "enqueuePrintFiles start atk=$atk tx=$transactionId")
+
+                if (imageBitmap != null) {
+                    val tmpFile = saveBitmapToTempFile(context, imageBitmap)
+                    if (tmpFile != null) {
+                        printingViewModel.enqueuePrinting(tmpFile.absolutePath, PrintingProcessorType.ACQUIRER)
+                        Log.d("PrintingHandler", "Enqueued tmp bitmap: ${tmpFile.absolutePath}")
+                    } else {
+                        Log.e("PrintingHandler", "Falha ao salvar bitmap temporário para impressão")
+                    }
+                    return@withContext
+                }
+
+                val operatorName = getOperatorName()
+                val (products, pos, event) = loadDataFromDatabase()
+                val passList = buildPassList(products, pos, event, operatorName, passType, atk, transactionId)
+
+                passList.forEach { passData ->
+                    val file = savePassAsBitmap(context, passData)
+                    if (file != null) {
+                        printingViewModel.enqueuePrinting(file.absolutePath, PrintingProcessorType.ACQUIRER)
+                        Log.d("PrintingHandler", "Enqueued pass: ${file.absolutePath}")
+                    } else {
+                        Log.e("PrintingHandler", "Falha ao salvar pass como bitmap para product ${passData.productData?.name}")
+                    }
+                }
+                Log.d("PrintingHandler", "enqueuePrintFiles finished, queued=${passList.size}")
+            } catch (e: Exception) {
+                Log.e("PrintingHandler", "enqueuePrintFiles error", e)
+                throw e
+            }
+        }
+    }
+
     fun enqueueAndStartPrinting(
         printingViewModel: PrintingViewModel,
         imageBitmap: Bitmap? = null,
@@ -251,30 +296,10 @@ class PrintingHandler(
     ) {
         lifecycleOwner.lifecycleScope.launch {
             try {
-                Log.d("PrintingHandler", "PrintingHandler enqueueAndStartPrinting")
-                if (imageBitmap != null) {
-                    val tmpFile = saveBitmapToTempFile(context, imageBitmap)
-                    if (tmpFile != null) {
-                        printingViewModel.enqueuePrinting(tmpFile.absolutePath, PrintingProcessorType.ACQUIRER)
-                        printingViewModel.startProcessing()
-                        return@launch
-                    }
-                }
-
-                val operatorName = getOperatorName()
-                val (products, pos, event) = loadDataFromDatabase()
-                val passList = buildPassList(products, pos, event, operatorName, PassType.ProductCompact, atk, transactionId)
-
-                passList.forEach { passData ->
-                    val file = savePassAsBitmap(context, passData)
-                    if (file != null) {
-                        printingViewModel.enqueuePrinting(file.absolutePath, PrintingProcessorType.ACQUIRER)
-                    }
-                }
-
+                enqueuePrintFiles(printingViewModel, imageBitmap, atk, transactionId)
                 printingViewModel.startProcessing()
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("PrintingHandler", "enqueueAndStartPrinting failed", e)
             }
         }
     }

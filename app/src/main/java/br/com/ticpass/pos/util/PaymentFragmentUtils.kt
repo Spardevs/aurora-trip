@@ -14,6 +14,10 @@ import br.com.ticpass.pos.payment.models.SystemPaymentMethod
 import br.com.ticpass.pos.payment.view.TimeoutCountdownView
 import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent
 import br.com.ticpass.pos.view.ui.shoppingCart.ShoppingCartManager
+import android.util.Log
+import br.com.ticpass.pos.queue.models.PaymentSuccess
+import br.com.ticpass.pos.queue.models.ProcessingState
+
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
@@ -75,7 +79,8 @@ class PaymentFragmentUtils @Inject constructor(
             onSuccess: () -> Unit,
             onError: (String) -> Unit,
             onCancelled: () -> Unit,
-            isPix: Boolean = false
+            isPix: Boolean = false,
+            onProcessingItemDone: ((paymentSuccess: PaymentSuccess, item: Any?) -> Unit)? = null
         ) {
             // Observer para eventos do processador (detalhes técnicos do pagamento)
             fragment.viewLifecycleOwner.lifecycleScope.launch {
@@ -136,6 +141,61 @@ class PaymentFragmentUtils @Inject constructor(
                 fragment.viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                     paymentViewModel.uiEvents.collect { event ->
                         paymentEventHandler.handleUiEvent(event)
+                    }
+                }
+            }
+
+            // Observer para processingState (espelhando PaymentActivityCoordinator)
+            fragment.viewLifecycleOwner.lifecycleScope.launch {
+                fragment.viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    paymentViewModel.processingState.collect { state ->
+                        // Skip null states to avoid unnecessary logging
+                        if (state == null) return@collect
+
+                        if (state is ProcessingState.ItemProcessing<*> || state is ProcessingState.ItemRetrying<*>) {
+                            statusTextView.text = "Processando pagamento..."
+                        }
+
+                        when (state) {
+                            is ProcessingState.ItemProcessing<*> -> {
+                                Log.d("PaymentFragmentUtils", "ItemProcessing: ${state.item}")
+                            }
+                            is ProcessingState.ItemDone<*> -> {
+                                Log.d("PaymentFragmentUtils", "ItemDone recebido: item=${state.item} result=${state.result}")
+                                if (state.result is PaymentSuccess) {
+                                    val paymentSuccess = state.result as PaymentSuccess
+                                    try {
+                                        val txId = paymentSuccess.txId
+                                        val atk = paymentSuccess.atk
+                                        Log.d("PaymentFragmentUtils", "PaymentSuccess txId=$txId atk=$atk")
+                                        onProcessingItemDone?.invoke(paymentSuccess, state.item)
+                                    } catch (e: Exception) {
+                                        Log.e("PaymentFragmentUtils", "Erro ao extrair PaymentSuccess: ${e.message}", e)
+                                    }
+                                } else {
+                                    Log.w("PaymentFragmentUtils", "Result não é PaymentSuccess: ${state.result?.javaClass?.simpleName}")
+                                }
+                            }
+                            is ProcessingState.ItemFailed<*> -> {
+                                Log.d("PaymentFragmentUtils", "ItemFailed: ${state.error}")
+                                statusTextView.text = "Erro ao processar pagamento"
+                            }
+                            is ProcessingState.ItemRetrying<*> -> {
+                                Log.d("PaymentFragmentUtils", "ItemRetrying: ${state.item}")
+                                statusTextView.text = "Tentando novamente..."
+                            }
+                            is ProcessingState.QueueCanceled<*> -> {
+                                Log.d("PaymentFragmentUtils", "QueueCanceled")
+                                statusTextView.text = "Processamento cancelado"
+                            }
+                            is ProcessingState.QueueDone<*> -> {
+                                Log.d("PaymentFragmentUtils", "QueueDone")
+                                statusTextView.text = "Fila de pagamento finalizada"
+                            }
+                            else -> {
+                                Log.d("PaymentFragmentUtils", "Outro processingState: ${state.javaClass.simpleName}")
+                            }
+                        }
                     }
                 }
             }
@@ -261,3 +321,5 @@ class PaymentFragmentUtils @Inject constructor(
         }
     }
 }
+
+

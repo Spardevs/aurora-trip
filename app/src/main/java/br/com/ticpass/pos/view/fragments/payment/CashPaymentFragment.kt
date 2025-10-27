@@ -91,6 +91,7 @@ class CashPaymentFragment : Fragment() {
     private lateinit var etReceivedValue: EditText
     private var currentTransactionId: String? = null
 
+
     private var btnCancel: Button? = null
     private var btnConfirm: Button? = null
     private var totalAmount: BigDecimal = BigDecimal.ZERO

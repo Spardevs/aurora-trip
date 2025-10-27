@@ -2,7 +2,6 @@ package br.com.ticpass.pos.printing
 
 import android.app.AlertDialog
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
@@ -16,6 +15,7 @@ import br.com.ticpass.pos.feature.printing.PrintingViewModel
 import br.com.ticpass.pos.printing.coordination.PrintingActivityCoordinator
 import br.com.ticpass.pos.printing.dialogs.PrintingDialogManager
 import br.com.ticpass.pos.printing.events.PrintingEventHandler
+import br.com.ticpass.pos.printing.events.PrintingHandler
 import br.com.ticpass.pos.printing.models.SupportedPrintingMethods
 import br.com.ticpass.pos.printing.models.SystemPrintingMethod
 import br.com.ticpass.pos.printing.utils.PrintingUIUtils
