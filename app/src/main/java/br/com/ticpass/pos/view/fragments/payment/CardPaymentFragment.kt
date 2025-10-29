@@ -112,7 +112,7 @@ class CardPaymentFragment : Fragment() {
             try {
                 val jsonObject = JSONObject(shoppingCartDataJson)
                 val totalPriceCents = jsonObject.optLong("totalPrice", 0L)
-                val totalPriceReais = totalPriceCents / 100000.0
+                val totalPriceReais = totalPriceCents / 10000.0
                 totalValue = totalPriceReais
                 paymentValue = totalPriceReais
                 remainingValue = totalPriceReais
@@ -182,21 +182,24 @@ class CardPaymentFragment : Fragment() {
             paymentViewModel = paymentViewModel,
             paymentEventHandler = paymentEventHandler,
             statusTextView = statusTextView,
-            onSuccess = { handleSuccessfulPayment() },
+            onSuccess = {
+                Log.d(TAG, "PaymentState.Success recebido — aguardando ProcessingState.ItemDone para txId/atk")
+            },
             onError = { errorMessage -> showErrorFragment(errorMessage) },
             onCancelled = { showErrorFragment("Pagamento cancelado") },
             isPix = false,
             onProcessingItemDone = { paymentSuccess, _ ->
-                handlePaymentSuccessData(paymentSuccess.txId, paymentSuccess.atk)
+                lastTxId = paymentSuccess.txId
+                lastAtk = paymentSuccess.atk
+                Log.d(TAG, "onProcessingItemDone -> txId=$lastTxId atk=$lastAtk")
+
+                if (!finishPaymentHandled) {
+                    handleSuccessfulPayment(lastTxId ?: "", lastAtk ?: "")
+                } else {
+                    Log.d(TAG, "Pagamento já finalizado; ignorando onProcessingItemDone")
+                }
             }
         )
-    }
-
-    private fun handlePaymentSuccessData(txId: String, atk: String) {
-        lastTxId = txId
-        lastAtk = atk
-        Log.d("PaymentSuccess", "txId: $txId, atk: $atk")
-        triggerNavigateIfReady()
     }
 
     private fun enqueueAndStartPayment() {
@@ -244,7 +247,7 @@ class CardPaymentFragment : Fragment() {
         }
     }
 
-    private fun handleSuccessfulPayment() {
+    private fun handleSuccessfulPayment(txId: String, atk: String) {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val method = when (paymentType) {
@@ -261,7 +264,9 @@ class CardPaymentFragment : Fragment() {
                         amount = amountInCents,
                         commission = 0,
                         method = method,
-                        isTransactionless = true
+                        isTransactionless = true,
+                        transactionId = txId,
+                        atk = atk
                     )
                 )
 

@@ -420,7 +420,9 @@ class CashPaymentFragment : Fragment() {
                         amount = (paymentValue * 1000.0).toInt(),
                         commission = 0,
                         method = method,
-                        isTransactionless = true
+                        isTransactionless = true,
+                        transactionId = "",
+                        atk = ""
                     )
                 )
 

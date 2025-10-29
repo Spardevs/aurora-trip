@@ -68,13 +68,17 @@ object PaymentUIUtils {
         method: SystemPaymentMethod,
         isTransactionlessEnabled: Boolean,
         amount: Int? = null,
-        commission: Int = 0
+        commission: Int = 0,
+        transactionId: String = "",
+        atk: String = ""
     ): PaymentData {
         return PaymentData(
             amount = amount ?: generateRandomPaymentAmount(),
             commission = commission,
             method = method,
-            isTransactionless = isTransactionlessEnabled
+            isTransactionless = isTransactionlessEnabled,
+            transactionId = transactionId,
+            atk = atk
         )
     }
 
@@ -86,6 +90,8 @@ object PaymentUIUtils {
         val commission: Int,
         val method: SystemPaymentMethod,
         var isTransactionless: Boolean,
+        var transactionId: String,
+        var atk: String
     )
 
     /**

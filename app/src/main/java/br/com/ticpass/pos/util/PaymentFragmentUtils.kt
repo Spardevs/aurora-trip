@@ -82,6 +82,8 @@ class PaymentFragmentUtils @Inject constructor(
             isPix: Boolean = false,
             onProcessingItemDone: ((paymentSuccess: PaymentSuccess, item: Any?) -> Unit)? = null
         ) {
+            // Keep the last PaymentSuccess seen from processingState so that PaymentState.Success can forward to onProcessingItemDone
+            var lastPaymentSuccess: PaymentSuccess? = null
             // Observer para eventos do processador (detalhes técnicos do pagamento)
             fragment.viewLifecycleOwner.lifecycleScope.launch {
                 fragment.viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -114,6 +116,14 @@ class PaymentFragmentUtils @Inject constructor(
 
                             is PaymentState.Success -> {
                                 onSuccess()
+                                // If we already received a PaymentSuccess from processingState, forward it to the onProcessingItemDone callback
+                                if (lastPaymentSuccess != null) {
+                                    try {
+                                        onProcessingItemDone?.invoke(lastPaymentSuccess, null)
+                                    } catch (e: Exception) {
+                                        Log.e("PaymentFragmentUtils", "Erro ao repassar PaymentSuccess no onSuccess: ${e.message}", e)
+                                    }
+                                }
                             }
 
                             is PaymentState.Error -> {
@@ -321,5 +331,3 @@ class PaymentFragmentUtils @Inject constructor(
         }
     }
 }
-
-
