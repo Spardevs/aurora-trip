@@ -18,7 +18,7 @@ data class PaymentEntity(
     var type: String,
     var usedAcquirer: Boolean = true,
     var synced: Boolean = false,
+    var transactionId: String = "",
 ) {
-
     override fun toString() = id
 }

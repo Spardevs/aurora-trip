@@ -123,13 +123,9 @@ class PaymentProcessingViewModel @Inject constructor(
             }
 
             is PaymentProcessingEvent.TRANSACTION_DONE -> {
-                if (event.transactionId?.isNotBlank() == true) {
-                    _paymentState.value = PaymentState.Success(event.transactionId)
-                    Log.d("PaymentViewModel", "Transaction done with ID: ${event.transactionId}")
-                } else {
-                    _paymentState.value = PaymentState.Error("Transação sem ID válido")
-                    Log.w("PaymentViewModel", "Transaction done but no valid ID")
-                }
+                val txId = event.transactionId?.takeIf { it.isNotBlank() }
+                _paymentState.value = PaymentState.Success(txId)
+                Log.d("PaymentViewModel", "Transaction done, ID: ${txId ?: "N/A"}")
             }
 
             is PaymentProcessingEvent.APPROVAL_SUCCEEDED -> {
@@ -258,11 +254,8 @@ class PaymentProcessingViewModel @Inject constructor(
                         _paymentState.value = PaymentState.Processing
                     }
                     is PaymentProcessingEvent.TRANSACTION_DONE -> {
-                        if (event.transactionId?.isNotBlank() == true) {
-                            _paymentState.value = PaymentState.Success(event.transactionId)
-                        } else {
-                            _paymentState.value = PaymentState.Error("Transação sem ID válido")
-                        }
+                        val txId = event.transactionId?.takeIf { it.isNotBlank() }
+                        _paymentState.value = PaymentState.Success(txId)
                     }
 
                     is PaymentProcessingEvent.APPROVAL_SUCCEEDED -> {

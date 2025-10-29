@@ -12,6 +12,7 @@ import br.com.ticpass.pos.data.room.entity.PaymentEntity
 import br.com.ticpass.pos.data.room.repository.CategoryRepository
 import br.com.ticpass.pos.data.room.repository.EventRepository
 import br.com.ticpass.pos.data.room.repository.PaymentRepository
+import br.com.ticpass.pos.data.room.repository.PassRepository
 import br.com.ticpass.pos.data.room.repository.PosRepository
 import br.com.ticpass.pos.data.room.repository.ProductRepository
 import br.com.ticpass.pos.payment.utils.PaymentUIUtils
@@ -20,6 +21,7 @@ import dagger.hilt.android.scopes.ActivityScoped
 import jakarta.inject.Inject
 import org.json.JSONObject
 import br.com.ticpass.pos.data.room.entity.AcquisitionEntity
+import br.com.ticpass.pos.data.room.entity.PassEntity
 import br.com.ticpass.pos.data.room.repository.AcquisitionRepository
 import br.com.ticpass.pos.compose.utils.generateRandomEAN
 
@@ -28,6 +30,7 @@ class FinishPaymentHandler @Inject constructor(
     @ApplicationContext private val appContext: Context,
     private val orderRepository: OrderRepository,
     private val paymentRepository: PaymentRepository,
+    private val passRepository: PassRepository,
     private val eventRepository: EventRepository,
     private val posRepository: PosRepository,
     private val productRepository: ProductRepository,

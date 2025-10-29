@@ -112,7 +112,7 @@ class CardPaymentFragment : Fragment() {
             try {
                 val jsonObject = JSONObject(shoppingCartDataJson)
                 val totalPriceCents = jsonObject.optLong("totalPrice", 0L)
-                val totalPriceReais = totalPriceCents / 10000.0
+                val totalPriceReais = totalPriceCents / 100000.0
                 totalValue = totalPriceReais
                 paymentValue = totalPriceReais
                 remainingValue = totalPriceReais
@@ -214,7 +214,7 @@ class CardPaymentFragment : Fragment() {
             shoppingCartManager = shoppingCartManager,
             method = method,
             amount = (paymentValue * 100),
-            isTransactionless = false,
+            isTransactionless = true,
             startImmediately = true
         )
 
@@ -261,7 +261,7 @@ class CardPaymentFragment : Fragment() {
                         amount = amountInCents,
                         commission = 0,
                         method = method,
-                        isTransactionless = false
+                        isTransactionless = true
                     )
                 )
 
