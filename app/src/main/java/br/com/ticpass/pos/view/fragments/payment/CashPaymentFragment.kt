@@ -368,7 +368,7 @@ class CashPaymentFragment : Fragment() {
         }
     }
 
-    private fun startPrintingProcessWithIds(atk: String?, transactionId: String?) {
+    private fun startPrintingProcessWithIds() {
         if (isPrintingInProgress) {
             Log.w("CashPaymentFragment", "Impressão já em andamento, ignorando nova tentativa")
             return
@@ -385,8 +385,7 @@ class CashPaymentFragment : Fragment() {
             printingHandler.enqueueAndStartPrinting(
                 printingViewModel = printingViewModel,
                 imageBitmap = latestBitmap,
-                atk = atk,
-                transactionId = transactionId
+                paymentId = ""
             )
         } catch (e: Exception) {
             isPrintingInProgress = false
@@ -429,7 +428,7 @@ class CashPaymentFragment : Fragment() {
                 // Obtém atk e transactionId após finalizar o pagamento
                 val transactionId = currentTransactionId ?: getLastTransactionIdOrNull()
                 val atk = getAtk()
-                startPrintingProcessWithIds(atk, transactionId)
+                startPrintingProcessWithIds()
                 Log.d("CashPaymentFragment", "atk=$atk, transactionId=$transactionId")
 
                 // Monta o payload e o parse destruturado do barcode
@@ -440,7 +439,7 @@ class CashPaymentFragment : Fragment() {
                     Pair(a, t)
                 }
 
-                startPrintingProcessWithIds(atk, transactionId)
+                startPrintingProcessWithIds()
 
             } catch (e: Exception) {
                 dismissLoadingModal()
@@ -566,7 +565,7 @@ class CashPaymentFragment : Fragment() {
 
                         val transactionId = getLastTransactionIdOrNull()
                         val atk = getAtk()
-                        startPrintingProcessWithIds(atk, transactionId)
+                        startPrintingProcessWithIds()
                     }
                 }
             }

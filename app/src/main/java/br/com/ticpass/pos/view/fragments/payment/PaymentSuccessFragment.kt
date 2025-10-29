@@ -40,9 +40,7 @@ class PaymentSuccessFragment : Fragment() {
 
     private var isMultiPayment: Boolean = false
     private var progress: String = ""
-    private var txId: String = ""
-    private var atk: String = ""
-
+    private var paymentId: String = ""
     private var loadingDialog: PrintingLoadingDialogFragment? = null
     private var successDialog: PrintingSuccessDialogFragment? = null
     private var errorDialog: PrintingErrorDialogFragment? = null
@@ -53,8 +51,7 @@ class PaymentSuccessFragment : Fragment() {
         arguments?.let {
             isMultiPayment = it.getBoolean(ARG_MULTI, false)
             progress = it.getString(ARG_PROGRESS, "")
-            txId = it.getString(ARG_TX_ID, "") ?: ""
-            atk = it.getString(ARG_ATK, "") ?: ""
+            paymentId = it.getString(ARG_PAYMENT_ID, "") ?: ""
         }
     }
 
@@ -80,19 +77,21 @@ class PaymentSuccessFragment : Fragment() {
             }
         }
 
-        startPrintingProcess(txId.takeIf { it.isNotBlank() }, atk.takeIf { it.isNotBlank() })
+        startPrintingProcess(paymentId)
     }
 
-    private fun startPrintingProcess(transactionId: String? = null, atk: String? = null) {
+    private fun startPrintingProcess(paymentId: String? = null) {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 observePrintingState()
 
+                Log.d(TAG, "startPrintingProcess: $paymentId")
+
+
                 printingHandler.enqueuePrintFiles(
                     printingViewModel = printingViewModel,
                     imageBitmap = getLatestPassBitmap(),
-                    atk = atk,
-                    transactionId = transactionId,
+                    paymentId = paymentId,
                     passType = PassType.ProductCompact
                 )
 
@@ -198,18 +197,16 @@ class PaymentSuccessFragment : Fragment() {
     companion object {
         private const val ARG_MULTI = "is_multi_payment"
         private const val ARG_PROGRESS = "progress"
-        private const val ARG_TX_ID = "tx_id"
-        private const val ARG_ATK = "atk"
+        private const val ARG_PAYMENT_ID = "payment_id"
         private const val TAG = "PaymentSuccessFragment"
 
         @JvmStatic
-        fun newInstance(isMultiPayment: Boolean, progress: String, txId: String, atk: String) =
+        fun newInstance(isMultiPayment: Boolean, progress: String, paymentId: String) =
             PaymentSuccessFragment().apply {
                 arguments = Bundle().apply {
                     putBoolean(ARG_MULTI, isMultiPayment)
                     putString(ARG_PROGRESS, progress)
-                    putString(ARG_TX_ID, txId)
-                    putString(ARG_ATK, atk)
+                    putString(ARG_PAYMENT_ID, paymentId)
                 }
             }
     }

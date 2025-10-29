@@ -41,8 +41,7 @@ class PrintingHandler(
         printingViewModel: PrintingViewModel,
         imagePath: String? = null,
         imageBitmap: Bitmap? = null,
-        atk: String? = null,
-        transactionId: String? = null
+        paymentId: String? = null
     ) {
         lifecycleOwner.lifecycleScope.launch {
             try {
@@ -65,7 +64,7 @@ class PrintingHandler(
 
                 val operatorName = getOperatorName()
                 val (products, pos, event) = loadDataFromDatabase()
-                val passList = buildPassList(products, pos, event, operatorName, passType, atk, transactionId)
+                val passList = buildPassList(products, pos, event, operatorName, passType, paymentId)
 
                 passList.forEach { passData ->
                     val file = savePassAsBitmap(context, passData)
@@ -153,15 +152,13 @@ class PrintingHandler(
         event: EventEntity?,
         operatorName: String,
         passType: PassType,
-        atk: String?,
-        transactionId: String?
+        paymentId: String?,
     ): List<PassData> {
         val cartItems = getCartItems()
 
         // Composição do payload do barcode usando atk() e transactionId
         val barcodePayloadBase: String = when {
-            !atk.isNullOrBlank() && !transactionId.isNullOrBlank() -> "${atk}|${transactionId}"
-            !transactionId.isNullOrBlank() -> transactionId
+            !paymentId.isNullOrBlank() -> "${paymentId}"
             else -> "0000000000000" // fallback para não quebrar
         }
 
@@ -248,14 +245,11 @@ class PrintingHandler(
     suspend fun enqueuePrintFiles(
         printingViewModel: PrintingViewModel,
         imageBitmap: Bitmap? = null,
-        atk: String? = null,
-        transactionId: String? = null,
+        paymentId: String? = null,
         passType: PassType = PassType.ProductCompact
     ) {
         withContext(Dispatchers.IO) {
             try {
-                Log.d("PrintingHandler", "enqueuePrintFiles start atk=$atk tx=$transactionId")
-
                 if (imageBitmap != null) {
                     val tmpFile = saveBitmapToTempFile(context, imageBitmap)
                     if (tmpFile != null) {
@@ -269,7 +263,7 @@ class PrintingHandler(
 
                 val operatorName = getOperatorName()
                 val (products, pos, event) = loadDataFromDatabase()
-                val passList = buildPassList(products, pos, event, operatorName, passType, atk, transactionId)
+                val passList = buildPassList(products, pos, event, operatorName, passType, paymentId)
 
                 passList.forEach { passData ->
                     val file = savePassAsBitmap(context, passData)
@@ -291,12 +285,11 @@ class PrintingHandler(
     fun enqueueAndStartPrinting(
         printingViewModel: PrintingViewModel,
         imageBitmap: Bitmap? = null,
-        atk: String? = null,
-        transactionId: String? = null
+        paymentId: String? = null,
     ) {
         lifecycleOwner.lifecycleScope.launch {
             try {
-                enqueuePrintFiles(printingViewModel, imageBitmap, atk, transactionId)
+                enqueuePrintFiles(printingViewModel, imageBitmap, paymentId)
                 printingViewModel.startProcessing()
             } catch (e: Exception) {
                 Log.e("PrintingHandler", "enqueueAndStartPrinting failed", e)

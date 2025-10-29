@@ -35,22 +35,22 @@ class FinishPaymentHandler @Inject constructor(
     private val posRepository: PosRepository,
     private val productRepository: ProductRepository,
     private val categoryRepository: CategoryRepository,
-    private val acquisitionRepository: AcquisitionRepository // Adicionado repositório de aquisições
+    private val acquisitionRepository: AcquisitionRepository
 ) {
     private val shoppingCartPrefs by lazy {
         appContext.getSharedPreferences("ShoppingCartPrefs", MODE_PRIVATE)
     }
 
-    suspend fun handlePayment(paymentType: PaymentType, paymentData: PaymentUIUtils.PaymentData? = null) {
-
+    // Agora retorna o id do pagamento criado (ou null se nada foi criado)
+    suspend fun handlePayment(paymentType: PaymentType, paymentData: PaymentUIUtils.PaymentData? = null): String? {
         val productQuantities = getProductsFromShoppingCart()
 
         if (productQuantities.isEmpty()) {
             Log.e("FinishPaymentHandler", "Shopping cart is empty! Cannot process payment.")
-            return
+            return null
         }
 
-        when (paymentType) {
+        return when (paymentType) {
             PaymentType.SINGLE_PAYMENT -> handleSinglePayment(paymentData, productQuantities)
             PaymentType.MULTI_PAYMENT -> handleMultiPayment(paymentData, productQuantities)
         }
@@ -99,10 +99,11 @@ class FinishPaymentHandler @Inject constructor(
         return productQuantities
     }
 
+    // Agora retorna o id do pagamento criado (ou null)
     private suspend fun handleSinglePayment(
         paymentData: PaymentUIUtils.PaymentData?,
         productQuantities: Map<String, Int>
-    ) {
+    ): String? {
         val orderId = UUID.randomUUID().toString()
         val order = OrderEntity(
             id = orderId,
@@ -111,11 +112,13 @@ class FinishPaymentHandler @Inject constructor(
             synced = false
         )
 
+        var createdPaymentId: String? = null
+
         try {
             orderRepository.insertOrder(order)
             paymentData?.let {
-                Log.d("CardPaymentFragment", "handleSuccessfulPayment -> txId=${it.transactionId}atk=${it.atk}")
-                createPayment(orderId, it)
+                Log.d("CardPaymentFragment", "handleSuccessfulPayment -> txId=${it.transactionId} atk=${it.atk}")
+                createdPaymentId = createPayment(orderId, it)
             }
             createAcquisitions(orderId, productQuantities)
 
@@ -123,15 +126,17 @@ class FinishPaymentHandler @Inject constructor(
         } catch (e: Exception) {
             println("Failed to create single payment order: ${e.message}")
         }
+
+        return createdPaymentId
     }
 
     private suspend fun handleMultiPayment(
         paymentData: PaymentUIUtils.PaymentData?,
         productQuantities: Map<String, Int>
-    ) {
+    ): String? {
         val existingOrderId = shoppingCartPrefs.getString("multi_payment_order_id", null)
 
-        if (existingOrderId == null) {
+        return if (existingOrderId == null) {
             createNewMultiPaymentOrder(paymentData, productQuantities)
         } else {
             verifyAndMaintainExistingOrder(existingOrderId, paymentData, productQuantities)
@@ -141,7 +146,7 @@ class FinishPaymentHandler @Inject constructor(
     private suspend fun createNewMultiPaymentOrder(
         paymentData: PaymentUIUtils.PaymentData?,
         productQuantities: Map<String, Int>
-    ) {
+    ): String? {
         val newOrderId = UUID.randomUUID().toString()
         val newOrder = OrderEntity(
             id = newOrderId,
@@ -154,10 +159,12 @@ class FinishPaymentHandler @Inject constructor(
             putString("multi_payment_order_id", newOrderId)
         }
 
+        var createdPaymentId: String? = null
+
         try {
             orderRepository.insertOrder(newOrder)
             paymentData?.let {
-                createPayment(newOrderId, it)
+                createdPaymentId = createPayment(newOrderId, it)
             }
 
             createAcquisitions(newOrderId, productQuantities)
@@ -169,17 +176,21 @@ class FinishPaymentHandler @Inject constructor(
             }
             println("Failed to create multi-payment order: ${e.message}")
         }
+
+        return createdPaymentId
     }
 
     private suspend fun verifyAndMaintainExistingOrder(
         orderId: String,
         paymentData: PaymentUIUtils.PaymentData?,
         productQuantities: Map<String, Int>
-    ) {
+    ): String? {
         val orderExists = orderRepository.getOrderById(orderId) != null
+        var createdPaymentId: String? = null
+
         if (orderExists) {
             paymentData?.let {
-                createPayment(orderId, it)
+                createdPaymentId = createPayment(orderId, it)
             }
 
             createAcquisitions(orderId, productQuantities)
@@ -189,8 +200,10 @@ class FinishPaymentHandler @Inject constructor(
             shoppingCartPrefs.edit {
                 remove("multi_payment_order_id")
             }
-            createNewMultiPaymentOrder(paymentData, productQuantities)
+            createdPaymentId = createNewMultiPaymentOrder(paymentData, productQuantities)
         }
+
+        return createdPaymentId
     }
 
     private suspend fun createAcquisitions(orderId: String, productQuantities: Map<String, Int>) {
@@ -252,7 +265,8 @@ class FinishPaymentHandler @Inject constructor(
         }
     }
 
-    private suspend fun createPayment(orderId: String, paymentData: PaymentUIUtils.PaymentData) {
+    // Agora createPayment retorna o id do PaymentEntity criado
+    private suspend fun createPayment(orderId: String, paymentData: PaymentUIUtils.PaymentData): String {
         Log.d("FinishPaymentHandler", "Creating payment for order: $orderId")
 
         val posData = posRepository.getFirstPos()
@@ -270,6 +284,7 @@ class FinishPaymentHandler @Inject constructor(
         )
 
         paymentRepository.insertPayment(payment)
+        return payment.id
     }
 }
 

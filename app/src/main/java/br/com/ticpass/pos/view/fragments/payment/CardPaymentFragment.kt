@@ -63,6 +63,7 @@ class CardPaymentFragment : Fragment() {
     private var remainingValue = 0.0
     private var isMultiPayment = false
     private var progress = ""
+    private var paymentId: String? = null
 
     private var lastTxId: String? = null
     private var lastAtk: String? = null
@@ -260,7 +261,8 @@ class CardPaymentFragment : Fragment() {
 
                 val amountInCents = (paymentValue * 100).toInt()
 
-                finishPaymentHandler.handlePayment(
+                // capturar o id retornado
+                val createdPaymentId = finishPaymentHandler.handlePayment(
                     PaymentType.SINGLE_PAYMENT,
                     PaymentUIUtils.PaymentData(
                         amount = amountInCents,
@@ -272,6 +274,7 @@ class CardPaymentFragment : Fragment() {
                     )
                 )
 
+                paymentId = createdPaymentId
                 finishPaymentHandled = true
                 triggerNavigateIfReady()
             } catch (e: Exception) {
@@ -283,7 +286,7 @@ class CardPaymentFragment : Fragment() {
     }
 
     private fun triggerNavigateIfReady() {
-        Log.d(TAG, "triggerNavigateIfReady: finishPaymentHandled=$finishPaymentHandled, lastTxId=$lastTxId, navigationStarted=$navigationStarted")
+        Log.d(TAG, "triggerNavigateIfReady: finishPaymentHandled=$finishPaymentHandled, lastTxId=$lastTxId, navigationStarted=$navigationStarted, paymentId=$paymentId")
         if (navigationStarted) {
             Log.d(TAG, "triggerNavigateIfReady: navegação já iniciada, ignorando")
             return
@@ -296,14 +299,17 @@ class CardPaymentFragment : Fragment() {
             Log.d(TAG, "triggerNavigateIfReady: aguardando txId/atk")
             return
         }
+        if (paymentId.isNullOrBlank()) {
+            Log.d(TAG, "triggerNavigateIfReady: aguardando paymentId")
+            return
+        }
 
         navigationStarted = true
 
         val frag = PaymentSuccessFragment.newInstance(
             isMultiPayment = isMultiPayment,
             progress = progress,
-            txId = lastTxId ?: "",
-            atk = lastAtk ?: ""
+            paymentId = paymentId.toString()
         )
         replaceWithFragment(frag)
     }
