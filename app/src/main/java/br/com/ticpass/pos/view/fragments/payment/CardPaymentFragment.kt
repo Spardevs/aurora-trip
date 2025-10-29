@@ -217,7 +217,7 @@ class CardPaymentFragment : Fragment() {
             shoppingCartManager = shoppingCartManager,
             method = method,
             amount = (paymentValue * 100),
-            isTransactionless = true,
+            isTransactionless = false,
             startImmediately = true
         )
 
@@ -256,6 +256,8 @@ class CardPaymentFragment : Fragment() {
                     else -> SystemPaymentMethod.CREDIT
                 }
 
+                Log.d(TAG, "handleSuccessfulPayment -> txId=$txId atk=$atk")
+
                 val amountInCents = (paymentValue * 100).toInt()
 
                 finishPaymentHandler.handlePayment(
@@ -264,7 +266,7 @@ class CardPaymentFragment : Fragment() {
                         amount = amountInCents,
                         commission = 0,
                         method = method,
-                        isTransactionless = true,
+                        isTransactionless = false,
                         transactionId = txId,
                         atk = atk
                     )

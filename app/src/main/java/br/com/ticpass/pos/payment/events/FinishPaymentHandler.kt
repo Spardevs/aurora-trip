@@ -114,6 +114,7 @@ class FinishPaymentHandler @Inject constructor(
         try {
             orderRepository.insertOrder(order)
             paymentData?.let {
+                Log.d("CardPaymentFragment", "handleSuccessfulPayment -> txId=${it.transactionId}atk=${it.atk}")
                 createPayment(orderId, it)
             }
             createAcquisitions(orderId, productQuantities)
@@ -263,7 +264,9 @@ class FinishPaymentHandler @Inject constructor(
             commission = posData?.commission ?: 0L,
             createdAt = System.currentTimeMillis().toString(),
             order = orderId,
-            synced = false
+            synced = false,
+            transactionId = paymentData.transactionId,
+            acquirerTransactionKey = paymentData.atk
         )
 
         paymentRepository.insertPayment(payment)

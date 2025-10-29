@@ -25,10 +25,11 @@ class HistoryRepository(
 
             History(
                 id = populated.order.id,
-                transactionId = payments.firstOrNull()?.acquirerTransactionKey ?: populated.order.id,
-                totalPrice = payments.sumOf { it.amount } / 100.0,
-                paymentPrice = payments.sumOf { it.amount } / 100.0,
-                commissionPrice = payments.sumOf { it.commission } / 100.0,
+                transactionId = payments.firstOrNull()?.transactionId.toString(),
+                atk = payments.firstOrNull()?.acquirerTransactionKey.toString(),
+                totalPrice = payments.sumOf { it.amount } / 1000.0,
+                paymentPrice = payments.sumOf { it.amount } / 1000.0 - payments.sumOf { it.commission } / 1000.0,
+                commissionPrice = payments.sumOf { it.commission } / 1000.0,
                 date = try {
                     isoFormat.parse(populated.order.createdAt) ?: Date()
                 } catch (e: Exception) {

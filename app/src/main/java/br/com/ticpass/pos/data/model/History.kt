@@ -6,6 +6,7 @@ import java.util.Date
 data class History(
     val id: String,
     val transactionId: String,
+    val atk: String,
     val totalPrice: Double,
     val paymentPrice: Double,
     val commissionPrice: Double,
