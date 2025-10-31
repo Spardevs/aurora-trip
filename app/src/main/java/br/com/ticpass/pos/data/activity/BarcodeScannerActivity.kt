@@ -1,8 +1,6 @@
 package br.com.ticpass.pos.data.activity
 
 import android.Manifest
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -11,25 +9,43 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import br.com.ticpass.pos.R
 import br.com.ticpass.pos.databinding.ActivityBarcodeScannerBinding
+import br.com.ticpass.pos.feature.refund.RefundViewModel
+import br.com.ticpass.pos.queue.processors.refund.processors.models.RefundProcessorType
+import br.com.ticpass.pos.viewmodel.refund.PaymentRefundViewModel
 import com.google.zxing.BarcodeFormat
-import com.google.zxing.DecodeHintType
 import com.google.zxing.ResultPoint
 import com.journeyapps.barcodescanner.BarcodeCallback
 import com.journeyapps.barcodescanner.BarcodeResult
 import com.journeyapps.barcodescanner.DefaultDecoderFactory
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import timber.log.Timber
+import androidx.fragment.app.commit
+import br.com.ticpass.pos.view.fragments.refund.ProcessingFragment
+import br.com.ticpass.pos.view.fragments.refund.SuccessFragment
+import br.com.ticpass.pos.view.fragments.refund.ErrorFragment
 
+@AndroidEntryPoint
 class BarcodeScannerActivity : AppCompatActivity() {
-
     private lateinit var binding: ActivityBarcodeScannerBinding
     private var hiddenEdit: EditText? = null
+    private val paymentRefundViewModel: PaymentRefundViewModel by viewModels()
+    private val refundViewModel: RefundViewModel by viewModels()
 
     companion object {
         private const val TAG = "CashPaymentFragment"
@@ -60,14 +76,126 @@ class BarcodeScannerActivity : AppCompatActivity() {
             BarcodeFormat.CODE_93,
             BarcodeFormat.ITF
         )
-        val hints = mapOf(DecodeHintType.TRY_HARDER to true)
         binding.zxingBarcodeScanner.decoderFactory = DefaultDecoderFactory(formats)
-
         binding.btnOpenKeyboard.setOnClickListener { showKeyboard() }
         binding.btnClose.setOnClickListener { finish() }
 
         if (hasCameraPermission()) startCamera()
         else ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), REQ_CAMERA)
+    }
+
+    /**
+     * Cria um AlertDialog baseado no layout fragment_printing_success.xml e retorna:
+     * Triple(dialog, statusTextView, progressBar)
+     */
+    private fun createDialogFromLayout(initialMessage: String): Triple<AlertDialog, TextView, ProgressBar?> {
+        val view = layoutInflater.inflate(R.layout.fragment_printing_success, null)
+
+        val ivCompleted = view.findViewById<ImageView>(R.id.iv_completed)
+        val tvCompleted = view.findViewById<TextView>(R.id.tv_completed)
+        val btnFinish = view.findViewById<View>(R.id.btn_finish)
+
+        // Criar um ProgressBar dinamicamente e inseri-lo acima do TextView
+        val parent = tvCompleted.parent
+        var progressBar: ProgressBar? = null
+        if (parent is ViewGroup) {
+            progressBar = ProgressBar(this).apply {
+                isIndeterminate = true
+            }
+            // adiciona o progressbar antes do tvCompleted
+            val index = parent.indexOfChild(tvCompleted)
+            parent.addView(progressBar, index)
+        }
+
+        tvCompleted.text = initialMessage
+        btnFinish.visibility = View.GONE
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(view)
+            .setCancelable(false)
+            .create()
+
+        return Triple(dialog, tvCompleted, progressBar)
+    }
+
+    private fun showStatusFragment(fragment: androidx.fragment.app.Fragment) {
+        runOnUiThread {
+            val container = findViewById<FrameLayout?>(R.id.refundStatusContainer)
+            if (container == null) {
+                Timber.tag(TAG).w("refundStatusContainer não encontrado no layout");
+                Toast.makeText(this, "Container de status ausente", Toast.LENGTH_SHORT).show()
+                return@runOnUiThread
+            }
+
+            container.visibility = View.VISIBLE
+            container.bringToFront()
+
+            val tag = fragment.javaClass.simpleName
+            Timber.tag(TAG).d("Mostrando fragment: $tag")
+
+            try {
+                supportFragmentManager
+                    .beginTransaction()
+                    .setReorderingAllowed(true)
+                    .replace(R.id.refundStatusContainer, fragment, tag)
+                    .commitNowAllowingStateLoss() // força execução imediata
+                Timber.tag(TAG).d("Fragment $tag commitNowAllowingStateLoss executado")
+            } catch (ex: Exception) {
+                Timber.tag(TAG).e(ex, "Erro ao mostrar fragment $tag")
+                supportFragmentManager.commit {
+                    setReorderingAllowed(true)
+                    replace(R.id.refundStatusContainer, fragment, tag)
+                }
+            }
+        }
+    }
+
+    fun hideStatusOverlay() {
+        runOnUiThread {
+            val container = findViewById<FrameLayout?>(R.id.refundStatusContainer)
+            container?.visibility = View.GONE
+            // remover fragment se existir
+            val fm = supportFragmentManager
+            val frag = fm.findFragmentById(R.id.refundStatusContainer)
+            if (frag != null) {
+                fm.beginTransaction().remove(frag).commitAllowingStateLoss()
+                fm.executePendingTransactions()
+            }
+        }
+    }
+
+
+    /**
+     * Processa o payload lido: resolve paymentId -> busca PaymentEntity -> enfileira e inicia refund.
+     * Mostra dialog customizado usando fragment_printing_success.xml e atualiza conforme resultado.
+     */
+    private fun processScannedPayload(payload: String) {
+        Timber.tag(TAG).d("processScannedPayload() chamado com payload=$payload")
+        lifecycleScope.launch {
+            try {
+                showStatusFragment(ProcessingFragment.newInstance("Estornando venda\nAguarde..."))
+                Timber.tag(TAG).d("Mostrou ProcessingFragment")
+                paymentRefundViewModel.loadPaymentFromScanned(payload)
+                val state = paymentRefundViewModel.uiState.first { it is PaymentRefundViewModel.UiState.Success || it is PaymentRefundViewModel.UiState.Error }
+                Timber.tag(TAG).d("PaymentRefundViewModel retornou estado: $state")
+                when (state) {
+                    is PaymentRefundViewModel.UiState.Success -> {
+                        Timber.tag(TAG).d("Estado SUCCESS, preparando refund")
+                    }
+                    is PaymentRefundViewModel.UiState.Error -> {
+                        Timber.tag(TAG).d("Estado ERROR: ${state.message}")
+                        showStatusFragment(ErrorFragment.newInstance(state.message))
+                    }
+                    else -> {
+                        Timber.tag(TAG).d("Estado inesperado: $state")
+                        showStatusFragment(ErrorFragment.newInstance("Erro desconhecido"))
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Erro em processScannedPayload")
+                showStatusFragment(ErrorFragment.newInstance("Erro: ${e.message ?: "desconhecido"}"))
+            }
+        }
     }
 
     private fun startCamera() {
@@ -82,11 +210,10 @@ class BarcodeScannerActivity : AppCompatActivity() {
 
                     displayBarcodeInfo(result)
 
-                    showParsedBarcodeDialog(barcodeInfo.text)
+                    // Ao ler com sucesso, iniciar o fluxo de estorno diretamente (sem mostrar modal com opções)
+                    processScannedPayload(barcodeInfo.text)
                 } else {
                     Timber.tag(TAG).w("✗ Código de barras inválido detectado")
-
-                    binding.overlayPrompt.text = "✗ Código inválido\nTente novamente"
 
                     Toast.makeText(
                         this@BarcodeScannerActivity,
@@ -95,7 +222,6 @@ class BarcodeScannerActivity : AppCompatActivity() {
                     ).show()
 
                     binding.zxingBarcodeScanner.postDelayed({
-                        binding.overlayPrompt.text = "Posicione o código de barras"
                         binding.zxingBarcodeScanner.resume()
                     }, 1500)
                 }
@@ -105,68 +231,6 @@ class BarcodeScannerActivity : AppCompatActivity() {
         }
         binding.zxingBarcodeScanner.decodeContinuous(callback)
         binding.zxingBarcodeScanner.resume()
-    }
-
-    private fun showParsedBarcodeDialog(text: String?) {
-        val payload = text ?: ""
-
-        /**
-         * Resolve paymentId a partir do payload lido.
-         * - Se payload contiver '|', considera a primeira parte antes do '|'
-         * - Remove sufixos como "-1" ou "-G" (split por '-' e pega primeiro segmento)
-         * - Se o candidato for numérico com 13 dígitos (EAN-13), tenta lookup em SharedPreferences
-         *   (chave: "map_<ean13>") e retorna o paymentId mapeado se existir.
-         * - Caso contrário retorna o candidato bruto.
-         */
-        fun resolvePaymentIdFromPayload(ctx: Context, p: String): String? {
-            if (p.isBlank()) return null
-            val base = p.split("|").map { it.trim() }.firstOrNull() ?: return null
-            val candidate = base.split("-").firstOrNull()?.trim() ?: base
-            val numeric = candidate.replace("[^0-9]".toRegex(), "")
-
-            if (numeric.length == 13) {
-                return try {
-                    val prefs = ctx.getSharedPreferences("BarcodeMappingPrefs", Context.MODE_PRIVATE)
-                    val mapped = prefs.getString("map_$numeric", null)
-                    if (!mapped.isNullOrBlank()) mapped else numeric
-                } catch (e: Exception) {
-                    numeric
-                }
-            }
-            return candidate.takeIf { it.isNotBlank() }
-        }
-
-        val paymentIdResolved = resolvePaymentIdFromPayload(this, payload)
-        Timber.tag(TAG).d("Parsed payload => resolvedPaymentId=$paymentIdResolved")
-        Timber.tag(TAG).d("Scanner raw payload: $payload")
-
-        val message = "paymentId: ${paymentIdResolved ?: "(não identificado)"}\n\nPayload original:\n$payload"
-
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Informações lidas")
-            .setMessage(message)
-            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
-            .setNeutralButton("Copiar payload") { _, _ ->
-                try {
-                    val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-                    val clip = ClipData.newPlainText("barcode_payload", payload)
-                    clipboard.setPrimaryClip(clip)
-                    Toast.makeText(this, "Payload copiado", Toast.LENGTH_SHORT).show()
-                } catch (e: Exception) { Toast.makeText(this, "Erro ao copiar", Toast.LENGTH_SHORT).show() }
-            }
-            .setNegativeButton("Usar") { _, _ ->
-                // Ao usar, retornamos o paymentId resolvido (se disponível) para o caller.
-                // Se não houver mapping/resolução, retornamos o payload original.
-                val toReturn = paymentIdResolved ?: payload
-                deliverResultAndFinish(toReturn)
-            }
-        builder.show()
-    }
-
-    private fun deliverResultAndFinish(text: String?) {
-        val data = Intent().apply { putExtra(EXTRA_SCAN_TEXT, text ?: "") }
-        setResult(RESULT_OK, data)
-        finish()
     }
 
     private fun showKeyboard() {
@@ -236,8 +300,6 @@ class BarcodeScannerActivity : AppCompatActivity() {
         Timber.tag(TAG).d("Timestamp: ${result.timestamp}")
         Timber.tag(TAG).d("════")
 
-        binding.overlayPrompt.text = "✓ $barcodeFormat\n$barcodeText"
-
         Toast.makeText(
             this,
             "Código lido: $barcodeText",
@@ -245,11 +307,6 @@ class BarcodeScannerActivity : AppCompatActivity() {
         ).show()
     }
 
-    /**
-     * Valida e processa informações de um código de barras
-     * @param barcodeResult Resultado do scan do barcode
-     * @return BarcodeInfo se válido, null se inválido
-     */
     private fun validateAndReadBarcode(barcodeResult: BarcodeResult?): BarcodeInfo? {
         if (barcodeResult == null) {
             Timber.tag("BarcodeValidator").w("Resultado do barcode é nulo")
@@ -275,8 +332,13 @@ class BarcodeScannerActivity : AppCompatActivity() {
     }
 
     /**
-     * Classe de dados para informações do barcode
+     * Chamado pelo ErrorFragment para retomar o scanner depois de um erro.
      */
+    fun resumeScannerAfterError() {
+        hideStatusOverlay()
+        binding.zxingBarcodeScanner.post { binding.zxingBarcodeScanner.resume() }
+    }
+
     data class BarcodeInfo(
         val text: String,
         val format: String,

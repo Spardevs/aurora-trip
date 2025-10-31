@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:gravity="center"
+    android:layout_gravity="center"
+    android:background="@drawable/bg_printing_border_error">
+
+    <ImageView
+        android:id="@+id/iv_error"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:src="@drawable/ic_close_circle"
+        app:tint="#F44336" />
+
+    <TextView
+        android:id="@+id/tv_error"
+        android:layout_width="160dp"
+        android:layout_height="wrap_content"
+        android:text="Erro ao estornar"
+        android:textColor="#F44336"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:layout_marginTop="12dp"/>
+
+    <Button
+        android:id="@+id/btn_retry"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tentar novamente"
+        android:layout_marginTop="16dp"
+        android:visibility="visible"
+        android:backgroundTint="#F44336"
+        android:textColor="@android:color/white" />
+
+
+</LinearLayout>
