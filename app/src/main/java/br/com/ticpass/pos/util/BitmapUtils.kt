@@ -18,11 +18,15 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import java.io.File
 import java.io.FileOutputStream
+import java.util.zip.CRC32
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.viewmodel.report.ReportData
 import androidx.core.graphics.set
 import com.journeyapps.barcodescanner.BarcodeResult
 import timber.log.Timber
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 fun calculateEAN13Checksum(code: String): String {
     val cleanCode = code.replace("[^0-9]".toRegex(), "")
@@ -120,15 +124,57 @@ fun generateBarcodeBitmapAuto(payload: String, width: Int = 350, height: Int = (
 }
 
 /**
- * Monta o payload do barcode combinando o barcode original com ATK e Transaction ID quando disponíveis.
- * Exemplo de saída: "1234567890123|ATK:abcd|TX:tx123"
+ * Gera um token numérico determinístico de 12 dígitos a partir do paymentId (alfanumérico).
+ * Usa CRC32 para derivar um valor 32-bit e mapeia para 12 dígitos.
  */
-private fun buildBarcodePayload(originalBarcode: String?, atk: String?, transactionId: String?): String {
-    val parts = mutableListOf<String>()
-    if (!originalBarcode.isNullOrBlank()) parts.add(originalBarcode)
-    if (!atk.isNullOrBlank()) parts.add("ATK:$atk")
-    if (!transactionId.isNullOrBlank()) parts.add("TX:$transactionId")
-    return parts.joinToString("|")
+fun generate12DigitTokenFromPaymentId(paymentId: String): String {
+    val crc = CRC32()
+    crc.update(paymentId.toByteArray(Charsets.UTF_8))
+    val v = crc.value and 0xFFFFFFFFL
+    val num = (v % 1_000_000_000_000L).toString().padStart(12, '0')
+    return num
+}
+
+/**
+ * Converte paymentId em EAN-13 (13 dígitos) determinístico.
+ * Também é responsável por gravar o mapeamento EAN13 -> paymentId em SharedPreferences
+ * para posterior resolução no scanner.
+ */
+fun paymentIdToEan13AndSaveMapping(context: Context, paymentId: String): String {
+    val token12 = generate12DigitTokenFromPaymentId(paymentId)
+    val ean13 = calculateEAN13Checksum(token12) // retorna 13 dígitos
+
+    try {
+        val prefs = context.getSharedPreferences("BarcodeMappingPrefs", Context.MODE_PRIVATE)
+        prefs.edit().putString("map_$ean13", paymentId).apply()
+    } catch (e: Exception) {
+        Timber.tag("BitmapUtils").w(e, "Falha ao salvar mapping EAN13 -> paymentId")
+    }
+
+    return ean13
+}
+
+/**
+ * Decide o payload que será impresso no barcode (somente o token/EAN13 ou números já adequados).
+ * Se o originalBarcode for um paymentId alfanumérico, gera EAN-13 curto e salva mapping.
+ */
+fun buildBarcodeForPrinting(context: Context, originalBarcode: String?): String {
+    if (originalBarcode.isNullOrBlank()) return "0000000000000" // fallback
+
+    val numericOnly = originalBarcode.replace("[^0-9]".toRegex(), "")
+
+    // Se já for um EAN-13 válido, usa direto
+    if (numericOnly.length == 13 && isValidEAN13(numericOnly)) {
+        return numericOnly
+    }
+
+    // Se for 12 dígitos numéricos, calcula checksum e usa
+    if (numericOnly.length == 12) {
+        return calculateEAN13Checksum(numericOnly)
+    }
+
+    // Caso comum: paymentId alfanumérico -> gerar token EAN13 e salvar mapeamento
+    return paymentIdToEan13AndSaveMapping(context, originalBarcode)
 }
 
 fun savePassAsBitmap(context: Context, passData: PassData, atk: String? = null, transactionId: String? = null): File? {
@@ -138,7 +184,7 @@ fun savePassAsBitmap(context: Context, passData: PassData, atk: String? = null, 
 
     // Log do barcode usado para gerar o passe — útil para debug
     try {
-        val payload = buildBarcodePayload(passData.header.barcode, atk, transactionId)
+        val payload = buildBarcodeForPrinting(context, passData.header.barcode)
         Timber.tag("SavePassAsBitmap").d("Gerando passe com barcode payload: $payload")
     } catch (_: Exception) {}
 
@@ -189,7 +235,8 @@ private fun inflateProductLayout(
     val view = inflater.inflate(layoutRes, null)
 
     val barcodeImage = view.findViewById<ImageView>(R.id.barcodeImageView)
-    val payload = buildBarcodePayload(data.header.barcode, atk, transactionId)
+    // Usa a função centralizada que gera um payload curto e grava mapping se necessário
+    val payload = buildBarcodeForPrinting(inflater.context, data.header.barcode)
     val barcodeBitmap = try {
         Timber.tag("inflateProductLayout").d("Payload para barcode: $payload")
         generateBarcodeBitmapAuto(payload)
@@ -226,7 +273,7 @@ private fun inflateGroupedLayout(inflater: LayoutInflater, data: PassData, atk: 
     view.findViewById<TextView>(R.id.headerDate)?.text = data.header.date
 
     // Gera e seta o bitmap no ImageView do layout agrupado (corrigido)
-    val payload = buildBarcodePayload(data.header.barcode, atk, transactionId)
+    val payload = buildBarcodeForPrinting(inflater.context, data.header.barcode)
     val barcodeBitmap = try {
         Timber.tag("inflateGroupedLayout").d("Payload para barcode (grouped): $payload")
         generateBarcodeBitmapAuto(payload)
@@ -380,54 +427,6 @@ fun saveReportAsBitmap(context: Context, reportData: ReportData): File? {
         Timber.tag("ReportGenerator").e(e, "Erro ao gerar relatório")
         null
     }
-}
-
-/**
- * Valida e processa informações de um código de barras
- * @param barcodeResult Resultado do scan do barcode
- * @return BarcodeInfo se válido, null se inválido
- */
-fun validateAndReadBarcode(barcodeResult: BarcodeResult?): BarcodeInfo? {
-    // Verifica se o resultado não é nulo
-    if (barcodeResult == null) {
-        Timber.tag("BarcodeValidator").w("Resultado do barcode é nulo")
-        return null
-    }
-
-    val text = barcodeResult.text
-    val format = barcodeResult.barcodeFormat
-
-    // Valida se o texto não está vazio
-    if (text.isNullOrBlank()) {
-        Timber.tag("BarcodeValidator").w("Texto do barcode está vazio")
-        return null
-    }
-
-    // Valida o formato e comprimento do código
-    val isValid = when (format) {
-        BarcodeFormat.EAN_13 -> text.length == 13 && text.all { it.isDigit() } && validateEAN13(text)
-        BarcodeFormat.EAN_8 -> text.length == 8 && text.all { it.isDigit() } && validateEAN8(text)
-        BarcodeFormat.UPC_A -> text.length == 12 && text.all { it.isDigit() } && validateUPCA(text)
-        BarcodeFormat.UPC_E -> text.length == 8 && text.all { it.isDigit() }
-        BarcodeFormat.CODE_128 -> text.isNotEmpty()
-        BarcodeFormat.CODE_39 -> text.isNotEmpty()
-        BarcodeFormat.CODE_93 -> text.isNotEmpty()
-        BarcodeFormat.ITF -> text.length % 2 == 0 && text.all { it.isDigit() }
-        else -> false
-    }
-
-    if (!isValid) {
-        Timber.tag("BarcodeValidator").w("Barcode inválido: formato=$format, texto=$text")
-        return null
-    }
-
-    // Retorna informações do barcode validado
-    return BarcodeInfo(
-        text = text,
-        format = format.toString(),
-        timestamp = barcodeResult.timestamp,
-        isValid = true
-    )
 }
 
 /**
