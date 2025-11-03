@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <objectAnimator
+            android:propertyName="elevation"
+            android:duration="0"
+            android:valueFrom="6dp"
+            android:valueTo="6dp"
+            android:valueType="floatType" />
+    </item>
+</selector>

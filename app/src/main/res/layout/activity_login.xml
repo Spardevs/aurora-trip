@@ -5,13 +5,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/login_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_with_gradient"
+    >
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/materialToolbar"
         android:layout_width="match_parent"
         android:layout_height="189dp"
-        android:background="@color/material_dynamic_neutral_variant95"
+        android:background="@drawable/rounded_gradient_top"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -19,8 +21,8 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/choiceContainer"
-        android:layout_width="327dp"
-        android:layout_height="85dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="@+id/materialToolbar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.483"
@@ -33,7 +35,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="@string/login_text"
-            android:textColor="@color/colorAccent"
+            android:textColor="@color/colorWhite"
+            android:textSize="24sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -44,11 +47,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:backgroundTint="@color/colorAccent"
+            android:backgroundTint="#FF666F"
+            android:elevation="6dp"
             android:onClick="emailLoginButton"
             android:text="@string/details_dev_email"
-            app:cornerRadius="20dp"
+            android:stateListAnimator="@animator/button_elevation"
+            app:cornerRadius="8dp"
             app:icon="@android:drawable/ic_dialog_email"
+            app:iconGravity="textEnd"
+            app:iconPadding="7dp"
             app:layout_constraintEnd_toStartOf="@+id/qr_code_login_button"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/login_text_choice" />
@@ -58,9 +65,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:backgroundTint="@color/colorAccent"
             android:text="@string/qr_code"
             app:icon="@drawable/baseline_qr_code_24"
+            app:iconGravity="textEnd"
+            app:iconPadding="7dp"
+            android:stateListAnimator="@animator/button_elevation"
+            app:cornerRadius="8dp"
+            android:backgroundTint="#FF666F"
+            android:elevation="6dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/email_login_button"
             app:layout_constraintTop_toBottomOf="@id/login_text_choice" />
@@ -71,7 +83,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/formContainer"
         android:layout_width="0dp"
-        android:layout_height="190dp"
+        android:layout_height="ma"
         android:visibility="gone"
         android:padding="10dp"
         app:layout_constraintBottom_toBottomOf="@+id/materialToolbar"
@@ -136,10 +148,7 @@
         android:id="@+id/falling"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="24dp"
-        android:src="@drawable/falling_2"
-        tools:ignore="MissingConstraints"
         android:foregroundGravity="center"
-        tools:layout_editor_absoluteX="24dp"
-        tools:layout_editor_absoluteY="16dp" />
+        android:src="@drawable/skydiving"
+        tools:ignore="MissingConstraints" />
 </androidx.constraintlayout.widget.ConstraintLayout>

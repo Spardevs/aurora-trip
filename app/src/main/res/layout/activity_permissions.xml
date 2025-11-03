@@ -94,10 +94,12 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRequestPermissions"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:backgroundTint="#FF666F"
+            android:elevation="6dp"
+            android:stateListAnimator="@animator/button_elevation"
             android:text="Conceder permissões"
             android:textAllCaps="false"
             android:textColor="@android:color/white"
