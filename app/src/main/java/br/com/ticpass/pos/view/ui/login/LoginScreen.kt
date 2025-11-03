@@ -13,15 +13,30 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.activity.BaseActivity
 import br.com.ticpass.pos.data.activity.MenuActivity
 import br.com.ticpass.pos.data.activity.QrScannerActivity
+import br.com.ticpass.pos.data.api.APIRepository
+import br.com.ticpass.pos.data.api.APITestResponse
 import br.com.ticpass.pos.databinding.ActivityLoginBinding
+import br.com.ticpass.pos.util.DeviceUtils.getDeviceSerial
 import com.auth0.android.jwt.JWT
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class LoginScreen : BaseActivity() {
+
     private lateinit var binding: ActivityLoginBinding
+
+    @Inject
+    lateinit var apiRepository: APIRepository
 
     private val scannerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -96,20 +111,66 @@ class LoginScreen : BaseActivity() {
                 startQrScanner()
             }
         }
+
+        binding.buttonConfirm.setOnClickListener {
+            val username = binding.editTextTextEmailAddress.text.toString()
+            val password = binding.editTextTextPassword.text.toString()
+            val serial = getDeviceSerial(this)
+            if (username.isBlank() || password.isBlank()) {
+                showToast("Preencha usuário e senha")
+            } else {
+                doLogin(username, password, serial)
+            }
+        }
+
+        binding.buttonBack.setOnClickListener {
+            binding.choiceContainer.visibility = View.VISIBLE
+            binding.formContainer.visibility = View.GONE
+
+            binding.editTextTextEmailAddress.text.clear()
+            binding.editTextTextPassword.text.clear()
+        }
+
+    }
+
+
+    private fun doLogin(username: String, password: String, serial: String) {
+        val handler = CoroutineExceptionHandler { _, throwable ->
+            runOnUiThread {
+                showToast("Erro no login: ${throwable.message}")
+            }
+        }
+
+        lifecycleScope.launch(handler) {
+            try {
+                val authResponse: APITestResponse = withContext(Dispatchers.IO) {
+                    apiRepository.login(username, password, serial)
+                }
+                runOnUiThread {
+                    saveAuthData(authResponse)
+                    startActivity(Intent(this@LoginScreen, MenuScreen::class.java))
+                    finish()
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    showToast("Falha no login: ${e.message}")
+                }
+            }
+        }
+    }
+
+    private fun saveAuthData(authResponse: APITestResponse) {
+        getSharedPreferences("UserPrefs", Context.MODE_PRIVATE).edit().apply {
+            putString("auth_token", authResponse.result.token)
+            putString("refresh_token", authResponse.result.tokenRefresh)
+            putInt("user_id", authResponse.result.user.id.toIntOrNull() ?: -1)
+            putString("user_name", authResponse.result.user.name)
+            apply()
+        }
     }
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-    }
-
-    fun emailLoginButton(view: View) {
-        binding.choiceContainer.visibility = View.GONE
-        binding.formContainer.visibility = View.VISIBLE
-    }
-
-    fun onBackFromForm(view: View) {
-        binding.formContainer.visibility = View.GONE
-        binding.choiceContainer.visibility = View.VISIBLE
     }
 
     private fun startQrScanner() {

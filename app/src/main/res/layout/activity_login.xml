@@ -9,25 +9,17 @@
     android:background="@drawable/bg_with_gradient"
     >
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/materialToolbar"
-        android:layout_width="match_parent"
-        android:layout_height="189dp"
-        android:background="@drawable/rounded_gradient_top"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/choiceContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="@+id/materialToolbar"
+        android:paddingVertical="20dp"
+        android:visibility="gone"
+        android:background="@drawable/rounded_gradient_top"
+        app:layout_constraintBottom_toBottomOf="@+id/falling"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.483"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/materialToolbar">
+        app:layout_constraintStart_toStartOf="parent">
 
         <TextView
             android:id="@+id/login_text_choice"
@@ -41,7 +33,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
-
         <Button
             android:id="@+id/email_login_button"
             android:layout_width="wrap_content"
@@ -59,7 +50,6 @@
             app:layout_constraintEnd_toStartOf="@+id/qr_code_login_button"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/login_text_choice" />
-
         <Button
             android:id="@+id/qr_code_login_button"
             android:layout_width="wrap_content"
@@ -79,68 +69,100 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/formContainer"
-        android:layout_width="0dp"
-        android:layout_height="ma"
-        android:visibility="gone"
-        android:padding="10dp"
-        app:layout_constraintBottom_toBottomOf="@+id/materialToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_gradient_top"
+        android:padding="20dp"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="@+id/falling"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        >
 
         <TextView
             android:id="@+id/login_text_form"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/login_text"
-            android:textColor="@color/colorAccent"
+            android:text="Insira as informações do login"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            tools:ignore="MissingConstraints" />
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <EditText
             android:id="@+id/editTextTextEmailAddress"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:hint="nome@exemplo.com"
             android:inputType="textEmailAddress"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:background="@drawable/bg_card_button"
+            android:padding="12dp"
+            android:textColor="#000000"
+            android:textColorHint="#88000000"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/login_text_form"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/login_text_form" />
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <EditText
             android:id="@+id/editTextTextPassword"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:hint="Senha"
             android:inputType="textPassword"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/editTextTextEmailAddress" />
-
-        <Button
-            android:id="@+id/button_enter"
-            android:layout_width="190dp"
-            android:layout_height="46dp"
+            android:background="@drawable/bg_card_button"
+            android:padding="12dp"
+            android:textColor="#000000"
+            android:textColorHint="#88000000"
             android:layout_marginTop="8dp"
-            android:backgroundTint="@color/colorAccent"
-            android:onClick="onSubmitEmail"
-            android:text="@string/login_enter_button"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/editTextTextPassword" />
-
-        <TextView
-            android:id="@+id/textView_back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="44dp"
-            android:layout_marginTop="24dp"
-            android:onClick="onBackFromForm"
-            android:text="@string/action_back"
+            app:layout_constraintTop_toBottomOf="@id/editTextTextEmailAddress"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/editTextTextPassword" />
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:gravity="center"
+            app:layout_constraintTop_toBottomOf="@id/editTextTextPassword"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_back"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:backgroundTint="#FF666F"
+            android:text="Voltar"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            app:cornerRadius="12dp"
+            app:icon="@drawable/ic_arrow_back"
+            app:iconGravity="textStart"
+            app:iconPadding="8dp"
+            android:layout_marginEnd="8dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_confirm"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:backgroundTint="#FF666F"
+            android:text="Confirmar"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            app:cornerRadius="12dp"
+            app:icon="@drawable/ic_login_arrow_right"
+            app:iconGravity="textStart"
+            app:iconPadding="8dp"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -150,5 +172,6 @@
         android:layout_height="wrap_content"
         android:foregroundGravity="center"
         android:src="@drawable/skydiving"
-        tools:ignore="MissingConstraints" />
+        tools:ignore="MissingConstraints"
+        />
 </androidx.constraintlayout.widget.ConstraintLayout>
