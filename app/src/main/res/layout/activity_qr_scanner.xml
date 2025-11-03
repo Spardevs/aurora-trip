@@ -26,8 +26,15 @@
         android:padding="16dp"
         android:background="#80000000"
         android:text="@string/point_to_qr_code"
-        android:textColor="#FFFFFF"
+        android:textColor="#FFFF"
         android:textAlignment="center"
         android:textSize="16sp"
         tools:ignore="RtlCompat" />
+
+    <!-- Container para fragments -->
+    <FrameLayout
+        android:id="@+id/fragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
 </FrameLayout>

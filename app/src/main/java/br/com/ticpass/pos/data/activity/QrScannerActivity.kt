@@ -7,10 +7,14 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.Button
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Immutable
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
@@ -62,6 +66,57 @@ class QrScannerActivity() : BaseActivity(), BarcodeCallback {
 
     private lateinit var barcodeView: BarcodeView
 
+    class RefundProcessingFragment : Fragment(R.layout.fragment_refund_processing) {
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+            super.onViewCreated(view, savedInstanceState)
+            val btnFinishSuccess = view.findViewById<Button>(R.id.btn_finish_success)
+            val btnRetry = view.findViewById<Button>(R.id.btn_retry)
+            btnFinishSuccess?.isEnabled = false
+            btnRetry?.isEnabled = false
+        }
+    }
+
+    class RefundErrorFragment : Fragment(R.layout.fragment_refund_error) {
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+            super.onViewCreated(view, savedInstanceState)
+            val btnFinishSuccess = view.findViewById<Button>(R.id.btn_finish_success)
+            val btnRetry = view.findViewById<Button>(R.id.btn_retry)
+            btnFinishSuccess?.isEnabled = false
+            btnRetry?.isEnabled = false
+        }
+    }
+
+    class RefundSuccessFragment : Fragment(R.layout.fragment_refund_success) {
+
+        private var successText: String? = null
+
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+            successText = arguments?.getString("success_text")
+        }
+
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+            super.onViewCreated(view, savedInstanceState)
+            val tvSuccess = view.findViewById<TextView>(R.id.tv_success)
+            tvSuccess?.text = successText ?: "Login validado"
+            // Desabilitar botões aqui também, se quiser
+            val btnFinishSuccess = view.findViewById<Button>(R.id.btn_finish_success)
+            val btnRetry = view.findViewById<Button>(R.id.btn_retry)
+            btnFinishSuccess?.isEnabled = false
+            btnRetry?.isEnabled = false
+        }
+
+        companion object {
+            fun newInstance(successText: String): RefundSuccessFragment {
+                val fragment = RefundSuccessFragment()
+                val args = Bundle()
+                args.putString("success_text", successText)
+                fragment.arguments = args
+                return fragment
+            }
+        }
+    }
+
     companion object {
         private const val REQUEST_CAMERA = 1001
         private val FORMATS = listOf(BarcodeFormat.QR_CODE)
@@ -89,7 +144,6 @@ class QrScannerActivity() : BaseActivity(), BarcodeCallback {
     }
 
 
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -115,15 +169,43 @@ class QrScannerActivity() : BaseActivity(), BarcodeCallback {
         barcodeView.pause()
         val text = result.text
         if (text != null && isPatternMatch(text)) {
-                val hash = getHash(text)
-                doLogin(hash) { result ->
-                result.onSuccess { response ->
-                }.onFailure { error ->
+            val hash = getHash(text)
+
+            // Mostrar fragment de processamento
+            val processingFragment = RefundProcessingFragment()
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, processingFragment)
+                .commit()
+            updateProcessingText(processingFragment)
+
+            doLogin(hash) { result ->
+                runOnUiThread {
+                    result.onSuccess { response ->
+                        // Mostrar fragment de sucesso
+                        val successFragment = RefundSuccessFragment.newInstance("Login validado")
+                        supportFragmentManager.beginTransaction()
+                            .replace(R.id.fragmentContainer, successFragment)
+                            .commit()
+                        updateSuccessText(successFragment)
+                        // Aqui você pode navegar para outra tela ou finalizar a activity
+                        setResult(RESULT_OK, intent.putExtra("auth_response", response.toString()))
+                        finish()
+                    }
+                    result.onFailure { error ->
+                        val errorFragment = RefundErrorFragment()
+                        supportFragmentManager.beginTransaction()
+                            .replace(R.id.fragmentContainer, errorFragment)
+                            .commit()
+                        updateErrorText(errorFragment)
+                        Snackbar.make(barcodeView, "Erro no login: ${error.message}", Snackbar.LENGTH_SHORT).show()
+                        setResult(RESULT_CANCELED, intent.putExtra("auth_error", error.message ?: "Erro desconhecido"))
+                        finish()
+                    }
                 }
             }
-            } else {
-                showInvalidQrError()
-            }
+        } else {
+            showInvalidQrError()
+        }
     }
 
 
@@ -155,6 +237,7 @@ class QrScannerActivity() : BaseActivity(), BarcodeCallback {
         val atIndex = input.indexOf("@")
         return input.substring(atIndex + 1)
     }
+
     fun doLogin(
         hash: String,
         onResult: (Result<APITestResponse>) -> Unit
@@ -169,17 +252,23 @@ class QrScannerActivity() : BaseActivity(), BarcodeCallback {
                     val serial = getDeviceSerial(this@QrScannerActivity)
                     apiRepository.loginQrcode(hash, serial)
                 }
-                setResult(RESULT_OK, intent.putExtra("auth_response", authResponse.toString()))
-                finish()
+                onResult(Result.success(authResponse))
             } catch (e: Exception) {
-                setResult(RESULT_CANCELED, intent.putExtra("auth_error", e.message))
-                finish()
+                onResult(Result.failure(e))
             }
         }
     }
 
+    private fun updateProcessingText(fragment: Fragment) {
+        fragment.view?.findViewById<TextView>(R.id.tv_processing)?.text = "Realizando login"
+    }
+
+    private fun updateSuccessText(fragment: Fragment) {
+        fragment.view?.findViewById<TextView>(R.id.tv_success)?.text = "Login validado"
+    }
+
+    private fun updateErrorText(fragment: Fragment) {
+        fragment.view?.findViewById<TextView>(R.id.tv_error)?.text = "Erro ao validar Login"
+    }
 
 }
-
-
-

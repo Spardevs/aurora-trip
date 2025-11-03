@@ -8,11 +8,14 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.activity.BaseActivity
@@ -33,10 +36,62 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class LoginScreen : BaseActivity() {
 
+    class RefundProcessingFragment : Fragment(R.layout.fragment_refund_processing) {
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+            super.onViewCreated(view, savedInstanceState)
+            val btnFinishSuccess = view.findViewById<Button>(R.id.btn_finish_success)
+            val btnRetry = view.findViewById<Button>(R.id.btn_retry)
+            btnFinishSuccess?.isEnabled = false
+            btnRetry?.isEnabled = false
+        }
+    }
+
+    class RefundErrorFragment : Fragment(R.layout.fragment_refund_error) {
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+            super.onViewCreated(view, savedInstanceState)
+            val btnFinishSuccess = view.findViewById<Button>(R.id.btn_finish_success)
+            val btnRetry = view.findViewById<Button>(R.id.btn_retry)
+            btnFinishSuccess?.isEnabled = false
+            btnRetry?.isEnabled = false
+        }
+    }
+
+    class RefundSuccessFragment : Fragment(R.layout.fragment_refund_success) {
+
+        private var successText: String? = null
+
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+            successText = arguments?.getString("success_text")
+        }
+
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+            super.onViewCreated(view, savedInstanceState)
+            val tvSuccess = view.findViewById<TextView>(R.id.tv_success)
+            tvSuccess?.text = successText ?: "Login validado"
+            // Desabilitar botões aqui também, se quiser
+            val btnFinishSuccess = view.findViewById<Button>(R.id.btn_finish_success)
+            val btnRetry = view.findViewById<Button>(R.id.btn_retry)
+            btnFinishSuccess?.isEnabled = false
+            btnRetry?.isEnabled = false
+        }
+
+        companion object {
+            fun newInstance(successText: String): RefundSuccessFragment {
+                val fragment = RefundSuccessFragment()
+                val args = Bundle()
+                args.putString("success_text", successText)
+                fragment.arguments = args
+                return fragment
+            }
+        }
+    }
+
     private lateinit var binding: ActivityLoginBinding
 
     @Inject
     lateinit var apiRepository: APIRepository
+
 
     private val scannerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -74,7 +129,7 @@ class LoginScreen : BaseActivity() {
                 }
             }
         } else {
-            val error = result.data?.getStringExtra("auth_error")
+            val error = result.data?.getStringExtra("auth_error") ?: "Erro desconhecido"
             Log.e("LoginScreen", "Erro no login: $error")
             showToast("Falha no login: $error")
         }
@@ -97,6 +152,7 @@ class LoginScreen : BaseActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
 
         binding.qrCodeLoginButton.setOnClickListener {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -133,10 +189,25 @@ class LoginScreen : BaseActivity() {
 
     }
 
-
     private fun doLogin(username: String, password: String, serial: String) {
+        // Mostrar fragment de processamento
+        val processingFragment = RefundProcessingFragment()
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, processingFragment)
+            .commit()
+        updateProcessingText(processingFragment)
+
         val handler = CoroutineExceptionHandler { _, throwable ->
             runOnUiThread {
+                val errorFragment = RefundErrorFragment()
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.fragmentContainer, errorFragment)
+                    .commit()
+                updateErrorText(errorFragment)
+                // Mostrar fragment de erro
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.fragmentContainer, RefundErrorFragment())
+                    .commit()
                 showToast("Erro no login: ${throwable.message}")
             }
         }
@@ -148,11 +219,18 @@ class LoginScreen : BaseActivity() {
                 }
                 runOnUiThread {
                     saveAuthData(authResponse)
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.fragmentContainer, RefundSuccessFragment())
+                        .commit()
                     startActivity(Intent(this@LoginScreen, MenuScreen::class.java))
                     finish()
                 }
             } catch (e: Exception) {
                 runOnUiThread {
+                    // Mostrar fragment de erro
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.fragmentContainer, RefundErrorFragment())
+                        .commit()
                     showToast("Falha no login: ${e.message}")
                 }
             }
@@ -197,4 +275,16 @@ class LoginScreen : BaseActivity() {
     companion object {
         private const val REQUEST_CAMERA = 1001
     }
+}
+
+private fun updateProcessingText(fragment: Fragment) {
+    fragment.view?.findViewById<TextView>(R.id.tv_processing)?.text = "Realizando login"
+}
+
+private fun updateSuccessText(fragment: Fragment) {
+    fragment.view?.findViewById<TextView>(R.id.tv_success)?.text = "Login validado"
+}
+
+private fun updateErrorText(fragment: Fragment) {
+    fragment.view?.findViewById<TextView>(R.id.tv_error)?.text = "Erro ao validar Login"
 }
