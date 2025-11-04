@@ -6,6 +6,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
@@ -27,8 +28,7 @@ class MenuActivity : BaseActivity() {
         setContentView(R.layout.activity_menus)
 
         val recyclerView = findViewById<RecyclerView>(R.id.menusRecyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-
+        recyclerView.layoutManager = GridLayoutManager(this, 2)
         loadMenus()
     }
 
