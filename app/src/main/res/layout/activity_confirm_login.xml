@@ -3,13 +3,26 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_with_gradient"
+    >
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="300dp"
+        android:src="@drawable/superman"
+        app:layout_constraintBottom_toTopOf="@+id/infoContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        />
 
     <LinearLayout
+        android:id="@+id/infoContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
-        android:background="@color/material_dynamic_neutral_variant95"
+        android:layout_marginBottom="15dp"
+        android:layout_marginHorizontal="30dp"
+        android:background="@drawable/rounded_gradient"
         android:orientation="vertical"
         android:padding="16dp"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
@@ -22,7 +35,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/menu"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="@color/colorWhite"
             android:textSize="11sp"
             tools:layout_editor_absoluteX="34dp"
             tools:layout_editor_absoluteY="314dp" />
@@ -30,9 +43,11 @@
 
         <TextView
             android:id="@+id/menuValue"
+            android:textColor="@color/colorWhite"
+            android:textStyle="bold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=""
+            android:text="TicPass"
             tools:layout_editor_absoluteX="34dp"
             tools:layout_editor_absoluteY="409dp" />
 
@@ -44,7 +59,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/date_hour_title"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="@color/colorWhite"
             android:textSize="11sp"
             tools:layout_editor_absoluteX="34dp"
             tools:layout_editor_absoluteY="354dp" />
@@ -54,7 +69,9 @@
             android:id="@+id/dateValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=""
+            android:text="27 jan às 23:00 - 28 jan às 04:00 "
+            android:textColor="@color/colorWhite"
+            android:textStyle="bold"
             tools:layout_editor_absoluteX="34dp"
             tools:layout_editor_absoluteY="368dp" />
 
@@ -67,7 +84,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/pos_title"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="@color/colorWhite"
             android:textSize="11sp"
             tools:layout_editor_absoluteX="34dp"
             tools:layout_editor_absoluteY="395dp" />
@@ -76,7 +93,9 @@
             android:id="@+id/posValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=""
+            android:textColor="@color/colorWhite"
+            android:textStyle="bold"
+            android:text="CAIXA-001"
             tools:layout_editor_absoluteX="34dp"
             tools:layout_editor_absoluteY="328dp" />
 
@@ -88,54 +107,81 @@
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/material_dynamic_neutral_variant95"
+        android:background="@drawable/rounded_gradient_top"
+        android:layout_marginHorizontal="30dp"
         android:orientation="vertical"
         android:padding="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="0dp">
+        tools:ignore="MissingConstraints">
 
         <TextView
             android:id="@+id/textView11"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/lets_take_off_sales"
-            android:textColor="@color/colorAccent"
-            android:textSize="25sp"
+            android:textColor="@color/colorWhite"
+            android:textSize="20sp"
             android:textStyle="bold"
+            android:textAlignment="center"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.506"
             app:layout_constraintStart_toStartOf="parent" />
 
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            tools:ignore="MissingConstraints"
-            tools:layout_editor_absoluteX="0dp"
-            tools:layout_editor_absoluteY="417dp">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_marginTop="10dp"
+            >
 
-
-            <EditText
-                android:id="@+id/nameText"
-                android:layout_width="wrap_content"
+            <TextView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ems="10"
-                android:inputType="text"
-                android:text=""
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
+                android:text="Nome do atendente"
+                android:textColor="@color/colorWhite"
+                >
+            </TextView>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    >
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:orientation="horizontal"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_edittext_rounded"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:gravity="center_vertical">
 
-            <ImageButton
-                android:id="@+id/imageButton"
-                android:layout_width="33dp"
-                android:layout_height="33dp"
-                android:background="@color/colorRed"
-                android:onClick="loginFinish"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:srcCompat="@drawable/ic_arrow_right"
-                app:tint="@color/design_default_color_background" />
+                    <EditText
+                        android:id="@+id/nameText"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:hint="Insira o seu nome"
+                        android:textColorHint="@color/colorBlack"
+                        android:textColor="@color/colorGray"
+                        android:textSize="12sp"
+                        android:inputType="text"
+                        android:padding="0dp"
+                        android:singleLine="true" />
+                </LinearLayout>
+                <ImageButton
+                    android:id="@+id/imageButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_outline_oppacity"
+                    android:padding="10dp"
+                    android:onClick="loginFinish"
+                    android:src="@drawable/ic_login_arrow_right"
+                    android:scaleType="centerInside"
+                    app:tint="@color/colorWhite" />
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>
