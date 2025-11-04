@@ -4,57 +4,54 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_margin="4dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="4dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp">
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:gravity="center_horizontal">
 
         <ImageView
             android:id="@+id/imageViewPos"
-            android:layout_width="75dp"
-            android:layout_height="75dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:scaleType="centerCrop"
-            app:srcCompat="@drawable/ic_problem"
-            app:tint="@color/colorAccent" />
+            app:srcCompat="@drawable/ic_cash_register"
+            app:tint="@color/colorGreen" />
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/textViewPosClosing"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:layout_marginStart="16dp">
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorGreen"
+            android:textSize="12sp"
+            android:textAlignment="center"
+            android:text="Fechado"
+            android:textStyle="bold"
+            />
 
-            <TextView
-                android:id="@+id/textViewPosName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/design_default_color_on_secondary"
-                android:textSize="18sp" />
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
+        <TextView
+            android:id="@+id/textViewPosName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Caixa - 001"
+            android:textAlignment="center"
+            android:textColor="@color/design_default_color_on_secondary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/textViewPosClosing"
-                    android:layout_width="100dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:textSize="16sp"
-                    android:layout_marginEnd="10dp"
-                    />
+        <TextView
+            android:id="@+id/textViewPOSCommission"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="10% de comissão"
+            android:textAlignment="center"
+            android:textSize="8sp"
+            android:textStyle="italic" />
 
-                <TextView
-                    android:id="@+id/textViewPOSCommission"
-                    android:layout_width="100dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:textSize="16sp" />
-            </LinearLayout>
-        </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

@@ -5,7 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorAccent"
+    android:background="@drawable/bg_with_gradient"
     android:padding="20dp"
     tools:ignore="RtlSymmetry">
 
@@ -15,19 +15,36 @@
         android:layout_height="wrap_content"
         android:text="@string/choose_pos"
         android:textColor="@color/material_dynamic_neutral_variant95"
-        android:textSize="34sp"
+        android:textSize="24sp"
         app:layout_constraintTop_toTopOf="parent"
+        android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         tools:ignore="MissingConstraints" />
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="300dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="12dp"
+        android:background="@color/colorWhite"
+        tools:ignore="MissingConstraints"
+        app:layout_constraintTop_toBottomOf="@id/textView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/pos_recycler_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/textView"
+        android:layout_marginTop="12dp"
+
+        app:layout_constraintTop_toBottomOf="@id/divider"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"/>
+        tools:listitem="@layout/item_pos"
+        tools:layoutManager="GridLayoutManager"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

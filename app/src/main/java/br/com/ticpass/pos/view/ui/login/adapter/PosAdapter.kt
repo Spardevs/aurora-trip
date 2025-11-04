@@ -4,10 +4,12 @@ import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.api.PosItem
+import br.com.ticpass.pos.util.calculatePercent
 
 class PosAdapter(
     private val items: MutableList<PosItem> = mutableListOf(),
@@ -21,13 +23,35 @@ class PosAdapter(
 
         fun bind(item: PosItem) {
             tvName.text = item.name
-            tvClosing.text = if (item.session?.closing === "") "Fechado" else "Aberto"
+            val isClosed = item.session?.closing == ""
+            tvClosing.text = if (isClosed) "Fechado" else "Aberto"
 
-            tvCommission.text = item.commission
-                ?.toString()
-                ?.plus("%")
-                ?: "Não há comissão"
-            itemView.setOnClickListener { onClick(item) }
+            val commissionConverted = item.commission?.let { if (it > 0.toBigInteger()) "${calculatePercent(it)}% de comissão" else "Sem comissão" }
+            tvCommission.text = commissionConverted ?: "Sem comissão"
+
+            if (isClosed) {
+                // Ícone vermelho
+                itemView.findViewById<ImageView>(R.id.imageViewPos).setColorFilter(
+                    itemView.context.getColor(R.color.colorRed)
+                )
+                // Textos cinza
+                tvClosing.setTextColor(itemView.context.getColor(R.color.colorGray))
+                tvName.setTextColor(itemView.context.getColor(R.color.colorGray))
+                tvCommission.setTextColor(itemView.context.getColor(R.color.colorGray))
+                // Desabilitar clique
+                itemView.setOnClickListener(null)
+            } else {
+                // Ícone verde (padrão)
+                itemView.findViewById<ImageView>(R.id.imageViewPos).setColorFilter(
+                    itemView.context.getColor(R.color.colorGreen)
+                )
+                // Textos padrão
+                tvClosing.setTextColor(itemView.context.getColor(R.color.colorGreen))
+                tvName.setTextColor(itemView.context.getColor(R.color.design_default_color_on_secondary))
+                tvCommission.setTextColor(itemView.context.getColor(R.color.colorBlack))
+                // Habilitar clique
+                itemView.setOnClickListener { onClick(item) }
+            }
         }
     }
 

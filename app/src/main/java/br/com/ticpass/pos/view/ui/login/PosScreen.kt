@@ -8,6 +8,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
@@ -42,7 +43,7 @@ class PosScreen : BaseActivity() {
         val menuId = intent.getStringExtra(EXTRA_MENU_ID)
             ?: throw IllegalArgumentException("menuId não foi passado na Intent")
         val recycler = findViewById<RecyclerView>(R.id.pos_recycler_view)
-        recycler.layoutManager = LinearLayoutManager(this)
+        recycler.layoutManager = GridLayoutManager(this, 3)
         val adapter = PosAdapter(onClick = { item ->
             val sharedPref = getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE)
             with(sharedPref.edit()) {
