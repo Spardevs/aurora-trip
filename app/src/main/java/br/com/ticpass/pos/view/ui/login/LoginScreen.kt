@@ -153,6 +153,44 @@ class LoginScreen : BaseActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Inicialmente, campos de email e senha desabilitados
+        binding.editTextTextEmailAddress.isEnabled = false
+        binding.editTextTextPassword.isEnabled = false
+        binding.buttonConfirm.isEnabled = false
+
+        // Ao clicar no campo ou botão de email, habilita os campos para login
+        binding.emailLoginButton.setOnClickListener {
+            binding.choiceContainer.visibility = View.GONE
+            binding.formContainer.visibility = View.VISIBLE
+
+            binding.editTextTextEmailAddress.isEnabled = true
+            binding.editTextTextPassword.isEnabled = true
+            binding.buttonConfirm.isEnabled = true
+        }
+
+        binding.buttonConfirm.setOnClickListener {
+            val username = binding.editTextTextEmailAddress.text.toString()
+            val password = binding.editTextTextPassword.text.toString()
+            val serial = getDeviceSerial(this)
+            if (username.isBlank() || password.isBlank()) {
+                showToast("Preencha usuário e senha")
+            } else {
+                doLogin(username, password, serial)
+            }
+        }
+
+        binding.buttonBack.setOnClickListener {
+            binding.choiceContainer.visibility = View.VISIBLE
+            binding.formContainer.visibility = View.GONE
+
+            binding.editTextTextEmailAddress.text.clear()
+            binding.editTextTextPassword.text.clear()
+
+            binding.editTextTextEmailAddress.isEnabled = false
+            binding.editTextTextPassword.isEnabled = false
+            binding.buttonConfirm.isEnabled = false
+        }
+
 
         binding.qrCodeLoginButton.setOnClickListener {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -190,7 +228,6 @@ class LoginScreen : BaseActivity() {
     }
 
     private fun doLogin(username: String, password: String, serial: String) {
-        // Mostrar fragment de processamento
         val processingFragment = RefundProcessingFragment()
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, processingFragment)
@@ -204,10 +241,6 @@ class LoginScreen : BaseActivity() {
                     .replace(R.id.fragmentContainer, errorFragment)
                     .commit()
                 updateErrorText(errorFragment)
-                // Mostrar fragment de erro
-                supportFragmentManager.beginTransaction()
-                    .replace(R.id.fragmentContainer, RefundErrorFragment())
-                    .commit()
                 showToast("Erro no login: ${throwable.message}")
             }
         }
@@ -222,12 +255,11 @@ class LoginScreen : BaseActivity() {
                     supportFragmentManager.beginTransaction()
                         .replace(R.id.fragmentContainer, RefundSuccessFragment())
                         .commit()
-                    startActivity(Intent(this@LoginScreen, MenuScreen::class.java))
+                    startActivity(Intent(this@LoginScreen, MenuActivity::class.java))
                     finish()
                 }
             } catch (e: Exception) {
                 runOnUiThread {
-                    // Mostrar fragment de erro
                     supportFragmentManager.beginTransaction()
                         .replace(R.id.fragmentContainer, RefundErrorFragment())
                         .commit()

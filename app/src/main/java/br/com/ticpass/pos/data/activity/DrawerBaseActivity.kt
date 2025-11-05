@@ -629,13 +629,15 @@ abstract class DrawerBaseActivity : BaseActivity() {
                     operatorNameTv.text = name
 
                     val menuOpeningTv: TextView = header.findViewById(R.id.menuOpening)
-                    selectedPos.let { pos ->
+                    selectedPos?.let { pos ->
                         menuOpeningTv.text = if (pos.isClosed) {
                             "Fechado"
                         } else {
                             SimpleDateFormat("EEEE, MMM - HH:mm", Locale("pt", "BR"))
                                 .format(Date())
                         }
+                    } ?: run {
+                        menuOpeningTv.text = "Desconhecido"
                     }
 
                     val menuTotalTv: TextView = header.findViewById(R.id.menuTotal)

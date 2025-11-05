@@ -19,6 +19,7 @@ import java.util.*
 import androidx.core.content.edit
 import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.data.activity.BaseActivity
+import br.com.ticpass.pos.data.activity.LoadingDownloadFragmentActivity
 import br.com.ticpass.pos.data.activity.ProductsActivity
 import kotlinx.coroutines.launch
 
@@ -41,15 +42,15 @@ class ConfirmScreen : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_confirm_login)
 
-        sessionPref = getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE)
-        userPref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        sessionPref = getSharedPreferences("SessionPrefs", MODE_PRIVATE)
+        userPref = getSharedPreferences("UserPrefs", MODE_PRIVATE)
 
-        val menuName      = sessionPref.getString("selected_menu_name", "—")
+        val menuName    = sessionPref.getString("selected_menu_name", "—")
         val dateStartStr  = sessionPref.getString("selected_menu_dateStart", null)
         val dateEndStr    = sessionPref.getString("selected_menu_dateEnd", null)
         val posNamePref   = sessionPref.getString("pos_name", null)
         val posNameIntent = intent.getStringExtra(EXTRA_POS_NAME)
-        val posName       = posNamePref ?: posNameIntent ?: "—"
+        val posName    = posNamePref ?: posNameIntent ?: "—"
 
         val menuValueTv = findViewById<TextView>(R.id.menuValue)
         val dateValueTv = findViewById<TextView>(R.id.dateValue)
@@ -68,14 +69,10 @@ class ConfirmScreen : BaseActivity() {
             putString("operator_name", name)
             putBoolean("user_logged", true)
         }
-        lifecycleScope.launch {
-            viewModel.confirmLogin(sessionPref, userPref)
-            val intent = Intent(this@ConfirmScreen, ProductsActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            }
-            startActivity(intent)
-            finish()
-        }
+        // Ao clicar no imageButton, chamar a tela fragment_loading_download
+        val intent = Intent(this, LoadingDownloadFragmentActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 
     private fun formatDate(dateString: String): String {
