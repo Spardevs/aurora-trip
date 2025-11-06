@@ -1,16 +1,20 @@
 package br.com.ticpass.pos.data.activity
 
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.Window
+import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -660,80 +664,36 @@ abstract class DrawerBaseActivity : BaseActivity() {
         }
     }
 
-    private fun showConfirmationDialog() {
-        if (ShoppingCart.SessionPrefs.isSessionValid(this)) {
-            drawerLayout.openDrawer(GravityCompat.START)
-            return
-        }
+    fun showConfirmationDialog() {
+        val dialog = Dialog(this)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(R.layout.dialog_access_restricted)
+        dialog.setCancelable(true)
 
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_auth_method, null)
-        val methodPanel = dialogView.findViewById<View>(R.id.method_panel)
-        val passwordPanel = dialogView.findViewById<View>(R.id.password_panel)
-        val passwordInput = dialogView.findViewById<EditText>(R.id.password_input)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
 
-        val dialog = AlertDialog.Builder(this)
-            .setView(dialogView)
-            .setTitle("Acesso ao Menu")
-            .setNegativeButton("Voltar") { _, _ -> }
-            .create()
+        val title = dialog.findViewById<TextView>(R.id.dialogTitle)
+        val message = dialog.findViewById<TextView>(R.id.dialogMessage)
+        val qrButton = dialog.findViewById<Button>(R.id.dialogQrButton)
+        val closeButton = dialog.findViewById<ImageView>(R.id.dialogCloseButton)
 
-        methodPanel.visibility = View.VISIBLE
-        passwordPanel.visibility = View.GONE
+        title.text = "Acesso restrito"
+        message.text = "Aproxime seu NFC ou acesse via QR Code"
+        qrButton.text = "QR Code"
 
-        dialogView.findViewById<View>(R.id.btn_qr_code).setOnClickListener {
+        qrButton.setOnClickListener {
             dialog.dismiss()
             launchQrScanner()
+
         }
 
-        dialogView.findViewById<View>(R.id.btn_password).setOnClickListener {
-            methodPanel.animate()
-                .alpha(0f)
-                .setDuration(300)
-                .withEndAction {
-                    methodPanel.visibility = View.GONE
-                    passwordPanel.visibility = View.VISIBLE
-                    passwordPanel.alpha = 0f
-                    passwordPanel.animate().alpha(1f).setDuration(300).start()
-                    passwordInput.requestFocus()
-                    dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.visibility = View.VISIBLE
-                }.start()
-        }
-
-        dialogView.findViewById<View>(R.id.btn_confirm_password).setOnClickListener {
-            val password = passwordInput.text.toString()
-            if (password == "1337") {
-                ShoppingCart.SessionPrefs.startSession(this, 1)
-                dialog.dismiss()
-                drawerLayout.openDrawer(GravityCompat.START)
-            } else {
-                passwordInput.error = "Senha incorreta"
-                passwordInput.text.clear()
-            }
-        }
-
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.visibility = View.GONE
-
-            dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.setOnClickListener {
-                passwordPanel.animate()
-                    .alpha(0f)
-                    .setDuration(300)
-                    .withEndAction {
-                        passwordPanel.visibility = View.GONE
-                        methodPanel.visibility = View.VISIBLE
-                        methodPanel.alpha = 0f
-                        methodPanel.animate().alpha(1f).setDuration(300).start()
-                        dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.visibility = View.GONE
-                    }.start()
-            }
-
-            dialog.getButton(AlertDialog.BUTTON_NEGATIVE)?.setTextColor(
-                ContextCompat.getColor(this, R.color.cardview_dark_background)
-            )
+        closeButton.setOnClickListener {
+            dialog.dismiss()
         }
 
         dialog.show()
     }
+
 
     private fun handleQrResult(result: ActivityResult) {
         when (result.resultCode) {

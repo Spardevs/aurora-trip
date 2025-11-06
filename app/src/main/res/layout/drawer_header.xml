@@ -7,7 +7,7 @@
     android:layout_height="wrap_content"
     android:padding="16dp"
     android:gravity="bottom"
-    android:background="?attr/colorPrimary">
+    android:background="@color/colorAccent">
     <ImageView
         android:id="@+id/eventLogo"
         android:layout_width="wrap_content"
