@@ -147,6 +147,7 @@
         <activity android:name=".view.ui.login.PosScreen" />
         <activity
             android:name="br.com.ticpass.pos.view.ui.login.ConfirmScreen"
+            android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="false" />
 
         <activity android:name=".data.activity.ProductsActivity" android:exported="false" />
