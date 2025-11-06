@@ -34,6 +34,7 @@ import br.com.ticpass.pos.view.ui.login.LoginScreen
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.Constants.CHECK_DUE_PAYMENTS_INTERVAL
 import br.com.ticpass.Constants.EVENT_SYNC_INTERVAL
 import br.com.ticpass.Constants.POS_SYNC_INTERVAL
@@ -48,7 +49,9 @@ import br.com.ticpass.pos.data.room.AuthManager
 import br.com.ticpass.pos.data.room.service.GPSService
 import br.com.ticpass.pos.util.ConnectionStatusBar
 import br.com.ticpass.pos.data.activity.PermissionsActivity
+import br.com.ticpass.pos.data.api.APIRepository
 import br.com.ticpass.pos.util.ConnectivityMonitor
+import br.com.ticpass.pos.util.DeviceUtils
 import com.topjohnwu.superuser.internal.UiThreadHandler.handler
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -277,6 +280,9 @@ class MainActivity : BaseActivity() {
     private var checkDuePaymentsRunnable: CheckDuePaymentsRunnable? = null
 //    private var alertDuePaymentsRunnable: AlertDuePaymentsRunnable? = null
 
+    @Inject
+    lateinit var apiRepository: APIRepository
+
     private var connectivityMonitor: ConnectivityMonitor? = null
     private var connectionStatusBar: ConnectionStatusBar? = null
 
@@ -317,12 +323,37 @@ class MainActivity : BaseActivity() {
             getSharedPreferences("UserPrefs", MODE_PRIVATE)
 
         val hasLogged = prefs.contains("user_logged")
+
+        if (!hasLogged) {
+            val serial = DeviceUtils.getDeviceSerial(this)
+            lifecycleScope.launch {
+                try {
+                    val response = apiRepository.registerDevice(
+                        name = "Nome do dispositivo ou outro identificador",
+                        serial = serial,
+                        acquirer = "acquirer_info" // ajuste conforme necessário
+                    )
+                    if (response.status == 200) {
+                        Log.d("MainActivity", "Dispositivo registrado com sucesso")
+                    } else {
+                        Log.e("MainActivity", "Falha ao registrar dispositivo: ${response.message}")
+                    }
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Erro ao registrar dispositivo", e)
+                }
+            }
+        } else {
+        }
+
+
         Log.d("hasLogged", "$hasLogged")
         val intent: Intent = if (!hasLogged) {
             Intent(this, LoginScreen::class.java)
         } else {
             Intent(this, ProductsActivity::class.java)
         }
+
+
 
         startActivity(intent)
         finish()

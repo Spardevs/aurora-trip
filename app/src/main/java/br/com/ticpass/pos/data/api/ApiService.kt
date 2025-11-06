@@ -129,7 +129,9 @@ data class LoginQrcodePostData(
 
 data class RegisterDevicePostData(
     @SerializedName("name") val name: String,
-    @SerializedName("serial") val serial: String
+    @SerializedName("serial") val serial: String,
+
+    @SerializedName("acquirer") val acquirer: String
 )
 
 data class PatchPingPosUsecaseModel(

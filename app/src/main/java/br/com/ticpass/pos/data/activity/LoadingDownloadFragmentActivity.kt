@@ -4,10 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.data.api.APIRepository
+import br.com.ticpass.pos.viewmodel.login.LoginConfirmViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,13 +19,11 @@ import javax.inject.Inject
 class LoadingDownloadFragmentActivity : AppCompatActivity() {
 
     @Inject
-    lateinit var apiRepository: APIRepository
-
+    lateinit var apiRepository: br.com.ticpass.pos.data.api.APIRepository
+    private val loginConfirmViewModel: LoginConfirmViewModel by viewModels()
     private lateinit var tvDownloadProgress: TextView
-
     private val sessionPref by lazy { getSharedPreferences("SessionPrefs", MODE_PRIVATE) }
     private val userPref by lazy { getSharedPreferences("UserPrefs", MODE_PRIVATE) }
-
     private val posId: String by lazy { sessionPref.getString("pos_id", "") ?: "" }
     private val jwt: String by lazy { userPref.getString("auth_token", "") ?: "" }
     private val nameOperator: String by lazy { userPref.getString("operator_name", "") ?: "" }
@@ -36,14 +35,15 @@ class LoadingDownloadFragmentActivity : AppCompatActivity() {
             else -> ""
         }
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.fragment_loading_download)
 
+        tvDownloadProgress = findViewById(R.id.tvDownloadProgress)
+
         val userIdNumber = userPref.getInt("user_id", 0)
         val userId = userIdNumber.toString()
-
-        tvDownloadProgress = findViewById(R.id.tvDownloadProgress)
 
         lifecycleScope.launch {
             try {
@@ -67,11 +67,13 @@ class LoadingDownloadFragmentActivity : AppCompatActivity() {
                     return@launch
                 }
 
-                // Outras requisições podem ser adicionadas aqui
+                // Salvar evento selecionado no banco local
+                updateProgress("Salvando evento selecionado")
+                loginConfirmViewModel.confirmLogin(sessionPref, userPref)
 
                 updateProgress("Abrindo POS")
                 Log.d("LoadingDownloadFragmentActivity", "Abrindo POS: $posId; jwt: $jwt")
-                val openPosResponse = apiRepository.openPos(posId, nameOperator, jwt) // PatchPosResponse
+                val openPosResponse = apiRepository.openPos(posId, nameOperator, jwt)
                 if (openPosResponse.status == 403) {
                     updateProgress("Permissão negada: não foi possível abrir este caixa.")
                     return@launch

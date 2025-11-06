@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.ticpass.pos.data.api.Product
 import br.com.ticpass.pos.data.room.repository.CategoryRepository
+import br.com.ticpass.pos.data.room.repository.EventRepository
 import br.com.ticpass.pos.data.room.repository.PosRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ProductsViewModel @Inject constructor(
     private val categoryRepo: CategoryRepository,
-    private val posRepository: PosRepository
+    private val posRepository: PosRepository,
+    private val eventRepository: EventRepository
 ) : ViewModel() {
 
     private val _categories = MutableLiveData<List<String>>()
@@ -35,7 +37,6 @@ class ProductsViewModel @Inject constructor(
         _isLoading.value = true
         viewModelScope.launch {
             try {
-                // obtém POS selecionado (suspend) — executa em IO
                 val commissionPercent = withContext(Dispatchers.IO) {
                     try {
                         posRepository.getSelectedPos().commission
@@ -44,6 +45,15 @@ class ProductsViewModel @Inject constructor(
                     }
                 }
 
+                val selectedEventId = withContext(Dispatchers.IO) {
+                    try {
+                        eventRepository.getSelectedEvent()?.id ?: "0"
+                    } catch (e: Exception) {
+                        "0"
+                    }
+                }
+
+                val selectedEventIdInt = selectedEventId.toIntOrNull() ?: 0
                 val catsWithProds = categoryRepo.getCategoriesWithEnabledProducts()
                 allProductsList = catsWithProds.flatMap { catWith ->
                     catWith.enabledProducts.map { entity ->
@@ -58,8 +68,7 @@ class ProductsViewModel @Inject constructor(
                             updatedAt = "",
                             deletedAt = "",
                             fkCategory = entity.categoryId,
-                            fkEvent = 0
-                        )
+                            fkEvent = selectedEventIdInt                        )
                     }
                 }
 
@@ -81,7 +90,6 @@ class ProductsViewModel @Inject constructor(
             }
         }
     }
-
     // Se commissionPercent for 10 (10%), calcula value + 10%
     private fun applyCommission(value: Long, commissionPercent: Long): Long {
         return value + (value * commissionPercent / 100)

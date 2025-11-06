@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.data.api
 
+import android.content.Context
 import android.os.Build
 import android.util.Log
 import br.com.ticpass.pos.data.room.entity.AcquisitionEntity
@@ -12,14 +13,16 @@ import br.com.ticpass.pos.data.room.entity.PaymentEntity
 import br.com.ticpass.pos.data.room.entity.RefundEntity
 import br.com.ticpass.pos.data.room.entity.VoucherEntity
 import br.com.ticpass.pos.data.room.entity.VoucherRedemptionEntity
-import br.com.ticpass.pos.data.api.LoginQrcodePostData
+import br.com.ticpass.pos.util.DeviceUtils
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import retrofit2.Response
 import okhttp3.ResponseBody
-
+import java.util.UUID
 
 
 class APIRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val service: APIService,
     private val categoryRepository: CategoryRepository,
 ) {
@@ -171,12 +174,14 @@ class APIRepository @Inject constructor(
 
     suspend fun registerDevice(
         name: String,
-        serial: String
+        serial: String,
+        acquirer: String
     ): APITestResponse {
         val response = service.registerDevice(
             RegisterDevicePostData(
                 name,
                 serial,
+                acquirer
             )
         )
 
@@ -265,24 +270,23 @@ class APIRepository @Inject constructor(
         event: String,
         jwt: String,
     ): GetEventProductsResponse {
-        var response = GetEventProductsResponse(
-            status = 401,
-            message = "unable to reach server",
-            result = emptyList(),
-            error = "unable to reach server",
-            name = "unable to reach server",
-        )
+
 
         try {
-            response = service.getEventProducts(
+            return service.getEventProducts(
                 event = event,
                 authorization = "Bearer $jwt",
             )
         } catch (e: Exception) {
+            return GetEventProductsResponse(
+                status = 401,
+                message = "Erro ao realizar requisição",
+                result = emptyList(),
+                error = e.toString(),
+                name = "unable to reach server",
+            )
             Log.d("api:exception", e.toString())
         }
-
-        return response
     }
 
     suspend fun pingDevice(
@@ -321,23 +325,30 @@ class APIRepository @Inject constructor(
         cashierName: String,
         jwt: String,
     ): PatchPosResponse {
-        var response = PatchPosResponse(
-            status = 401,
-            message = "unable to reach server"
-        )
+        if (posId.isBlank()) {
+            Log.d("APIRepository", "openPos chamado com posId vazio")
+            return PatchPosResponse(
+                status = 400,
+                message = "posId não pode ser vazio"
+            )
+        }
 
-        try {
-            response = service.openPos(
+        val serial = DeviceUtils.getDeviceSerial(context)
+
+        return try {
+            service.openPos(
                 posId = posId,
                 cashier = cashierName,
-                serial = Build.SERIAL,
+                serial = serial,
                 authorization = "Bearer $jwt",
             )
         } catch (e: Exception) {
-            Log.d("api:exception", e.toString())
+            Log.d("api:exception", "Msg: ${e.message.toString()}; Cause: ${e.cause.toString()}; Full: ${e.toString()}")
+            PatchPosResponse(
+                status = 401,
+                message = "Erro ao realizar requisição"
+            )
         }
-
-        return response
     }
 
     suspend fun closePos(

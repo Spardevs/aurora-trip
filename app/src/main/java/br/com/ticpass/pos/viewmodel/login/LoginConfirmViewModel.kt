@@ -52,7 +52,6 @@ class LoginConfirmViewModel @Inject constructor(
                 val cashierEntity = createCashierEntity(userPref)
                 cashierDao.insertUser(cashierEntity)
                 fetchAndInsertProducts(sessionPref, userPref, eventEntity.id)
-                sessionPref.edit { clear() }
             } catch (e: Exception) {
                 Log.e("LoginConfirmVM", "Erro durante confirmação de login", e)
                 throw e
@@ -98,7 +97,7 @@ class LoginConfirmViewModel @Inject constructor(
             isLnBTCEnabled = false,
             isCashEnabled = false,
             isAcquirerPaymentEnabled = false,
-            isMultiPaymentEnabled = false
+            isMultiPaymentEnabled = false,
         )
     }
 
