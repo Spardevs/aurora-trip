@@ -32,12 +32,54 @@
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/nav_view"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="280dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        app:headerLayout="@layout/drawer_header"
-        app:itemVerticalPadding="1dp"
-        app:menu="@menu/drawer_menu"/>
+        android:orientation="vertical"
+        android:background="?android:attr/windowBackground"
+        android:fitsSystemWindows="true">
+
+        <!-- Header fixo no NavigationView -->
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/nav_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="?android:attr/windowBackground"
+            app:menu="@menu/drawer_menu"
+            app:itemIconTint="@color/colorGray"
+            app:itemTextAppearance="@style/NavItemText"
+            app:itemTextColor="@color/colorGray"
+            app:itemHorizontalPadding="8dp"
+            app:itemVerticalPadding="4dp" />
+
+        <!-- Footer fixo fora do NavigationView -->
+        <LinearLayout
+            android:id="@+id/footer_logout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center_vertical"
+            android:background="?android:attr/windowBackground">
+
+            <ImageView
+                android:id="@+id/footer_logout_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@string/menu_logout"
+                android:src="@drawable/ic_logout"
+                app:tint="@color/colorRed" />
+
+            <TextView
+                android:id="@+id/footer_logout_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:text="@string/menu_logout"
+                android:textAppearance="?attr/textAppearanceListItem"
+                android:textColor="@color/colorRed" />
+        </LinearLayout>
+    </LinearLayout>
 </androidx.drawerlayout.widget.DrawerLayout>

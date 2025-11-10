@@ -18,6 +18,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -33,6 +34,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.acquirers.workers.jobs.syncPos
+import br.com.ticpass.pos.data.api.APIRepository
 import br.com.ticpass.pos.data.event.ForYouViewModel
 import br.com.ticpass.pos.data.room.AppDatabase
 import br.com.ticpass.pos.data.room.entity.AcquisitionEntity
@@ -51,6 +53,7 @@ import br.com.ticpass.pos.view.fragments.printing.PrintingErrorDialogFragment
 import br.com.ticpass.pos.view.fragments.printing.PrintingLoadingDialogFragment
 import br.com.ticpass.pos.view.fragments.printing.PrintingSuccessDialogFragment
 import br.com.ticpass.pos.view.ui.login.LoginScreen
+import br.com.ticpass.pos.view.ui.login.PosScreen
 import br.com.ticpass.pos.view.ui.pass.PassData
 import com.bumptech.glide.Glide
 import com.google.android.material.appbar.MaterialToolbar
@@ -127,6 +130,8 @@ abstract class DrawerBaseActivity : BaseActivity() {
     lateinit var productsRepository: ProductRepository
     @Inject
     lateinit var categoryRepository: CategoryRepository
+    @Inject
+    lateinit var apiRepository: APIRepository
     private var isSyncing = false
     private var syncActionView: View? = null
     private var syncProgressBar: ProgressBar? = null
@@ -144,14 +149,6 @@ abstract class DrawerBaseActivity : BaseActivity() {
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
         drawerLayout.drawerElevation = 0f
 
-        val db = AppDatabase.getInstance(this)
-
-        posRepository = PosRepository(db.posDao())
-        menuRepository = EventRepository(db.eventDao())
-        cashierRepository = CashierRepository(db.cashierDao())
-        productsRepository = ProductRepository(db.productDao())
-        categoryRepository = CategoryRepository(db.categoryDao())
-
         val toolbar = findViewById<MaterialToolbar>(R.id.drawer_toolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
@@ -163,27 +160,19 @@ abstract class DrawerBaseActivity : BaseActivity() {
             supportActionBar?.setHomeAsUpIndicator(it)
         }
 
-
-        val header = navView.getHeaderView(0)
+        // Acessar header diretamente pelo id
+        val header = findViewById<LinearLayout>(R.id.drawer_header)
         val operatorNameTv: TextView = header.findViewById(R.id.operatorName)
         val name = getSharedPreferences("UserPrefs", MODE_PRIVATE)
             .getString("operator_name", null)
         operatorNameTv.text = name
 
-        val footer = layoutInflater.inflate(R.layout.nav_drawer_footer, navView, false)
-        navView.addView(
-            footer, FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                Gravity.BOTTOM
-            )
-        )
-        footer.setOnClickListener {
-            getSharedPreferences("UserPrefs", MODE_PRIVATE).edit { clear() }
-            getSharedPreferences("SessionPrefs", MODE_PRIVATE).edit { clear() }
+        // Configurar clique no footer logout
+        val footerLogout = findViewById<LinearLayout>(R.id.footer_logout)
+        footerLogout?.setOnClickListener {
             lifecycleScope.launch {
                 logoutClearDb()
-                startActivity(Intent(this@DrawerBaseActivity, LoginScreen::class.java))
+                startActivity(Intent(this@DrawerBaseActivity, PosScreen::class.java))
                 finish()
             }
         }
@@ -221,7 +210,6 @@ abstract class DrawerBaseActivity : BaseActivity() {
                     drawerLayout.closeDrawer(GravityCompat.START)
                 }
                 R.id.button_sync -> {
-                    Log.d("DrawerBaseActivity", "Clique no item Sync via listener")
                     if (!isSyncing) startInlineSync()
                 }
                 R.id.nav_print_last_order -> {
@@ -241,6 +229,7 @@ abstract class DrawerBaseActivity : BaseActivity() {
 
         updateHeaderInfo()
     }
+
 
     private fun refundOrder() {
         val intent = Intent(this, BarcodeScannerActivity::class.java)
@@ -744,8 +733,24 @@ abstract class DrawerBaseActivity : BaseActivity() {
             productsRepository.clearAll()
             categoryRepository.clearAll()
 
+            closePos()
+
             Log.d("User logout", "Db cleared, user logged out")
         } catch (e: Exception) {
+            throw e
+        }
+    }
+
+    suspend fun closePos() {
+        try {
+            val posId = getSharedPreferences("SessionPrefs", MODE_PRIVATE).getString("pos_id", null)?: ""
+            val jwt = getSharedPreferences("UserPrefs", MODE_PRIVATE).getString("auth_token", null)?: ""
+            apiRepository.closePos(
+                posId = posId,
+                jwt = jwt
+            )
+        } catch (e: Exception) {
+            Log.e("DrawerBaseActivity", "Error closing pos", e)
             throw e
         }
     }

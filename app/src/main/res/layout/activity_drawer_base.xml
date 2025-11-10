@@ -2,15 +2,15 @@
 <androidx.drawerlayout.widget.DrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Conteúdo principal da tela -->
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/drawer_toolbar"
@@ -18,8 +18,7 @@
             android:layout_height="50dp"
             android:background="@color/colorAccent"
             android:contentInsetStartWithNavigation="0dp"
-            app:title=""
-            tools:ignore="UnusedAttribute">
+            app:title="">
 
             <ImageView
                 android:id="@+id/toolbar_logo"
@@ -38,16 +37,149 @@
             android:layout_height="match_parent" />
     </LinearLayout>
 
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/nav_view"
-        android:layout_width="wrap_content"
+    <!-- Drawer com header fixo, menu scroll e footer fixo -->
+    <LinearLayout
+        android:layout_width="280dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        app:itemIconSize="24dp"
-        app:itemHorizontalPadding="20dp"
-        app:itemIconPadding="16dp"
-        app:itemTextAppearance="@style/NavItemText"
-        app:headerLayout="@layout/drawer_header"
-        app:menu="@menu/drawer_menu"/>
+        android:orientation="vertical"
+        android:background="?android:attr/windowBackground"
+        android:fitsSystemWindows="true">
+
+        <!-- Header fixo -->
+        <LinearLayout
+            android:id="@+id/drawer_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="@color/colorAccent">
+
+            <ImageView
+                android:id="@+id/eventLogo"
+                android:layout_width="wrap_content"
+                android:layout_height="80dp"
+                android:layout_gravity="center"
+                android:layout_marginBottom="16dp"
+                android:src="@drawable/pix" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:textAlignment="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/operator_name"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white" />
+
+                <TextView
+                    android:id="@+id/operatorName"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end"
+                    android:textAlignment="textEnd"
+                    android:text="Operador"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:textAlignment="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/menu_opening"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white" />
+
+                <TextView
+                    android:id="@+id/menuOpening"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end"
+                    android:textAlignment="textEnd"
+                    android:text="quinta feira, jul - 12:40"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:textAlignment="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/menu_total"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white" />
+
+                <TextView
+                    android:id="@+id/menuTotal"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end"
+                    android:textAlignment="textEnd"
+                    android:text="R$ 1.200,00"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Menu com scroll -->
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/nav_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="?android:attr/windowBackground"
+            app:menu="@menu/drawer_menu"
+            app:itemIconTint="@color/colorGray"
+            app:itemTextAppearance="@style/NavItemText"
+            app:itemTextColor="@color/colorGray"
+            app:itemHorizontalPadding="8dp"
+            app:itemVerticalPadding="4dp" />
+
+        <!-- Footer fixo -->
+        <LinearLayout
+            android:id="@+id/footer_logout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center_vertical"
+            android:background="?android:attr/windowBackground">
+
+            <ImageView
+                android:id="@+id/footer_logout_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@string/menu_logout"
+                android:src="@drawable/ic_logout"
+                app:tint="@color/colorRed" />
+
+            <TextView
+                android:id="@+id/footer_logout_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:text="@string/menu_logout"
+                android:textAppearance="?attr/textAppearanceListItem"
+                android:textColor="@color/colorRed" />
+        </LinearLayout>
+    </LinearLayout>
 
 </androidx.drawerlayout.widget.DrawerLayout>

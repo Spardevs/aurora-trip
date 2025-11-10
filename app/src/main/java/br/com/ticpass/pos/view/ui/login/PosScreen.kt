@@ -42,6 +42,7 @@ class PosScreen : BaseActivity() {
 
         val menuId = intent.getStringExtra(EXTRA_MENU_ID)
             ?: throw IllegalArgumentException("menuId não foi passado na Intent")
+
         val recycler = findViewById<RecyclerView>(R.id.pos_recycler_view)
         recycler.layoutManager = GridLayoutManager(this, 3)
         val adapter = PosAdapter(onClick = { item ->
@@ -60,7 +61,6 @@ class PosScreen : BaseActivity() {
 
         val jwt = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
             .getString("auth_token", "")!!
-
 
         lifecycleScope.launch {
             val response = apiRepository.getPosList(
