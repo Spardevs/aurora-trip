@@ -8,7 +8,10 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.view.MotionEvent
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -169,13 +172,7 @@ abstract class DrawerBaseActivity : BaseActivity() {
 
         // Configurar clique no footer logout
         val footerLogout = findViewById<LinearLayout>(R.id.footer_logout)
-        footerLogout?.setOnClickListener {
-            lifecycleScope.launch {
-                logoutClearDb()
-                startActivity(Intent(this@DrawerBaseActivity, PosScreen::class.java))
-                finish()
-            }
-        }
+        setupFooterLogoutListeners(footerLogout)
 
         setupSyncMenuItem()
 
@@ -653,6 +650,64 @@ abstract class DrawerBaseActivity : BaseActivity() {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setupFooterLogoutListeners(footerLogout: LinearLayout?) {
+        val handler = Handler(Looper.getMainLooper())
+        var longPressRunnable: Runnable? = null
+
+        footerLogout?.setOnTouchListener { view, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    longPressRunnable = Runnable {
+                        showFullLogoutConfirmationDialog()
+                    }
+                    handler.postDelayed(longPressRunnable!!, 3000)
+                    false
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    longPressRunnable?.let { handler.removeCallbacks(it) }
+                    false
+                }
+                else -> false
+            }
+        }
+
+        footerLogout?.setOnClickListener {
+            lifecycleScope.launch {
+                logoutClearDb(false)
+                startActivity(Intent(this@DrawerBaseActivity, PosScreen::class.java))
+                finish()
+            }
+        }
+    }
+
+    private fun showFullLogoutConfirmationDialog() {
+        val dialog = Dialog(this)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(R.layout.dialog_logout_confirmation)
+        dialog.setCancelable(true)
+
+        dialog.window?.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
+
+        val btnYes = dialog.findViewById<Button>(R.id.btnYes)
+        val btnNo = dialog.findViewById<Button>(R.id.btnNo)
+
+        btnYes.setOnClickListener {
+            dialog.dismiss()
+            lifecycleScope.launch {
+                logoutClearDb(true)
+                startActivity(Intent(this@DrawerBaseActivity, LoginScreen::class.java))
+                finish()
+            }
+        }
+
+        btnNo.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
     fun showConfirmationDialog() {
         val dialog = Dialog(this)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -725,7 +780,7 @@ abstract class DrawerBaseActivity : BaseActivity() {
     protected abstract fun openSupport()
     protected abstract fun openSettings()
 
-    suspend fun logoutClearDb() {
+    suspend fun logoutClearDb(fullLogout: Boolean) {
         try {
             posRepository.clearAll()
             menuRepository.clearAll()
@@ -734,6 +789,11 @@ abstract class DrawerBaseActivity : BaseActivity() {
             categoryRepository.clearAll()
 
             closePos()
+
+            if(fullLogout) {
+                getSharedPreferences("UserPrefs", MODE_PRIVATE).edit { clear() }
+                getSharedPreferences("SessionPrefs", MODE_PRIVATE).edit { clear() }
+            }
 
             Log.d("User logout", "Db cleared, user logged out")
         } catch (e: Exception) {

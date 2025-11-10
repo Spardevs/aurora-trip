@@ -1,0 +1,68 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="280dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/dialog_background"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Fazer logout"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:id="@+id/tvMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Deseja realizar o logout completo? Todos os dados serão apagados."
+        android:textSize="16sp"
+        android:textColor="#333333"
+        android:layout_marginBottom="24dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnNo"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="40dp"
+            android:text="Não"
+            android:textStyle="bold"
+            android:textColor="#6B6BFF"
+            android:background="@drawable/button_no_background"
+            android:layout_marginEnd="8dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:drawableEnd="@drawable/ic_close_circle"
+            android:drawableTint="@color/colorAccent"
+            android:drawablePadding="8dp"
+            android:gravity="center" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnYes"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="40dp"
+            android:text="Sim"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:drawableTint="#FFFFFF"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:background="@drawable/button_yes_background"
+            android:drawableEnd="@drawable/ic_check_circle"
+            android:drawablePadding="8dp"
+            android:gravity="center" />
+
+    </LinearLayout>
+
+</LinearLayout>
