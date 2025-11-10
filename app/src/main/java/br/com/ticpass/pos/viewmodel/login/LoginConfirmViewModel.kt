@@ -41,16 +41,24 @@ class LoginConfirmViewModel @Inject constructor(
     private val apiRepository: APIRepository
 ) : ViewModel() {
 
-    suspend fun confirmLogin(sessionPref: SharedPreferences, userPref: SharedPreferences) {
+    suspend fun confirmLogin(sessionPref: SharedPreferences, userPref: SharedPreferences, isAlreadyLogged: Boolean = false) {
         withContext(Dispatchers.IO) {
             try {
                 clearPreviousSelections()
-                val posEntity = createPosEntity(sessionPref)
+                val posEntity = createPosEntity(sessionPref, userPref, isAlreadyLogged)
                 posDao.upsertPos(posEntity)
                 val eventEntity = createEventEntity(sessionPref)
                 eventDao.upsertEvent(eventEntity)
-                val cashierEntity = createCashierEntity(userPref)
-                cashierDao.insertUser(cashierEntity)
+
+                if (!isAlreadyLogged) {
+                    // Primeiro login - cria novo cashier
+                    val cashierEntity = createCashierEntity(userPref)
+                    cashierDao.insertUser(cashierEntity)
+                } else {
+                    // Já logado - busca cashier existente do SharedPreferences
+                    Log.d("LoginConfirmVM", "Usuário já logado, buscando caixa do SharedPreferences")
+                }
+
                 fetchAndInsertProducts(sessionPref, userPref, eventEntity.id)
             } catch (e: Exception) {
                 Log.e("LoginConfirmVM", "Erro durante confirmação de login", e)
@@ -64,11 +72,18 @@ class LoginConfirmViewModel @Inject constructor(
         eventDao.deselectAllEvents()
     }
 
-    private fun createPosEntity(sessionPref: SharedPreferences): PosEntity {
+    private fun createPosEntity(sessionPref: SharedPreferences, userPref: SharedPreferences, isAlreadyLogged: Boolean): PosEntity {
+        val cashierName = if (isAlreadyLogged) {
+            // Busca o nome do operador salvo no SharedPreferences
+            userPref.getString("operator_name", "") ?: ""
+        } else {
+            ""
+        }
+
         return PosEntity(
             id = sessionPref.getString("pos_id", "")!!,
             name = sessionPref.getString("pos_name", "")!!,
-            cashier = "",
+            cashier = cashierName,
             commission = sessionPref.getLong("pos_commission", 0L),
             isClosed = false,
             isSelected = true

@@ -383,13 +383,13 @@ class MainActivity : BaseActivity() {
             }
         }
 
-//        val appName = getAppName(this)
-//        when(BuildConfig.FLAVOR) {
-//            "stone" -> {
-//                Stone.setAppName(appName)
-//            }
-//            else -> {}
-//        }
+//    val appName = getAppName(this)
+//    when(BuildConfig.FLAVOR) {
+//    "stone" -> {
+//    Stone.setAppName(appName)
+//    }
+//    else -> {}
+//    }
 
         backgroundTaskRunnable = POSSYNCTaskRunnable(handler, forYouViewModel)
         handler.post(backgroundTaskRunnable as POSSYNCTaskRunnable)
@@ -406,8 +406,8 @@ class MainActivity : BaseActivity() {
         checkDuePaymentsRunnable = CheckDuePaymentsRunnable(handler, forYouViewModel)
         handler.post(checkDuePaymentsRunnable as CheckDuePaymentsRunnable)
 
-//        alertDuePaymentsRunnable = AlertDuePaymentsRunnable(handler, cartViewModel, forYouViewModel)
-//        handler.post(alertDuePaymentsRunnable as AlertDuePaymentsRunnable)
+//    alertDuePaymentsRunnable = AlertDuePaymentsRunnable(handler, cartViewModel, forYouViewModel)
+//    handler.post(alertDuePaymentsRunnable as AlertDuePaymentsRunnable)
 
     }
 

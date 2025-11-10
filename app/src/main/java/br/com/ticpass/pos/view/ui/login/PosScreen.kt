@@ -40,8 +40,15 @@ class PosScreen : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pos)
 
-        val menuId = intent.getStringExtra(EXTRA_MENU_ID)
-            ?: throw IllegalArgumentException("menuId não foi passado na Intent")
+        val menuId = intent.getIntExtra("menuId", -1)
+        val finalMenuId = if (menuId != -1) {
+            menuId
+        } else {
+            // Fallback: tenta do SharedPrefs
+            val prefs = getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE)
+            prefs.getString("selected_menu_id", null)?.toInt()
+                ?: throw IllegalArgumentException("menuId não foi passado na Intent e não existe em SharedPrefs")
+        }
 
         val recycler = findViewById<RecyclerView>(R.id.pos_recycler_view)
         recycler.layoutManager = GridLayoutManager(this, 3)
@@ -64,7 +71,7 @@ class PosScreen : BaseActivity() {
 
         lifecycleScope.launch {
             val response = apiRepository.getPosList(
-                event = menuId,
+                event = finalMenuId.toString(),
                 jwt = jwt,
             )
             if (response.status == 200) {
