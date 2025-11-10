@@ -656,7 +656,7 @@
     <string name="nfc_pin_memorization_warning">⚠️ This card is for individual use only and should not be shared with others.</string>
     <string name="nfc_pin_memorization_pin_label">Your PIN:</string>
     <string name="nfc_pin_memorization_button">I did memorize it!</string>
-    <string name="menu_logout">logout</string>
+    <string name="menu_logout">Close POS</string>
     <string name="loading">Loading</string>
     <string name="printer_image">Printer image</string>
 </resources>

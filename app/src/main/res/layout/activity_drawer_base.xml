@@ -150,7 +150,7 @@
             app:itemIconTint="@color/colorGray"
             app:itemTextAppearance="@style/NavItemText"
             app:itemTextColor="@color/colorGray"
-            app:itemHorizontalPadding="8dp"
+            app:itemHorizontalPadding="16dp"
             app:itemVerticalPadding="4dp" />
 
         <!-- Footer fixo -->

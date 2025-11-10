@@ -4,7 +4,6 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -15,31 +14,23 @@ import androidx.compose.runtime.Immutable
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.api.APIRepository
 import br.com.ticpass.pos.data.api.APITestResponse
-import br.com.ticpass.pos.data.event.ForYouViewModel
-import br.com.ticpass.pos.data.room.repository.CategoryRepository
 import br.com.ticpass.pos.util.DeviceUtils.getDeviceSerial
 import com.google.android.material.snackbar.Snackbar
-import com.google.zxing.BarcodeFormat
 import com.journeyapps.barcodescanner.BarcodeResult
 import com.journeyapps.barcodescanner.BarcodeView
 import com.journeyapps.barcodescanner.DefaultDecoderFactory
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.toString
 import com.airbnb.lottie.compose.LottieClipSpec
-import com.google.android.gms.games.gamessignin.AuthResponse
 import com.journeyapps.barcodescanner.BarcodeCallback
 import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
-
 
 @Immutable
 data class ScanStatus(
@@ -56,11 +47,12 @@ private val initialScanStatus = ScanStatus(
     "Aponte para o seu ticpass ID",
     iconResId = null,
     {},
-    {},+
+    {},
     1f,
 )
+
 @AndroidEntryPoint
-class QrScannerActivity() : BaseActivity(), BarcodeCallback {
+class QrScannerActivity : BaseActivity(), BarcodeCallback {
     @Inject
     lateinit var apiRepository: APIRepository
 
@@ -87,7 +79,6 @@ class QrScannerActivity() : BaseActivity(), BarcodeCallback {
     }
 
     class RefundSuccessFragment : Fragment(R.layout.fragment_refund_success) {
-
         private var successText: String? = null
 
         override fun onCreate(savedInstanceState: Bundle?) {
@@ -98,8 +89,7 @@ class QrScannerActivity() : BaseActivity(), BarcodeCallback {
         override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
             super.onViewCreated(view, savedInstanceState)
             val tvSuccess = view.findViewById<TextView>(R.id.tv_success)
-            tvSuccess?.text = successText ?: "Login validado"
-            // Desabilitar botões aqui também, se quiser
+            tvSuccess?.text = successText ?: "Credenciais validadas com sucesso"
             val btnFinishSuccess = view.findViewById<Button>(R.id.btn_finish_success)
             val btnRetry = view.findViewById<Button>(R.id.btn_retry)
             btnFinishSuccess?.isEnabled = false
@@ -119,7 +109,7 @@ class QrScannerActivity() : BaseActivity(), BarcodeCallback {
 
     companion object {
         private const val REQUEST_CAMERA = 1001
-        private val FORMATS = listOf(BarcodeFormat.QR_CODE)
+        private val FORMATS = listOf(com.google.zxing.BarcodeFormat.QR_CODE)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -142,7 +132,6 @@ class QrScannerActivity() : BaseActivity(), BarcodeCallback {
             startScanning()
         }
     }
-
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -181,13 +170,11 @@ class QrScannerActivity() : BaseActivity(), BarcodeCallback {
             doLogin(hash) { result ->
                 runOnUiThread {
                     result.onSuccess { response ->
-                        // Mostrar fragment de sucesso
-                        val successFragment = RefundSuccessFragment.newInstance("Login validado")
+                        val successFragment = RefundSuccessFragment.newInstance("Credenciais validadas com sucesso")
                         supportFragmentManager.beginTransaction()
                             .replace(R.id.fragmentContainer, successFragment)
                             .commit()
                         updateSuccessText(successFragment)
-                        // Aqui você pode navegar para outra tela ou finalizar a activity
                         setResult(RESULT_OK, intent.putExtra("auth_response", response.toString()))
                         finish()
                     }
@@ -197,7 +184,7 @@ class QrScannerActivity() : BaseActivity(), BarcodeCallback {
                             .replace(R.id.fragmentContainer, errorFragment)
                             .commit()
                         updateErrorText(errorFragment)
-                        Snackbar.make(barcodeView, "Erro no login: ${error.message}", Snackbar.LENGTH_SHORT).show()
+                        Snackbar.make(barcodeView, "Erro: ${error.message}", Snackbar.LENGTH_SHORT).show()
                         setResult(RESULT_CANCELED, intent.putExtra("auth_error", error.message ?: "Erro desconhecido"))
                         finish()
                     }
@@ -207,7 +194,6 @@ class QrScannerActivity() : BaseActivity(), BarcodeCallback {
             showInvalidQrError()
         }
     }
-
 
     override fun onResume() {
         super.onResume()
@@ -259,16 +245,16 @@ class QrScannerActivity() : BaseActivity(), BarcodeCallback {
         }
     }
 
+    /** 🔹 Atualizado conforme solicitado */
     private fun updateProcessingText(fragment: Fragment) {
-        fragment.view?.findViewById<TextView>(R.id.tv_processing)?.text = "Realizando login"
+        fragment.view?.findViewById<TextView>(R.id.tv_processing)?.text = "Validando credenciais"
     }
 
     private fun updateSuccessText(fragment: Fragment) {
-        fragment.view?.findViewById<TextView>(R.id.tv_success)?.text = "Login validado"
+        fragment.view?.findViewById<TextView>(R.id.tv_success)?.text = "Credenciais validadas com sucesso"
     }
 
     private fun updateErrorText(fragment: Fragment) {
-        fragment.view?.findViewById<TextView>(R.id.tv_error)?.text = "Erro ao validar Login"
+        fragment.view?.findViewById<TextView>(R.id.tv_error)?.text = "Erro ao validar credenciais"
     }
-
 }
