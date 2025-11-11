@@ -55,4 +55,61 @@ object DeviceUtils {
             }
         }
     }
+
+    /**
+     * Gets the device model name
+     * @return Device model (e.g., "SM-G973F", "Pixel 5")
+     */
+    fun getDeviceModel(): String = Build.MODEL
+
+    /**
+     * Gets the device manufacturer name
+     * @return Manufacturer name (e.g., "Samsung", "Google")
+     */
+    fun getDeviceManufacturer(): String = Build.MANUFACTURER
+
+    /**
+     * Gets the device brand name
+     * @return Brand name (e.g., "samsung", "google")
+     */
+    fun getDeviceBrand(): String = Build.BRAND
+
+    /**
+     * Gets the device product name
+     * @return Product name (e.g., "beyond1lte", "redfin")
+     */
+    fun getDeviceProduct(): String = Build.PRODUCT
+
+    /**
+     * Gets a formatted device name combining manufacturer and model
+     * @return Formatted device name (e.g., "Samsung SM-G973F", "Google Pixel 5")
+     */
+    fun getDeviceName(): String {
+        val manufacturer = Build.MANUFACTURER.replaceFirstChar { 
+            if (it.isLowerCase()) it.titlecase() else it.toString() 
+        }
+        val model = Build.MODEL
+        
+        return if (model.startsWith(manufacturer, ignoreCase = true)) {
+            model
+        } else {
+            "$manufacturer $model"
+        }
+    }
+
+    /**
+     * Gets comprehensive device information as a map
+     * @return Map containing all device information
+     */
+    fun getDeviceInfo(): Map<String, String> = mapOf(
+        "manufacturer" to Build.MANUFACTURER,
+        "brand" to Build.BRAND,
+        "model" to Build.MODEL,
+        "product" to Build.PRODUCT,
+        "device" to Build.DEVICE,
+        "hardware" to Build.HARDWARE,
+        "board" to Build.BOARD,
+        "display" to Build.DISPLAY,
+        "name" to getDeviceName()
+    )
 }
