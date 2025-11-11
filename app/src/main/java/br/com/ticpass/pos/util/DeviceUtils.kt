@@ -10,32 +10,26 @@ import android.provider.Settings.Secure.*
 import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import br.com.ticpass.pos.BuildConfig
+import br.com.ticpass.pos.sdk.AcquirerSdk
 
 /**
  * Utility class for device-related operations
  */
 object DeviceUtils {
-
-    // Mock values for debug builds
-    private const val DEFAULT_MOCK_DEVICE_MODEL = "MOCK-DEVICE-001"
-    private const val DEFAULT_MOCK_DEVICE_SERIAL = "MOCK-SERIAL-123456789"
+    // Mock values from BuildConfig (configured via local.properties)
+    private val mockDeviceModel: String
+        get() = BuildConfig.MOCK_DEVICE_MODEL
     
-    // Customizable mock values (only used in debug mode)
-    private var customMockModel: String? = null
-    private var customMockSerial: String? = null
-    
-    // Lazy random 10-digit serial for debug mode
-    private val randomMockSerial: String by lazy {
-        (1..10).map { (0..9).random() }.joinToString("")
-    }
+    private val mockDeviceSerial: String
+        get() = BuildConfig.MOCK_DEVICE_SERIAL
 
     /**
      * Gets the device serial number with compatibility for API level 26+
      *
-     * For API 26+: Uses Build.getSerial() with proper permission handling
-     * For API <26: Uses Build.SERIAL
-     *
-     * Falls back to Settings.Secure.ANDROID_ID if serial cannot be obtained
+     * Priority order:
+     * 1. Acquirer SDK serial (PagSeguro PlugPag.getSerialNumber())
+     * 2. Build.getSerial() (API 26+) or Build.SERIAL (API <26)
+     * 3. Settings.Secure.ANDROID_ID as fallback
      *
      * In debug builds, returns a mocked serial number
      *
@@ -45,10 +39,24 @@ object DeviceUtils {
     @RequiresPermission("android.permission.READ_PRIVILEGED_PHONE_STATE")
     @Suppress("DEPRECATION")
     fun getDeviceSerial(context: Context): String {
-        // Return mock in debug mode
+        // Return mock in debug mode (from local.properties)
         if (BuildConfig.DEBUG) {
-            return randomMockSerial
+            return mockDeviceSerial
         }
+        
+        // Try to get serial from Acquirer SDK first (more reliable on POS devices)
+        try {
+            if (AcquirerSdk.isInitialized()) {
+                val sdkSerial = AcquirerSdk.getDeviceSerial()
+                if (!sdkSerial.isNullOrBlank()) {
+                    return sdkSerial
+                }
+            }
+        } catch (e: Exception) {
+            // SDK not available or failed, continue to fallback methods
+        }
+        
+        // Fallback to Android Build serial
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 // For API 26+
@@ -78,14 +86,15 @@ object DeviceUtils {
 
     /**
      * Gets the device model name
-     * In debug builds, returns a mocked model name
-     * @return Device model (e.g., "SM-G973F", "Pixel 5") or mock in debug mode
+     * In debug builds, returns a mocked model name from local.properties
+     * Removes non-alphanumeric characters and converts to lowercase
+     * @return Device model (e.g., "smg973f", "pixel5") or mock in debug mode
      */
     fun getDeviceModel(): String {
         return if (BuildConfig.DEBUG) {
-            "a930"
+            mockDeviceModel
         } else {
-            Build.MODEL.lowercase()
+            Build.MODEL.lowercase().filter { it.isLetterOrDigit() }
         }
     }
 

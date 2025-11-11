@@ -57,4 +57,32 @@ object AcquirerSdk {
         nfc.initialize(appContext)
         refund.initialize(appContext)
     }
+
+    /**
+     * Get the Stone Code from the initialized SDK
+     *
+     * @return The Stone Code
+     * @throws IllegalStateException if the SDK is not initialized
+     */
+    fun getStoneCode(): String {
+        return SdkInstance.getStoneCode()
+    }
+
+    /**
+     * Get the device serial (not applicable for Stone flavor)
+     *
+     * @return null for Stone flavor (use DeviceUtils.getDeviceSerial instead)
+     */
+    fun getDeviceSerial(): String? {
+        return null
+    }
+
+    /**
+     * Check if the SDK is initialized
+     *
+     * @return true if the SDK is initialized, false otherwise
+     */
+    fun isInitialized(): Boolean {
+        return SdkInstance.isInitialized()
+    }
 }

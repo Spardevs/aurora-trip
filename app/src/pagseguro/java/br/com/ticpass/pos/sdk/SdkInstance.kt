@@ -12,6 +12,7 @@ object SdkInstance {
     // Single shared SDK instance
     private var _instance: PlugPag? = null
     private var initialized = false
+    private var cachedSerial: String? = null
     
     /**
      * Initialize the PagSeguro SDK instance
@@ -22,6 +23,8 @@ object SdkInstance {
     fun initialize(context: Context): PlugPag {
         if (!initialized) {
             _instance = createInstance(context)
+            // Cache the serial number from PagSeguro SDK
+            cachedSerial = _instance?.getSerialNumber()
             initialized = true
         }
         return _instance!!
@@ -43,6 +46,15 @@ object SdkInstance {
      * @return true if the SDK is initialized, false otherwise
      */
     fun isInitialized(): Boolean = initialized
+    
+    /**
+     * Get the device serial number from PagSeguro SDK
+     * 
+     * @return The device serial number, or null if not available
+     */
+    fun getDeviceSerial(): String? {
+        return cachedSerial
+    }
     
     /**
      * Create a new PagSeguro SDK instance

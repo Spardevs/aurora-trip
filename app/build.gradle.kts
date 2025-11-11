@@ -68,6 +68,8 @@ android {
         buildConfigField("String", "APP_NAME", "\"${AppConfig.appName}\"")
         buildConfigField("String", "NFC_KEY_TYPE_A", "\"${AppConfig.nfcKeyTypeA}\"")
         buildConfigField("String", "NFC_KEY_TYPE_B", "\"${AppConfig.nfcKeyTypeB}\"")
+        buildConfigField("String", "MOCK_DEVICE_MODEL", "\"${AppConfig.mockDeviceModel}\"")
+        buildConfigField("String", "MOCK_DEVICE_SERIAL", "\"${AppConfig.mockDeviceSerial}\"")
 
         missingDimensionStrategy("device", "vanilla")
         javaCompileOptions {

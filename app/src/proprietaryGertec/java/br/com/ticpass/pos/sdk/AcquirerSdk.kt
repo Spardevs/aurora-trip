@@ -61,4 +61,31 @@ object AcquirerSdk {
         // nfc.initialize(appContext) - no-op
         // refund.initialize(appContext) - no-op
     }
+
+    /**
+     * Get the Stone Code (not applicable for Proprietary Gertec)
+     *
+     * @return Empty string for Proprietary Gertec flavor
+     */
+    fun getStoneCode(): String {
+        return ""
+    }
+
+    /**
+     * Get the device serial (not applicable for Proprietary Gertec)
+     *
+     * @return null for Proprietary Gertec flavor (use DeviceUtils.getDeviceSerial instead)
+     */
+    fun getDeviceSerial(): String? {
+        return null
+    }
+
+    /**
+     * Check if the SDK is initialized
+     *
+     * @return Always returns true for Proprietary Gertec (no SDK initialization required)
+     */
+    fun isInitialized(): Boolean {
+        return true
+    }
 }

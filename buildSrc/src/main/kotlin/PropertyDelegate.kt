@@ -71,6 +71,15 @@ object PropertyDelegates {
     }
     
     /**
+     * Delegate for properties with default values
+     */
+    class DefaultProperty(key: String, private val defaultValue: String) : PropertyDelegate(key) {
+        operator fun getValue(thisRef: Any?, property: KProperty<*>): String {
+            return getPropertyValue() as? String ?: defaultValue
+        }
+    }
+    
+    /**
      * Factory method for optional properties
      */
     fun optional(key: String) = OptionalProperty(key)
@@ -79,4 +88,9 @@ object PropertyDelegates {
      * Factory method for required properties
      */
     fun required(key: String) = RequiredProperty(key)
+    
+    /**
+     * Factory method for properties with default values
+     */
+    fun withDefault(key: String, defaultValue: String) = DefaultProperty(key, defaultValue)
 }

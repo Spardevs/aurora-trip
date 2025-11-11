@@ -53,4 +53,31 @@ object AcquirerSdk {
         nfc.initialize(appContext)
         refund.initialize(appContext)
     }
+
+    /**
+     * Get the Stone Code (not applicable for PagSeguro)
+     *
+     * @return Empty string for PagSeguro flavor
+     */
+    fun getStoneCode(): String {
+        return ""
+    }
+
+    /**
+     * Get the device serial from PagSeguro SDK
+     *
+     * @return Device serial number from PagSeguro SDK, or null if not available
+     */
+    fun getDeviceSerial(): String? {
+        return SdkInstance.getDeviceSerial()
+    }
+
+    /**
+     * Check if the SDK is initialized
+     *
+     * @return true if the SDK is initialized, false otherwise
+     */
+    fun isInitialized(): Boolean {
+        return SdkInstance.isInitialized()
+    }
 }

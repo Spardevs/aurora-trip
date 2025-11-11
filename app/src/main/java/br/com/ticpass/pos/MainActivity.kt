@@ -50,6 +50,7 @@ import br.com.ticpass.pos.data.room.service.GPSService
 import br.com.ticpass.pos.util.ConnectionStatusBar
 import br.com.ticpass.pos.data.activity.PermissionsActivity
 import br.com.ticpass.pos.data.api.APIRepository
+import br.com.ticpass.pos.sdk.AcquirerSdk
 import br.com.ticpass.pos.util.ConnectivityMonitor
 import br.com.ticpass.pos.util.DeviceUtils
 import com.topjohnwu.superuser.internal.UiThreadHandler.handler
@@ -304,11 +305,44 @@ class MainActivity : BaseActivity() {
                     PackageManager.PERMISSION_GRANTED
         }
 
+    /**
+     * Logs comprehensive device information including model, acquirer, serial, and stone code
+     */
+    private fun logDeviceInfo() {
+        try {
+            val model = DeviceUtils.getDeviceModel()
+            val acquirer = DeviceUtils.getAcquirer()
+            val serial = DeviceUtils.getDeviceSerial(this)
+            val stoneCode = if (AcquirerSdk.isInitialized()) {
+                AcquirerSdk.getStoneCode()
+            } else {
+                "SDK not initialized"
+            }
+
+            Log.i("DeviceInfo", "═══════════════════════════════════════════")
+            Log.i("DeviceInfo", "          DEVICE INFORMATION")
+            Log.i("DeviceInfo", "═══════════════════════════════════════════")
+            Log.i("DeviceInfo", "Model:       $model")
+            Log.i("DeviceInfo", "Acquirer:    $acquirer")
+            Log.i("DeviceInfo", "Serial:      $serial")
+            Log.i("DeviceInfo", "Stone Code:  ${if (stoneCode.isEmpty()) "N/A" else stoneCode}")
+            Log.i("DeviceInfo", "═══════════════════════════════════════════")
+        } catch (e: Exception) {
+            Log.e("DeviceInfo", "Error logging device info: ${e.message}", e)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         appContext = applicationContext
         activity = this
+
+        // Initialize Acquirer SDK first
+        AcquirerSdk.initialize(applicationContext)
+
+        // Log device information
+        logDeviceInfo()
 
         connectionStatusBar = ConnectionStatusBar(this)
 

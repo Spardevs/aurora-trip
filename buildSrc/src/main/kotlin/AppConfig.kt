@@ -13,6 +13,7 @@
  */
 
 import PropertyDelegates.required
+import PropertyDelegates.withDefault
 
 /**
  * Application configuration properties from Gradle
@@ -53,4 +54,8 @@ object AppConfig {
 
     val conversionFactor by required("CONVERSION_FACTOR")
     val appName by required("APP_NAME")
+    
+    // Mock device configuration for debug builds (only used in DEBUG mode)
+    val mockDeviceModel by withDefault("MOCK_DEVICE_MODEL", "p2b")
+    val mockDeviceSerial by withDefault("MOCK_DEVICE_SERIAL", "0000000000")
 }
