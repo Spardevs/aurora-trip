@@ -16,6 +16,19 @@ import br.com.ticpass.pos.BuildConfig
  */
 object DeviceUtils {
 
+    // Mock values for debug builds
+    private const val DEFAULT_MOCK_DEVICE_MODEL = "MOCK-DEVICE-001"
+    private const val DEFAULT_MOCK_DEVICE_SERIAL = "MOCK-SERIAL-123456789"
+    
+    // Customizable mock values (only used in debug mode)
+    private var customMockModel: String? = null
+    private var customMockSerial: String? = null
+    
+    // Lazy random 10-digit serial for debug mode
+    private val randomMockSerial: String by lazy {
+        (1..10).map { (0..9).random() }.joinToString("")
+    }
+
     /**
      * Gets the device serial number with compatibility for API level 26+
      *
@@ -24,12 +37,18 @@ object DeviceUtils {
      *
      * Falls back to Settings.Secure.ANDROID_ID if serial cannot be obtained
      *
+     * In debug builds, returns a mocked serial number
+     *
      * @param context Context needed for permission check
-     * @return Device serial number
+     * @return Device serial number (or mock in debug mode)
      */
     @RequiresPermission("android.permission.READ_PRIVILEGED_PHONE_STATE")
     @Suppress("DEPRECATION")
     fun getDeviceSerial(context: Context): String {
+        // Return mock in debug mode
+        if (BuildConfig.DEBUG) {
+            return randomMockSerial
+        }
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 // For API 26+
@@ -59,9 +78,16 @@ object DeviceUtils {
 
     /**
      * Gets the device model name
-     * @return Device model (e.g., "SM-G973F", "Pixel 5")
+     * In debug builds, returns a mocked model name
+     * @return Device model (e.g., "SM-G973F", "Pixel 5") or mock in debug mode
      */
-    fun getDeviceModel(): String = Build.MODEL
+    fun getDeviceModel(): String {
+        return if (BuildConfig.DEBUG) {
+            "a930"
+        } else {
+            Build.MODEL.lowercase()
+        }
+    }
 
     /**
      * Gets the device manufacturer name
