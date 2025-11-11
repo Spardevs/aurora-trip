@@ -9,6 +9,7 @@ import android.provider.Settings.*
 import android.provider.Settings.Secure.*
 import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
+import br.com.ticpass.pos.BuildConfig
 
 /**
  * Utility class for device-related operations
@@ -112,4 +113,32 @@ object DeviceUtils {
         "display" to Build.DISPLAY,
         "name" to getDeviceName()
     )
+
+    /**
+     * Gets the current acquirer based on the build flavor
+     * @return Acquirer name: "stone", "pagseguro", or "proprietary"
+     */
+    fun getAcquirer(): String {
+        return when (BuildConfig.FLAVOR) {
+            "proprietaryGertec" -> "proprietary"
+            "pagseguro" -> "pagseguro"
+            "stone" -> "stone"
+            else -> "pagseguro"
+        }
+    }
+
+    /**
+     * Gets the raw build flavor name
+     * @return Build flavor name (e.g., "proprietaryGertec", "pagseguro", "stone")
+     */
+    fun getBuildFlavor(): String = BuildConfig.FLAVOR
+
+    /**
+     * Checks if the current build is for a specific acquirer
+     * @param acquirer The acquirer name to check ("stone", "pagseguro", or "proprietary")
+     * @return True if the current build matches the specified acquirer
+     */
+    fun isAcquirer(acquirer: String): Boolean {
+        return getAcquirer().equals(acquirer, ignoreCase = true)
+    }
 }
