@@ -4,8 +4,6 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
-import android.provider.Settings
-import android.provider.Settings.*
 import android.provider.Settings.Secure.*
 import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
