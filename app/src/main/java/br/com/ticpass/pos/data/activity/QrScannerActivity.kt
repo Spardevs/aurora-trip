@@ -1,111 +1,36 @@
 package br.com.ticpass.pos.data.activity
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
-import android.view.View
-import android.widget.Button
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.runtime.Immutable
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.data.api.APIRepository
-import br.com.ticpass.pos.data.api.APITestResponse
-import br.com.ticpass.pos.util.DeviceUtils.getDeviceSerial
+import br.com.ticpass.pos.data.api.Api2Repository
+import br.com.ticpass.pos.data.api.ShortLivedSignInResponse
+import br.com.ticpass.pos.view.fragments.qrcode.QrCodeErrorFragment
+import br.com.ticpass.pos.view.fragments.qrcode.QrCodeProcessingFragment
+import br.com.ticpass.pos.view.fragments.qrcode.QrCodeSuccessFragment
 import com.google.android.material.snackbar.Snackbar
 import com.journeyapps.barcodescanner.BarcodeResult
 import com.journeyapps.barcodescanner.BarcodeView
 import com.journeyapps.barcodescanner.DefaultDecoderFactory
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import com.airbnb.lottie.compose.LottieClipSpec
 import com.journeyapps.barcodescanner.BarcodeCallback
 import dagger.hilt.android.AndroidEntryPoint
-import jakarta.inject.Inject
-
-@Immutable
-data class ScanStatus(
-    val description: String,
-    val iconResId: Int? = null,
-    val onStart: () -> Unit,
-    val onEnd: () -> Unit,
-    val speed: Float = 1f,
-    val iterations: Int = 1,
-    val clipSpec: LottieClipSpec.Frame = LottieClipSpec.Frame()
-)
-
-private val initialScanStatus = ScanStatus(
-    "Aponte para o seu ticpass ID",
-    iconResId = null,
-    {},
-    {},
-    1f,
-)
+import kotlinx.coroutines.*
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class QrScannerActivity : BaseActivity(), BarcodeCallback {
+
     @Inject
-    lateinit var apiRepository: APIRepository
+    lateinit var api2Repository: Api2Repository
 
     private lateinit var barcodeView: BarcodeView
-
-    class RefundProcessingFragment : Fragment(R.layout.fragment_refund_processing) {
-        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-            super.onViewCreated(view, savedInstanceState)
-            val btnFinishSuccess = view.findViewById<Button>(R.id.btn_finish_success)
-            val btnRetry = view.findViewById<Button>(R.id.btn_retry)
-            btnFinishSuccess?.isEnabled = false
-            btnRetry?.isEnabled = false
-        }
-    }
-
-    class RefundErrorFragment : Fragment(R.layout.fragment_refund_error) {
-        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-            super.onViewCreated(view, savedInstanceState)
-            val btnFinishSuccess = view.findViewById<Button>(R.id.btn_finish_success)
-            val btnRetry = view.findViewById<Button>(R.id.btn_retry)
-            btnFinishSuccess?.isEnabled = false
-            btnRetry?.isEnabled = false
-        }
-    }
-
-    class RefundSuccessFragment : Fragment(R.layout.fragment_refund_success) {
-        private var successText: String? = null
-
-        override fun onCreate(savedInstanceState: Bundle?) {
-            super.onCreate(savedInstanceState)
-            successText = arguments?.getString("success_text")
-        }
-
-        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-            super.onViewCreated(view, savedInstanceState)
-            val tvSuccess = view.findViewById<TextView>(R.id.tv_success)
-            tvSuccess?.text = successText ?: "Credenciais validadas com sucesso"
-            val btnFinishSuccess = view.findViewById<Button>(R.id.btn_finish_success)
-            val btnRetry = view.findViewById<Button>(R.id.btn_retry)
-            btnFinishSuccess?.isEnabled = false
-            btnRetry?.isEnabled = false
-        }
-
-        companion object {
-            fun newInstance(successText: String): RefundSuccessFragment {
-                val fragment = RefundSuccessFragment()
-                val args = Bundle()
-                args.putString("success_text", successText)
-                fragment.arguments = args
-                return fragment
-            }
-        }
-    }
 
     companion object {
         private const val REQUEST_CAMERA = 1001
@@ -156,42 +81,99 @@ class QrScannerActivity : BaseActivity(), BarcodeCallback {
 
     override fun barcodeResult(result: BarcodeResult) {
         barcodeView.pause()
-        val text = result.text
-        if (text != null && isPatternMatch(text)) {
-            val hash = getHash(text)
+        val text = result.text?.trim()
+        Log.d("QrScannerActivity", "QR Code lido: $text")
 
-            // Mostrar fragment de processamento
-            val processingFragment = RefundProcessingFragment()
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, processingFragment)
-                .commit()
-            updateProcessingText(processingFragment)
+        if (text.isNullOrBlank() || !text.contains("@")) {
+            showErrorFragment("QR inválido: formato não reconhecido (esperado: token@pin)")
+            barcodeView.resume()
+            return
+        }
 
-            doLogin(hash) { result ->
-                runOnUiThread {
-                    result.onSuccess { response ->
-                        val successFragment = RefundSuccessFragment.newInstance("Credenciais validadas com sucesso")
-                        supportFragmentManager.beginTransaction()
-                            .replace(R.id.fragmentContainer, successFragment)
-                            .commit()
-                        updateSuccessText(successFragment)
-                        setResult(RESULT_OK, intent.putExtra("auth_response", response.toString()))
-                        finish()
-                    }
-                    result.onFailure { error ->
-                        val errorFragment = RefundErrorFragment()
-                        supportFragmentManager.beginTransaction()
-                            .replace(R.id.fragmentContainer, errorFragment)
-                            .commit()
-                        updateErrorText(errorFragment)
-                        Snackbar.make(barcodeView, "Erro: ${error.message}", Snackbar.LENGTH_SHORT).show()
-                        setResult(RESULT_CANCELED, intent.putExtra("auth_error", error.message ?: "Erro desconhecido"))
-                        finish()
-                    }
+        val processingFragment = QrCodeProcessingFragment()
+        showFragment(processingFragment)
+
+        doLoginV2(text) { result ->
+            runOnUiThread {
+                result.onSuccess { response ->
+                    Log.d("QrScannerActivity", "Login bem-sucedido! Token: ${response.result?.token}")
+                    showFragment(QrCodeSuccessFragment())
+
+                    // Passa os dados de autenticação para a Activity que chamou
+                    intent.putExtra("auth_token", response.result?.token)
+                    intent.putExtra("auth_refresh_token", response.result?.refreshToken)
+                    intent.putExtra("auth_expires_in", response.result?.expiresIn)
+
+                    setResult(RESULT_OK, intent)
+                    finish()
+                }
+                result.onFailure { e ->
+                    Log.e("QrScannerActivity", "Falha no login: ${e.message}")
+                    showFragment(QrCodeErrorFragment())
+                    Snackbar.make(barcodeView, "Erro: ${e.message}", Snackbar.LENGTH_LONG).show()
+                    setResult(RESULT_CANCELED, intent.putExtra("auth_error", e.message))
+                    finish()
                 }
             }
-        } else {
-            showInvalidQrError()
+        }
+    }
+
+    private fun doLoginV2(qrText: String, onResult: (Result<ShortLivedSignInResponse>) -> Unit) {
+        val handler = CoroutineExceptionHandler { _, throwable ->
+            Log.e("QrScannerActivity", "Exception no handler", throwable)
+            onResult(Result.failure(throwable))
+        }
+
+        lifecycleScope.launch(handler) {
+            try {
+                val parts = qrText.split("@")
+                if (parts.size != 2) {
+                    throw Exception("Formato inválido de QRCode. Esperado: token@pin")
+                }
+
+                val token = parts[0].trim()
+                val pin = parts[1].trim()
+
+                Log.d("QrScannerActivity", "Token extraído: $token")
+                Log.d("QrScannerActivity", "PIN extraído: $pin")
+                Log.d("QrScannerActivity", "Chamando Api2Repository.signInShortLived()")
+
+                val response = withContext(Dispatchers.IO) {
+                    api2Repository.signInShortLived(token, pin)
+                }
+
+                Log.d(
+                    "QrScannerActivity",
+                    "Response: status=${response.status}, msg=${response.message}, error=${response.error}"
+                )
+
+                // ✅ Aceita status 200 E 201 como sucesso
+                when {
+                    response.status in listOf(200, 201) && response.result?.token != null -> {
+                        Log.d("QrScannerActivity", "Autenticação bem-sucedida (status ${response.status})")
+                        onResult(Result.success(response))
+                    }
+                    response.status == 401 -> {
+                        Log.w("QrScannerActivity", "Erro 401: Token ou PIN inválido")
+                        onResult(Result.failure(Exception("Não autorizado: Token ou PIN inválido")))
+                    }
+                    response.status == 400 -> {
+                        Log.w("QrScannerActivity", "Erro 400: Requisição inválida")
+                        onResult(Result.failure(Exception("Requisição inválida: ${response.message ?: response.error}")))
+                    }
+                    response.status >= 500 -> {
+                        Log.e("QrScannerActivity", "Erro 5xx: Problema no servidor")
+                        onResult(Result.failure(Exception("Erro no servidor: ${response.message ?: response.error}")))
+                    }
+                    else -> {
+                        Log.e("QrScannerActivity", "Erro desconhecido: status=${response.status}")
+                        onResult(Result.failure(Exception(response.message ?: response.error ?: "Erro desconhecido (status ${response.status})")))
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("QrScannerActivity", "Erro no login", e)
+                onResult(Result.failure(e))
+            }
         }
     }
 
@@ -205,56 +187,15 @@ class QrScannerActivity : BaseActivity(), BarcodeCallback {
         barcodeView.pause()
     }
 
-    private fun isPatternMatch(input: String): Boolean {
-        val pattern = Regex("^[0-9a-fA-F-]+@[0-9a-zA-Z]+\$")
-        return pattern.matches(input)
+    private fun showFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, fragment)
+            .commitAllowingStateLoss()
     }
 
-    fun getHash(input: String): String {
-        val atIndex = input.indexOf("@")
-        return input.substring(0, atIndex)
-    }
-
-    private fun showInvalidQrError() {
-        Snackbar.make(barcodeView, "QR inválido: formato não reconhecido", Snackbar.LENGTH_SHORT).show()
-    }
-
-    fun getPin(input: String): String {
-        val atIndex = input.indexOf("@")
-        return input.substring(atIndex + 1)
-    }
-
-    fun doLogin(
-        hash: String,
-        onResult: (Result<APITestResponse>) -> Unit
-    ) {
-        val handler = CoroutineExceptionHandler { _, throwable ->
-            onResult(Result.failure(throwable))
-        }
-
-        lifecycleScope.launch(handler) {
-            try {
-                val authResponse = withContext(Dispatchers.IO) {
-                    val serial = getDeviceSerial(this@QrScannerActivity)
-                    apiRepository.loginQrcode(hash, serial)
-                }
-                onResult(Result.success(authResponse))
-            } catch (e: Exception) {
-                onResult(Result.failure(e))
-            }
-        }
-    }
-
-    /** 🔹 Atualizado conforme solicitado */
-    private fun updateProcessingText(fragment: Fragment) {
-        fragment.view?.findViewById<TextView>(R.id.tv_processing)?.text = "Validando credenciais"
-    }
-
-    private fun updateSuccessText(fragment: Fragment) {
-        fragment.view?.findViewById<TextView>(R.id.tv_success)?.text = "Credenciais validadas com sucesso"
-    }
-
-    private fun updateErrorText(fragment: Fragment) {
-        fragment.view?.findViewById<TextView>(R.id.tv_error)?.text = "Erro ao validar credenciais"
+    private fun showErrorFragment(message: String) {
+        val frag = QrCodeErrorFragment()
+        showFragment(frag)
+        Snackbar.make(barcodeView, message, Snackbar.LENGTH_LONG).show()
     }
 }

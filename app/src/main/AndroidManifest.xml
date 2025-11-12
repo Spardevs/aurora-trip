@@ -114,7 +114,11 @@
             android:name=".data.activity.MenuActivity"
             android:exported="false"
         />
-        <activity android:name=".view.ui.login.LoginScreen"/>
+        <activity
+            android:name=".view.ui.login.LoginScreen"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:exported="false"
+            />
         <activity
             android:name=".data.activity.QrScannerActivity"
             android:screenOrientation="fullSensor"

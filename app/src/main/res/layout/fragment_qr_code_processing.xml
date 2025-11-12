@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/processing_root"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:gravity="center"
+    android:layout_gravity="center"
+    android:background="@drawable/bg_printing_border">
+
+    <ProgressBar
+        android:id="@+id/progress_processing"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/colorAccent" />
+
+    <TextView
+        android:id="@+id/tv_processing"
+        android:layout_width="160dp"
+        android:layout_height="wrap_content"
+        android:text="Validando credrenciais, aguarde..."
+        android:textColor="@color/colorAccent"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:layout_marginTop="12dp" />
+</LinearLayout>

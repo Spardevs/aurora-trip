@@ -1,4 +1,3 @@
-
 package br.com.ticpass.pos.data.api
 
 import android.content.Context
@@ -363,23 +362,24 @@ interface APIService {
         @JvmStatic
         fun create(context: Context): APIService {
             // logger de requisições
-            val logger = HttpLoggingInterceptor().apply { level = Level.BASIC }
+            val logger = HttpLoggingInterceptor().apply { level = Level.BODY }
 
             val client = OkHttpClient.Builder()
                 .connectTimeout(Constants.API_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .readTimeout(Constants.API_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .retryOnConnectionFailure(true)
-                // opcional: insere o nome do app nos headers
+                // ✅ ADICIONAR O INTERCEPTOR DE VERSÃO AQUI
+                .addInterceptor(VersionInterceptor())
                 .addInterceptor { chain ->
                     val req = chain.request().newBuilder()
-//                        .header("X-App-Name", Constants.getAppName(context))
+//                    .header("X-App-Name", Constants.getAppName(context))
                         .build()
                     chain.proceed(req)
                 }
                 .addInterceptor(logger)
                 .build()
 
-            Log.d("APIService","Creating Retrofit @ $BASE_URL")
+            Log.d("APIService", "Creating Retrofit @ $BASE_URL")
 
             return Retrofit.Builder()
                 .baseUrl(BASE_URL)
