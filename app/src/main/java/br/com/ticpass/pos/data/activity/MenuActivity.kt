@@ -4,24 +4,26 @@ import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
+import br.com.ticpass.pos.data.api.Api2Repository
 import br.com.ticpass.pos.data.api.APIRepository
+import br.com.ticpass.pos.data.api.ErrorResponse
 import br.com.ticpass.pos.data.model.Menu
 import br.com.ticpass.pos.util.ThumbnailManager
 import br.com.ticpass.pos.view.ui.login.MenuScreen
 import br.com.ticpass.pos.view.ui.login.PosScreen
+import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MenuActivity : BaseActivity() {
-    @Inject lateinit var apiRepository: APIRepository
+    @Inject lateinit var api2Repository: Api2Repository
+    @Inject lateinit var apiRepository: APIRepository // Mantém para downloadThumbnails
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,39 +36,60 @@ class MenuActivity : BaseActivity() {
 
     private fun loadMenus() {
         val sharedPref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        val authToken = sharedPref.getString("auth_token", null) ?: run {
+        val accessToken = sharedPref.getString("auth_token", null) ?: run {
             showErrorAndFinish("Token de autenticação não encontrado")
             return
         }
-        val userId = sharedPref.getInt("user_id", -1).takeIf { it != -1 } ?: run {
-            showErrorAndFinish("ID do usuário não encontrado")
+        val refreshToken = sharedPref.getString("refresh_token", null) ?: run {
+            showErrorAndFinish("Refresh token não encontrado")
             return
         }
 
         lifecycleScope.launch {
             try {
-                val events = apiRepository.getEvents(
-                    user = userId.toString(),
-                    jwt = authToken
-                )
+                // Usa o novo endpoint /menu via Api2Repository
+                val resp = api2Repository.getMenu(take = 10, page = 1)
 
-                val menus = events.result.items.map { event ->
+                if (!resp.isSuccessful) {
+                    val code = resp.code()
+                    val errorBody = resp.errorBody()?.string()
+                    val errorMsg = try {
+                        val err = Gson().fromJson(errorBody, ErrorResponse::class.java)
+                        err?.message ?: "Erro desconhecido"
+                    } catch (_: Exception) {
+                        errorBody ?: "Erro desconhecido"
+                    }
+
+                    if (code == 401) {
+                        showErrorAndFinish("Não autorizado: $errorMsg")
+                    } else {
+                        showErrorAndFinish("Falha ao carregar menus (HTTP $code): $errorMsg")
+                    }
+                    return@launch
+                }
+
+                val body = resp.body() ?: run {
+                    showErrorAndFinish("Resposta vazia do servidor")
+                    return@launch
+                }
+
+                val menus: List<Menu> = body.edges.map { edge ->
                     Menu(
-                        id = event.id,
-                        name = event.name,
-                        imageUrl = event.ticket,
-                        dateStart = event.dateStart,
-                        dateEnd = event.dateEnd,
-                        details = event.details,
-                        mode = event.mode,
-                        pin = event.pin
+                        id = edge.id,
+                        name = edge.label,
+                        imageUrl = "", // não veio no payload
+                        dateStart = edge.date.start,
+                        dateEnd = edge.date.end,
+                        details = edge.pass.description,
+                        mode = edge.mode,
+                        pin = "" // não veio no payload
                     )
                 }
 
                 showMenus(menus)
             } catch (e: Exception) {
                 Log.e("MenuActivity", "Error loading menus", e)
-                showFallbackMenus()
+                showErrorAndFinish("Erro ao carregar menus: ${e.message}")
             }
         }
     }
@@ -84,22 +107,6 @@ class MenuActivity : BaseActivity() {
                 mode = selectedMenu.mode
             )
         }
-    }
-
-    private fun showFallbackMenus() {
-        val fallbackMenus = listOf(
-            Menu(
-                id = "1",
-                name = "Evento 1",
-                imageUrl = "",
-                dateStart = "2024-01-01T00:00:00.000Z",
-                dateEnd = "2024-12-31T23:59:59.000Z",
-                details = "Detalhes do evento 1",
-                mode = "1",
-                pin = "1234",
-            )
-        )
-        showMenus(fallbackMenus)
     }
 
     private fun showErrorAndFinish(message: String) {
@@ -155,14 +162,19 @@ class MenuActivity : BaseActivity() {
     }
 
     private suspend fun downloadThumbnails(menuId: String): Boolean {
-        val sessionPref = getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE)
-        val jwt = sessionPref.getString("auth_token", "") ?: ""
+        val sharedPref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        val jwt = sharedPref.getString("auth_token", "") ?: ""
 
-        return ThumbnailManager.downloadAndExtractThumbnails(
-            context = this,
-            menuId = menuId
-        ) {
-            apiRepository.downloadAllProductThumbnails(menuId, jwt)
+        return try {
+            ThumbnailManager.downloadAndExtractThumbnails(
+                context = this,
+                menuId = menuId
+            ) {
+                apiRepository.downloadAllProductThumbnails(menuId, jwt)
+            }
+        } catch (e: Exception) {
+            Log.e("MenuActivity", "Erro ao baixar thumbnails", e)
+            false
         }
     }
 }

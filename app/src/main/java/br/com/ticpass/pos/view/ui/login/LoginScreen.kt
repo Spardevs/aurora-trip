@@ -17,14 +17,13 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import br.com.ticpass.Constants
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.activity.BaseActivity
 import br.com.ticpass.pos.data.activity.MenuActivity
 import br.com.ticpass.pos.data.activity.QrScannerActivity
 import br.com.ticpass.pos.data.api.APIRepository
-import br.com.ticpass.pos.data.api.APITestResponse
 import br.com.ticpass.pos.databinding.ActivityLoginBinding
-import br.com.ticpass.pos.util.DeviceUtils.getDeviceSerial
 import com.auth0.android.jwt.JWT
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -32,9 +31,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import br.com.ticpass.pos.data.api.Api2Repository
+import br.com.ticpass.pos.data.api.LoginResponse
+import com.google.gson.Gson
 
 @AndroidEntryPoint
 class LoginScreen : BaseActivity() {
+    @Inject lateinit var api2Repository: Api2Repository
 
     class RefundProcessingFragment : Fragment(R.layout.fragment_refund_processing) {
         override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -69,7 +72,6 @@ class LoginScreen : BaseActivity() {
             super.onViewCreated(view, savedInstanceState)
             val tvSuccess = view.findViewById<TextView>(R.id.tv_success)
             tvSuccess?.text = successText ?: "Login validado"
-            // Desabilitar botões aqui também, se quiser
             val btnFinishSuccess = view.findViewById<Button>(R.id.btn_finish_success)
             val btnRetry = view.findViewById<Button>(R.id.btn_retry)
             btnFinishSuccess?.isEnabled = false
@@ -91,7 +93,6 @@ class LoginScreen : BaseActivity() {
 
     @Inject
     lateinit var apiRepository: APIRepository
-
 
     private val scannerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -115,6 +116,8 @@ class LoginScreen : BaseActivity() {
                             putString("token_expiration", tokenExpiration.toString())
                             putInt("user_id", userId)
                             putString("user_name", userName)
+                            // Salvar proxyCredentials se disponível
+                            putString("proxy_credentials", Constants.PROXY_CREDENTIALS)
                             apply()
                         }
                         startActivity(Intent(this@LoginScreen, MenuActivity::class.java))
@@ -153,12 +156,10 @@ class LoginScreen : BaseActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Inicialmente, campos de email e senha desabilitados
         binding.editTextTextEmailAddress.isEnabled = false
         binding.editTextTextPassword.isEnabled = false
         binding.buttonConfirm.isEnabled = false
 
-        // Ao clicar no campo ou botão de email, habilita os campos para login
         binding.emailLoginButton.setOnClickListener {
             binding.choiceContainer.visibility = View.GONE
             binding.formContainer.visibility = View.VISIBLE
@@ -171,11 +172,10 @@ class LoginScreen : BaseActivity() {
         binding.buttonConfirm.setOnClickListener {
             val username = binding.editTextTextEmailAddress.text.toString()
             val password = binding.editTextTextPassword.text.toString()
-            val serial = getDeviceSerial(this)
             if (username.isBlank() || password.isBlank()) {
                 showToast("Preencha usuário e senha")
             } else {
-                doLogin(username, password, serial)
+                doLoginV2(username, password)
             }
         }
 
@@ -191,7 +191,6 @@ class LoginScreen : BaseActivity() {
             binding.buttonConfirm.isEnabled = false
         }
 
-
         binding.qrCodeLoginButton.setOnClickListener {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED
@@ -205,29 +204,9 @@ class LoginScreen : BaseActivity() {
                 startQrScanner()
             }
         }
-
-        binding.buttonConfirm.setOnClickListener {
-            val username = binding.editTextTextEmailAddress.text.toString()
-            val password = binding.editTextTextPassword.text.toString()
-            val serial = getDeviceSerial(this)
-            if (username.isBlank() || password.isBlank()) {
-                showToast("Preencha usuário e senha")
-            } else {
-                doLogin(username, password, serial)
-            }
-        }
-
-        binding.buttonBack.setOnClickListener {
-            binding.choiceContainer.visibility = View.VISIBLE
-            binding.formContainer.visibility = View.GONE
-
-            binding.editTextTextEmailAddress.text.clear()
-            binding.editTextTextPassword.text.clear()
-        }
-
     }
 
-    private fun doLogin(username: String, password: String, serial: String) {
+    private fun doLoginV2(email: String, password: String) {
         val processingFragment = RefundProcessingFragment()
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, processingFragment)
@@ -247,16 +226,43 @@ class LoginScreen : BaseActivity() {
 
         lifecycleScope.launch(handler) {
             try {
-                val authResponse: APITestResponse = withContext(Dispatchers.IO) {
-                    apiRepository.login(username, password, serial)
+                val resp = withContext(Dispatchers.IO) {
+                    api2Repository.signInWithEmailPassword(email, password)
                 }
-                runOnUiThread {
-                    saveAuthData(authResponse)
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.fragmentContainer, RefundSuccessFragment())
-                        .commit()
-                    startActivity(Intent(this@LoginScreen, MenuActivity::class.java))
-                    finish()
+
+                if (resp.isSuccessful) {
+                    val body = resp.body()
+                    if (body != null) {
+                        saveAuthDataV2(body)
+                        runOnUiThread {
+                            supportFragmentManager.beginTransaction()
+                                .replace(R.id.fragmentContainer, RefundSuccessFragment.newInstance("Login validado"))
+                                .commit()
+                            startActivity(Intent(this@LoginScreen, MenuActivity::class.java))
+                            finish()
+                        }
+                    } else {
+                        runOnUiThread {
+                            supportFragmentManager.beginTransaction()
+                                .replace(R.id.fragmentContainer, RefundErrorFragment())
+                                .commit()
+                            showToast("Resposta vazia do servidor")
+                        }
+                    }
+                } else {
+                    val errorRaw = resp.errorBody()?.string()
+                    val errorMsg = try {
+                        val err = Gson().fromJson(errorRaw, br.com.ticpass.pos.data.api.ErrorResponse::class.java)
+                        err?.message ?: "Falha no login"
+                    } catch (_: Exception) {
+                        errorRaw ?: "Falha no login"
+                    }
+                    runOnUiThread {
+                        supportFragmentManager.beginTransaction()
+                            .replace(R.id.fragmentContainer, RefundErrorFragment())
+                            .commit()
+                        showToast(errorMsg)
+                    }
                 }
             } catch (e: Exception) {
                 runOnUiThread {
@@ -269,12 +275,14 @@ class LoginScreen : BaseActivity() {
         }
     }
 
-    private fun saveAuthData(authResponse: APITestResponse) {
+    private fun saveAuthDataV2(login: LoginResponse) {
         getSharedPreferences("UserPrefs", Context.MODE_PRIVATE).edit().apply {
-            putString("auth_token", authResponse.result.token)
-            putString("refresh_token", authResponse.result.tokenRefresh)
-            putInt("user_id", authResponse.result.user.id.toIntOrNull() ?: -1)
-            putString("user_name", authResponse.result.user.name)
+            putString("auth_token", login.jwt.access)
+            putString("refresh_token", login.jwt.refresh)
+            putInt("user_id", -1)
+            putString("user_name", login.user.name)
+            // Salvar proxyCredentials - ajuste conforme sua fonte
+            putString("proxy_credentials", Constants.PROXY_CREDENTIALS)
             apply()
         }
     }

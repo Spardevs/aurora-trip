@@ -3,47 +3,48 @@ package br.com.ticpass.pos.data.api
 import android.content.Context
 import android.util.Log
 import br.com.ticpass.Constants
-import com.google.gson.annotations.SerializedName
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.logging.HttpLoggingInterceptor.Level
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
-import retrofit2.http.Header
+import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.POST
+import retrofit2.http.Query
 import java.util.concurrent.TimeUnit
 
-/**
- * Modelo de resposta para signin short-lived
- */
-data class ShortLivedSignInResponse(
-    @SerializedName("status") val status: Int,
-    @SerializedName("message") val message: String?,
-    @SerializedName("result") val result: ShortLivedSignInResult?,
-    @SerializedName("error") val error: String?,
-    @SerializedName("name") val name: String?
-)
-
-data class ShortLivedSignInResult(
-    @SerializedName("token") val token: String?,
-    @SerializedName("refreshToken") val refreshToken: String?,
-    @SerializedName("expiresIn") val expiresIn: Long?
-)
-
-/**
- * API Service para autenticação short-lived
- */
 interface Api2Service {
 
     @POST("auth/signin/pos/short-lived")
     @Headers("Content-Type: application/json")
     suspend fun signInShortLived(
-        @Header("Cookie") cookie: String,
-        @Header("Authorization") authorization: String,
+        @retrofit2.http.Header("Cookie") cookie: String,
+        @retrofit2.http.Header("Authorization") authorization: String,
         @Body body: okhttp3.RequestBody
-    ): ShortLivedSignInResponse
+    ): Response<LoginResponse>
+
+    @POST("auth/signin/pos")
+    @Headers("Content-Type: application/json")
+    suspend fun signInWithEmailPassword(
+        @Body body: okhttp3.RequestBody
+    ): Response<LoginResponse>
+
+    @POST("devices")
+    @Headers("Content-Type: application/json")
+    suspend fun registerDevice(
+        @retrofit2.http.Header("Authorization") authorization: String,
+        @Body body: okhttp3.RequestBody
+    ): Response<RegisterDeviceResponse>
+
+    @GET("menu")
+    @Headers("Content-Type: application/json")
+    suspend fun getMenu(
+        @Query("take") take: Int = 10,
+        @Query("page") page: Int = 1
+    ): Response<MenuListResponse>
 
     companion object {
         private var BASE_URL = "${Constants.API_HOST}/"
@@ -57,6 +58,7 @@ interface Api2Service {
                 .readTimeout(Constants.API_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .retryOnConnectionFailure(true)
                 .addInterceptor(VersionInterceptor())
+                .addInterceptor(ApiAuthInterceptor(context))
                 .addInterceptor(logger)
                 .build()
 

@@ -50,6 +50,7 @@ import br.com.ticpass.pos.data.room.service.GPSService
 import br.com.ticpass.pos.util.ConnectionStatusBar
 import br.com.ticpass.pos.data.activity.PermissionsActivity
 import br.com.ticpass.pos.data.api.APIRepository
+import br.com.ticpass.pos.data.api.Api2Repository
 import br.com.ticpass.pos.sdk.AcquirerSdk
 import br.com.ticpass.pos.util.ConnectivityMonitor
 import br.com.ticpass.pos.util.DeviceUtils
@@ -63,9 +64,7 @@ import javax.inject.Inject
 import kotlin.getValue
 import kotlin.toString
 
-
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user")
-
 
 class POSSYNCTaskRunnable @Inject constructor(
     private val handler: Handler,
@@ -284,6 +283,9 @@ class MainActivity : BaseActivity() {
     @Inject
     lateinit var apiRepository: APIRepository
 
+    @Inject
+    lateinit var api2Repository: Api2Repository
+
     private var connectivityMonitor: ConnectivityMonitor? = null
     private var connectionStatusBar: ConnectionStatusBar? = null
 
@@ -360,23 +362,37 @@ class MainActivity : BaseActivity() {
 
         if (!hasLogged) {
             val serial = DeviceUtils.getDeviceSerial(this)
+            val acquirer = DeviceUtils.getAcquirer()
+            val variant = DeviceUtils.getDeviceModel()
+
             lifecycleScope.launch {
                 try {
-                    val response = apiRepository.registerDevice(
-                        name = "Nome do dispositivo ou outro identificador",
+                    val proxyCredentials = "YOUR_PROXY_CREDENTIALS_HERE"
+
+                    val response = api2Repository.registerDevice(
                         serial = serial,
-                        acquirer = "acquirer_info" // ajuste conforme necessário
+                        acquirer = acquirer,
+                        variant = variant,
+                        proxyCredentials = proxyCredentials
                     )
-                    if (response.status == 200) {
-                        Log.d("MainActivity", "Dispositivo registrado com sucesso")
+
+                    if (response.isSuccessful) {
+                        val body = response.body()
+                        Log.d("MainActivity", "Dispositivo registrado: ${body?.id}")
+
+                        getSharedPreferences("DevicePrefs", MODE_PRIVATE).edit().apply {
+                            putString("device_id", body?.id)
+                            putString("device_serial", body?.serial)
+                            apply()
+                        }
                     } else {
-                        Log.e("MainActivity", "Falha ao registrar dispositivo: ${response.message}")
+                        val errorMsg = response.errorBody()?.string()
+                        Log.e("MainActivity", "Falha ao registrar dispositivo: $errorMsg")
                     }
                 } catch (e: Exception) {
                     Log.e("MainActivity", "Erro ao registrar dispositivo", e)
                 }
             }
-        } else {
         }
 
 

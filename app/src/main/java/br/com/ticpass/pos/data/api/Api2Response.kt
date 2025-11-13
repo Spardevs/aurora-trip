@@ -41,3 +41,75 @@ data class ErrorResponse(
     val error: String,
     val message: String
 )
+
+data class RegisterDeviceRequest(
+    val serial: String,
+    val acquirer: String,
+    val variant: String
+)
+
+data class RegisterDeviceResponse(
+    val id: String,
+    val serial: String,
+    val acquirer: String,
+    val variant: String,
+    val createdAt: String,
+    val updatedAt: String
+)
+
+// Modelos do /menu
+data class MenuListResponse(
+    val edges: List<MenuEdge>,
+    val info: PageInfo
+)
+
+data class MenuEdge(
+    val id: String,
+    val label: String,
+    val status: String,
+    val mode: String,
+    val goal: Long,
+    val date: MenuDate,
+    val pass: MenuPass,
+    val payment: MenuPayment,
+    val team: List<String>,
+    val accountable: Accountable,
+    val createdBy: String,
+    val createdAt: String,
+    val updatedAt: String
+)
+
+data class MenuDate(
+    val start: String,
+    val end: String
+)
+
+data class MenuPass(
+    val vouchering: Boolean,
+    val pricing: Boolean,
+    val mode: String,
+    val description: String
+)
+
+data class MenuPayment(
+    val methods: List<String>,
+    val multi: Boolean,
+    val acquirer: Boolean
+)
+
+data class Accountable(
+    val id: String,
+    val name: String
+)
+
+data class PageInfo(
+    val total: Int,
+    val limit: Int,
+    val page: Int,
+    val pageCount: Int,
+    val hasNextPage: Boolean,
+    val nextPage: Any?,
+    val hasPrevPage: Boolean,
+    val prevPage: Any?,
+    val cursor: Int
+)
