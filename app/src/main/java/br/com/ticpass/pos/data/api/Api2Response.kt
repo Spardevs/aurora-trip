@@ -68,7 +68,7 @@ data class MenuEdge(
     val label: String,
     val status: String,
     val mode: String,
-    val logo: String?,                    // ✅ NOVO: ID da logo
+    val logo: String?,    // ✅ NOVO: ID da logo
     val goal: Long,
     val date: MenuDate,
     val pass: MenuPass,
@@ -113,4 +113,48 @@ data class PageInfo(
     val hasPrevPage: Boolean,
     val prevPage: Any?,
     val cursor: Int
+)
+
+// Modelos do /menu-pos
+data class MenuPosListResponse(
+    val edges: List<PosEdge>,
+    val info: PageInfo
+)
+
+data class PosEdge(
+    val id: String,
+    val prefix: String,
+    val sequence: Int,
+    val mode: String,
+    val commission: Int,
+    val menu: String,
+    val session: PosSession?,
+    val createdBy: String,
+    val createdAt: String,
+    val updatedAt: String
+)
+
+data class PosSession(
+    val id: String,
+    val accountable: String,
+    val device: String,
+    val menu: String,
+    val pos: String,
+    val cashier: PosCashier,
+    val createdAt: String
+)
+
+data class PosCashier(
+    val id: String,
+    val avatar: Int,
+    val username: String,
+    val name: String,
+    val email: String,
+    val role: String,
+    val totp: Boolean,
+    val managers: List<String>,
+    val oauth2: List<String>,
+    val createdBy: String,
+    val createdAt: String,
+    val updatedAt: String
 )

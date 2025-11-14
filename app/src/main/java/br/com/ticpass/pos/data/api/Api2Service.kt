@@ -56,6 +56,15 @@ interface Api2Service {
         @retrofit2.http.Header("X-Use-Access-Token") useAccessToken: Boolean = true
     ): Response<ResponseBody>
 
+    @GET("menu-pos")
+    @Headers("Content-Type: application/json")
+    suspend fun getMenuPos(
+        @Query("take") take: Int = 10,
+        @Query("page") page: Int = 1,
+        @Query("menu") menu: String,
+        @Query("available") available: String = "both"
+    ): Response<MenuPosListResponse>
+
     companion object {
         private var BASE_URL = "${Constants.API_HOST}/"
 

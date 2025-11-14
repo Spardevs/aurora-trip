@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.api.PosItem
+import br.com.ticpass.pos.data.model.Pos
 import br.com.ticpass.pos.util.calculatePercent
 
 class PosAdapter(
@@ -71,7 +72,7 @@ class PosAdapter(
     override fun getItemCount(): Int = items.size
 
     @SuppressLint("NotifyDataSetChanged")
-    fun setItems(newItems: List<PosItem>) {
+    fun setItems(newItems: List<Pos>) {
         items.clear()
         items.addAll(newItems)
         notifyDataSetChanged()

@@ -71,12 +71,12 @@ class Api2Repository @Inject constructor(
     ): Response<RegisterDeviceResponse> {
         return try {
             val payload = """
-            {
-                "serial": ${jsonEscape(serial)},
-                "acquirer": ${jsonEscape(acquirer)},
-                "variant": ${jsonEscape(variant)}
-            }
-            """.trimIndent()
+    {
+    "serial": ${jsonEscape(serial)},
+    "acquirer": ${jsonEscape(acquirer)},
+    "variant": ${jsonEscape(variant)}
+    }
+    """.trimIndent()
             val body = payload.toRequestBody("application/json".toMediaType())
 
             Log.d("Api2Repository", "Registering device: serial=$serial, acquirer=$acquirer, variant=$variant")
@@ -108,6 +108,28 @@ class Api2Repository @Inject constructor(
             response
         } catch (e: Exception) {
             Log.e("Api2Repository", "Erro ao buscar menus", e)
+            throw e
+        }
+    }
+
+    suspend fun getMenuPos(
+        take: Int = 10,
+        page: Int = 1,
+        menu: String,
+        available: String = "both"
+    ): Response<MenuPosListResponse> {
+        return try {
+            Log.d("Api2Repository", "Fetching menu-pos take=$take page=$page menu=$menu available=$available")
+            val response = service.getMenuPos(
+                take = take,
+                page = page,
+                menu = menu,
+                available = available
+            )
+            Log.d("Api2Repository", "GetMenuPos HTTP=${response.code()} success=${response.isSuccessful}")
+            response
+        } catch (e: Exception) {
+            Log.e("Api2Repository", "Erro ao buscar menu-pos", e)
             throw e
         }
     }

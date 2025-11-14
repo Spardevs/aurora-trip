@@ -9,10 +9,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.api.Api2Repository
-import br.com.ticpass.pos.data.api.APIRepository
 import br.com.ticpass.pos.data.api.ErrorResponse
 import br.com.ticpass.pos.data.model.Menu
-import br.com.ticpass.pos.util.ThumbnailManager
 import br.com.ticpass.pos.view.ui.login.MenuScreen
 import br.com.ticpass.pos.view.ui.login.PosScreen
 import com.google.gson.Gson
@@ -24,7 +22,6 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class MenuActivity : BaseActivity() {
     @Inject lateinit var api2Repository: Api2Repository
-    @Inject lateinit var apiRepository: APIRepository // Mantém para downloadThumbnails
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,10 +36,6 @@ class MenuActivity : BaseActivity() {
         val sharedPref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         val accessToken = sharedPref.getString("auth_token", null) ?: run {
             showErrorAndFinish("Token de autenticação não encontrado")
-            return
-        }
-        val refreshToken = sharedPref.getString("refresh_token", null) ?: run {
-            showErrorAndFinish("Refresh token não encontrado")
             return
         }
 
@@ -138,9 +131,13 @@ class MenuActivity : BaseActivity() {
         mode: String? = null,
         logo: String? = null
     ) {
-        Log.d("MenuActivity", "Preparando menu: $menuId")
+        Log.d("MenuActivity", "Menu selecionado: $menuId")
 
         saveMenuSession(menuId, menuName, dateStart, dateEnd, pin, details, mode, logo)
+
+        // ✅ Navega para PosScreen
+        val intent = PosScreen.newIntent(this, menuId)
+        startActivity(intent)
     }
 
     private fun saveMenuSession(
