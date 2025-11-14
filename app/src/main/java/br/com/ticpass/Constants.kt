@@ -20,7 +20,6 @@ import br.com.ticpass.pos.MainActivity
 object Constants {
     const val POS_VERSION_CODE = BuildConfig.VERSION_CODE
     const val MAIN_DATABASE_NAME = "aurora-trip-pos"
-    const val PROXY_CREDENTIALS = ""
     val POS_SYNC_INTERVAL = BuildConfig.POS_SYNC_INTERVAL.toLong()
     const val API_HOST = BuildConfig.API_HOST
     val REMOVE_OLD_RECORDS_INTERVAL = BuildConfig.REMOVE_OLD_RECORDS_INTERVAL.toLong()

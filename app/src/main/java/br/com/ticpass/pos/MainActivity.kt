@@ -360,41 +360,6 @@ class MainActivity : BaseActivity() {
 
         val hasLogged = prefs.contains("user_logged")
 
-        if (!hasLogged) {
-            val serial = DeviceUtils.getDeviceSerial(this)
-            val acquirer = DeviceUtils.getAcquirer()
-            val variant = DeviceUtils.getDeviceModel()
-
-            lifecycleScope.launch {
-                try {
-                    val proxyCredentials = "YOUR_PROXY_CREDENTIALS_HERE"
-
-                    val response = api2Repository.registerDevice(
-                        serial = serial,
-                        acquirer = acquirer,
-                        variant = variant,
-                        proxyCredentials = proxyCredentials
-                    )
-
-                    if (response.isSuccessful) {
-                        val body = response.body()
-                        Log.d("MainActivity", "Dispositivo registrado: ${body?.id}")
-
-                        getSharedPreferences("DevicePrefs", MODE_PRIVATE).edit().apply {
-                            putString("device_id", body?.id)
-                            putString("device_serial", body?.serial)
-                            apply()
-                        }
-                    } else {
-                        val errorMsg = response.errorBody()?.string()
-                        Log.e("MainActivity", "Falha ao registrar dispositivo: $errorMsg")
-                    }
-                } catch (e: Exception) {
-                    Log.e("MainActivity", "Erro ao registrar dispositivo", e)
-                }
-            }
-        }
-
 
         Log.d("hasLogged", "$hasLogged")
         val intent: Intent = if (!hasLogged) {

@@ -33,6 +33,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import br.com.ticpass.pos.data.api.Api2Repository
 import br.com.ticpass.pos.data.api.LoginResponse
+import br.com.ticpass.pos.util.DeviceUtils
 import com.google.gson.Gson
 
 @AndroidEntryPoint
@@ -116,8 +117,6 @@ class LoginScreen : BaseActivity() {
                             putString("token_expiration", tokenExpiration.toString())
                             putInt("user_id", userId)
                             putString("user_name", userName)
-                            // Salvar proxyCredentials se disponível
-                            putString("proxy_credentials", Constants.PROXY_CREDENTIALS)
                             apply()
                         }
                         startActivity(Intent(this@LoginScreen, MenuActivity::class.java))
@@ -234,6 +233,10 @@ class LoginScreen : BaseActivity() {
                     val body = resp.body()
                     if (body != null) {
                         saveAuthDataV2(body)
+
+                        // ✅ REGISTRA O DISPOSITIVO
+                        registerDevice(body.jwt.access)
+
                         runOnUiThread {
                             supportFragmentManager.beginTransaction()
                                 .replace(R.id.fragmentContainer, RefundSuccessFragment.newInstance("Login validado"))
@@ -281,9 +284,42 @@ class LoginScreen : BaseActivity() {
             putString("refresh_token", login.jwt.refresh)
             putInt("user_id", -1)
             putString("user_name", login.user.name)
-            // Salvar proxyCredentials - ajuste conforme sua fonte
-            putString("proxy_credentials", Constants.PROXY_CREDENTIALS)
             apply()
+        }
+    }
+
+    private fun registerDevice(accessToken: String?) {
+        val serial = DeviceUtils.getDeviceSerial(this)
+        val acquirer = DeviceUtils.getAcquirer()
+        val variant = DeviceUtils.getDeviceModel()
+
+        lifecycleScope.launch {
+            try {
+                val proxyCredentials = accessToken ?: ""
+
+                val response = api2Repository.registerDevice(
+                    serial = serial,
+                    acquirer = acquirer,
+                    variant = variant,
+                    proxyCredentials = proxyCredentials
+                )
+
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    Log.d("LoginScreen", "Dispositivo registrado: ${body?.id}")
+
+                    getSharedPreferences("DevicePrefs", MODE_PRIVATE).edit().apply {
+                        putString("device_id", body?.id)
+                        putString("device_serial", body?.serial)
+                        apply()
+                    }
+                } else {
+                    val errorMsg = response.errorBody()?.string()
+                    Log.e("LoginScreen", "Falha ao registrar dispositivo: $errorMsg")
+                }
+            } catch (e: Exception) {
+                Log.e("LoginScreen", "Erro ao registrar dispositivo", e)
+            }
         }
     }
 

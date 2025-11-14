@@ -21,7 +21,7 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_margin="3dp"
-            android:src="@drawable/coins_1"
+            android:src="@drawable/icon"
             android:contentDescription="@string/manu_image"
             android:scaleType="centerCrop" />
 

@@ -17,6 +17,7 @@ import br.com.ticpass.pos.view.ui.login.MenuScreen
 import br.com.ticpass.pos.view.ui.login.PosScreen
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
+import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 
@@ -74,10 +75,18 @@ class MenuActivity : BaseActivity() {
                 }
 
                 val menus: List<Menu> = body.edges.map { edge ->
+                    // Verifica se já existe logo baixada localmente
+                    val logoFile = File(filesDir, "MenusLogo/${edge.id}.png")
+                    val imageUrl = if (logoFile.exists()) {
+                        logoFile.absolutePath
+                    } else {
+                        "" // Será baixada em background
+                    }
+
                     Menu(
                         id = edge.id,
                         name = edge.label,
-                        imageUrl = "", // não veio no payload
+                        imageUrl = imageUrl,
                         dateStart = edge.date.start,
                         dateEnd = edge.date.end,
                         details = edge.pass.description,
@@ -85,6 +94,9 @@ class MenuActivity : BaseActivity() {
                         pin = "" // não veio no payload
                     )
                 }
+
+                // Baixa logos em background
+                downloadMenuLogos(menus)
 
                 showMenus(menus)
             } catch (e: Exception) {
@@ -127,14 +139,6 @@ class MenuActivity : BaseActivity() {
         Log.d("MenuActivity", "Preparando menu: $menuId")
 
         saveMenuSession(menuId, menuName, dateStart, dateEnd, pin, details, mode, logo)
-
-        lifecycleScope.launch {
-            val success = downloadThumbnails(menuId)
-            if (!success) {
-                Log.w("MenuActivity", "Usando thumbnails locais ou placeholders")
-            }
-            startActivity(PosScreen.newIntent(this@MenuActivity, menuId))
-        }
     }
 
     private fun saveMenuSession(
@@ -161,20 +165,21 @@ class MenuActivity : BaseActivity() {
         }
     }
 
-    private suspend fun downloadThumbnails(menuId: String): Boolean {
-        val sharedPref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        val jwt = sharedPref.getString("auth_token", "") ?: ""
-
-        return try {
-            ThumbnailManager.downloadAndExtractThumbnails(
-                context = this,
-                menuId = menuId
-            ) {
-                apiRepository.downloadAllProductThumbnails(menuId, jwt)
+    private fun downloadMenuLogos(menus: List<Menu>) {
+        lifecycleScope.launch {
+            menus.forEach { menu ->
+                try {
+                    val file = api2Repository.downloadMenuLogo(menu.id)
+                    if (file != null) {
+                        Log.d("MenuActivity", "Logo baixada para menu: ${menu.id} -> ${file.absolutePath}")
+                    } else {
+                        Log.w("MenuActivity", "Não foi possível baixar logo para menu: ${menu.id}")
+                    }
+                } catch (e: Exception) {
+                    Log.e("MenuActivity", "Erro ao baixar logo do menu ${menu.id}", e)
+                }
             }
-        } catch (e: Exception) {
-            Log.e("MenuActivity", "Erro ao baixar thumbnails", e)
-            false
         }
     }
+
 }

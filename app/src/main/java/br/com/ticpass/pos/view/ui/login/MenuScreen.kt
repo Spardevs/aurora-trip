@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.model.Menu
 import com.bumptech.glide.Glide
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -42,9 +43,20 @@ class MenuScreen(
             menuDateStart.text = "${formatDate(menu.dateStart)}"
             menuDateEnd.text = "${formatDate(menu.dateEnd)}"
 
+            // Verifica se existe logo local
+            val logoFile = File(itemView.context.filesDir, "MenusLogo/${menu.id}.png")
+            val imageSource = if (logoFile.exists()) {
+                logoFile
+            } else if (menu.imageUrl.isNotEmpty()) {
+                menu.imageUrl
+            } else {
+                R.drawable.icon // Fallback para @drawable/icon
+            }
+
             Glide.with(itemView.context)
-                .load(menu.imageUrl)
-                .placeholder(R.drawable.placeholder_image)
+                .load(imageSource)
+                .placeholder(R.drawable.icon)
+                .error(R.drawable.icon)
                 .into(menuImage)
         }
 

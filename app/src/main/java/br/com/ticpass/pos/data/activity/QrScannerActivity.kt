@@ -15,6 +15,7 @@ import br.com.ticpass.Constants
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.api.Api2Repository
 import br.com.ticpass.pos.data.api.LoginResponse
+import br.com.ticpass.pos.util.DeviceUtils
 import br.com.ticpass.pos.view.fragments.qrcode.QrCodeErrorFragment
 import br.com.ticpass.pos.view.fragments.qrcode.QrCodeProcessingFragment
 import br.com.ticpass.pos.view.fragments.qrcode.QrCodeSuccessFragment
@@ -108,6 +109,9 @@ class QrScannerActivity : BaseActivity(), BarcodeCallback {
 
                     // ✅ SALVA OS DADOS NO SHAREDPREFERENCES
                     saveAuthDataV2(loginResponse, accessToken, refreshToken)
+
+                    // ✅ REGISTRA O DISPOSITIVO
+                    registerDevice(accessToken)
 
                     showFragment(QrCodeSuccessFragment())
 
@@ -217,10 +221,44 @@ class QrScannerActivity : BaseActivity(), BarcodeCallback {
             putString("refresh_token", refreshToken ?: login.jwt.refresh)
             putInt("user_id", -1) // ou extrair do login.user.id se for String → Int
             putString("user_name", login.user.name)
-            putString("proxy_credentials", Constants.PROXY_CREDENTIALS)
             apply()
         }
         Log.d("QrScannerActivity", "Dados de autenticação salvos no SharedPreferences")
+    }
+
+    private fun registerDevice(accessToken: String?) {
+        val serial = DeviceUtils.getDeviceSerial(this)
+        val acquirer = DeviceUtils.getAcquirer()
+        val variant = DeviceUtils.getDeviceModel()
+
+        lifecycleScope.launch {
+            try {
+                val proxyCredentials = accessToken ?: ""
+
+                val response = api2Repository.registerDevice(
+                    serial = serial,
+                    acquirer = acquirer,
+                    variant = variant,
+                    proxyCredentials = proxyCredentials
+                )
+
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    Log.d("QrScannerActivity", "Dispositivo registrado: ${body?.id}")
+
+                    getSharedPreferences("DevicePrefs", MODE_PRIVATE).edit().apply {
+                        putString("device_id", body?.id)
+                        putString("device_serial", body?.serial)
+                        apply()
+                    }
+                } else {
+                    val errorMsg = response.errorBody()?.string()
+                    Log.e("QrScannerActivity", "Falha ao registrar dispositivo: $errorMsg")
+                }
+            } catch (e: Exception) {
+                Log.e("QrScannerActivity", "Erro ao registrar dispositivo", e)
+            }
+        }
     }
 
     override fun onResume() {

@@ -9,11 +9,14 @@ import okhttp3.logging.HttpLoggingInterceptor.Level
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Streaming
 import java.util.concurrent.TimeUnit
 
 interface Api2Service {
@@ -45,6 +48,12 @@ interface Api2Service {
         @Query("take") take: Int = 10,
         @Query("page") page: Int = 1
     ): Response<MenuListResponse>
+
+    @GET("menu/logo/{menuId}/download")
+    @Streaming
+    suspend fun downloadMenuLogo(
+        @Path("menuId") menuId: String
+    ): Response<ResponseBody>
 
     companion object {
         private var BASE_URL = "${Constants.API_HOST}/"
