@@ -71,12 +71,12 @@ class Api2Repository @Inject constructor(
     ): Response<RegisterDeviceResponse> {
         return try {
             val payload = """
-    {
-    "serial": ${jsonEscape(serial)},
-    "acquirer": ${jsonEscape(acquirer)},
-    "variant": ${jsonEscape(variant)}
-    }
-    """.trimIndent()
+            {
+                "serial": ${jsonEscape(serial)},
+                "acquirer": ${jsonEscape(acquirer)},
+                "variant": ${jsonEscape(variant)}
+            }
+            """.trimIndent()
             val body = payload.toRequestBody("application/json".toMediaType())
 
             Log.d("Api2Repository", "Registering device: serial=$serial, acquirer=$acquirer, variant=$variant")
@@ -112,9 +112,10 @@ class Api2Repository @Inject constructor(
         }
     }
 
-    suspend fun downloadMenuLogo(menuId: String): File? {
+    // ✅ Agora recebe logoId (não mais menuId)
+    suspend fun downloadMenuLogo(logoId: String): File? {
         return try {
-            val response = service.downloadMenuLogo(menuId)
+            val response = service.downloadMenuLogo(logoId)
 
             if (response.isSuccessful) {
                 val body = response.body() ?: return null
@@ -123,19 +124,19 @@ class Api2Repository @Inject constructor(
                 val dir = File(context.filesDir, "MenusLogo")
                 if (!dir.exists()) dir.mkdirs()
 
-                // Nome do arquivo: <menuId>.png
-                val file = File(dir, "$menuId.png")
+                // Nome do arquivo: <logoId>.png
+                val file = File(dir, "$logoId.png")
 
                 saveResponseBodyToFile(body, file)
 
                 Log.d("Api2Repository", "Logo baixada com sucesso: ${file.absolutePath}")
                 file
             } else {
-                Log.e("Api2Repository", "Erro download logo menuId=$menuId code=${response.code()}")
+                Log.e("Api2Repository", "Erro download logo logoId=$logoId code=${response.code()}")
                 null
             }
         } catch (e: Exception) {
-            Log.e("Api2Repository", "Exceção ao baixar logo menuId=$menuId", e)
+            Log.e("Api2Repository", "Exceção ao baixar logo logoId=$logoId", e)
             null
         }
     }

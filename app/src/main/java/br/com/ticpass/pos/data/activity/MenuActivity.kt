@@ -75,8 +75,9 @@ class MenuActivity : BaseActivity() {
                 }
 
                 val menus: List<Menu> = body.edges.map { edge ->
-                    // Verifica se já existe logo baixada localmente
-                    val logoFile = File(filesDir, "MenusLogo/${edge.id}.png")
+                    // ✅ Usa o campo logo (não o id do menu)
+                    val logoId = edge.logo ?: edge.id
+                    val logoFile = File(filesDir, "MenusLogo/$logoId.png")
                     val imageUrl = if (logoFile.exists()) {
                         logoFile.absolutePath
                     } else {
@@ -91,7 +92,8 @@ class MenuActivity : BaseActivity() {
                         dateEnd = edge.date.end,
                         details = edge.pass.description,
                         mode = edge.mode,
-                        pin = "" // não veio no payload
+                        pin = "", // não veio no payload
+                        logoId = logoId  // ✅ Salva o logoId
                     )
                 }
 
@@ -165,15 +167,17 @@ class MenuActivity : BaseActivity() {
         }
     }
 
+    // ✅ Baixa logos usando logoId
     private fun downloadMenuLogos(menus: List<Menu>) {
         lifecycleScope.launch {
             menus.forEach { menu ->
                 try {
-                    val file = api2Repository.downloadMenuLogo(menu.id)
+                    val logoId = menu.logoId ?: menu.id
+                    val file = api2Repository.downloadMenuLogo(logoId)
                     if (file != null) {
-                        Log.d("MenuActivity", "Logo baixada para menu: ${menu.id} -> ${file.absolutePath}")
+                        Log.d("MenuActivity", "Logo baixada para menu: ${menu.id} (logo: $logoId) -> ${file.absolutePath}")
                     } else {
-                        Log.w("MenuActivity", "Não foi possível baixar logo para menu: ${menu.id}")
+                        Log.w("MenuActivity", "Não foi possível baixar logo para menu: ${menu.id} (logo: $logoId)")
                     }
                 } catch (e: Exception) {
                     Log.e("MenuActivity", "Erro ao baixar logo do menu ${menu.id}", e)
@@ -181,5 +185,4 @@ class MenuActivity : BaseActivity() {
             }
         }
     }
-
 }

@@ -43,8 +43,9 @@ class MenuScreen(
             menuDateStart.text = "${formatDate(menu.dateStart)}"
             menuDateEnd.text = "${formatDate(menu.dateEnd)}"
 
-            // Verifica se existe logo local
-            val logoFile = File(itemView.context.filesDir, "MenusLogo/${menu.id}.png")
+            // ✅ Verifica se existe logo local usando logoId
+            val logoId = menu.logoId ?: menu.id
+            val logoFile = File(itemView.context.filesDir, "MenusLogo/$logoId.png")
             val imageSource = if (logoFile.exists()) {
                 logoFile
             } else if (menu.imageUrl.isNotEmpty()) {

@@ -52,7 +52,8 @@ interface Api2Service {
     @GET("menu/logo/{menuId}/download")
     @Streaming
     suspend fun downloadMenuLogo(
-        @Path("menuId") menuId: String
+        @Path("menuId") menuId: String,
+        @retrofit2.http.Header("X-Use-Access-Token") useAccessToken: Boolean = true
     ): Response<ResponseBody>
 
     companion object {

@@ -68,6 +68,7 @@ data class MenuEdge(
     val label: String,
     val status: String,
     val mode: String,
+    val logo: String?,                    // ✅ NOVO: ID da logo
     val goal: Long,
     val date: MenuDate,
     val pass: MenuPass,

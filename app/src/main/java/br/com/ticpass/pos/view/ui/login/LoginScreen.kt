@@ -2,6 +2,7 @@ package br.com.ticpass.pos.view.ui.login
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -9,6 +10,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -33,8 +35,8 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import br.com.ticpass.pos.data.api.Api2Repository
 import br.com.ticpass.pos.data.api.LoginResponse
-import br.com.ticpass.pos.util.DeviceUtils
 import com.google.gson.Gson
+import br.com.ticpass.pos.util.DeviceUtils      // ✅ importa DeviceUtils
 
 @AndroidEntryPoint
 class LoginScreen : BaseActivity() {
@@ -117,6 +119,7 @@ class LoginScreen : BaseActivity() {
                             putString("token_expiration", tokenExpiration.toString())
                             putInt("user_id", userId)
                             putString("user_name", userName)
+                            // Salvar proxyCredentials se disponível
                             apply()
                         }
                         startActivity(Intent(this@LoginScreen, MenuActivity::class.java))
@@ -158,6 +161,12 @@ class LoginScreen : BaseActivity() {
         binding.editTextTextEmailAddress.isEnabled = false
         binding.editTextTextPassword.isEnabled = false
         binding.buttonConfirm.isEnabled = false
+
+        // ✅ CLICK DO ÍCONE DE DEVICE INFO -> ABRE MODAL
+        val deviceInfoIcon: ImageView = findViewById(R.id.deviceInfo)
+        deviceInfoIcon.setOnClickListener {
+            showDeviceInfoDialog()
+        }
 
         binding.emailLoginButton.setOnClickListener {
             binding.choiceContainer.visibility = View.GONE
@@ -205,6 +214,38 @@ class LoginScreen : BaseActivity() {
         }
     }
 
+    // ✅ Função que abre o dialog e preenche com DeviceUtils
+    private fun showDeviceInfoDialog() {
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.dialog_device_info)
+        dialog.setCancelable(true)
+
+        // Busca as views do layout do dialog
+        val tvSerial = dialog.findViewById<TextView>(R.id.tvSerial)
+        val tvAcquirer = dialog.findViewById<TextView>(R.id.tvAcquirer)
+        val tvModel = dialog.findViewById<TextView>(R.id.tvModel)
+        val btnOk = dialog.findViewById<Button>(R.id.btnOk)
+
+        // Pega as infos do device
+        val serial = DeviceUtils.getDeviceSerial(this)
+        val acquirer = DeviceUtils.getAcquirer()
+        val variant = DeviceUtils.getDeviceModel()
+
+        Log.d("LoginScreen", "Serial: $serial; Acquirer: $acquirer; Variant: $variant")
+
+        // Coloca os textos
+        tvSerial.text = serial ?: "N/A"
+        tvAcquirer.text = acquirer ?: "N/A"
+        tvModel.text = variant ?: "N/A"
+
+        // Botão OK fecha o modal
+        btnOk.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
     private fun doLoginV2(email: String, password: String) {
         val processingFragment = RefundProcessingFragment()
         supportFragmentManager.beginTransaction()
@@ -233,10 +274,6 @@ class LoginScreen : BaseActivity() {
                     val body = resp.body()
                     if (body != null) {
                         saveAuthDataV2(body)
-
-                        // ✅ REGISTRA O DISPOSITIVO
-                        registerDevice(body.jwt.access)
-
                         runOnUiThread {
                             supportFragmentManager.beginTransaction()
                                 .replace(R.id.fragmentContainer, RefundSuccessFragment.newInstance("Login validado"))
@@ -278,48 +315,15 @@ class LoginScreen : BaseActivity() {
             }
         }
     }
+
     private fun saveAuthDataV2(login: LoginResponse) {
         getSharedPreferences("UserPrefs", Context.MODE_PRIVATE).edit().apply {
             putString("auth_token", login.jwt.access)
             putString("refresh_token", login.jwt.refresh)
             putInt("user_id", -1)
             putString("user_name", login.user.name)
+            // Salvar proxyCredentials - ajuste conforme sua fonte
             apply()
-        }
-    }
-
-    private fun registerDevice(accessToken: String?) {
-        val serial = DeviceUtils.getDeviceSerial(this)
-        val acquirer = DeviceUtils.getAcquirer()
-        val variant = DeviceUtils.getDeviceModel()
-
-        lifecycleScope.launch {
-            try {
-                val proxyCredentials = accessToken ?: ""
-
-                val response = api2Repository.registerDevice(
-                    serial = serial,
-                    acquirer = acquirer,
-                    variant = variant,
-                    proxyCredentials = proxyCredentials
-                )
-
-                if (response.isSuccessful) {
-                    val body = response.body()
-                    Log.d("LoginScreen", "Dispositivo registrado: ${body?.id}")
-
-                    getSharedPreferences("DevicePrefs", MODE_PRIVATE).edit().apply {
-                        putString("device_id", body?.id)
-                        putString("device_serial", body?.serial)
-                        apply()
-                    }
-                } else {
-                    val errorMsg = response.errorBody()?.string()
-                    Log.e("LoginScreen", "Falha ao registrar dispositivo: $errorMsg")
-                }
-            } catch (e: Exception) {
-                Log.e("LoginScreen", "Erro ao registrar dispositivo", e)
-            }
         }
     }
 

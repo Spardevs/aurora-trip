@@ -15,12 +15,12 @@ class ApiAuthInterceptor(
         val accessToken = sp.getString("auth_token", null)
         val refreshToken = sp.getString("refresh_token", null)
 
-        // Header Authorization: usa refresh_token
-        if (!refreshToken.isNullOrBlank()) {
-            builder.header("Authorization", refreshToken)
+        // ✅ Authorization: usa access_token (auth_token do UserPrefs)
+        if (!accessToken.isNullOrBlank()) {
+            builder.header("Authorization", accessToken)
         }
 
-        // Cookie: access=<auth_token>
+        // Cookie: access=<auth_token> (opcional, se a API ainda precisar)
         if (!accessToken.isNullOrBlank() && original.header("Cookie").isNullOrBlank()) {
             builder.header("Cookie", "access=$accessToken")
         }
