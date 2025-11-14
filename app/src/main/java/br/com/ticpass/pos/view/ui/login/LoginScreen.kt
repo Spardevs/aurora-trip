@@ -238,6 +238,7 @@ class LoginScreen : BaseActivity() {
                             supportFragmentManager.beginTransaction()
                                 .replace(R.id.fragmentContainer, RefundSuccessFragment.newInstance("Login validado"))
                                 .commit()
+                            // ✅ REDIRECIONA PARA MENU
                             startActivity(Intent(this@LoginScreen, MenuActivity::class.java))
                             finish()
                         }
@@ -274,7 +275,6 @@ class LoginScreen : BaseActivity() {
             }
         }
     }
-
     private fun saveAuthDataV2(login: LoginResponse) {
         getSharedPreferences("UserPrefs", Context.MODE_PRIVATE).edit().apply {
             putString("auth_token", login.jwt.access)

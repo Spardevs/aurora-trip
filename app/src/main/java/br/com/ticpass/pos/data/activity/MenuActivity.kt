@@ -47,7 +47,7 @@ class MenuActivity : BaseActivity() {
 
         lifecycleScope.launch {
             try {
-                // Usa o novo endpoint /menu via Api2Repository
+                // ✅ USA API V2 PARA BUSCAR MENUS
                 val resp = api2Repository.getMenu(take = 10, page = 1)
 
                 if (!resp.isSuccessful) {

@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="10dp"
+        android:padding="5dp"
         android:clickable="false"
         android:focusable="false"
         >
@@ -20,6 +20,7 @@
             android:id="@+id/menuImage"
             android:layout_width="50dp"
             android:layout_height="50dp"
+            android:layout_margin="3dp"
             android:src="@drawable/coins_1"
             android:contentDescription="@string/manu_image"
             android:scaleType="centerCrop" />
@@ -33,7 +34,8 @@
                 android:id="@+id/menuName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:baselineAligned="false"
+                android:maxLines="1"
+                android:ellipsize="end"
                 android:text="TICPASS"
                 android:textSize="14sp"
                 android:textStyle="bold" />

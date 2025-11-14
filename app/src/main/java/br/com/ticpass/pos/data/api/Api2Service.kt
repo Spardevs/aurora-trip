@@ -57,8 +57,8 @@ interface Api2Service {
                 .connectTimeout(Constants.API_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .readTimeout(Constants.API_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .retryOnConnectionFailure(true)
-                .addInterceptor(VersionInterceptor())
-                .addInterceptor(ApiAuthInterceptor(context))
+                .addInterceptor(VersionInterceptor()) // ✅ Header version: 2.0.0
+                .addInterceptor(ApiAuthInterceptor(context)) // ✅ Headers de auth
                 .addInterceptor(logger)
                 .build()
 

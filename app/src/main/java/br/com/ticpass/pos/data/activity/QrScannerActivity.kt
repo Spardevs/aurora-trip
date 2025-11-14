@@ -1,6 +1,8 @@
 package br.com.ticpass.pos.data.activity
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -9,6 +11,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import br.com.ticpass.Constants
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.api.Api2Repository
 import br.com.ticpass.pos.data.api.LoginResponse
@@ -96,28 +99,35 @@ class QrScannerActivity : BaseActivity(), BarcodeCallback {
 
         doLoginV2(text) { outcome ->
             runOnUiThread {
-                outcome.onSuccess { pair ->
-                    val (resp, accessRefresh) = pair
-                    val (accessToken, refreshToken) = accessRefresh
+                outcome.onSuccess { loginData ->
+                    val (loginResponse, accessToken, refreshToken) = loginData
                     Log.d(
                         "QrScannerActivity",
-                        "Login bem-sucedido! HTTP=${resp.code()} accessToken=${accessToken?.take(10)}..."
+                        "Login bem-sucedido! accessToken=${accessToken?.take(10)}..."
                     )
+
+                    // ✅ SALVA OS DADOS NO SHAREDPREFERENCES
+                    saveAuthDataV2(loginResponse, accessToken, refreshToken)
+
                     showFragment(QrCodeSuccessFragment())
 
-                    // Retorna dados para a Activity chamadora
-                    intent.putExtra("auth_token", accessToken)
-                    intent.putExtra("auth_refresh_token", refreshToken)
-                    // Opcional: também pode enviar expiração se o backend expuser isso em outro header/cookie
-                    setResult(RESULT_OK, intent)
+                    // ✅ REDIRECIONA PARA MENU
+                    startActivity(Intent(this@QrScannerActivity, MenuActivity::class.java))
                     finish()
                 }
                 outcome.onFailure { e ->
                     Log.e("QrScannerActivity", "Falha no login: ${e.message}")
                     showFragment(QrCodeErrorFragment())
                     Snackbar.make(barcodeView, "Erro: ${e.message}", Snackbar.LENGTH_LONG).show()
+
+                    // Retorna erro para LoginScreen (se foi chamado de lá)
                     setResult(RESULT_CANCELED, intent.putExtra("auth_error", e.message))
-                    finish()
+
+                    // Aguarda 2 segundos e volta para a tela de login
+                    lifecycleScope.launch {
+                        delay(2000)
+                        finish()
+                    }
                 }
             }
         }
@@ -125,7 +135,7 @@ class QrScannerActivity : BaseActivity(), BarcodeCallback {
 
     private fun doLoginV2(
         qrText: String,
-        onResult: (Result<Pair<Response<LoginResponse>, Pair<String?, String?>>>) -> Unit
+        onResult: (Result<Triple<LoginResponse, String?, String?>>) -> Unit
     ) {
         val handler = CoroutineExceptionHandler { _, throwable ->
             Log.e("QrScannerActivity", "Exception no handler", throwable)
@@ -156,6 +166,12 @@ class QrScannerActivity : BaseActivity(), BarcodeCallback {
                 )
 
                 if (response.isSuccessful && (response.code() == 200 || response.code() == 201)) {
+                    val body = response.body()
+                    if (body == null) {
+                        onResult(Result.failure(Exception("Resposta vazia do servidor")))
+                        return@launch
+                    }
+
                     // Extrai cookies Set-Cookie: access=...; ..., refresh=...; ...
                     val cookies = response.headers().values("Set-Cookie")
                     val accessCookie = cookies.firstOrNull { it.startsWith("access=") }
@@ -165,18 +181,20 @@ class QrScannerActivity : BaseActivity(), BarcodeCallback {
                         ?.substringAfter("access=")
                         ?.substringBefore(";")
                         ?.takeIf { it.isNotBlank() }
+                        ?: body.jwt.access // Fallback para o body se não vier no cookie
 
                     val refreshToken = refreshCookie
                         ?.substringAfter("refresh=")
                         ?.substringBefore(";")
                         ?.takeIf { it.isNotBlank() }
+                        ?: body.jwt.refresh // Fallback para o body se não vier no cookie
 
                     Log.d(
                         "QrScannerActivity",
-                        "Cookies extraídos? access=${accessToken != null} refresh=${refreshToken != null}"
+                        "Tokens extraídos: access=${accessToken != null} refresh=${refreshToken != null}"
                     )
 
-                    onResult(Result.success(response to (accessToken to refreshToken)))
+                    onResult(Result.success(Triple(body, accessToken, refreshToken)))
                 } else if (response.code() == 401) {
                     onResult(Result.failure(Exception("Não autorizado: Token ou PIN inválido")))
                 } else if (response.code() == 400) {
@@ -191,6 +209,18 @@ class QrScannerActivity : BaseActivity(), BarcodeCallback {
                 onResult(Result.failure(e))
             }
         }
+    }
+
+    private fun saveAuthDataV2(login: LoginResponse, accessToken: String?, refreshToken: String?) {
+        getSharedPreferences("UserPrefs", Context.MODE_PRIVATE).edit().apply {
+            putString("auth_token", accessToken ?: login.jwt.access)
+            putString("refresh_token", refreshToken ?: login.jwt.refresh)
+            putInt("user_id", -1) // ou extrair do login.user.id se for String → Int
+            putString("user_name", login.user.name)
+            putString("proxy_credentials", Constants.PROXY_CREDENTIALS)
+            apply()
+        }
+        Log.d("QrScannerActivity", "Dados de autenticação salvos no SharedPreferences")
     }
 
     override fun onResume() {

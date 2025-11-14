@@ -13,11 +13,11 @@ class ApiAuthInterceptor(
 
         val sp = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         val accessToken = sp.getString("auth_token", null)
-        val proxyCredentials = sp.getString("refresh_token", null)
+        val refreshToken = sp.getString("refresh_token", null)
 
-        // Header Authorization: use refresh_token como proxy credentials
-        if (!proxyCredentials.isNullOrBlank()) {
-            builder.header("Authorization", proxyCredentials)
+        // Header Authorization: usa refresh_token
+        if (!refreshToken.isNullOrBlank()) {
+            builder.header("Authorization", refreshToken)
         }
 
         // Cookie: access=<auth_token>
