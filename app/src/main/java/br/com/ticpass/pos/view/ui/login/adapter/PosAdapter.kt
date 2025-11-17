@@ -8,13 +8,15 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.data.api.PosItem
+// REMOVA esse import se não for mais usar PosItem
+// import br.com.ticpass.pos.data.api.PosItem
 import br.com.ticpass.pos.data.model.Pos
 import br.com.ticpass.pos.util.calculatePercent
+import java.math.BigInteger
 
 class PosAdapter(
-    private val items: MutableList<PosItem> = mutableListOf(),
-    private val onClick: (PosItem) -> Unit
+    private val items: MutableList<Pos> = mutableListOf(),
+    private val onClick: (Pos) -> Unit
 ) : RecyclerView.Adapter<PosAdapter.PosViewHolder>() {
 
     inner class PosViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -23,7 +25,7 @@ class PosAdapter(
         private val tvCommission = view.findViewById<TextView>(R.id.textViewPOSCommission)
         private val ivPos = view.findViewById<ImageView>(R.id.imageViewPos)
 
-        fun bind(item: PosItem) {
+        fun bind(item: Pos) {
             tvName.text = item.name
             val isClosed = item.session == null
             tvClosing.text = if (isClosed) "Fechado" else "Aberto"
@@ -31,7 +33,7 @@ class PosAdapter(
             if (isClosed) {
                 // Caixa fechado: mostrar comissão
                 val commissionConverted = item.commission?.let {
-                    if (it > 0.toBigInteger()) "${calculatePercent(it)}% de comissão" else "Sem comissão"
+                    if (it > BigInteger.ZERO) "${calculatePercent(it)}% de comissão" else "Sem comissão"
                 }
                 tvCommission.text = commissionConverted ?: "Sem comissão"
 

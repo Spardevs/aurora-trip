@@ -40,7 +40,7 @@
             android:backgroundTint="#FF666F"
             android:elevation="6dp"
             android:onClick="emailLoginButton"
-            android:text="@string/details_dev_email"
+            android:text="@string/email_login"
             android:stateListAnimator="@animator/button_elevation"
             app:cornerRadius="8dp"
             app:icon="@android:drawable/ic_dialog_email"
