@@ -13,7 +13,7 @@ class AuthInterceptor @Inject constructor(
 
     override fun intercept(chain: Interceptor.Chain): Response {
         // First try with current token
-        val token = tokenManager.getValidToken()
+        val token = tokenManager.getAccessToken()
         val initialRequest = chain.request().newBuilder()
             .addHeader("Authorization", "Bearer $token")
             .build()
@@ -29,7 +29,7 @@ class AuthInterceptor @Inject constructor(
                 }
 
                 if (refreshed) {
-                    val newToken = tokenManager.getValidToken()
+                    val newToken = tokenManager.getAccessToken()
                     val newRequest = chain.request().newBuilder()
                         .addHeader("Authorization", "Bearer $newToken")
                         .build()

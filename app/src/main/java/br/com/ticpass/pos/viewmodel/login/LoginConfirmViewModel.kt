@@ -4,29 +4,21 @@ package br.com.ticpass.pos.viewmodel.login
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import br.com.ticpass.pos.data.api.GetEventProductsResponse
 import br.com.ticpass.pos.data.room.dao.EventDao
 import br.com.ticpass.pos.data.room.dao.PosDao
 import br.com.ticpass.pos.data.room.entity.EventEntity
 import br.com.ticpass.pos.data.room.entity.PosEntity
-import br.com.ticpass.pos.data.room.repository.PosRepository
-import br.com.ticpass.pos.data.room.repository.EventRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
 
 import javax.inject.Inject
-import br.com.ticpass.pos.data.api.APIRepository
+import br.com.ticpass.pos.data.api.ApiRepository
 import br.com.ticpass.pos.data.room.dao.CategoryDao
 import br.com.ticpass.pos.data.room.dao.ProductDao
 import br.com.ticpass.pos.data.room.entity.CategoryEntity
 import br.com.ticpass.pos.data.room.entity.ProductEntity
-import br.com.ticpass.pos.data.room.repository.CategoryRepository
-import br.com.ticpass.pos.data.room.repository.ProductRepository
 import androidx.core.content.edit
 import br.com.ticpass.pos.data.room.dao.CashierDao
 import br.com.ticpass.pos.data.room.entity.CashierEntity
-import br.com.ticpass.pos.data.room.repository.CashierRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -38,7 +30,7 @@ class LoginConfirmViewModel @Inject constructor(
     private val productDao: ProductDao,
     private val categoryDao: CategoryDao,
     private val cashierDao: CashierDao,
-    private val apiRepository: APIRepository
+    private val apiRepository: ApiRepository
 ) : ViewModel() {
 
     suspend fun confirmLogin(sessionPref: SharedPreferences, userPref: SharedPreferences, isAlreadyLogged: Boolean = false) {
@@ -133,30 +125,93 @@ class LoginConfirmViewModel @Inject constructor(
         userPref: SharedPreferences,
         eventId: String
     ) {
-        val jwt = userPref.getString("auth_token", "")!!
-        val response = apiRepository.getEventProducts(event = eventId, jwt = jwt)
+        // 1) Obter tokens e credenciais
+        val posAccessToken = userPref.getString("auth_token", "") ?: ""
+        val proxyCredentials = userPref.getString("proxy_credentials", "") ?: ""
 
-        if (response.status == 200) {
-            val categories = response.result.map { cat ->
-                CategoryEntity(id = cat.id, name = cat.name)
-            }
-            categoryDao.insertMany(categories)
-
-            val products = response.result.flatMap { cat ->
-                cat.products.map { p ->
-                    ProductEntity(
-                        id = p.id,
-                        name = p.title,
-                        thumbnail = p.photo,
-                        url = p.photo,
-                        categoryId = cat.id,
-                        price = p.value.toLong(),
-                        stock = p.stock.toInt(),
-                        isEnabled = true
-                    )
-                }
-            }
-            productDao.insertMany(products)
+        if (posAccessToken.isBlank() || proxyCredentials.isBlank()) {
+            Log.e("LoginConfirmVM", "Tokens vazios ao tentar abrir sessão POS")
+            return
         }
+
+        val posId = sessionPref.getString("pos_id", "") ?: ""
+        val deviceId = sessionPref.getString("device_id", "") ?: ""
+        val cashierId = when (val value = userPref.all["user_id"]) {
+            is String -> value
+            is Int -> value.toString()
+            else -> ""
+        }
+
+        // 2) Abrir sessão POS
+        Log.d("LoginConfirmVM", "Abrindo sessão POS: pos=$posId, device=$deviceId, cashier=$cashierId")
+        val openSessionResponse = apiRepository.openPosSession(
+            posAccessToken = posAccessToken,
+            proxyCredentials = proxyCredentials,
+            pos = posId,
+            device = deviceId,
+            cashier = cashierId
+        )
+
+        if (!openSessionResponse.isSuccessful || openSessionResponse.body() == null) {
+            Log.e("LoginConfirmVM", "Falha ao abrir sessão POS: code=${openSessionResponse.code()}")
+            return
+        }
+
+        val posSessionId = openSessionResponse.body()!!.id
+        Log.d("LoginConfirmVM", "Sessão POS aberta com sucesso: $posSessionId")
+
+        // Salvar pos_session_id no SharedPreferences
+        sessionPref.edit {
+            putString("pos_session_id", posSessionId)
+        }
+
+        // 3) Buscar produtos da sessão
+        val productsResponse = apiRepository.getPosSessionProducts(
+            posAccessToken = posAccessToken,
+            proxyCredentials = proxyCredentials
+        )
+
+        if (!productsResponse.isSuccessful || productsResponse.body() == null) {
+            Log.e("LoginConfirmVM", "Falha ao buscar produtos da sessão POS: code=${productsResponse.code()}")
+            return
+        }
+
+        val productsFromApi = productsResponse.body()!!.products
+        Log.d("LoginConfirmVM", "Produtos recebidos: ${productsFromApi.size}")
+
+        // 4) Agrupar produtos por categoria
+        val categoriesMap = mutableMapOf<String, String>()
+        productsFromApi.forEach { product ->
+            if (!categoriesMap.containsKey(product.category)) {
+                // Usar o ID da categoria como nome temporário (pode ser melhorado)
+                categoriesMap[product.category] = "Categoria ${product.category.take(8)}"
+            }
+        }
+
+        // 5) Inserir categorias
+        val categories = categoriesMap.map { (id, name) ->
+            CategoryEntity(id = id, name = name)
+        }
+        categoryDao.insertMany(categories)
+        Log.d("LoginConfirmVM", "Categorias inseridas: ${categories.size}")
+
+        // 6) Inserir produtos
+        val products = productsFromApi.map { p ->
+            ProductEntity(
+                id = p.id,
+                name = p.label,
+                thumbnail = p.thumbnail.id, // Salvar ID da thumbnail
+                url = p.thumbnail.id,       // Pode ser usado para download posterior
+                categoryId = p.category,
+                price = p.price.toLong(),
+                stock = 999,                // API v2 não retorna stock, usar valor padrão
+                isEnabled = true
+            )
+        }
+        productDao.insertMany(products)
+        Log.d("LoginConfirmVM", "Produtos inseridos: ${products.size}")
+
+        // 7) (Opcional) Download das thumbnails em background
+        // Pode ser implementado posteriormente usando api2Repository.downloadAllProductThumbnails(...)
     }
 }

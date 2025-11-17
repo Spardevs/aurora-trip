@@ -66,6 +66,12 @@ class AuthManager(
         val PAYMENT_DEBT = stringPreferencesKey("payment_debt")
         val PAYMENT_DEBT_DEDUCTED = stringPreferencesKey("payment_debt_deducted")
         val PENDING_PAYMENT_IDS_KEY = stringSetPreferencesKey("pending_payment_ids")
+
+        val POS_ACCESS_TOKEN = stringPreferencesKey("pos_access_token")
+
+        val PROXY_CREDENTIALS = stringPreferencesKey("proxy_credentials")
+
+        val CASHIER_NAME = stringPreferencesKey("cashier_name")
     }
 
     fun clearPrefs() {
@@ -601,21 +607,6 @@ class AuthManager(
         return menuStateFlow.map { it ?: "outdated" }
     }
 
-    suspend fun setCashierName(name: String) {
-        dataStore.edit { preferences ->
-            preferences[CASHIER_NAME_KEY] = name
-        }
-    }
-
-    suspend fun getCashierName(): String {
-        val cashierNameFlow = dataStore.data.map { preferences ->
-            preferences[CASHIER_NAME_KEY]
-        }
-
-        val cashierName = cashierNameFlow.firstOrNull()
-        return cashierName ?: ""
-    }
-
     suspend fun setPosOpeningDate(date: String) {
         dataStore.edit { preferences ->
             preferences[POS_OPENING_DATE] = date
@@ -697,5 +688,32 @@ class AuthManager(
         setAcquirerPaymentEnabled(isNativePaymentEnabled == "true")
 
         return isNativePaymentEnabled == "true"
+    }
+
+    suspend fun getPosAccessToken(): String {
+        val prefs = dataStore.data.first()
+        return prefs[POS_ACCESS_TOKEN] ?: ""
+    }
+
+    suspend fun getProxyCredentials(): String {
+        val prefs = dataStore.data.first()
+        return prefs[PROXY_CREDENTIALS] ?: ""
+    }
+
+    suspend fun getCashierName(): String {
+        val prefs = dataStore.data.first()
+        return prefs[CASHIER_NAME] ?: ""
+    }
+
+    suspend fun setPosAccessToken(token: String) {
+        dataStore.edit { it[POS_ACCESS_TOKEN] = token }
+    }
+
+    suspend fun setProxyCredentials(creds: String) {
+        dataStore.edit { it[PROXY_CREDENTIALS] = creds }
+    }
+
+    suspend fun setCashierName(name: String) {
+        dataStore.edit { it[CASHIER_NAME] = name }
     }
 }

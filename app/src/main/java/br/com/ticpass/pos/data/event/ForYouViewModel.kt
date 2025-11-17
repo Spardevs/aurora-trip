@@ -2,7 +2,7 @@ package br.com.ticpass.pos.data.event
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import br.com.ticpass.pos.data.api.APIRepository
+import br.com.ticpass.pos.data.api.ApiRepository
 import br.com.ticpass.pos.data.room.repository.AcquisitionRepository
 import br.com.ticpass.pos.data.room.repository.CashupRepository
 import br.com.ticpass.pos.data.room.repository.CategoryRepository
@@ -41,7 +41,7 @@ data class Topic(
 
 @HiltViewModel
 class ForYouViewModel @Inject constructor(
-    val apiRepository: APIRepository,
+    val apiRepository: ApiRepository,
     val cashierRepository: CashierRepository,
     val eventRepository: EventRepository,
     val posRepository: PosRepository,
@@ -54,7 +54,7 @@ class ForYouViewModel @Inject constructor(
     val refundRepository: RefundRepository,
     val voucherRepository: VoucherRepository,
     val voucherRedemptionRepository: VoucherRedemptionRepository,
-    val consumptionRepository: ConsumptionRepository
+    val consumptionRepository: ConsumptionRepository,
 ) : ViewModel() {
 
     val isSyncing = false

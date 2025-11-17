@@ -1,13 +1,15 @@
 package br.com.ticpass.pos.data.network
 
-import br.com.ticpass.pos.data.api.APIService
-import br.com.ticpass.pos.data.network.interceptor.AuthInterceptor
+import android.content.Context
+import br.com.ticpass.pos.data.api.ApiService
+import br.com.ticpass.pos.data.network.interceptor.ApiAuthInterceptor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import com.google.gson.GsonBuilder
+import dagger.hilt.android.qualifiers.ApplicationContext
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -27,7 +29,7 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(
-        authInterceptor: AuthInterceptor,
+        authInterceptor: ApiAuthInterceptor,
         loggingInterceptor: HttpLoggingInterceptor
     ): OkHttpClient = OkHttpClient.Builder()
         .addInterceptor(authInterceptor)
@@ -49,7 +51,15 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideAPIService(retrofit: Retrofit): APIService {
-        return retrofit.create(APIService::class.java)
+    fun provideAPIService(
+        @ApplicationContext context: Context
+    ): ApiService {
+        return ApiService.create(context)
     }
+
+//    @Provides
+//    @Singleton
+//    fun provideAPIService(retrofit: Retrofit): ApiService {
+//        return retrofit.create(ApiService::class.java)
+//    }
 }

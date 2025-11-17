@@ -1,412 +1,405 @@
 package br.com.ticpass.pos.data.api
 
 import android.content.Context
-import android.os.Build
 import android.util.Log
-import br.com.ticpass.pos.data.room.entity.AcquisitionEntity
-import br.com.ticpass.pos.data.room.entity.CashupEntity
-import br.com.ticpass.pos.data.room.repository.CategoryRepository
-import br.com.ticpass.pos.data.room.entity.ConsumptionEntity
-import br.com.ticpass.pos.data.room.entity.OrderEntity
-import br.com.ticpass.pos.data.room.entity.PassEntity
-import br.com.ticpass.pos.data.room.entity.PaymentEntity
-import br.com.ticpass.pos.data.room.entity.RefundEntity
-import br.com.ticpass.pos.data.room.entity.VoucherEntity
-import br.com.ticpass.pos.data.room.entity.VoucherRedemptionEntity
-import br.com.ticpass.pos.util.DeviceUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
-import retrofit2.Response
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
-import java.util.UUID
+import retrofit2.Response
+import timber.log.Timber
+import java.io.File
+import java.io.FileOutputStream
+import javax.inject.Inject
 
-
-class APIRepository @Inject constructor(
+class ApiRepository @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val service: APIService,
-    private val categoryRepository: CategoryRepository,
+    private val service: ApiService
 ) {
 
-    suspend fun syncPos(
-        eventId: String,
-        posId: String,
-        orders: List<OrderEntity>,
-        payments: List<PaymentEntity>,
-        cashups: List<CashupEntity>,
-        vouchers: List<VoucherEntity>,
-        voucherRedemptions: List<VoucherRedemptionEntity>,
-        refunds: List<RefundEntity>,
-        acquisitions: List<AcquisitionEntity>,
-        consumptions: List<ConsumptionEntity>,
-        passes: List<PassEntity>,
-        jwt: String,
-    ): SyncPosResponse {
-
-        var response = SyncPosResponse(
-            status = 0,
-            message = "0",
-            result = emptyList(),
-            error = "",
-            name = "",
-        )
-
-        try {
-            response = service.syncPos(
-                eventId,
-                posId,
-                authorization = "Bearer $jwt",
-                SyncPosPostData(
-                    orders = orders.map {
-                        SyncPosOrderPostData(
-                            id = it.id,
-                            coords = it.coords,
-                            createdAt = it.createdAt,
-                        )
-                    },
-                    payments = payments.map {
-                        SyncPosPaymentPostData(
-                            id = it.id,
-                            type = it.type,
-                            createdAt = it.createdAt,
-                            amount = it.amount,
-                            commission = it.commission,
-                            usedAcquirer = it.usedAcquirer,
-                            atk = it.acquirerTransactionKey,
-                            order = it.order,
-                        )
-                    },
-                    passes = passes.map {
-                        SyncPosPassPostData(
-                            id = it.id,
-                            createdAt = it.createdAt,
-                            printingRetries = it.printingRetries,
-                            type = if(it.isGrouped) "group" else "default",
-                        )
-                    },
-                    acquisitions = acquisitions.map {
-                        SyncPosAcquisitionPostData(
-                            id = it.id,
-                            createdAt = it.createdAt,
-                            name = it.name,
-                            logo = it.logo,
-                            price = it.price,
-                            category = it.category,
-                            product = it.product,
-                            order = it.order,
-                            pass = it.pass,
-                            voucher = it.voucher,
-                            refund = it.refund,
-                            consumption = it.consumption,
-                        )
-                    },
-                    refunds = refunds.map {
-                        SyncPosRefundPostData(
-                            id = it.id,
-                            createdAt = it.createdAt,
-                        )
-                    },
-                    consumptions = consumptions.map {
-                        SyncPosConsumptionPostData(
-                            id = it.id,
-                            createdAt = it.createdAt,
-                        )
-                    },
-                    vouchers = vouchers.map {
-                        SyncPosVoucherPostData(
-                            id = it.id,
-                            createdAt = it.createdAt,
-                        )
-                    },
-                    voucherRedemptions = voucherRedemptions.map {
-                        SyncPosVoucherRedemptionPostData(
-                            id = it.id,
-                            createdAt = it.createdAt,
-                            amount = it.amount,
-                            voucher = it.voucher,
-                        )
-                    },
-                    cashups = cashups.map {
-                        SyncPosCashupPostData(
-                            id = it.id,
-                            createdAt = it.createdAt,
-                            initial = it.initial,
-                            taken = it.taken,
-                            remaining = it.remaining,
-                        )
-                    },
-                ),
-            )
-        } catch (e: Exception) {
-            Log.d("syncPos:error", "$e")
-        }
-
-        return response
-    }
-
-    suspend fun login(email: String, password: String, serial: String): APITestResponse {
-        val response = service.login(
-            LoginPostData(
-                email,
-                password,
-                serial,
-            )
-        )
-
-        return response
-    }
-
-    suspend fun test(): TestData {
-        val response = service.test("4")
-
-        return response
-    }
-
-    suspend fun loginQrcode(hash: String, serial: String): APITestResponse {
-        val response = service.loginQrcode(
-            LoginQrcodePostData(
-                hash,
-                serial,
-            )
-        )
-
-        return response
-    }
-
-    suspend fun registerDevice(
-        name: String,
-        serial: String,
-        acquirer: String
-    ): APITestResponse {
-        val response = service.registerDevice(
-            RegisterDevicePostData(
-                name,
-                serial,
-                acquirer
-            )
-        )
-
-        return response
-    }
-
-    suspend fun getMembership(
-        jwt: String,
-    ): GetMembershipResponse {
-        var response = GetMembershipResponse(
-            status = 401,
-            message = "unable to reach server",
-            result = GetMembershipResult(
-                expiration = "2099-01-01 23:59:59.000 -0400"
-            )
-        )
-
-        try {
-            response = service.getMembership(
-                authorization = "Bearer $jwt",
-            )
-        } catch (e: Exception) {
-            Log.d("api:exception", e.toString())
-        }
-
-        return response
-    }
-
-    suspend fun getEvents(
-        user: String,
-        jwt: String,
-        page: Int = 1,
-        limit: Int = 100,
-    ): GetEventsResponse {
-        var response = GetEventsResponse(
-            status = 401,
-            message = "unable to reach server",
-            result = GetEventsResult(
-                items = emptyList()
-            )
-        )
-
-        try {
-            response = service.getEvents(
-                user,
-                authorization = "Bearer $jwt",
-                page,
-                limit,
-            )
-        } catch (e: Exception) {
-            Log.d("api:exception", e.toString())
-        }
-
-        return response
-    }
-
-    suspend fun getPosList(
-        event: String,
-        jwt: String,
-        page: Int = 1,
-        limit: Int = 100,
-    ): GetPosListResponse {
-        var response = GetPosListResponse(
-            status = 401,
-            message = "unable to reach server",
-            result = GetPosListResult(
-                items = emptyList()
-            )
-        )
-
-        try {
-            response = service.getPosList(
-                event,
-                authorization = "Bearer $jwt",
-                page,
-                limit,
-            )
-        } catch (e: Exception) {
-            Log.d("api:exception", e.toString())
-        }
-
-        return response
-    }
-
-    suspend fun getEventProducts(
-        event: String,
-        jwt: String,
-    ): GetEventProductsResponse {
-
-
-        try {
-            return service.getEventProducts(
-                event = event,
-                authorization = "Bearer $jwt",
-            )
-        } catch (e: Exception) {
-            return GetEventProductsResponse(
-                status = 401,
-                message = "Erro ao realizar requisição",
-                result = emptyList(),
-                error = e.toString(),
-                name = "unable to reach server",
-            )
-            Log.d("api:exception", e.toString())
-        }
-    }
-
-    suspend fun pingDevice(
-        serial: String,
-        coords: String,
-        posId: Int? = null,
-        eventId: Int? = null,
-        cashier: String? = null,
-    ): PatchPingDeviceResponse {
-        var response = PatchPingDeviceResponse(
-            status = 401,
-            message = "unable to reach server"
-        )
-
-        val data = PatchPingPosUsecaseModel(
-            eventId = eventId,
-            posId = posId,
-            serial = serial,
-            coords = coords,
-            cashier = cashier,
-        )
-
-        try {
-            response = service.pingDevice(
-                data,
-            )
-        } catch (e: Exception) {
-            Log.d("api:exception", e.toString())
-        }
-
-        return response
-    }
-
-    suspend fun openPos(
-        posId: String,
-        cashierName: String,
-        jwt: String,
-    ): PatchPosResponse {
-        if (posId.isBlank()) {
-            Log.d("APIRepository", "openPos chamado com posId vazio")
-            return PatchPosResponse(
-                status = 400,
-                message = "posId não pode ser vazio"
-            )
-        }
-
-        val serial = DeviceUtils.getDeviceSerial(context)
-
+    suspend fun signInShortLived(
+        shortLivedToken: String,
+        pin: String
+    ): Response<LoginResponse> {
         return try {
-            service.openPos(
-                posId = posId,
-                cashier = cashierName,
-                serial = serial,
-                authorization = "Bearer $jwt",
-            )
-        } catch (e: Exception) {
-            Log.d("api:exception", "Msg: ${e.message.toString()}; Cause: ${e.cause.toString()}; Full: ${e.toString()}")
-            PatchPosResponse(
-                status = 401,
-                message = "Erro ao realizar requisição"
-            )
-        }
-    }
+            val cookie = "shortLived=$shortLivedToken;"
+            val authorization = pin
+            val emptyJson = "{}".toRequestBody("application/json".toMediaType())
 
-    suspend fun closePos(
-        posId: String,
-        jwt: String,
-    ): PatchPosResponse {
-        var response = PatchPosResponse(
-            status = 401,
-            message = "unable to reach server"
-        )
+            Timber.tag("ApiRepository").d("Cookie: $cookie")
+            Timber.tag("ApiRepository").d("Authorization: $authorization")
 
-        try {
-            response = service.closePos(
-                posId = posId,
-                authorization = "Bearer $jwt",
-            )
-        } catch (e: Exception) {
-            Log.d("api:exception", e.toString())
-        }
-
-        return response
-    }
-
-    suspend fun downloadAllProductThumbnails(
-        menuId: String,
-        jwt: String
-    ): Response<ResponseBody> {
-        return try {
-            val response = service.downloadAllProductThumbnails(
-                menuId = menuId,
-                authorization = "Bearer $jwt"
+            val response = service.signInShortLived(
+                cookie = cookie,
+                authorization = authorization,
+                body = emptyJson
             )
 
-            if (!response.isSuccessful) {
-                Log.e("APIRepository", "Error downloading thumbnails: ${response.code()}")
-            }
-
+            Timber.tag("ApiRepository")
+                .d("SignIn HTTP=${response.code()} success=${response.isSuccessful}")
             response
         } catch (e: Exception) {
-            Log.e("APIRepository", "Error downloading thumbnails", e)
-            Response.error(500, ResponseBody.create(null, e.message ?: "Unknown error"))
-        }
-    }
-
-    suspend fun getRefreshToken(refreshToken: String): RefreshTokenResponse {
-        return try {
-            service.refreshToken(
-                RefreshTokenRequest(refresh = refreshToken)
-            )
-        } catch (e: Exception) {
-            Log.e("APIRepository", "Erro ao fazer refresh do token", e)
+            Timber.tag("ApiRepository").e(e, "Erro ao fazer signIn")
             throw e
         }
     }
 
+    suspend fun signInWithEmailPassword(
+        email: String,
+        password: String
+    ): Response<LoginResponse> {
+        return try {
+            val payload = """{"email": ${jsonEscape(email)}, "password": ${jsonEscape(password)}}"""
+            val body = payload.toRequestBody("application/json".toMediaType())
 
+            val response = service.signInWithEmailPassword(body = body)
 
-    companion object {
-        private const val NETWORK_PAGE_SIZE = 25
+            Timber.tag("ApiRepository")
+                .d("SignIn(email/password) HTTP=${response.code()} success=${response.isSuccessful}")
+            response
+        } catch (e: Exception) {
+            Timber.tag("ApiRepository").e(e, "Erro ao fazer signIn(email/password)")
+            throw e
+        }
     }
+
+    suspend fun registerDevice(
+        serial: String,
+        acquirer: String,
+        variant: String,
+        proxyCredentials: String
+    ): Response<RegisterDeviceResponse> {
+        return try {
+            val payload = """
+    {
+    "serial": ${jsonEscape(serial)},
+    "acquirer": ${jsonEscape(acquirer)},
+    "variant": ${jsonEscape(variant)}
+    }
+    """.trimIndent()
+            val body = payload.toRequestBody("application/json".toMediaType())
+
+            Timber.tag("ApiRepository")
+                .d("Registering device: serial=$serial, acquirer=$acquirer, variant=$variant")
+
+            val response = service.registerDevice(
+                authorization = proxyCredentials,
+                body = body
+            )
+
+            Timber.tag("ApiRepository").d("RegisterDevice HTTP=${response.code()} success=${response.isSuccessful}")
+            response
+        } catch (e: Exception) {
+            Timber.tag("ApiRepository").e(e, "Erro ao registrar dispositivo")
+            throw e
+        }
+    }
+
+    suspend fun getMenu(
+        take: Int = 10,
+        page: Int = 1
+    ): Response<MenuListResponse> {
+        return try {
+            Timber.tag("ApiRepository")
+                .d("Fetching menu take=$take page=$page (headers via Interceptor)")
+            val response = service.getMenu(
+                take = take,
+                page = page
+            )
+            Timber.tag("ApiRepository").d("GetMenu HTTP=${response.code()} success=${response.isSuccessful}")
+            response
+        } catch (e: Exception) {
+            Timber.tag("ApiRepository").e(e, "Erro ao buscar menus")
+            throw e
+        }
+    }
+
+    suspend fun getMenuPos(
+        take: Int = 10,
+        page: Int = 1,
+        menu: String,
+        available: String = "both"
+    ): Response<MenuPosListResponse> {
+        return try {
+            Timber.tag("ApiRepository")
+                .d("Fetching menu-pos take=$take page=$page menu=$menu available=$available")
+            val response = service.getMenuPos(
+                take = take,
+                page = page,
+                menu = menu,
+                available = available
+            )
+            Timber.tag("ApiRepository")
+                .d("GetMenuPos HTTP=${response.code()} success=${response.isSuccessful}")
+            response
+        } catch (e: Exception) {
+            Timber.tag("ApiRepository").e(e, "Erro ao buscar menu-pos")
+            throw e
+        }
+    }
+
+    suspend fun openPosSession(
+        posAccessToken: String,
+        proxyCredentials: String,
+        pos: String,
+        device: String,
+        cashier: String
+    ): Response<OpenPosSessionResponse> {
+        return try {
+            val cookie = "access=$posAccessToken"
+            val payload = """
+    {
+    "pos": ${jsonEscape(pos)},
+    "device": ${jsonEscape(device)},
+    "cashier": ${jsonEscape(cashier)}
+    }
+    """.trimIndent()
+            val body = payload.toRequestBody("application/json".toMediaType())
+
+            Timber.tag("ApiRepository")
+                .d("Opening POS session: pos=$pos, device=$device, cashier=$cashier")
+
+            val response = service.openPosSession(
+                cookie = cookie,
+                authorization = proxyCredentials,
+                body = body
+            )
+
+            Timber.tag("ApiRepository").d("OpenPosSession HTTP=${response.code()} success=${response.isSuccessful}")
+            response
+        } catch (e: Exception) {
+            Timber.tag("ApiRepository").e(e, "Erro ao abrir sessão POS")
+            throw e
+        }
+    }
+
+    suspend fun getPosSessionProducts(
+        posAccessToken: String,
+        proxyCredentials: String
+    ): Response<PosSessionProductsResponse> {
+        return try {
+            val cookie = "access=$posAccessToken"
+
+            Timber.tag("ApiRepository").d("Fetching POS session products")
+
+            val response = service.getPosSessionProducts(
+                cookie = cookie,
+                authorization = proxyCredentials
+            )
+
+            Timber.tag("ApiRepository")
+                .d("GetPosSessionProducts HTTP=${response.code()} success=${response.isSuccessful}")
+            response
+        } catch (e: Exception) {
+            Timber.tag("ApiRepository").e(e, "Erro ao buscar produtos da sessão POS")
+            throw e
+        }
+    }
+
+    suspend fun downloadAllProductThumbnails(
+        menuId: String,
+        posAccessToken: String,
+        proxyCredentials: String
+    ): File? {
+        return try {
+            val cookie = "access=$posAccessToken"
+            val response = service.downloadAllProductThumbnails(
+                menuId = menuId,
+                cookie = cookie,
+                authorization = proxyCredentials
+            )
+
+            if (response.isSuccessful) {
+                val body = response.body() ?: return null
+
+                // Pasta ProductThumbnails dentro do storage interno da app
+                val dir = File(context.filesDir, "ProductThumbnails")
+                if (!dir.exists()) dir.mkdirs()
+
+                // Nome do arquivo: <menuId>_all_thumbnails.zip (ou outro formato)
+                val file = File(dir, "${menuId}_all_thumbnails.zip")
+
+                saveResponseBodyToFile(body, file)
+
+                Timber.tag("ApiRepository")
+                    .d("Thumbnails baixadas com sucesso: ${file.absolutePath}")
+                file
+            } else {
+                Timber.tag("ApiRepository")
+                    .e("Erro download thumbnails menuId=$menuId code=${response.code()}")
+                null
+            }
+        } catch (e: Exception) {
+            Timber.tag("ApiRepository").e(e, "Exceção ao baixar thumbnails menuId=$menuId")
+            null
+        }
+    }
+
+    // ✅ Agora recebe logoId (não mais menuId)
+    suspend fun downloadMenuLogo(logoId: String): File? {
+        return try {
+            val response = service.downloadMenuLogo(logoId)
+
+            if (response.isSuccessful) {
+                val body = response.body() ?: return null
+
+                // Pasta MenusLogo dentro do storage interno da app
+                val dir = File(context.filesDir, "MenusLogo")
+                if (!dir.exists()) dir.mkdirs()
+
+                // Nome do arquivo: <logoId>.png
+                val file = File(dir, "$logoId.png")
+
+                saveResponseBodyToFile(body, file)
+
+                Timber.tag("ApiRepository").d("Logo baixada com sucesso: ${file.absolutePath}")
+                file
+            } else {
+                Timber.tag("ApiRepository")
+                    .e("Erro download logo logoId=$logoId code=${response.code()}")
+                null
+            }
+        } catch (e: Exception) {
+            Timber.tag("ApiRepository").e(e, "Exceção ao baixar logo logoId=$logoId")
+            null
+        }
+    }
+
+    private fun saveResponseBodyToFile(body: ResponseBody, file: File) {
+        body.byteStream().use { input ->
+            FileOutputStream(file).use { output ->
+                val buffer = ByteArray(8 * 1024)
+                var read: Int
+                while (input.read(buffer).also { read = it } != -1) {
+                    output.write(buffer, 0, read)
+                }
+                output.flush()
+            }
+        }
+    }
+
+    suspend fun closePosSession(
+        posAccessToken: String,
+        proxyCredentials: String,
+        sessionId: String
+    ): Response<ClosePosSessionResponse> {
+        return try {
+            val cookie = "access=$posAccessToken"
+            val payload = """
+            {
+              "id": ${jsonEscape(sessionId)}
+            }
+        """.trimIndent()
+            val body = payload.toRequestBody("application/json".toMediaType())
+
+            Timber.tag("ApiRepository").d("Closing POS session: id=$sessionId")
+
+            val response = service.closePosSession(
+                cookie = cookie,
+                authorization = proxyCredentials,
+                body = body
+            )
+
+            Timber.tag("ApiRepository")
+                .d("ClosePosSession HTTP=${response.code()} success=${response.isSuccessful}")
+            response
+        } catch (e: Exception) {
+            Timber.tag("ApiRepository").e(e, "Erro ao fechar sessão POS")
+            throw e
+        }
+    }
+
+    suspend fun pingDeviceLocation(
+        accessToken: String,
+        proxyCredentials: String,
+        serial: String,
+        latitude: Double,
+        longitude: Double
+    ): Response<DevicePingResponse> {
+        return try {
+            val cookie = "access=$accessToken"
+
+            val payload = """
+            {
+              "serial": ${jsonEscape(serial)},
+              "latitude": $latitude,
+              "longitude": $longitude
+            }
+        """.trimIndent()
+
+            val body = payload.toRequestBody("application/json".toMediaType())
+
+            Timber.tag("ApiRepository")
+                .d("Ping device location: serial=$serial, lat=$latitude, lng=$longitude")
+
+            val response = service.pingDeviceLocation(
+                cookie = cookie,
+                authorization = proxyCredentials,
+                body = body
+            )
+
+            Timber.tag("ApiRepository").d("PingDeviceLocation HTTP=${response.code()} success=${response.isSuccessful}")
+            response
+        } catch (e: Exception) {
+            Timber.tag("ApiRepository").e(e, "Erro ao enviar ping de localização do dispositivo")
+            throw e
+        }
+    }
+
+    suspend fun syncMenuPosSession(
+        posAccessToken: String,
+        proxyCredentials: String,
+        sessionId: String
+    ): Response<SyncMenuPosSessionResponse> {
+        return try {
+            val cookie = "access=$posAccessToken"
+
+            // Mesmo body do curl: todos os arrays vazios
+            val payload = """
+            {
+              "orders": [],
+              "payments": [],
+              "acquisitions": [],
+              "passes": [],
+              "refunds": [],
+              "consumptions": [],
+              "giftcards": [],
+              "redemptions": [],
+              "cashups": []
+            }
+        """.trimIndent()
+
+            val body = payload.toRequestBody("application/json".toMediaType())
+
+            Timber.tag("ApiRepository").d("Syncing POS session: sessionId=$sessionId")
+
+            val response = service.syncMenuPosSession(
+                sessionId = sessionId,
+                cookie = cookie,
+                authorization = proxyCredentials,
+                body = body
+            )
+
+            Timber.tag("ApiRepository")
+                .d("SyncMenuPosSession HTTP=${response.code()} success=${response.isSuccessful}")
+            response
+        } catch (e: Exception) {
+            Timber.tag("ApiRepository").e(e, "Erro ao sincronizar sessão POS sessionId=$sessionId")
+            throw e
+        }
+    }
+
+    // Helper simples para strings JSON
+    private fun jsonEscape(value: String): String {
+        val escaped = value
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\b", "\\b")
+            .replace("\u000C", "\\f")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
+        return "\"$escaped\""
+    }
+
 }

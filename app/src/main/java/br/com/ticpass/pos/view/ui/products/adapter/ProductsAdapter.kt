@@ -80,6 +80,7 @@ class ProductsAdapter(
         init {
             itemView.setOnLongClickListener {
                 currentProduct?.let { product ->
+                    // aqui depende do seu ShoppingCartManager: atualiza pelo id do produto
                     shoppingCartManager.updateItem(product.id, 0)
                     Toast.makeText(itemView.context, "Itens excluidos do carrinho", Toast.LENGTH_SHORT).show()
                     true
@@ -97,32 +98,34 @@ class ProductsAdapter(
 
         fun bind(product: Product) {
             currentProduct = product
-            nameTextView.text = product.title
 
-            // Trata o valor como centavos (Long) e converte para reais antes de formatar
-            priceTextView.text = formatCurrencyFromCents(product.value)
+            // API Product usa 'label'
+            nameTextView.text = product.label
+
+            // API Product usa 'price' (Int). Converter pra Long e formatar como reais.
+            priceTextView.text = formatCurrencyFromCents(product.price.toLong())
 
             updateBadge()
 
-            if (product.photo.isNotEmpty()) {
-                Glide.with(itemView.context)
-                    .load(product.photo)
-                    .placeholder(R.drawable.placeholder_image)
-                    .error(loadThumbnail(itemView.context, product.id))
-                    .into(imageView)
+            // Carrega thumbnail local (se existir) ou placeholder.
+            // A API devolve um ProductThumbnail com um id; usamos esse id para procurar o arquivo local.
+            val thumbnailId = product.thumbnail?.id ?: ""
+            if (thumbnailId.isNotEmpty()) {
+                loadThumbnail(itemView.context, thumbnailId)
             } else {
-                loadThumbnail(itemView.context, product.id)
+                imageView.setImageResource(R.drawable.placeholder_image)
             }
         }
 
-        private fun loadThumbnail(context: Context, productId: String) {
-            val thumbnailFile = ThumbnailManager.getThumbnailFile(context, productId)
+        private fun loadThumbnail(context: Context, thumbnailId: String) {
+            val thumbnailFile = ThumbnailManager.getThumbnailFile(context, thumbnailId)
             if (thumbnailFile != null && thumbnailFile.exists()) {
                 Glide.with(context)
                     .load(thumbnailFile)
                     .placeholder(R.drawable.placeholder_image)
                     .into(imageView)
             } else {
+                // Se não houver arquivo local, mostrar placeholder (poderíamos também tentar uma URL remota se houver)
                 imageView.setImageResource(R.drawable.placeholder_image)
             }
         }
@@ -149,10 +152,11 @@ class ProductsAdapter(
 
         // Converte centavos (Long) para reais e formata no Locale pt-BR
         private fun formatCurrencyFromCents(valueInCents: Long): String {
-                val valueInReais = valueInCents.toDouble() / 1000000
-                val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
-                return format.format(valueInReais)
-            }
+            // Se price da API é em centavos, divide por 100. Ajuste se seu valor usar outra escala.
+            val valueInReais = valueInCents.toDouble() / 100.0
+            val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+            return format.format(valueInReais)
+        }
 
     }
 

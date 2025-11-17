@@ -2,7 +2,6 @@ package br.com.ticpass.pos.data.acquirers.workers.jobs
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.Environment
 import android.util.Log
 import android.webkit.URLUtil
 import br.com.ticpass.pos.MainActivity
@@ -23,11 +22,12 @@ import java.net.URL
 
 fun syncPos(
     forYouViewModel: ForYouViewModel,
+    sessionId: String,
     onProgress: (Int) -> Unit,
     onFailure: (String) -> Unit,
     onDone: () -> Unit
-) {
-    try{
+){
+    try {
         val defaultScope = CoroutineScope(Dispatchers.Default)
         val handler = CoroutineExceptionHandler { _, _ -> }
 
@@ -36,20 +36,29 @@ fun syncPos(
             val auth = withContext(Dispatchers.IO) {
                 val authManager = AuthManager(MainActivity.appContext.dataStore)
                 val jwt = authManager.getJwtToken()
+                val posAccessToken = authManager.getPosAccessToken() // Token do POS
+                val proxyCredentials = authManager.getProxyCredentials() // Credenciais do proxy
                 val cashierName = authManager.getCashierName()
 
                 object {
                     val jwt = jwt
+                    val posAccessToken = posAccessToken
+                    val proxyCredentials = proxyCredentials
                     val cashierName = cashierName
                 }
             }
 
-            if(auth.jwt.isEmpty()) {
-                onFailure("Token de autenticação é inválido.")
+            if (auth.posAccessToken.isEmpty()) {
+                onFailure("Token de acesso do POS é inválido.")
                 return@launch
             }
 
-            if(auth.cashierName.isBlank()) {
+            if (auth.proxyCredentials.isEmpty()) {
+                onFailure("Credenciais do proxy são inválidas.")
+                return@launch
+            }
+
+            if (auth.cashierName.isBlank()) {
                 onFailure("Nome do atendente é inválido.")
                 return@launch
             }
@@ -98,31 +107,20 @@ fun syncPos(
                 }
             }
 
-            if(!data.hasUnsynced()) {
+            if (!data.hasUnsynced()) {
                 onDone()
                 return@launch
             }
 
             val syncPos = withContext(Dispatchers.IO) {
-                val result = forYouViewModel.apiRepository.syncPos(
-                    data.event!!.id,
-                    data.pos.id,
-                    orders = data.orders,
-                    payments = data.payments,
-                    cashups = data.cashups,
-                    vouchers = data.vouchers,
-                    voucherRedemptions = data.voucherRedemptions,
-                    refunds = data.refunds,
-                    acquisitions = data.acquisitions,
-                    consumptions = data.consumptions,
-                    passes = data.passes,
-                    auth.jwt as String,
+                forYouViewModel.apiRepository.syncMenuPosSession(
+                    posAccessToken = auth.posAccessToken,
+                    proxyCredentials = auth.proxyCredentials,
+                    sessionId = sessionId
                 )
-
-                result
             }
 
-            if(syncPos.status != 201) {
+            if (!syncPos.isSuccessful || syncPos.code() != 200) {
                 onFailure("Falha ao sincronizar os dados.")
                 return@launch
             }
@@ -168,8 +166,7 @@ fun syncPos(
 
             onDone()
         }
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
         onFailure(e.message.toString())
     }
 }
@@ -190,66 +187,55 @@ suspend fun syncEvent(
     try {
 
         /*
-        * EVENT LIST
+        * MENU LIST (substituindo EVENT LIST)
         * */
-        val eventsResponse = cashier?.let {
-            forYouViewModel.apiRepository.getEvents(
-                it.id,
-                jwt,
-            )
-        }
+        val menusResponse = forYouViewModel.apiRepository.getMenu(
+            take = 100,
+            page = 1
+        )
 
-        if (eventsResponse?.status != 200 || eventsResponse.result.items.isEmpty()) {
+        if (!menusResponse.isSuccessful || menusResponse.code() != 200 || menusResponse.body()?.edges?.isEmpty() == true) {
+            onFailure("Falha ao buscar menus.")
             return
         }
 
-        val event = eventsResponse?.result?.items?.find { it.id == selectedEvent!!.id }
+        val menu = menusResponse.body()?.edges?.find { it.id == selectedEvent!!.id }
 
-        if (event != null) {
+        if (menu != null) {
             var updatedEvent = selectedEvent
 
-            if(downloadThumbnails) {
-                val baseDir =
-                    MainActivity.appContext.getExternalFilesDir(Environment.DIRECTORY_PICTURES) as File
-                val imagesDir = File(baseDir, "events")
-                imagesDir.mkdirs()
+            if (downloadThumbnails && menu.logo != null) {
+                // Baixar logo do menu usando o novo endpoint
+                val logoFile = forYouViewModel.apiRepository.downloadMenuLogo(menu.logo)
 
-                downloadImages(
-                    listOf(event.ticket),
-                    imagesDir,
-                )
-
-                val fileName = URLUtil.guessFileName(event.ticket, null, null)
-                val imagePath = "${imagesDir}/${fileName}"
-
-                val file = File(imagePath)
-
-                updatedEvent = updatedEvent!!.copy(
-                    logo = file.absolutePath
-                )
+                if (logoFile != null) {
+                    updatedEvent = updatedEvent!!.copy(
+                        logo = logoFile.absolutePath
+                    )
+                }
             }
 
             updatedEvent = updatedEvent!!.copy(
-                name = event.name,
-                dateStart = event.dateStart,
-                dateEnd = event.dateEnd,
-                details = event.details,
-                printingPriceEnabled = event.isPrintTicket,
-                pin = event.pin,
-                mode = event.mode,
+                name = menu.label,
+                dateStart = menu.date.start,
+                dateEnd = menu.date.end,
+                details = "", // Não há campo "details" no MenuEdge
+                printingPriceEnabled = menu.pass.pricing,
+                pin = "", // Não há campo "pin" no MenuEdge
+                mode = menu.mode,
 
-                isCreditEnabled = event.isCreditEnabled,
-                isDebitEnabled = event.isDebitEnabled,
-                isPIXEnabled = event.isPIXEnabled,
-                isVREnabled = event.isVREnabled,
-                isLnBTCEnabled = event.isLnBTCEnabled,
-                isCashEnabled = event.isCashEnabled,
-                isAcquirerPaymentEnabled = event.isAcquirerPaymentEnabled,
-                isMultiPaymentEnabled = event.isMultiPaymentEnabled,
+                isCreditEnabled = menu.payment.methods.contains("credit"),
+                isDebitEnabled = menu.payment.methods.contains("debit"),
+                isPIXEnabled = menu.payment.methods.contains("pix"),
+                isVREnabled = menu.payment.methods.contains("vr"),
+                isLnBTCEnabled = menu.payment.methods.contains("lnbtc"),
+                isCashEnabled = menu.payment.methods.contains("cash"),
+                isAcquirerPaymentEnabled = menu.payment.acquirer,
+                isMultiPaymentEnabled = menu.payment.multi,
             )
 
-            authManager.setAcquirerPaymentEnabled(event.isAcquirerPaymentEnabled)
-            authManager.setMultiPaymentEnabled(event.isMultiPaymentEnabled)
+            authManager.setAcquirerPaymentEnabled(menu.payment.acquirer)
+            authManager.setMultiPaymentEnabled(menu.payment.multi)
 
             forYouViewModel.eventRepository.updateMany(
                 listOf(
@@ -259,7 +245,7 @@ suspend fun syncEvent(
 
             onSuccess()
         } else {
-            onFailure("Evento não encontrado.")
+            onFailure("Menu não encontrado.")
         }
     } catch (e: Exception) {
         Log.d("syncEvent:error", e.toString())
@@ -304,4 +290,3 @@ suspend fun downloadImages(
 
     deferredList.awaitAll()
 }
-

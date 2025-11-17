@@ -10,22 +10,14 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object Api2Module {
+object ApiModule {
 
     @Provides
     @Singleton
-    fun provideApi2Service(
-        @ApplicationContext context: Context
-    ): Api2Service {
-        return Api2Service.create(context)
-    }
-
-    @Provides
-    @Singleton
-    fun provideApi2Repository(
+    fun provideApiRepository(
         @ApplicationContext context: Context,
-        service: Api2Service
-    ): Api2Repository {
-        return Api2Repository(context, service)
+        service: ApiService
+    ): ApiRepository {
+        return ApiRepository(context, service)
     }
 }

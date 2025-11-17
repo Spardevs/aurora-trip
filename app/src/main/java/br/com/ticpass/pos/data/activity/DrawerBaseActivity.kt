@@ -37,7 +37,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.acquirers.workers.jobs.syncPos
-import br.com.ticpass.pos.data.api.APIRepository
+import br.com.ticpass.pos.data.api.ApiRepository
 import br.com.ticpass.pos.data.event.ForYouViewModel
 import br.com.ticpass.pos.data.room.AppDatabase
 import br.com.ticpass.pos.data.room.entity.AcquisitionEntity
@@ -134,7 +134,7 @@ abstract class DrawerBaseActivity : BaseActivity() {
     @Inject
     lateinit var categoryRepository: CategoryRepository
     @Inject
-    lateinit var apiRepository: APIRepository
+    lateinit var apiRepository: ApiRepository
     private var isSyncing = false
     private var syncActionView: View? = null
     private var syncProgressBar: ProgressBar? = null
@@ -535,11 +535,23 @@ abstract class DrawerBaseActivity : BaseActivity() {
         onError: (String) -> Unit = {}
     ) {
         onStart()
+
+        // Retrieve sessionId from SharedPreferences
+        val sessionId = getSharedPreferences("SessionPrefs", MODE_PRIVATE)
+            .getString("session_id", null) ?: ""
+
+        if (sessionId.isEmpty()) {
+            onError("ID da sessão não encontrado.")
+            onSyncErrorInternal()
+            return
+        }
+
         lifecycleScope.launch {
             try {
                 withContext(Dispatchers.Default) {
                     syncPos(
                         forYouViewModel = viewModel,
+                        sessionId = sessionId, // Pass sessionId here
                         onProgress = { p ->
                             runOnUiThread {
                                 updateSyncProgress(p)
@@ -788,9 +800,14 @@ abstract class DrawerBaseActivity : BaseActivity() {
             productsRepository.clearAll()
             categoryRepository.clearAll()
 
-            closePos()
+            // explicitly call the member function - wrapped so logout continues on failure
+            try {
+                this.closePos()
+            } catch (e: Exception) {
+                Log.e("DrawerBaseActivity", "Failed to close POS during logout (ignored): ${e.message}", e)
+            }
 
-            if(fullLogout) {
+            if (fullLogout) {
                 getSharedPreferences("UserPrefs", MODE_PRIVATE).edit { clear() }
                 getSharedPreferences("SessionPrefs", MODE_PRIVATE).edit { clear() }
             }
@@ -803,11 +820,34 @@ abstract class DrawerBaseActivity : BaseActivity() {
 
     suspend fun closePos() {
         try {
-            val posId = getSharedPreferences("SessionPrefs", MODE_PRIVATE).getString("pos_id", null)?: ""
-            val jwt = getSharedPreferences("UserPrefs", MODE_PRIVATE).getString("auth_token", null)?: ""
-            apiRepository.closePos(
-                posId = posId,
-                jwt = jwt
+            val sessionPrefs = getSharedPreferences("SessionPrefs", MODE_PRIVATE)
+
+            // Try several common keys used across projects. Adjust to the exact keys your app writes.
+            val sessionIdCandidates = listOf("session_id", "pos_session_id", "sessionId", "pos_session", "session")
+            val sessionId = sessionIdCandidates
+                .mapNotNull { sessionPrefs.getString(it, null) }
+                .firstOrNull()
+                ?: ""
+
+            val posAccessTokenCandidates = listOf("pos_access_token", "posAccessToken", "pos_token", "posToken", "access_token", "access")
+            val posAccessToken = posAccessTokenCandidates
+                .mapNotNull { sessionPrefs.getString(it, null) }
+                .firstOrNull()
+                ?: ""
+
+            // You were previously using auth_token from UserPrefs; keep that as proxyCredentials if appropriate
+            val jwt = getSharedPreferences("UserPrefs", MODE_PRIVATE).getString("auth_token", null) ?: ""
+
+            if (sessionId.isBlank()) {
+                Log.w("DrawerBaseActivity", "Skipping closePos because sessionId is missing")
+                return
+            }
+
+            // Call the updated ApiRepository method
+            apiRepository.closePosSession(
+                posAccessToken = posAccessToken,
+                proxyCredentials = jwt,
+                sessionId = sessionId
             )
         } catch (e: Exception) {
             Log.e("DrawerBaseActivity", "Error closing pos", e)
@@ -839,6 +879,5 @@ abstract class DrawerBaseActivity : BaseActivity() {
         syncTitleView?.alpha = 1f
         syncIconView?.alpha = 1f
     }
-
 
 }

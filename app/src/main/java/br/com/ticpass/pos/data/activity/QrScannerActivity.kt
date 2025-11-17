@@ -11,9 +11,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import br.com.ticpass.Constants
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.data.api.Api2Repository
+import br.com.ticpass.pos.data.api.ApiRepository
 import br.com.ticpass.pos.data.api.LoginResponse
 import br.com.ticpass.pos.util.DeviceUtils
 import br.com.ticpass.pos.view.fragments.qrcode.QrCodeErrorFragment
@@ -26,14 +25,13 @@ import com.journeyapps.barcodescanner.DefaultDecoderFactory
 import com.journeyapps.barcodescanner.BarcodeCallback
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
-import retrofit2.Response
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class QrScannerActivity : BaseActivity(), BarcodeCallback {
 
     @Inject
-    lateinit var api2Repository: Api2Repository
+    lateinit var apiRepository: ApiRepository
 
     private lateinit var barcodeView: BarcodeView
 
@@ -161,7 +159,7 @@ class QrScannerActivity : BaseActivity(), BarcodeCallback {
                 Log.d("QrScannerActivity", "Chamando Api2Repository.signInShortLived()")
 
                 val response = withContext(Dispatchers.IO) {
-                    api2Repository.signInShortLived(token, pin)
+                    apiRepository.signInShortLived(token, pin)
                 }
 
                 Log.d(
@@ -235,7 +233,7 @@ class QrScannerActivity : BaseActivity(), BarcodeCallback {
             try {
                 val proxyCredentials = accessToken ?: ""
 
-                val response = api2Repository.registerDevice(
+                val response = apiRepository.registerDevice(
                     serial = serial,
                     acquirer = acquirer,
                     variant = variant,

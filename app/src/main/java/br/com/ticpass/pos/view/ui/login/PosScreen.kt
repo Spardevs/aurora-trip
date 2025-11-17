@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.activity.BaseActivity
-import br.com.ticpass.pos.data.api.Api2Repository
+import br.com.ticpass.pos.data.api.ApiRepository
 import br.com.ticpass.pos.data.model.Pos
 import br.com.ticpass.pos.view.ui.login.adapter.PosAdapter
 import dagger.hilt.android.AndroidEntryPoint
@@ -22,7 +22,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class PosScreen : BaseActivity() {
 
-    @Inject lateinit var api2Repository: Api2Repository
+    @Inject lateinit var apiRepository: ApiRepository
 
     companion object {
         private const val EXTRA_MENU_ID = "extra_menu_id"
@@ -65,7 +65,7 @@ class PosScreen : BaseActivity() {
             try {
                 Log.d("PosScreen", "Buscando POS para menu: $finalMenuId")
 
-                val resp = api2Repository.getMenuPos(
+                val resp = apiRepository.getMenuPos(
                     take = 10,
                     page = 1,
                     menu = finalMenuId,

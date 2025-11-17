@@ -19,12 +19,11 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import br.com.ticpass.Constants
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.activity.BaseActivity
 import br.com.ticpass.pos.data.activity.MenuActivity
 import br.com.ticpass.pos.data.activity.QrScannerActivity
-import br.com.ticpass.pos.data.api.APIRepository
+import br.com.ticpass.pos.data.api.ApiRepository
 import br.com.ticpass.pos.databinding.ActivityLoginBinding
 import com.auth0.android.jwt.JWT
 import dagger.hilt.android.AndroidEntryPoint
@@ -33,14 +32,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import br.com.ticpass.pos.data.api.Api2Repository
 import br.com.ticpass.pos.data.api.LoginResponse
 import com.google.gson.Gson
-import br.com.ticpass.pos.util.DeviceUtils      // ✅ importa DeviceUtils
+import br.com.ticpass.pos.util.DeviceUtils
 
 @AndroidEntryPoint
 class LoginScreen : BaseActivity() {
-    @Inject lateinit var api2Repository: Api2Repository
+    @Inject lateinit var apiRepository: ApiRepository
 
     class RefundProcessingFragment : Fragment(R.layout.fragment_refund_processing) {
         override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -93,9 +91,6 @@ class LoginScreen : BaseActivity() {
     }
 
     private lateinit var binding: ActivityLoginBinding
-
-    @Inject
-    lateinit var apiRepository: APIRepository
 
     private val scannerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -267,7 +262,7 @@ class LoginScreen : BaseActivity() {
         lifecycleScope.launch(handler) {
             try {
                 val resp = withContext(Dispatchers.IO) {
-                    api2Repository.signInWithEmailPassword(email, password)
+                    apiRepository.signInWithEmailPassword(email, password)
                 }
 
                 if (resp.isSuccessful) {

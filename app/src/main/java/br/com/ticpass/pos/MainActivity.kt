@@ -34,7 +34,6 @@ import br.com.ticpass.pos.view.ui.login.LoginScreen
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.Constants.CHECK_DUE_PAYMENTS_INTERVAL
 import br.com.ticpass.Constants.EVENT_SYNC_INTERVAL
 import br.com.ticpass.Constants.POS_SYNC_INTERVAL
@@ -49,8 +48,7 @@ import br.com.ticpass.pos.data.room.AuthManager
 import br.com.ticpass.pos.data.room.service.GPSService
 import br.com.ticpass.pos.util.ConnectionStatusBar
 import br.com.ticpass.pos.data.activity.PermissionsActivity
-import br.com.ticpass.pos.data.api.APIRepository
-import br.com.ticpass.pos.data.api.Api2Repository
+import br.com.ticpass.pos.data.api.ApiRepository
 import br.com.ticpass.pos.sdk.AcquirerSdk
 import br.com.ticpass.pos.util.ConnectivityMonitor
 import br.com.ticpass.pos.util.DeviceUtils
@@ -60,6 +58,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 import kotlin.getValue
 import kotlin.toString
@@ -77,19 +76,28 @@ class POSSYNCTaskRunnable @Inject constructor(
         val exceptionHandler = CoroutineExceptionHandler { _, _ -> }
 
         defaultScope.launch(exceptionHandler) {
-            try{
+            try {
                 withContext(Dispatchers.Default) {
+                    // ✅ Ler sessionId do SharedPreferences
+                    val sessionPref = MainActivity.appContext.getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE)
+                    val sessionId = sessionPref.getString("pos_session_id", "") ?: ""
+
+                    if (sessionId.isBlank()) {
+                        Timber.tag("POSSYNCTaskRunnable")
+                            .w("sessionId não encontrado, pulando sync")
+                        return@withContext
+                    }
+
                     syncPos(
                         forYouViewModel = forYouViewModel,
+                        sessionId = sessionId, // ✅ Passar sessionId aqui
                         onProgress = {},
                         onFailure = {},
                         onDone = {}
                     )
-
                 }
-            }
-            catch (e: Exception) {
-                Log.d("POSSYNCTaskRunnable", e.toString())
+            } catch (e: Exception) {
+                Timber.tag("POSSYNCTaskRunnable").d(e.toString())
             }
             handler.postDelayed(runnable, (POS_SYNC_INTERVAL * 60) * 1000)
         }
@@ -195,13 +203,13 @@ class MyGPSTaskRunnable @Inject constructor(
                     }
                 }
 
-                val doPingDevice = withContext(Dispatchers.IO) {
+                /*val doPingDevice = withContext(Dispatchers.IO) {
                     data.gps.getUserCoordinates() { location ->
                         MainActivity.location = location
 
                         defaultScope.launch(exceptionHandler) {
                             withContext(Dispatchers.IO) {
-                                forYouViewModel.apiRepository.pingDevice(
+                                forYouViewModel.apiRepository.pingDeviceLocation(
                                     serial = SERIAL,
                                     coords = "${location.latitude}, ${location.longitude}",
                                     posId = data.pos.id.toInt(),
@@ -211,7 +219,7 @@ class MyGPSTaskRunnable @Inject constructor(
                             }
                         }
                     }
-                }
+                }*/
 
                 handler.postDelayed(runnable, (TELEMETRY_INTERVAL * 60) * 1000)
             }
@@ -244,18 +252,6 @@ class CheckDuePaymentsRunnable @Inject constructor(
                 }
 
                 if(data.token.isEmpty()) return@launch
-
-                val membershipResponse = withContext(Dispatchers.IO) {
-                    forYouViewModel.apiRepository.getMembership(
-                        data.token,
-                    )
-                }
-
-                withContext(Dispatchers.IO) {
-                    authManager.setMembership(membershipResponse.result.expiration)
-                }
-
-                Log.d("duePayment", membershipResponse.toString())
             }
             catch (e: Exception) {
                 Log.d("duePayment", e.toString())
@@ -281,10 +277,7 @@ class MainActivity : BaseActivity() {
 //    private var alertDuePaymentsRunnable: AlertDuePaymentsRunnable? = null
 
     @Inject
-    lateinit var apiRepository: APIRepository
-
-    @Inject
-    lateinit var api2Repository: Api2Repository
+    lateinit var apiRepository: ApiRepository
 
     private var connectivityMonitor: ConnectivityMonitor? = null
     private var connectionStatusBar: ConnectionStatusBar? = null

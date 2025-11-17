@@ -1,14 +1,14 @@
 package br.com.ticpass.pos.data.network
 
 import android.content.Context
-import br.com.ticpass.pos.data.api.APIService
-import br.com.ticpass.pos.data.api.RefreshTokenRequest
-import com.auth0.android.jwt.JWT
+import android.util.Log
+import br.com.ticpass.Constants
+import br.com.ticpass.pos.data.api.ApiService
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -19,47 +19,117 @@ class TokenManager @Inject constructor(
 ) {
     private val prefs = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
 
-    private val apiService: APIService by lazy {
+    private val apiService: ApiService by lazy {
         Retrofit.Builder()
-            .baseUrl("https://api.ticpass.com.br/")
+            .baseUrl("${Constants.API_HOST}/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(APIService::class.java)
+            .create(ApiService::class.java)
     }
 
-    fun getValidToken(): String {
-        return prefs.getString("auth_token", "") ?: ""
+    fun getAccessToken(): String {
+        val raw = prefs.getString("auth_token", "") ?: ""
+        return if (raw.startsWith("Bearer ", ignoreCase = true)) {
+            raw.substringAfter("Bearer ").trim()
+        } else {
+            raw
+        }
     }
 
-    suspend fun refreshTokenIfNeeded(): Boolean {
-        val expirationStr = prefs.getString("token_expiration", null)
-        val refreshToken = prefs.getString("refresh_token", null) ?: return false
+    fun getRefreshToken(): String {
+        return prefs.getString("refresh_token", "") ?: ""
+    }
 
+    fun getProxyCredentials(): String {
+        return prefs.getString("proxy_credentials", "") ?: ""
+    }
+
+    fun isTokenExpired(): Boolean {
+        val expirationStr = prefs.getString("access_token_expiration", null) ?: return true
         return try {
-            val sdf = SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH)
-            val expirationDate = expirationStr?.let { sdf.parse(it) }
+            val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
+            val expirationDate = sdf.parse(expirationStr)
+            expirationDate?.before(Date()) ?: true
+        } catch (e: Exception) {
+            Log.e("TokenManager", "Error parsing token expiration", e)
+            true
+        }
+    }
 
-            if (expirationDate != null && expirationDate.before(Date())) {
-                val newTokenResponse = apiService.refreshToken(
-                    RefreshTokenRequest(refresh = refreshToken)
-                )
-                val tokenExpiration = JWT(newTokenResponse.result.token).getClaim("exp").asDate()
+    suspend fun refreshTokenIfNeeded(): Boolean = withContext(Dispatchers.IO) {
+        if (!isTokenExpired()) {
+            return@withContext true
+        }
+
+        val refreshToken = getRefreshToken()
+        val accessToken = getAccessToken()
+        val proxyCredentials = getProxyCredentials()
+
+        if (refreshToken.isEmpty() || proxyCredentials.isEmpty()) {
+            Log.e("TokenManager", "Missing refresh token or proxy credentials")
+            return@withContext false
+        }
+
+        return@withContext try {
+            // Monta o Cookie header: refresh=<token>;access=<token>
+            val cookieHeader = "refresh=$refreshToken;access=$accessToken"
+
+            val response = apiService.refreshToken(
+                cookie = cookieHeader,
+                authorization = proxyCredentials
+            )
+
+            if (response.isSuccessful && response.body() != null) {
+                val refreshResponse = response.body()!!
+
+                // Salva os novos tokens
                 prefs.edit().apply {
-                    putString("auth_token", newTokenResponse.result.token)
-                    putString("refresh_token", newTokenResponse.result.tokenRefresh)
-                    putString("token_expiration", tokenExpiration?.toString())
+                    putString("access_token_expiration", refreshResponse.jwt.access)
+                    putString("refresh_token_expiration", refreshResponse.jwt.refresh)
+                    // Note: O backend retorna as datas de expiração, não os tokens em si
+                    // Os tokens continuam nos cookies
                     apply()
                 }
+
+                Log.d("TokenManager", "Token refreshed successfully")
                 true
             } else {
+                Log.e("TokenManager", "Failed to refresh token: ${response.code()}")
                 false
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("TokenManager", "Error refreshing token", e)
             false
+        }
+    }
+
+    fun saveTokens(accessToken: String, refreshToken: String, accessExpiration: String, refreshExpiration: String) {
+        prefs.edit().apply {
+            putString("auth_token", accessToken)
+            putString("refresh_token", refreshToken)
+            putString("access_token_expiration", accessExpiration)
+            putString("refresh_token_expiration", refreshExpiration)
+            apply()
+        }
+    }
+
+    fun saveProxyCredentials(credentials: String) {
+        prefs.edit().apply {
+            putString("proxy_credentials", credentials)
+            apply()
+        }
+    }
+
+    fun clearTokens() {
+        prefs.edit().apply {
+            remove("auth_token")
+            remove("refresh_token")
+            remove("access_token_expiration")
+            remove("refresh_token_expiration")
+            remove("proxy_credentials")
+            apply()
         }
     }
 }
 
 class TokenRefreshException(message: String, cause: Throwable?) : Exception(message, cause)
-

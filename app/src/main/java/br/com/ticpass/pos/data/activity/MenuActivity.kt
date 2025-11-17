@@ -8,7 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.data.api.Api2Repository
+import br.com.ticpass.pos.data.api.ApiRepository
 import br.com.ticpass.pos.data.api.ErrorResponse
 import br.com.ticpass.pos.data.model.Menu
 import br.com.ticpass.pos.view.ui.login.MenuScreen
@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MenuActivity : BaseActivity() {
-    @Inject lateinit var api2Repository: Api2Repository
+    @Inject lateinit var apiRepository: ApiRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,7 +42,7 @@ class MenuActivity : BaseActivity() {
         lifecycleScope.launch {
             try {
                 // ✅ USA API V2 PARA BUSCAR MENUS
-                val resp = api2Repository.getMenu(take = 10, page = 1)
+                val resp = apiRepository.getMenu(take = 10, page = 1)
 
                 if (!resp.isSuccessful) {
                     val code = resp.code()
@@ -170,7 +170,7 @@ class MenuActivity : BaseActivity() {
             menus.forEach { menu ->
                 try {
                     val logoId = menu.logoId ?: menu.id
-                    val file = api2Repository.downloadMenuLogo(logoId)
+                    val file = apiRepository.downloadMenuLogo(logoId)
                     if (file != null) {
                         Log.d("MenuActivity", "Logo baixada para menu: ${menu.id} (logo: $logoId) -> ${file.absolutePath}")
                     } else {

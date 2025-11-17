@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.ticpass.pos.data.api.Product
+import br.com.ticpass.pos.data.api.ProductThumbnail
 import br.com.ticpass.pos.data.room.repository.CategoryRepository
 import br.com.ticpass.pos.data.room.repository.EventRepository
 import br.com.ticpass.pos.data.room.repository.PosRepository
@@ -57,18 +58,29 @@ class ProductsViewModel @Inject constructor(
                 val catsWithProds = categoryRepo.getCategoriesWithEnabledProducts()
                 allProductsList = catsWithProds.flatMap { catWith ->
                     catWith.enabledProducts.map { entity ->
+                        // Mapear ProductEntity -> API Product (preencher campos obrigatórios)
                         Product(
                             id = entity.id,
-                            title = entity.name,
-                            // aplica comissão aqui (assumindo commissionPercent em %)
-                            value = applyCommission(entity.price, commissionPercent),
-                            photo = entity.thumbnail,
-                            stock = entity.stock.toLong(),
+                            label = entity.name,
+                            price = applyCommission(entity.price, commissionPercent),
+                            thumbnail = ProductThumbnail(
+                                id = entity.thumbnail,
+                                transparency = 0,
+                                size = 0,
+                                width = 0,
+                                height = 0,
+                                ext = "",
+                                mimetype = "",
+                                createdBy = "",
+                                createdAt = "",
+                                updatedAt = ""
+                            ),
+                            category = entity.categoryId,
+                            menu = "",
+                            createdBy = "",
                             createdAt = "",
-                            updatedAt = "",
-                            deletedAt = "",
-                            fkCategory = entity.categoryId,
-                            fkEvent = selectedEventIdInt                        )
+                            updatedAt = ""
+                        )
                     }
                 }
 
@@ -78,7 +90,7 @@ class ProductsViewModel @Inject constructor(
                 val productsMap = mutableMapOf<String, List<Product>>()
                 productsMap["Todos"] = allProductsList
                 catsWithProds.forEach { catWith ->
-                    val categoryProducts = allProductsList.filter { it.fkCategory == catWith.category.id }
+                    val categoryProducts = allProductsList.filter { it.category == catWith.category.id }
                     productsMap[catWith.category.name] = categoryProducts
                 }
                 _productsByCategory.value = productsMap
@@ -90,8 +102,10 @@ class ProductsViewModel @Inject constructor(
             }
         }
     }
-    // Se commissionPercent for 10 (10%), calcula value + 10%
-    private fun applyCommission(value: Long, commissionPercent: Long): Long {
-        return value + (value * commissionPercent / 100)
+
+    // Se commissionPercent for 10 (10%), calcula value + 10% e retorna Int (compatível com Product.price)
+    private fun applyCommission(value: Long, commissionPercent: Long): Int {
+        val result = value + (value * commissionPercent / 100)
+        return result.toInt()
     }
 }

@@ -1,4 +1,4 @@
-package br.com.ticpass.pos.data.api
+package br.com.ticpass.pos.data.network.interceptor
 
 import okhttp3.Interceptor
 import okhttp3.Response

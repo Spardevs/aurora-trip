@@ -158,3 +158,82 @@ data class PosCashier(
     val createdAt: String,
     val updatedAt: String
 )
+
+// Modelos do /menu-pos-sessions/open
+data class OpenPosSessionRequest(
+    val pos: String,
+    val device: String,
+    val cashier: String
+)
+
+data class OpenPosSessionResponse(
+    val id: String,
+    val accountable: String,
+    val device: String,
+    val menu: String,
+    val pos: String,
+    val cashier: PosCashier,
+    val createdAt: String
+)
+
+data class PosSessionProductsResponse(
+    val products: List<Product>
+)
+
+data class Product(
+    val id: String,
+    val label: String,
+    val price: Int,
+    val thumbnail: ProductThumbnail,
+    val category: String,
+    val menu: String,
+    val createdBy: String,
+    val createdAt: String,
+    val updatedAt: String
+)
+
+data class ProductThumbnail(
+    val id: String,
+    val transparency: Int,
+    val size: Int,
+    val width: Int,
+    val height: Int,
+    val ext: String,
+    val mimetype: String,
+    val createdBy: String,
+    val createdAt: String,
+    val updatedAt: String
+)
+
+data class ClosePosSessionRequest(
+    val id: String
+)
+
+data class ClosePosSessionResponse(
+    val id: String,
+    val cashier: String,
+    val menu: String,
+    val createdAt: String,
+    val updatedAt: String
+)
+
+data class DevicePingRequest(
+    val serial: String,
+    val latitude: Double,
+    val longitude: Double
+)
+
+data class DevicePingResponse(
+    val ok: Boolean? = null,
+    val serverTimestamp: String? = null
+)
+
+
+data class RefreshTokenResponse(
+    val user: UserV2,
+    val jwt: Jwt
+)
+data class SyncMenuPosSessionResponse(
+    val serverTimestamp: String,
+    val syncedCount: Int
+)

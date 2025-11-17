@@ -3,390 +3,154 @@ package br.com.ticpass.pos.data.api
 import android.content.Context
 import android.util.Log
 import br.com.ticpass.Constants
-import br.com.ticpass.Constants.API_HOST
-import com.google.gson.annotations.SerializedName
+import br.com.ticpass.pos.data.network.interceptor.ApiAuthInterceptor
+import br.com.ticpass.pos.data.network.interceptor.VersionInterceptor
 import okhttp3.OkHttpClient
-import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.logging.HttpLoggingInterceptor.Level
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.Header
 import retrofit2.http.Headers
-import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Streaming
 import java.util.concurrent.TimeUnit
 
+interface ApiService {
 
-data class PaymentProductPostData(
-    @SerializedName("fkProduct") val productId: Int,
-    @SerializedName("amount") val count: Long,
-    @SerializedName("totalValue") val price: Long
-)
+    @POST("auth/signin/pos/short-lived")
+    @Headers("Content-Type: application/json")
+    suspend fun signInShortLived(
+        @retrofit2.http.Header("Cookie") cookie: String,
+        @retrofit2.http.Header("Authorization") authorization: String,
+        @Body body: okhttp3.RequestBody
+    ): Response<LoginResponse>
 
-data class SyncPosPostData(
-    @SerializedName("orders") val orders: List<SyncPosOrderPostData>,
-    @SerializedName("payments") val payments: List<SyncPosPaymentPostData>,
-    @SerializedName("passes") val passes: List<SyncPosPassPostData>,
-    @SerializedName("acquisitions") val acquisitions: List<SyncPosAcquisitionPostData>,
-    @SerializedName("refunds") val refunds: List<SyncPosRefundPostData>,
-    @SerializedName("consumptions") val consumptions: List<SyncPosConsumptionPostData>,
-    @SerializedName("vouchers") val vouchers: List<SyncPosVoucherPostData>,
-    @SerializedName("voucherRedemptions") val voucherRedemptions: List<SyncPosVoucherRedemptionPostData>,
-    @SerializedName("cashups") val cashups: List<SyncPosCashupPostData>,
-)
-
-data class SyncPosOrderPostData(
-    @SerializedName("id") val id: String,
-    @SerializedName("coords") val coords: String?,
-    @SerializedName("createdAt") var createdAt: String,
-)
-
-data class SyncPosPaymentPostData(
-    @SerializedName("id") val id: String,
-    @SerializedName("type") val type: String,
-    @SerializedName("createdAt") var createdAt: String,
-    @SerializedName("amount") var amount: Long,
-    @SerializedName("commission") var commission: Long,
-
-    @SerializedName("usedAcquirer") var usedAcquirer: Boolean,
-    @SerializedName("atk") var atk: String,
-
-    @SerializedName("order") var order: String,
-)
-
-data class SyncPosPassPostData(
-    @SerializedName("id") val id: String,
-    @SerializedName("createdAt") var createdAt: String,
-    @SerializedName("printingRetries") var printingRetries: Int,
-    @SerializedName("type") var type: String,
-)
-
-data class SyncPosAcquisitionPostData(
-    @SerializedName("id") val id: String,
-    @SerializedName("createdAt") var createdAt: String,
-
-    @SerializedName("name") var name: String,
-    @SerializedName("logo") var logo: String,
-    @SerializedName("price") var price: Long,
-    @SerializedName("category") var category: String,
-
-    @SerializedName("product") var product: String,
-    @SerializedName("order") var order: String,
-    @SerializedName("pass") var pass: String,
-
-    @SerializedName("voucher") var voucher: String,
-    @SerializedName("refund") var refund: String,
-    @SerializedName("consumption") var consumption: String,
-)
-
-data class SyncPosRefundPostData(
-    @SerializedName("id") val id: String,
-    @SerializedName("createdAt") var createdAt: String,
-)
-
-data class SyncPosConsumptionPostData(
-    @SerializedName("id") val id: String,
-    @SerializedName("createdAt") var createdAt: String,
-)
-
-data class SyncPosVoucherPostData(
-    @SerializedName("id") val id: String,
-    @SerializedName("createdAt") var createdAt: String,
-)
-
-data class SyncPosVoucherRedemptionPostData(
-    @SerializedName("id") val id: String,
-    @SerializedName("createdAt") var createdAt: String,
-    @SerializedName("amount") var amount: Long,
-    @SerializedName("voucher") var voucher: String,
-)
-
-data class SyncPosCashupPostData(
-    @SerializedName("id") val id: String,
-    @SerializedName("createdAt") var createdAt: String,
-    @SerializedName("initial") var initial: Long,
-    @SerializedName("taken") var taken: Long,
-    @SerializedName("remaining") var remaining: Long,
-)
-
-data class LoginPostData(
-    @SerializedName("email") val email: String,
-    @SerializedName("password") val password: String,
-    @SerializedName("serial") val serial: String
-)
-
-data class LoginQrcodePostData(
-    @SerializedName("hash") val hash: String,
-    @SerializedName("serial") val serial: String
-)
-
-data class RegisterDevicePostData(
-    @SerializedName("name") val name: String,
-    @SerializedName("serial") val serial: String,
-
-    @SerializedName("acquirer") val acquirer: String
-)
-
-data class PatchPingPosUsecaseModel(
-    @SerializedName("serial") val serial: String,
-    @SerializedName("cashier") val cashier: String?,
-    @SerializedName("eventId") val eventId: Int?,
-    @SerializedName("posId") val posId: Int?,
-    @SerializedName("coords") val coords: String
-)
-
-data class TESTCashierModel(
-    @SerializedName("id") val id: String,
-    @SerializedName("name") val name: String
-)
-
-data class TESTEventModel(
-    @SerializedName("id") val id: String,
-    @SerializedName("name") val name: String,
-    @SerializedName("logo") val logo: String,
-    @SerializedName("pin") val pin: String,
-    @SerializedName("details") val details: String,
-    @SerializedName("dateStart") val dateStart: String,
-    @SerializedName("dateEnd") val dateEnd: String,
-    @SerializedName("printingPriceEnabled") val printingPriceEnabled: Boolean,
-    @SerializedName("ticketsPrintingGrouped") val ticketsPrintingGrouped: Boolean,
-    @SerializedName("isSelected") val isSelected: Boolean,
-    @SerializedName("mode") val mode: String,
-    @SerializedName("hasProducts") val hasProducts: Boolean,
-    @SerializedName("isCreditEnabled") val isCreditEnabled: Boolean,
-    @SerializedName("isDebitEnabled") val isDebitEnabled: Boolean,
-    @SerializedName("isPIXEnabled") val isPIXEnabled: Boolean,
-    @SerializedName("isVREnabled") val isVREnabled: Boolean,
-    @SerializedName("isLnBTCEnabled") val isLnBTCEnabled: Boolean,
-    @SerializedName("isCashEnabled") val isCashEnabled: Boolean,
-    @SerializedName("isAcquirerPaymentEnabled") val isAcquirerPaymentEnabled: Boolean,
-    @SerializedName("isMultiPaymentEnabled") val isMultiPaymentEnabled: Boolean
-)
-
-data class TESTPosModel(
-    @SerializedName("id") val id: String,
-    @SerializedName("name") val name: String,
-    @SerializedName("cashier") val cashier: String,
-    @SerializedName("isClosed") val isClosed: Boolean,
-    @SerializedName("isSelected") val isSelected: Boolean,
-    @SerializedName("commission") val commission: Long
-)
-
-data class TESTProductModel(
-    @SerializedName("id") val id: String,
-    @SerializedName("name") val name: String,
-    @SerializedName("thumbnail") val thumbnail: String,
-    @SerializedName("url") val url: String,
-    @SerializedName("category") val category: String,
-    @SerializedName("price") val price: Long,
-    @SerializedName("isEnabled") val isEnabled: Boolean
-)
-
-data class TESTCategoryModel(
-    @SerializedName("id") val id: String,
-    @SerializedName("name") val name: String
-)
-
-data class TESTOrderModel(
-    @SerializedName("id") val id: String,
-    @SerializedName("createdAt") val createdAt: String,
-    @SerializedName("coords") val coords: String,
-    @SerializedName("synced") val synced: Boolean
-)
-
-data class TESTPaymentModel(
-    @SerializedName("id") val id: String,
-    @SerializedName("acquirerTransactionKey") val acquirerTransactionKey: String,
-    @SerializedName("amount") val amount: Long,
-    @SerializedName("commission") val commission: Long,
-    @SerializedName("createdAt") val createdAt: String,
-    @SerializedName("order") val order: String,
-    @SerializedName("type") val type: String,
-    @SerializedName("usedAcquirer") val usedAcquirer: Boolean,
-    @SerializedName("synced") val synced: Boolean
-)
-
-data class TESTAcquisitionModel(
-    @SerializedName("id") val id: String,
-    @SerializedName("createdAt") val createdAt: String,
-    @SerializedName("name") val name: String,
-    @SerializedName("logo") val logo: String,
-    @SerializedName("price") val price: Long,
-    @SerializedName("commission") val commission: Long,
-    @SerializedName("category") val category: String,
-    @SerializedName("product") val product: String,
-    @SerializedName("order") val order: String,
-    @SerializedName("pass") val pass: String,
-    @SerializedName("event") val event: String,
-    @SerializedName("pos") val pos: String,
-    @SerializedName("synced") val synced: Boolean,
-    @SerializedName("voucher") val voucher: String?,
-    @SerializedName("refund") val refund: String?,
-    @SerializedName("consumption") val consumption: String?
-)
-
-data class TESTPassModel(
-    @SerializedName("id") val id: String,
-    @SerializedName("createdAt") val createdAt: String,
-    @SerializedName("accountable") val accountable: String,
-    @SerializedName("printingRetries") val printingRetries: Boolean,
-    @SerializedName("order") val order: String,
-    @SerializedName("event") val event: String,
-    @SerializedName("pos") val pos: String,
-    @SerializedName("isGrouped") val isGrouped: Boolean,
-    @SerializedName("synced") val synced: Boolean
-)
-
-data class TestData(
-    @SerializedName("cashiers") val cashiers: List<TESTCashierModel>,
-    @SerializedName("events") val events: List<TESTEventModel>,
-    @SerializedName("pos") val pos: List<TESTPosModel>,
-    @SerializedName("products") val products: List<TESTProductModel>,
-    @SerializedName("categories") val categories: List<TESTCategoryModel>,
-    @SerializedName("orders") val orders: List<TESTOrderModel>,
-    @SerializedName("payments") val payments: List<TESTPaymentModel>,
-    @SerializedName("acquisitions") val acquisitions: List<TESTAcquisitionModel>,
-    @SerializedName("passes") val passes: List<TESTPassModel>
-)
-
-/**
- * Used to connect to the Ticpass API
- */
-interface APIService {
-
-    @GET("/events/{eventId}/product/thumbnail/download/test")
-    suspend fun test(
-        @Path("eventId") eventId: String,
-    ): TestData
-
-    @POST("users/token/app")
-    suspend fun login(
-        @Body postData: LoginPostData,
-    ): APITestResponse
-
-    @POST("events/{eventId}/pos/{posId}/sync")
-    suspend fun syncPos(
-        @Path("eventId") eventId: String,
-        @Path("posId") posId: String,
-        @Header("x-access-token") authorization: String,
-        @Body postData: SyncPosPostData,
-    ): SyncPosResponse
-
-    @POST("/users/token/qrcode")
-    suspend fun loginQrcode(
-        @Body postData: LoginQrcodePostData,
-    ): APITestResponse
+    @POST("auth/signin/pos")
+    @Headers("Content-Type: application/json")
+    suspend fun signInWithEmailPassword(
+        @Body body: okhttp3.RequestBody
+    ): Response<LoginResponse>
 
     @POST("devices")
+    @Headers("Content-Type: application/json")
     suspend fun registerDevice(
-        @Body postData: RegisterDevicePostData,
-    ): APITestResponse
+        @retrofit2.http.Header("Authorization") authorization: String,
+        @Body body: okhttp3.RequestBody
+    ): Response<RegisterDeviceResponse>
 
-    @GET("events")
-    suspend fun getEvents(
-        @Query("fkUser") user: String,
-        @Header("x-access-token") authorization: String,
-        @Query("page") page: Int = 1,
-        @Query("limit") limit: Int = 100,
-    ): GetEventsResponse
+    @GET("menu")
+    @Headers("Content-Type: application/json")
+    suspend fun getMenu(
+        @Query("take") take: Int = 10,
+        @Query("page") page: Int = 1
+    ): Response<MenuListResponse>
 
-    @GET("events/membership")
-    suspend fun getMembership(
-        @Header("x-access-token") authorization: String,
-    ): GetMembershipResponse
-
-    @GET("cashiers")
-    suspend fun getPosList(
-        @Query("fkEvent") event: String,
-        @Header("x-access-token") authorization: String,
-        @Query("page") page: Int = 1,
-        @Query("limit") limit: Int = 100,
-    ): GetPosListResponse
-
-    @PATCH("/cashiers/closing")
-    suspend fun closePos(
-        @Query("idCashier") posId: String,
-        @Header("x-access-token") authorization: String,
-        @Query("page") page: Int = 1,
-        @Query("limit") limit: Int = 100,
-    ): PatchPosResponse
-
-    @PATCH("/cashiers/opening")
-    suspend fun openPos(
-        @Query("idCashier") posId: String,
-        @Query("cashierName") cashier: String,
-        @Query("serial") serial: String,
-        @Header("x-access-token") authorization: String,
-        @Query("page") page: Int = 1,
-        @Query("limit") limit: Int = 100,
-    ): PatchPosResponse
-
-    @PATCH("/devices/ping")
-    suspend fun pingDevice(
-        @Body pingData: PatchPingPosUsecaseModel
-    ): PatchPingDeviceResponse
-
-    @GET("events/{eventId}/products")
-    suspend fun getEventProducts(
-        @Header("x-access-token") authorization: String,
-        @Path("eventId") event: String,
-        @Query("limit") limit: String = "disable",
-        @Query("groupBy") groupBy: String = "category",
-        @Query("page") page: Int = 1,
-    ): GetEventProductsResponse
-
-    @GET("events/{menuId}/product/thumbnail/download/all")
-    suspend fun downloadAllProductThumbnails(
+    @GET("menu/logo/{menuId}/download")
+    @Streaming
+    suspend fun downloadMenuLogo(
         @Path("menuId") menuId: String,
-        @Header("Authorization") authorization: String
+        @retrofit2.http.Header("X-Use-Access-Token") useAccessToken: Boolean = true
     ): Response<ResponseBody>
 
-    @POST("users/refreshToken")
-    @Headers(
-        "Accept: */*",
-        "Content-Type: application/json"
-    )
+    @GET("menu-pos")
+    @Headers("Content-Type: application/json")
+    suspend fun getMenuPos(
+        @Query("take") take: Int = 10,
+        @Query("page") page: Int = 1,
+        @Query("menu") menu: String,
+        @Query("available") available: String = "both"
+    ): Response<MenuPosListResponse>
+
+    @POST("menu-pos-sessions/open")
+    @Headers("Content-Type: application/json")
+    suspend fun openPosSession(
+        @retrofit2.http.Header("Cookie") cookie: String,
+        @retrofit2.http.Header("Authorization") authorization: String,
+        @Body body: okhttp3.RequestBody
+    ): Response<OpenPosSessionResponse>
+
+    @GET("menu-pos-sessions/open")
+    @Headers("Content-Type: application/json")
+    suspend fun getPosSessionProducts(
+        @retrofit2.http.Header("Cookie") cookie: String,
+        @retrofit2.http.Header("Authorization") authorization: String
+    ): Response<PosSessionProductsResponse>
+
+    @GET("menu/{menuId}/product/thumbnail/download/all")
+    @Streaming
+    suspend fun downloadAllProductThumbnails(
+        @Path("menuId") menuId: String,
+        @retrofit2.http.Header("Cookie") cookie: String,
+        @retrofit2.http.Header("Authorization") authorization: String
+    ): Response<ResponseBody>
+
+    @PUT("menu-pos-sessions/close")
+    @Headers("Content-Type: application/json")
+    suspend fun closePosSession(
+        @retrofit2.http.Header("Cookie") cookie: String,
+        @retrofit2.http.Header("Authorization") authorization: String,
+        @Body body: okhttp3.RequestBody
+    ): Response<ClosePosSessionResponse>
+
+    @POST("device-locations/ping")
+    @Headers("Content-Type: application/json")
+    suspend fun pingDeviceLocation(
+        @retrofit2.http.Header("Cookie") cookie: String,
+        @retrofit2.http.Header("Authorization") authorization: String,
+        @Body body: okhttp3.RequestBody
+    ): Response<DevicePingResponse>
+
+    @POST("menu-pos-sessions/{sessionId}/sync")
+    @Headers("Content-Type: application/json")
+    suspend fun syncMenuPosSession(
+        @Path("sessionId") sessionId: String,
+        @retrofit2.http.Header("Cookie") cookie: String,
+        @retrofit2.http.Header("Authorization") authorization: String,
+        @Body body: okhttp3.RequestBody
+    ): Response<SyncMenuPosSessionResponse>
+
+    @POST("auth/refresh")
+    @Headers("Content-Type: application/json")
     suspend fun refreshToken(
-        @Body body: RefreshTokenRequest
-    ): RefreshTokenResponse
+        @retrofit2.http.Header("Cookie") cookie: String,
+        @retrofit2.http.Header("Authorization") authorization: String
+    ): Response<RefreshTokenResponse>
 
     companion object {
-        private var BASE_URL = "$API_HOST/"
+        private var BASE_URL = "${Constants.API_HOST}/"
 
         @JvmStatic
-        fun create(context: Context): APIService {
-            // logger de requisições
+        fun create(context: Context): ApiService {
             val logger = HttpLoggingInterceptor().apply { level = Level.BODY }
+
+            // Cria manualmente um TokenManager para uso local (evita ciclos de dependência)
+            val tokenManager = br.com.ticpass.pos.data.network.TokenManager(context)
+            val authInterceptor = br.com.ticpass.pos.data.network.interceptor.ApiAuthInterceptor(tokenManager)
 
             val client = OkHttpClient.Builder()
                 .connectTimeout(Constants.API_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .readTimeout(Constants.API_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .retryOnConnectionFailure(true)
-                // ✅ ADICIONAR O INTERCEPTOR DE VERSÃO AQUI
-                .addInterceptor(VersionInterceptor())
-                .addInterceptor { chain ->
-                    val req = chain.request().newBuilder()
-//                    .header("X-App-Name", Constants.getAppName(context))
-                        .build()
-                    chain.proceed(req)
-                }
+                .addInterceptor(VersionInterceptor()) // header version
+                .addInterceptor(authInterceptor) // headers auth (agora recebe TokenManager)
                 .addInterceptor(logger)
                 .build()
 
-            Log.d("APIService", "Creating Retrofit @ $BASE_URL")
+            Log.d("Api2Service", "Creating Retrofit @ $BASE_URL")
 
             return Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()
-                .create(APIService::class.java)
+                .create(ApiService::class.java)
         }
     }
 }
