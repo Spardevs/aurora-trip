@@ -16,7 +16,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
+import androidx.core.content.edit
 
 @AndroidEntryPoint
 class LoadingDownloadFragmentActivity : AppCompatActivity() {
@@ -63,17 +65,17 @@ class LoadingDownloadFragmentActivity : AppCompatActivity() {
                 // 1) Validar dados mínimos
                 if (posAccessToken.isBlank()) {
                     updateProgress("Erro: token de acesso inválido.")
-                    Log.e("LoadingDownload", "posAccessToken vazio")
+                    Timber.tag("LoadingDownload").e("posAccessToken vazio")
                     return@launch
                 }
                 if (menuId.isBlank()) {
                     updateProgress("Erro: nenhum menu selecionado.")
-                    Log.e("LoadingDownload", "menuId vazio")
+                    Timber.tag("LoadingDownload").e("menuId vazio")
                     return@launch
                 }
                 if (posId.isBlank()) {
                     updateProgress("Erro: POS não configurado.")
-                    Log.e("LoadingDownload", "posId vazio")
+                    Timber.tag("LoadingDownload").e("posId vazio")
                     return@launch
                 }
 
@@ -82,7 +84,7 @@ class LoadingDownloadFragmentActivity : AppCompatActivity() {
                 val menuResponse = apiRepository.getMenu()
                 if (!menuResponse.isSuccessful) {
                     updateProgress("Erro ao baixar menu: HTTP=${menuResponse.code()}")
-                    Log.e("LoadingDownload", "getMenu falhou: code=${menuResponse.code()}")
+                    Timber.tag("LoadingDownload").e("getMenu falhou: code=${menuResponse.code()}")
                     return@launch
                 }
 
@@ -90,7 +92,7 @@ class LoadingDownloadFragmentActivity : AppCompatActivity() {
                 val selectedMenu = menuList?.edges?.find { it.id == menuId }
                 if (selectedMenu == null) {
                     updateProgress("Menu selecionado não encontrado.")
-                    Log.e("LoadingDownload", "Menu $menuId não encontrado")
+                    Timber.tag("LoadingDownload").e("Menu $menuId não encontrado")
                     return@launch
                 }
 
@@ -99,7 +101,7 @@ class LoadingDownloadFragmentActivity : AppCompatActivity() {
                     updateProgress("Baixando logo do menu")
                     val logoFile = apiRepository.downloadMenuLogo(logoId)
                     if (logoFile != null) {
-                        Log.d("LoadingDownload", "Logo baixada: ${logoFile.absolutePath}")
+                        Timber.tag("LoadingDownload").d("Logo baixada: ${logoFile.absolutePath}")
                     }
                 }
 
@@ -113,7 +115,8 @@ class LoadingDownloadFragmentActivity : AppCompatActivity() {
                 )
                 if (!menuPosResponse.isSuccessful) {
                     updateProgress("Erro ao baixar menu POS: HTTP=${menuPosResponse.code()}")
-                    Log.e("LoadingDownload", "getMenuPos falhou: code=${menuPosResponse.code()}")
+                    Timber.tag("LoadingDownload")
+                        .e("getMenuPos falhou: code=${menuPosResponse.code()}")
                     return@launch
                 }
 
@@ -124,7 +127,7 @@ class LoadingDownloadFragmentActivity : AppCompatActivity() {
 
                 val deviceMongoId = devicePrefs.getString("device_id", null) // Obter o ID do MongoDB do dispositivo salvo anteriormente
 
-                Log.e("LoadingDownload", "deviceMongoId=${deviceMongoId}")
+                Timber.tag("LoadingDownload").e("deviceMongoId=${deviceMongoId}")
                 val cashierName = nameOperator.ifBlank { "Operador" }
 
                 // Se proxyCredentials estiver vazio, você pode usar o próprio token ou deixar vazio
@@ -133,7 +136,8 @@ class LoadingDownloadFragmentActivity : AppCompatActivity() {
                 // Verificar se temos o deviceMongoId salvo
                 if (deviceMongoId.isNullOrBlank()) {
                     updateProgress("Erro: dispositivo não registrado corretamente.")
-                    Log.e("LoadingDownload", "deviceMongoId não encontrado nas SharedPreferences")
+                    Timber.tag("LoadingDownload")
+                        .e("deviceMongoId não encontrado nas SharedPreferences")
                     return@launch
                 }
 
@@ -145,25 +149,39 @@ class LoadingDownloadFragmentActivity : AppCompatActivity() {
                     cashier = cashierName
                 )
 
-                if (!openSessionResponse.isSuccessful) {
+                if (openSessionResponse.isSuccessful) {
+                    val code = openSessionResponse.code()
+                    val openSessionBody = openSessionResponse.body()
+                    if (openSessionBody != null && openSessionBody.id.isNotBlank()) {
+                        val sessionId = openSessionBody.id
+                        Timber.tag("LoadingDownload").d("POS session aberta: code=$code sessionId=$sessionId")
+                        sessionPref.edit { putString("pos_session_id", sessionId) }
+                    } else {
+                        Timber.tag("LoadingDownload")
+                            .e("openPosSession sem id no body ou body nulo. code=$code body=$openSessionBody")
+                        updateProgress("Falha ao abrir POS: resposta inválida.")
+                        return@launch
+                    }
+                } else {
                     val errorBody = openSessionResponse.errorBody()?.string()
+                    Timber.tag("LoadingDownload")
+                        .e("openPosSession falhou: code=${openSessionResponse.code()} body=$errorBody")
                     updateProgress("Falha ao abrir POS: HTTP=${openSessionResponse.code()}")
-                    Log.e("LoadingDownload", "openPosSession falhou: code=${openSessionResponse.code()} body=$errorBody")
                     return@launch
                 }
 
                 val openSessionBody = openSessionResponse.body()
                 if (openSessionBody == null) {
                     updateProgress("Falha ao abrir POS: resposta vazia.")
-                    Log.e("LoadingDownload", "openPosSession body nulo")
+                    Timber.tag("LoadingDownload").e("openPosSession body nulo")
                     return@launch
                 }
 
                 val sessionId = openSessionBody.id
-                Log.d("LoadingDownload", "POS session aberta: sessionId=$sessionId")
+                Timber.tag("LoadingDownload").d("POS session aberta: sessionId=$sessionId")
 
                 // ✅ SALVAR sessionId no SharedPreferences
-                sessionPref.edit().putString("pos_session_id", sessionId).apply()
+                sessionPref.edit { putString("pos_session_id", sessionId) }
 
                 // 6) Baixar produtos da sessão
                 updateProgress("Baixando produtos do POS")
@@ -174,16 +192,18 @@ class LoadingDownloadFragmentActivity : AppCompatActivity() {
 
                 if (!productsResponse.isSuccessful) {
                     updateProgress("Erro ao baixar produtos: HTTP=${productsResponse.code()}")
-                    Log.e("LoadingDownload", "getPosSessionProducts falhou: code=${productsResponse.code()}")
+                    Timber.tag("LoadingDownload")
+                        .e("getPosSessionProducts falhou: code=${productsResponse.code()}")
                     return@launch
                 }
 
                 val productsBody = productsResponse.body()
                 if (productsBody == null || productsBody.products.isEmpty()) {
                     updateProgress("Nenhum produto encontrado.")
-                    Log.w("LoadingDownload", "Lista de produtos vazia")
+                    Timber.tag("LoadingDownload").w("Lista de produtos vazia")
                 } else {
-                    Log.d("LoadingDownload", "Produtos recebidos: ${productsBody.products.size}")
+                    Timber.tag("LoadingDownload")
+                        .d("Produtos recebidos: ${productsBody.products.size}")
                     // TODO: salvar produtos no banco local (Room)
                 }
 
@@ -196,11 +216,12 @@ class LoadingDownloadFragmentActivity : AppCompatActivity() {
                         proxyCredentials = credentials
                     )
                     if (thumbnailFile != null) {
-                        Log.d("LoadingDownload", "Thumbnails baixadas: ${thumbnailFile.absolutePath}")
+                        Timber.tag("LoadingDownload")
+                            .d("Thumbnails baixadas: ${thumbnailFile.absolutePath}")
                         // Se quiser extrair o ZIP, use ThumbnailManager aqui
                     }
                 } catch (e: Exception) {
-                    Log.w("LoadingDownload", "Erro ao baixar thumbnails", e)
+                    Timber.tag("LoadingDownload").e(e, "Erro ao baixar thumbnails")
                 }
 
                 // 8) Confirmar login / salvar dados locais
@@ -217,7 +238,7 @@ class LoadingDownloadFragmentActivity : AppCompatActivity() {
                 }
 
             } catch (e: Exception) {
-                Log.e("LoadingDownload", "Erro no fluxo de download", e)
+                Timber.tag("LoadingDownload").e(e, "Erro no fluxo de download")
                 updateProgress("Erro: ${e.message}")
             }
         }
