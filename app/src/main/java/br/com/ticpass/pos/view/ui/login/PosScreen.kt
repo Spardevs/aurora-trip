@@ -104,7 +104,7 @@ class PosScreen : BaseActivity() {
                             null
                         } else {
                             Pos.PosSessionUI(
-                                cashier = edge.session.cashier.name
+                                cashier = edge.session.cashier.toString()
                             )
                         }
                     )

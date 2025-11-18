@@ -777,7 +777,8 @@ abstract class DrawerBaseActivity : BaseActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                showConfirmationDialog()
+                // Abre o drawer diretamente sem pedir QR/NFC
+                drawerLayout.openDrawer(GravityCompat.START)
                 true
             }
             else -> super.onOptionsItemSelected(item)

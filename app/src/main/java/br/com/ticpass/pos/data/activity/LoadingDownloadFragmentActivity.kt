@@ -120,8 +120,11 @@ class LoadingDownloadFragmentActivity : AppCompatActivity() {
                 // 5) Abrir sessão do POS
                 updateProgress("Abrindo sessão do POS")
 
-                val deviceSerial = DeviceUtils.getDeviceSerial(this@LoadingDownloadFragmentActivity)
-                val deviceMongoId = sessionPref.getString("device_mongo_id", null) // Obter o ID do MongoDB do dispositivo salvo anteriormente
+                val devicePrefs = getSharedPreferences("DevicePrefs", MODE_PRIVATE)
+
+                val deviceMongoId = devicePrefs.getString("device_id", null) // Obter o ID do MongoDB do dispositivo salvo anteriormente
+
+                Log.e("LoadingDownload", "deviceMongoId=${deviceMongoId}")
                 val cashierName = nameOperator.ifBlank { "Operador" }
 
                 // Se proxyCredentials estiver vazio, você pode usar o próprio token ou deixar vazio
