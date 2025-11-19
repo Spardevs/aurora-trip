@@ -76,10 +76,12 @@ interface ApiService {
         @Body body: okhttp3.RequestBody
     ): Response<OpenPosSessionResponse>
 
+    // Alterado: usa /menu/products/pos?menu=<menuId> e só necessita do Cookie (access token)
     @GET("menu/products/pos")
     @Headers("Content-Type: application/json")
     suspend fun getPosSessionProducts(
         @Query("menu") menu: String,
+        @retrofit2.http.Header("Cookie") cookie: String
     ): Response<PosSessionProductsResponse>
 
     @GET("menu/{menuId}/product/thumbnail/download/all")
@@ -121,6 +123,14 @@ interface ApiService {
         @retrofit2.http.Header("Cookie") cookie: String,
         @retrofit2.http.Header("Authorization") authorization: String
     ): Response<RefreshTokenResponse>
+
+    // import com.google.gson.JsonElement
+    @GET("menu/categories/pos")
+    @Headers("Content-Type: application/json")
+    suspend fun getMenuCategoriesPos(
+        @Query("menu") menu: String,
+        @retrofit2.http.Header("Cookie") cookie: String
+    ): Response<com.google.gson.JsonElement>
 
     companion object {
         private var BASE_URL = "${Constants.API_HOST}/"

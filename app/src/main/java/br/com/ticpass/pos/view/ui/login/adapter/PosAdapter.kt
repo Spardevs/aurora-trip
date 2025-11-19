@@ -18,7 +18,8 @@ import com.google.gson.JsonParser
 
 class PosAdapter(
     private val items: MutableList<Pos> = mutableListOf(),
-    private val onClick: (Pos) -> Unit
+    private val onClick: (Pos) -> Unit,
+    private val onLongClick: (Pos) -> Unit
 ) : RecyclerView.Adapter<PosAdapter.PosViewHolder>() {
 
     inner class PosViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -43,6 +44,7 @@ class PosAdapter(
                 tvName.setTextColor(itemView.context.getColor(R.color.design_default_color_on_secondary))
                 tvCommission.setTextColor(itemView.context.getColor(R.color.colorBlack))
                 itemView.setOnClickListener { onClick(item) }
+                itemView.setOnLongClickListener(null)
             } else {
                 val cashierName = item.session?.cashier?.trim().takeIf { !it.isNullOrBlank() } ?: "Caixa aberto"
                 tvCommission.text = cashierName
@@ -50,7 +52,13 @@ class PosAdapter(
                 tvClosing.setTextColor(itemView.context.getColor(R.color.colorRed))
                 tvName.setTextColor(itemView.context.getColor(R.color.colorGray))
                 tvCommission.setTextColor(itemView.context.getColor(R.color.colorGray))
+
+                // Set click listeners
                 itemView.setOnClickListener(null)
+                itemView.setOnLongClickListener {
+                    onLongClick(item)
+                    true
+                }
             }
         }
     }

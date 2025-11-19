@@ -28,12 +28,7 @@ class TokenManager @Inject constructor(
     }
 
     fun getAccessToken(): String {
-        val raw = prefs.getString("auth_token", "") ?: ""
-        return if (raw.startsWith("Bearer ", ignoreCase = true)) {
-            raw.substringAfter("Bearer ").trim()
-        } else {
-            raw
-        }
+        return prefs.getString("auth_token", "") ?: ""
     }
 
     fun getRefreshToken(): String {

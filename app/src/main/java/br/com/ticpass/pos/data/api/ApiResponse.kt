@@ -182,14 +182,15 @@ data class PosSessionProductsResponse(
     val products: List<Product>
 )
 
+// Produto: campos category/menu/createdBy podem vir como objeto -> usamos JsonElement
 data class Product(
     val id: String,
     val label: String,
     val price: Int,
     val thumbnail: ProductThumbnail,
-    val category: String,
-    val menu: String,
-    val createdBy: String,
+    val category: JsonElement?,
+    val menu: JsonElement?,
+    val createdBy: JsonElement?,
     val createdAt: String,
     val updatedAt: String
 )

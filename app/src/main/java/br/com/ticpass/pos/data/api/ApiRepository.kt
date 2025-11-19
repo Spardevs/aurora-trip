@@ -2,6 +2,7 @@ package br.com.ticpass.pos.data.api
 
 import android.content.Context
 import android.util.Log
+import br.com.ticpass.pos.data.network.TokenManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -14,8 +15,18 @@ import javax.inject.Inject
 
 class ApiRepository @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val service: ApiService
+    private val service: ApiService,
+    private val tokenManager: TokenManager
 ) {
+
+    private fun buildCookieHeader(): String {
+        val accessToken = tokenManager.getAccessToken()
+        return if (accessToken.isNotBlank()) {
+            "access=$accessToken"
+        } else {
+            ""
+        }
+    }
 
     suspend fun signInShortLived(
         shortLivedToken: String,
@@ -71,12 +82,12 @@ class ApiRepository @Inject constructor(
     ): Response<RegisterDeviceResponse> {
         return try {
             val payload = """
-    {
-    "serial": ${jsonEscape(serial)},
-    "acquirer": ${jsonEscape(acquirer)},
-    "variant": ${jsonEscape(variant)}
-    }
-    """.trimIndent()
+            {
+            "serial": ${jsonEscape(serial)},
+            "acquirer": ${jsonEscape(acquirer)},
+            "variant": ${jsonEscape(variant)}
+            }
+            """.trimIndent()
             val body = payload.toRequestBody("application/json".toMediaType())
 
             Timber.tag("ApiRepository")
@@ -146,14 +157,14 @@ class ApiRepository @Inject constructor(
         cashier: String
     ): Response<OpenPosSessionResponse> {
         return try {
-            val cookie = "access=$posAccessToken"
+            val cookie = buildCookieHeader()
             val payload = """
-    {
-    "pos": ${jsonEscape(pos)},
-    "device": ${jsonEscape(device)},
-    "cashier": ${jsonEscape(cashier)}
-    }
-    """.trimIndent()
+            {
+            "pos": ${jsonEscape(pos)},
+            "device": ${jsonEscape(device)},
+            "cashier": ${jsonEscape(cashier)}
+            }
+            """.trimIndent()
             val body = payload.toRequestBody("application/json".toMediaType())
 
             Timber.tag("ApiRepository")
@@ -173,15 +184,19 @@ class ApiRepository @Inject constructor(
         }
     }
 
-    // Substitua a função getPosSessionProducts existente por esta versão:
+    // Alterado: agora recebe menuId e posAccessToken e chama /menu/products/pos?menu=<menuId>
     suspend fun getPosSessionProducts(
         menuId: String,
+        posAccessToken: String
     ): Response<PosSessionProductsResponse> {
         return try {
-            Timber.tag("ApiRepository").d("Fetching POS session products for menu=$menuId")
+            val cookie = buildCookieHeader()
+
+            Timber.tag("ApiRepository").d("Fetching POS session products for menu=$menuId cookie=$cookie")
 
             val response = service.getPosSessionProducts(
                 menu = menuId,
+                cookie = cookie
             )
 
             Timber.tag("ApiRepository")
@@ -199,7 +214,7 @@ class ApiRepository @Inject constructor(
         proxyCredentials: String
     ): File? {
         return try {
-            val cookie = "access=$posAccessToken"
+            val cookie = buildCookieHeader()
             val response = service.downloadAllProductThumbnails(
                 menuId = menuId,
                 cookie = cookie,
@@ -208,16 +223,10 @@ class ApiRepository @Inject constructor(
 
             if (response.isSuccessful) {
                 val body = response.body() ?: return null
-
-                // Pasta ProductThumbnails dentro do storage interno da app
                 val dir = File(context.filesDir, "ProductThumbnails")
                 if (!dir.exists()) dir.mkdirs()
-
-                // Nome do arquivo: <menuId>_all_thumbnails.zip (ou outro formato)
                 val file = File(dir, "${menuId}_all_thumbnails.zip")
-
                 saveResponseBodyToFile(body, file)
-
                 Timber.tag("ApiRepository")
                     .d("Thumbnails baixadas com sucesso: ${file.absolutePath}")
                 file
@@ -281,12 +290,12 @@ class ApiRepository @Inject constructor(
         sessionId: String
     ): Response<ClosePosSessionResponse> {
         return try {
-            val cookie = "access=$posAccessToken"
+            val cookie = buildCookieHeader()
             val payload = """
             {
-              "id": ${jsonEscape(sessionId)}
+            "id": ${jsonEscape(sessionId)}
             }
-        """.trimIndent()
+            """.trimIndent()
             val body = payload.toRequestBody("application/json".toMediaType())
 
             Timber.tag("ApiRepository").d("Closing POS session: id=$sessionId")
@@ -314,15 +323,15 @@ class ApiRepository @Inject constructor(
         longitude: Double
     ): Response<DevicePingResponse> {
         return try {
-            val cookie = "access=$accessToken"
+            val cookie = buildCookieHeader()
 
             val payload = """
             {
-              "serial": ${jsonEscape(serial)},
-              "latitude": $latitude,
-              "longitude": $longitude
+            "serial": ${jsonEscape(serial)},
+            "latitude": $latitude,
+            "longitude": $longitude
             }
-        """.trimIndent()
+            """.trimIndent()
 
             val body = payload.toRequestBody("application/json".toMediaType())
 
@@ -349,22 +358,22 @@ class ApiRepository @Inject constructor(
         sessionId: String
     ): Response<SyncMenuPosSessionResponse> {
         return try {
-            val cookie = "access=$posAccessToken"
+            val cookie = buildCookieHeader()
 
             // Mesmo body do curl: todos os arrays vazios
             val payload = """
             {
-              "orders": [],
-              "payments": [],
-              "acquisitions": [],
-              "passes": [],
-              "refunds": [],
-              "consumptions": [],
-              "giftcards": [],
-              "redemptions": [],
-              "cashups": []
+            "orders": [],
+            "payments": [],
+            "acquisitions": [],
+            "passes": [],
+            "refunds": [],
+            "consumptions": [],
+            "giftcards": [],
+            "redemptions": [],
+            "cashups": []
             }
-        """.trimIndent()
+            """.trimIndent()
 
             val body = payload.toRequestBody("application/json".toMediaType())
 
@@ -382,6 +391,27 @@ class ApiRepository @Inject constructor(
             response
         } catch (e: Exception) {
             Timber.tag("ApiRepository").e(e, "Erro ao sincronizar sessão POS sessionId=$sessionId")
+            throw e
+        }
+    }
+
+    private fun isValidMongoId(id: String): Boolean {
+        return Regex("^[a-fA-F0-9]{24}$").matches(id)
+    }
+
+    suspend fun getMenuCategoriesPos(
+        menuId: String,
+        posAccessToken: String
+    ): Response<com.google.gson.JsonElement> {
+        return try {
+            val cookie = buildCookieHeader()
+            Timber.tag("ApiRepository").d("Fetching menu categories POS (raw) for menu=$menuId cookie=$cookie")
+            val response = service.getMenuCategoriesPos(menu = menuId, cookie = cookie)
+            Timber.tag("ApiRepository")
+                .d("GetMenuCategoriesPos (raw) HTTP=${response.code()} success=${response.isSuccessful}")
+            response
+        } catch (e: Exception) {
+            Timber.tag("ApiRepository").e(e, "Erro ao buscar categories da sessão POS (raw)")
             throw e
         }
     }

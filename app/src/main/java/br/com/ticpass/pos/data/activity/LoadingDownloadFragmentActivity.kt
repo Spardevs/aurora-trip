@@ -186,7 +186,9 @@ class LoadingDownloadFragmentActivity : AppCompatActivity() {
                 // 6) Baixar produtos da sessão
                 updateProgress("Baixando produtos do POS")
                 val productsResponse = apiRepository.getPosSessionProducts(
-                    menuId = menuId)
+                    menuId = menuId,
+                    posAccessToken = posAccessToken
+                )
                 if (!productsResponse.isSuccessful) {
                     updateProgress("Erro ao baixar produtos: HTTP=${productsResponse.code()}")
                     Timber.tag("LoadingDownload")

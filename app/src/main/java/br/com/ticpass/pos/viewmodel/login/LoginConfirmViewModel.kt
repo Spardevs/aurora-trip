@@ -21,7 +21,8 @@ import br.com.ticpass.pos.data.room.dao.CashierDao
 import br.com.ticpass.pos.data.room.entity.CashierEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-
+import com.google.gson.JsonElement
+import timber.log.Timber
 
 @HiltViewModel
 class LoginConfirmViewModel @Inject constructor(
@@ -120,6 +121,46 @@ class LoginConfirmViewModel @Inject constructor(
         )
     }
 
+    // helper: extrai uma string "id" / valor legível de JsonElement? (category/menu etc.)
+    private fun extractIdFromJson(el: JsonElement?): String {
+        if (el == null) return ""
+        return try {
+            if (el.isJsonNull) return ""
+            if (el.isJsonPrimitive) return el.asString
+            val obj = el.asJsonObject
+            when {
+                obj.has("id") -> obj.get("id").asString
+                obj.has("_id") -> obj.get("_id").asString
+                obj.has("label") -> obj.get("label").asString
+                obj.has("name") -> obj.get("name").asString
+                obj.entrySet().firstOrNull()?.value?.isJsonPrimitive == true -> obj.entrySet().first().value.asString
+                else -> obj.toString()
+            }
+        } catch (ex: Exception) {
+            el.toString()
+        }
+    }
+
+    private fun extractNameFromJson(el: JsonElement?): String {
+        if (el == null) return ""
+        return try {
+            if (el.isJsonNull) return ""
+            if (el.isJsonPrimitive) return el.asString
+            val obj = el.asJsonObject
+            when {
+                obj.has("label") -> obj.get("label").asString
+                obj.has("name") -> obj.get("name").asString
+                obj.has("title") -> obj.get("title").asString
+                else -> {
+                    // tenta pegar o primeiro campo string legível
+                    obj.entrySet().firstOrNull { it.value.isJsonPrimitive }?.value?.asString ?: ""
+                }
+            }
+        } catch (ex: Exception) {
+            ""
+        }
+    }
+
     suspend fun fetchAndInsertProducts(
         sessionPref: SharedPreferences,
         userPref: SharedPreferences,
@@ -165,7 +206,7 @@ class LoginConfirmViewModel @Inject constructor(
             putString("pos_session_id", posSessionId)
         }
 
-         val menuId: String by lazy {
+        val menuId: String by lazy {
             val value = sessionPref.all["selected_menu_id"]
             when (value) {
                 is String -> value
@@ -174,8 +215,9 @@ class LoginConfirmViewModel @Inject constructor(
             }
         }
 
-        // 3) Buscar produtos da sessão
-        val productsResponse = apiRepository.getPosSessionProducts(menuId = menuId)
+
+// 3) Buscar produtos da sessão
+        val productsResponse = apiRepository.getPosSessionProducts(menuId, posAccessToken)
 
         if (!productsResponse.isSuccessful || productsResponse.body() == null) {
             Log.e("LoginConfirmVM", "Falha ao buscar produtos da sessão POS: code=${productsResponse.code()}")
@@ -185,36 +227,88 @@ class LoginConfirmViewModel @Inject constructor(
         val productsFromApi = productsResponse.body()!!.products
         Log.d("LoginConfirmVM", "Produtos recebidos: ${productsFromApi.size}")
 
-        // 4) Agrupar produtos por categoria
-        val categoriesMap = mutableMapOf<String, String>()
-        productsFromApi.forEach { product ->
-            if (!categoriesMap.containsKey(product.category)) {
-                // Usar o ID da categoria como nome temporário (pode ser melhorado)
-                categoriesMap[product.category] = "Categoria ${product.category.take(8)}"
+// 3.5) Tentar buscar categorias dedicadas via endpoint /menu/categories/pos
+        // 2) Tenta obter categorias dedicadas via endpoint /menu/categories/pos
+        val categoriesMap = mutableMapOf<String, String>() // id -> name
+
+        try {
+            val categoriesResponse = apiRepository.getMenuCategoriesPos(menuId, posAccessToken)
+
+            if (categoriesResponse.isSuccessful && categoriesResponse.body() != null) {
+                val json = categoriesResponse.body()!!
+
+                // Caso a API retorne { "categories": [ { id, label, ... }, ... ] }
+                if (json.isJsonObject && json.asJsonObject.has("categories")) {
+                    val catsArray = json.asJsonObject.getAsJsonArray("categories")
+                    for (el in catsArray) {
+                        try {
+                            val obj = el.asJsonObject
+                            val id = if (obj.has("id")) obj.get("id").asString
+                            else if (obj.has("_id")) obj.get("_id").asString
+                            else ""
+                            val label = when {
+                                obj.has("label") -> obj.get("label").asString
+                                obj.has("name") -> obj.get("name").asString
+                                else -> ""
+                            }
+                            if (id.isNotBlank()) {
+                                categoriesMap[id] = if (label.isNotBlank()) label else "Categoria ${id.take(8)}"
+                            }
+                        } catch (ie: Exception) {
+                            // ignora item inválido
+                        }
+                    }
+                } else if (json.isJsonObject && json.asJsonObject.has("products")) {
+                    // fallback: endpoint devolveu produtos (como em outros endpoints)
+                    val prods = json.asJsonObject.getAsJsonArray("products")
+                    for (p in prods) {
+                        try {
+                            val pObj = p.asJsonObject
+                            val catEl = pObj.get("category")
+                            val catId = when {
+                                catEl.isJsonPrimitive -> catEl.asString
+                                catEl.isJsonObject && catEl.asJsonObject.has("id") -> catEl.asJsonObject.get("id").asString
+                                else -> catEl.toString()
+                            }
+                            if (catId.isNotBlank() && !categoriesMap.containsKey(catId)) {
+                                categoriesMap[catId] = "Categoria ${catId.take(8)}"
+                            }
+                        } catch (ie: Exception) { }
+                    }
+                } else {
+                    Timber.tag("ProductsRefresh").w("categories endpoint returned unexpected JSON, using fallback")
+                }
+            } else {
+                Timber.tag("ProductsRefresh").w("categories endpoint HTTP=${categoriesResponse.code()}, using fallback")
             }
+        } catch (ex: Exception) {
+            Timber.tag("ProductsRefresh").w("Erro ao buscar categorias dedicadas, usando fallback: ${ex.message}")
         }
 
-        // 5) Inserir categorias
+// 4) Inserir categorias no DB com nomes corretos
         val categories = categoriesMap.map { (id, name) ->
             CategoryEntity(id = id, name = name)
         }
-        categoryDao.insertMany(categories)
+        if (categories.isNotEmpty()) categoryDao.insertMany(categories)
         Log.d("LoginConfirmVM", "Categorias inseridas: ${categories.size}")
 
-        // 6) Inserir produtos
+// 6) Inserir produtos (usando categoryId correto)
         val products = productsFromApi.map { p ->
+            val categoryId = extractIdFromJson(p.category)
             ProductEntity(
                 id = p.id,
                 name = p.label,
                 thumbnail = p.thumbnail.id, // Salvar ID da thumbnail
-                url = p.thumbnail.id,       // Pode ser usado para download posterior
-                categoryId = p.category,
+                url = p.thumbnail.id,
+                categoryId = categoryId,
                 price = p.price.toLong(),
-                stock = 999,                // API v2 não retorna stock, usar valor padrão
+                stock = 999,
                 isEnabled = true
             )
         }
-        productDao.insertMany(products)
+        if (products.isNotEmpty()) {
+            productDao.insertMany(products)
+        }
         Log.d("LoginConfirmVM", "Produtos inseridos: ${products.size}")
 
         // 7) (Opcional) Download das thumbnails em background

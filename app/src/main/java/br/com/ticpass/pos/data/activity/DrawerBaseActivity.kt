@@ -823,18 +823,15 @@ abstract class DrawerBaseActivity : BaseActivity() {
         try {
             val sessionPrefs = getSharedPreferences("SessionPrefs", MODE_PRIVATE)
 
-            // Try several common keys used across projects. Adjust to the exact keys your app writes.
             val sessionIdCandidates = listOf("session_id", "pos_session_id", "sessionId", "pos_session", "session")
-            val sessionId = sessionIdCandidates
-                .mapNotNull { sessionPrefs.getString(it, null) }
-                .firstOrNull()
-                ?: ""
+            val sessionId =
+                sessionIdCandidates.firstNotNullOfOrNull { sessionPrefs.getString(it, null) }
+                    ?: ""
 
             val posAccessTokenCandidates = listOf("pos_access_token", "posAccessToken", "pos_token", "posToken", "access_token", "access")
-            val posAccessToken = posAccessTokenCandidates
-                .mapNotNull { sessionPrefs.getString(it, null) }
-                .firstOrNull()
-                ?: ""
+            val posAccessToken =
+                posAccessTokenCandidates.firstNotNullOfOrNull { sessionPrefs.getString(it, null) }
+                    ?: ""
 
             // You were previously using auth_token from UserPrefs; keep that as proxyCredentials if appropriate
             val jwt = getSharedPreferences("UserPrefs", MODE_PRIVATE).getString("auth_token", null) ?: ""

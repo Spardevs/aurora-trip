@@ -14,6 +14,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import com.google.gson.JsonPrimitive
+import com.google.gson.JsonElement
 
 @HiltViewModel
 class ProductsViewModel @Inject constructor(
@@ -32,6 +34,19 @@ class ProductsViewModel @Inject constructor(
     val isLoading: LiveData<Boolean> = _isLoading
 
     private var allProductsList: List<Product> = emptyList()
+
+    // helper: extrai string de JsonElement? (quando for usado para comparação)
+    private fun jsonElementToString(el: JsonElement?): String {
+        if (el == null) return ""
+        return try {
+            if (el.isJsonNull) return ""
+            if (el.isJsonPrimitive) return el.asString
+            // fallback to the whole object string
+            el.toString()
+        } catch (ex: Exception) {
+            el.toString()
+        }
+    }
 
     // Carrega categorias e produtos aplicando a comissão do POS selecionado
     fun loadCategoriesWithProducts() {
@@ -75,9 +90,10 @@ class ProductsViewModel @Inject constructor(
                                 createdAt = "",
                                 updatedAt = ""
                             ),
-                            category = entity.categoryId,
-                            menu = "",
-                            createdBy = "",
+                            // Product.category/menu/createdBy agora são JsonElement? — envolver com JsonPrimitive
+                            category = JsonPrimitive(entity.categoryId ?: ""),
+                            menu = JsonPrimitive(""),
+                            createdBy = JsonPrimitive(""),
                             createdAt = "",
                             updatedAt = ""
                         )
@@ -90,7 +106,7 @@ class ProductsViewModel @Inject constructor(
                 val productsMap = mutableMapOf<String, List<Product>>()
                 productsMap["Todos"] = allProductsList
                 catsWithProds.forEach { catWith ->
-                    val categoryProducts = allProductsList.filter { it.category == catWith.category.id }
+                    val categoryProducts = allProductsList.filter { jsonElementToString(it.category) == catWith.category.id }
                     productsMap[catWith.category.name] = categoryProducts
                 }
                 _productsByCategory.value = productsMap

@@ -31,8 +31,10 @@ class ApiAuthInterceptor @Inject constructor(
         val proxyCredentials = tokenManager.getProxyCredentials()
 
         val hasAuthHeader = !original.header("Authorization").isNullOrBlank()
+        val hasCookieHeader = !original.header("Cookie").isNullOrBlank()
 
-        if (!hasAuthHeader) {
+        // Só adiciona Authorization se não houver Authorization E não houver Cookie (evita conflito)
+        if (!hasAuthHeader && !hasCookieHeader) {
             if (proxyCredentials.isNotEmpty()) {
                 builder.header("Authorization", proxyCredentials)
             } else if (accessToken.isNotEmpty()) {
@@ -40,8 +42,14 @@ class ApiAuthInterceptor @Inject constructor(
             }
         }
 
-        if (original.header("Cookie").isNullOrBlank() && accessToken.isNotEmpty() && refreshToken.isNotEmpty()) {
-            builder.header("Cookie", "refresh=$refreshToken;access=$accessToken")
+        // Se não há Cookie definido explicitamente, adiciona cookie com refresh+access quando disponível
+        if (!hasCookieHeader && accessToken.isNotEmpty()) {
+            val cookieValue = if (refreshToken.isNotBlank()) {
+                "refresh=$refreshToken;access=$accessToken"
+            } else {
+                "access=$accessToken"
+            }
+            builder.header("Cookie", cookieValue)
         }
 
         return chain.proceed(builder.build())

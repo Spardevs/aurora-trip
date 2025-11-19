@@ -1,6 +1,7 @@
 package br.com.ticpass.pos.data.api
 
 import android.content.Context
+import br.com.ticpass.pos.data.network.TokenManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,8 +17,9 @@ object ApiModule {
     @Singleton
     fun provideApiRepository(
         @ApplicationContext context: Context,
-        service: ApiService
+        service: ApiService,
+        tokenManager: TokenManager
     ): ApiRepository {
-        return ApiRepository(context, service)
+        return ApiRepository(context, service, tokenManager)
     }
 }
