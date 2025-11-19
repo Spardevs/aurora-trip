@@ -106,7 +106,7 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         }
         shoppingCartManager.cartUpdates.observe(viewLifecycleOwner, cartUpdatesObserver!!)
 
-        viewPager.offscreenPageLimit = 1
+        viewPager.offscreenPageLimit = 2
 
         setupViewPager()
         setupPaymentMethods()
@@ -115,6 +115,8 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
             swipeRefreshLayout.isRefreshing = isLoading
         }
         productsViewModel.isLoading.observe(viewLifecycleOwner, loadingObserver!!)
+
+
 
         loadInitialData()
         updatePaymentVisibility()
@@ -165,12 +167,21 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
             R.color.design_default_color_primary_variant
         )
 
-        swipeRefreshLayout.setOnRefreshListener {
-            swipeRefreshLayout.isRefreshing = true
-            refreshData()
-        }
+        swipeRefreshLayout.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    val touchY = event.y
+                    val headerHeight = 200 // altura do seu header em pixels
 
-        swipeRefreshLayout.setDistanceToTriggerSync(200)
+                    // Só permite pull se tocar no header
+                    swipeRefreshLayout.isEnabled = touchY <= headerHeight
+
+                    swipeRefreshLayout.isRefreshing = true
+                    refreshData()
+                }
+            }
+            false
+        }
     }
 
     private fun refreshData() {
