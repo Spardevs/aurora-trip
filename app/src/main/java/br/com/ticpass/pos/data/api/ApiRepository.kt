@@ -173,18 +173,15 @@ class ApiRepository @Inject constructor(
         }
     }
 
+    // Substitua a função getPosSessionProducts existente por esta versão:
     suspend fun getPosSessionProducts(
-        posAccessToken: String,
-        proxyCredentials: String
+        menuId: String,
     ): Response<PosSessionProductsResponse> {
         return try {
-            val cookie = "access=$posAccessToken"
-
-            Timber.tag("ApiRepository").d("Fetching POS session products")
+            Timber.tag("ApiRepository").d("Fetching POS session products for menu=$menuId")
 
             val response = service.getPosSessionProducts(
-                cookie = cookie,
-                authorization = proxyCredentials
+                menu = menuId,
             )
 
             Timber.tag("ApiRepository")

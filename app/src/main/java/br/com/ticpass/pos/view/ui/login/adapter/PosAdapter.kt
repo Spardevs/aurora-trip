@@ -13,6 +13,8 @@ import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.model.Pos
 import br.com.ticpass.pos.util.calculatePercent
 import java.math.BigInteger
+import com.google.gson.JsonParser
+
 
 class PosAdapter(
     private val items: MutableList<Pos> = mutableListOf(),
@@ -31,31 +33,23 @@ class PosAdapter(
             tvClosing.text = if (isClosed) "Fechado" else "Aberto"
 
             if (isClosed) {
-                // Caixa fechado: mostrar comissão
                 val commissionConverted = item.commission?.let {
                     if (it > BigInteger.ZERO) "${calculatePercent(it)}% de comissão" else "Sem comissão"
                 }
                 tvCommission.text = commissionConverted ?: "Sem comissão"
 
-                // Ícone verde (caixa fechado, liberado para uso)
                 ivPos.setColorFilter(itemView.context.getColor(R.color.colorGreen))
-                // Textos padrão
                 tvClosing.setTextColor(itemView.context.getColor(R.color.colorGreen))
                 tvName.setTextColor(itemView.context.getColor(R.color.design_default_color_on_secondary))
                 tvCommission.setTextColor(itemView.context.getColor(R.color.colorBlack))
-                // Habilitar clique
                 itemView.setOnClickListener { onClick(item) }
             } else {
-                // Caixa aberto: mostrar nome do cashier
-                tvCommission.text = item.session?.cashier ?: "Caixa aberto"
-
-                // Ícone vermelho (caixa aberto, não pode ser acessado)
+                val cashierName = item.session?.cashier?.trim().takeIf { !it.isNullOrBlank() } ?: "Caixa aberto"
+                tvCommission.text = cashierName
                 ivPos.setColorFilter(itemView.context.getColor(R.color.colorRed))
-                // Textos cinza
                 tvClosing.setTextColor(itemView.context.getColor(R.color.colorRed))
                 tvName.setTextColor(itemView.context.getColor(R.color.colorGray))
                 tvCommission.setTextColor(itemView.context.getColor(R.color.colorGray))
-                // Desabilitar clique
                 itemView.setOnClickListener(null)
             }
         }

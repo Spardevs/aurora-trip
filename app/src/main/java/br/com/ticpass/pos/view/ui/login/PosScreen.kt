@@ -18,6 +18,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.math.BigInteger
 import javax.inject.Inject
+import com.google.gson.Gson
+import com.google.gson.JsonParser
 
 @AndroidEntryPoint
 class PosScreen : BaseActivity() {
@@ -96,6 +98,66 @@ class PosScreen : BaseActivity() {
 
                 // ✅ Mapear PosEdge (API v2) -> PosItem (modelo da UI)
                 val items = body.edges.map { edge ->
+
+                    fun extractCashierName(raw: Any?): String? {
+                        if (raw == null) return null
+                        try {
+                            // Log para debugar o que está chegando
+                            Log.d("PosScreen", "raw cashier (toString): ${raw.toString()} (class=${raw::class.java})")
+
+                            // Serializa qualquer objeto para JSON e parseia com Gson/JsonParser
+                            val gson = Gson()
+                            val json = gson.toJson(raw)
+                            Log.d("PosScreen", "raw cashier asJson: $json")
+
+                            val el = JsonParser.parseString(json)
+                            if (el.isJsonObject) {
+                                val obj = el.asJsonObject
+                                when {
+                                    obj.has("name") && !obj.get("name").isJsonNull -> return obj.get("name").asString
+                                    obj.has("nome") && !obj.get("nome").isJsonNull -> return obj.get("nome").asString
+                                    obj.has("username") && !obj.get("username").isJsonNull -> return obj.get("username").asString
+                                    obj.has("email") && !obj.get("email").isJsonNull -> return obj.get("email").asString
+                                    else -> {
+                                        // se não achou campos previstos, tenta devolver um campo legível
+                                        // por exemplo, procura a primeira string não-nula nas propriedades
+                                        obj.entrySet().forEach { entry ->
+                                            val v = entry.value
+                                            if (v.isJsonPrimitive) {
+                                                val s = v.asString
+                                                if (!s.isNullOrBlank()) return s
+                                            }
+                                        }
+                                        return json
+                                    }
+                                }
+                            }
+                            if (el.isJsonPrimitive) {
+                                return el.asString
+                            }
+
+                            // Fallbacks: tenta extrair do toString com regex (data class / Map)
+                            val s = raw.toString()
+                            if (s.contains("name=")) {
+                                val regex = Regex("name=([^,\\)]+)")
+                                regex.find(s)?.groups?.get(1)?.value?.trim()?.let { return it }
+                            }
+                            if (s.contains("nome=")) {
+                                val regex = Regex("nome=([^,\\)]+)")
+                                regex.find(s)?.groups?.get(1)?.value?.trim()?.let { return it }
+                            }
+                            if (s.contains("username=")) {
+                                val regex = Regex("username=([^,\\)]+)")
+                                regex.find(s)?.groups?.get(1)?.value?.trim()?.let { return it }
+                            }
+
+                            // último recurso
+                            return s
+                        } catch (ex: Exception) {
+                            Log.e("PosScreen", "Erro ao extrair cashier name", ex)
+                            return raw.toString()
+                        }
+                    }
                     Pos(
                         id = edge.id,
                         name = "${edge.prefix} ${edge.sequence}",
@@ -104,7 +166,7 @@ class PosScreen : BaseActivity() {
                             null
                         } else {
                             Pos.PosSessionUI(
-                                cashier = edge.session.cashier.toString()
+                                cashier = extractCashierName(edge.session.cashier)
                             )
                         }
                     )

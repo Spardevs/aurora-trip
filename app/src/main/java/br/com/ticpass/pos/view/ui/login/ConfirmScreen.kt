@@ -67,7 +67,6 @@ class ConfirmScreen : BaseActivity() {
         val name = findViewById<EditText>(R.id.nameText).text.toString()
         userPref.edit {
             putString("operator_name", name)
-            putBoolean("user_logged", true)
         }
         // Ao clicar no imageButton, chamar a tela fragment_loading_download
         val intent = Intent(this, LoadingDownloadFragmentActivity::class.java)

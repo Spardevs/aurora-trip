@@ -165,11 +165,17 @@ class LoginConfirmViewModel @Inject constructor(
             putString("pos_session_id", posSessionId)
         }
 
+         val menuId: String by lazy {
+            val value = sessionPref.all["selected_menu_id"]
+            when (value) {
+                is String -> value
+                is Int -> value.toString()
+                else -> ""
+            }
+        }
+
         // 3) Buscar produtos da sessão
-        val productsResponse = apiRepository.getPosSessionProducts(
-            posAccessToken = posAccessToken,
-            proxyCredentials = proxyCredentials
-        )
+        val productsResponse = apiRepository.getPosSessionProducts(menuId = menuId)
 
         if (!productsResponse.isSuccessful || productsResponse.body() == null) {
             Log.e("LoginConfirmVM", "Falha ao buscar produtos da sessão POS: code=${productsResponse.code()}")

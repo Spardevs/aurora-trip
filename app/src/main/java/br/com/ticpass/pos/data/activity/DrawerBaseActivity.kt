@@ -631,7 +631,7 @@ abstract class DrawerBaseActivity : BaseActivity() {
                     operatorNameTv.text = name
 
                     val menuOpeningTv: TextView = header.findViewById(R.id.menuOpening)
-                    selectedPos?.let { pos ->
+                    selectedPos.let { pos ->
                         menuOpeningTv.text = if (pos.isClosed) {
                             "Fechado"
                         } else {

@@ -76,11 +76,10 @@ interface ApiService {
         @Body body: okhttp3.RequestBody
     ): Response<OpenPosSessionResponse>
 
-    @GET("menu-pos-sessions/open")
+    @GET("menu/products/pos")
     @Headers("Content-Type: application/json")
     suspend fun getPosSessionProducts(
-        @retrofit2.http.Header("Cookie") cookie: String,
-        @retrofit2.http.Header("Authorization") authorization: String
+        @Query("menu") menu: String,
     ): Response<PosSessionProductsResponse>
 
     @GET("menu/{menuId}/product/thumbnail/download/all")

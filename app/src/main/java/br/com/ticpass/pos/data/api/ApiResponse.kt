@@ -1,6 +1,6 @@
 package br.com.ticpass.pos.data.api
 
-import kotlinx.serialization.json.JsonElement
+import com.google.gson.JsonElement
 
 data class LoginResponse(
     val user: UserV2,
@@ -142,10 +142,10 @@ data class PosSession(
     val device: String,
     val menu: String,
     val pos: String,
-    val cashier: JsonElement?,
-
+    val cashier: PosCashier?,
     val createdAt: String
 )
+
 data class PosCashier(
     val id: String,
     val avatar: Int,

@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.viewmodel.products
 
+import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -16,6 +17,8 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
+
+
 @HiltViewModel
 class ProductsRefreshViewModel @Inject constructor(
     private val apiRepository: ApiRepository,
@@ -27,15 +30,12 @@ class ProductsRefreshViewModel @Inject constructor(
     /**
      * Atualiza os produtos usando a API de sessão POS
      */
-    suspend fun refreshProducts(posAccessToken: String, proxyCredentials: String): Boolean {
+    suspend fun refreshProducts(posAccessToken: String, proxyCredentials: String, menuId: String): Boolean {
         return withContext(Dispatchers.IO) {
             try {
                 Timber.tag("ProductsRefresh").d("Fetching products from POS session")
 
-                val response = apiRepository.getPosSessionProducts(
-                    posAccessToken = posAccessToken,
-                    proxyCredentials = proxyCredentials
-                )
+                val response = apiRepository.getPosSessionProducts(menuId)
 
                 if (response.isSuccessful && response.body() != null) {
                     val productsResponse = response.body()!!
@@ -151,16 +151,6 @@ class ProductsRefreshViewModel @Inject constructor(
                     return@withContext false
                 }
 
-                // 1) Atualiza produtos da sessão POS
-                Timber.tag("ProductsRefresh").d("Refreshing products with POS session")
-                val productsOk = refreshProducts(posAccessToken, proxyCredentials)
-
-                if (!productsOk) {
-                    Timber.tag("ProductsRefresh")
-                        .e("Product refresh failed, skipping thumbnails download")
-                    return@withContext false
-                }
-
                 // 2) Obtém o menuId (event/menu selecionado)
                 val menuId = getEventId(sessionPref)
                 if (menuId.isNullOrEmpty()) {
@@ -168,6 +158,17 @@ class ProductsRefreshViewModel @Inject constructor(
                         .e("No menuId/eventId found, cannot download thumbnails")
                     // Não falha o processo de produtos; só não baixa thumbnails
                     return@withContext true
+                }
+
+
+                // 1) Atualiza produtos da sessão POS
+                Timber.tag("ProductsRefresh").d("Refreshing products with POS session")
+                val productsOk = refreshProducts(posAccessToken, proxyCredentials, menuId)
+
+                if (!productsOk) {
+                    Timber.tag("ProductsRefresh")
+                        .e("Product refresh failed, skipping thumbnails download")
+                    return@withContext false
                 }
 
                 // 7) (Opcional) Download das thumbnails em background

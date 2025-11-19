@@ -196,7 +196,17 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
                     return@launch
                 }
 
-                val success = refreshViewModel.refreshProducts(eventId, authToken)
+
+                val menuId: String by lazy {
+                    val value = sessionPrefs.all["selected_menu_id"]
+                    when (value) {
+                        is String -> value
+                        is Int -> value.toString()
+                        else -> ""
+                    }
+                }
+
+                val success = refreshViewModel.refreshProducts(eventId, authToken, menuId)
 
                 if (success) {
                     Log.d("ProductsListScreen", "Refresh bem-sucedido!")
