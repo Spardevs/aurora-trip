@@ -9,8 +9,12 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
 import retrofit2.Response
 import timber.log.Timber
+import java.io.BufferedInputStream
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 import javax.inject.Inject
 
 class ApiRepository @Inject constructor(
@@ -82,12 +86,12 @@ class ApiRepository @Inject constructor(
     ): Response<RegisterDeviceResponse> {
         return try {
             val payload = """
-            {
-            "serial": ${jsonEscape(serial)},
-            "acquirer": ${jsonEscape(acquirer)},
-            "variant": ${jsonEscape(variant)}
-            }
-            """.trimIndent()
+    {
+    "serial": ${jsonEscape(serial)},
+    "acquirer": ${jsonEscape(acquirer)},
+    "variant": ${jsonEscape(variant)}
+    }
+    """.trimIndent()
             val body = payload.toRequestBody("application/json".toMediaType())
 
             Timber.tag("ApiRepository")
@@ -159,12 +163,12 @@ class ApiRepository @Inject constructor(
         return try {
             val cookie = buildCookieHeader()
             val payload = """
-            {
-            "pos": ${jsonEscape(pos)},
-            "device": ${jsonEscape(device)},
-            "cashier": ${jsonEscape(cashier)}
-            }
-            """.trimIndent()
+    {
+    "pos": ${jsonEscape(pos)},
+    "device": ${jsonEscape(device)},
+    "cashier": ${jsonEscape(cashier)}
+    }
+    """.trimIndent()
             val body = payload.toRequestBody("application/json".toMediaType())
 
             Timber.tag("ApiRepository")
@@ -225,11 +229,25 @@ class ApiRepository @Inject constructor(
                 val body = response.body() ?: return null
                 val dir = File(context.filesDir, "ProductThumbnails")
                 if (!dir.exists()) dir.mkdirs()
-                val file = File(dir, "${menuId}_all_thumbnails.zip")
-                saveResponseBodyToFile(body, file)
-                Timber.tag("ApiRepository")
-                    .d("Thumbnails baixadas com sucesso: ${file.absolutePath}")
-                file
+                val zipFile = File(dir, "${menuId}_all_thumbnails.zip")
+                saveResponseBodyToFile(body, zipFile)
+
+                // Pasta onde extrairemos os thumbnails (ProductThumbnails/<menuId>/)
+                val extractedDir = File(dir, menuId)
+                if (!extractedDir.exists()) extractedDir.mkdirs()
+
+                // descompacta o zip para a pasta extraída
+                try {
+                    val extractedFiles = unzipToDirectory(zipFile, extractedDir)
+                    // remover zip para economizar espaço
+                    zipFile.delete()
+                    Timber.tag("ApiRepository").d("Thumbnails descompactadas: ${extractedFiles.size} -> ${extractedDir.absolutePath}")
+                } catch (ex: Exception) {
+                    Timber.tag("ApiRepository").e(ex, "Erro ao descompactar thumbnails: ${ex.message}")
+                }
+
+                // retorna o diretório onde as imagens foram extraídas
+                extractedDir
             } else {
                 Timber.tag("ApiRepository")
                     .e("Erro download thumbnails menuId=$menuId code=${response.code()}")
@@ -284,6 +302,43 @@ class ApiRepository @Inject constructor(
         }
     }
 
+    // Descompacta um zip para um diret�F3rio de destino e retorna a lista de arquivos extra�EDdos
+    private fun unzipToDirectory(zipFile: File, destDir: File): List<File> {
+        val extracted = mutableListOf<File>()
+        if (!destDir.exists()) destDir.mkdirs()
+
+        ZipInputStream(BufferedInputStream(FileInputStream(zipFile))).use { zis ->
+            var entry: ZipEntry? = zis.nextEntry
+            val buffer = ByteArray(8 * 1024)
+            while (entry != null) {
+                try {
+                    if (entry.isDirectory) {
+                        val dir = File(destDir, entry.name)
+                        if (!dir.exists()) dir.mkdirs()
+                    } else {
+                        val entryName = entry.name
+                        // toma apenas o nome do arquivo, ignorando eventuais pastas internas
+                        val targetFile = File(destDir, entryName.substringAfterLast('/'))
+                        targetFile.parentFile?.let { if (!it.exists()) it.mkdirs() }
+
+                        FileOutputStream(targetFile).use { fos ->
+                            var count: Int
+                            while (zis.read(buffer).also { count = it } != -1) {
+                                fos.write(buffer, 0, count)
+                            }
+                            fos.flush()
+                        }
+                        extracted.add(targetFile)
+                    }
+                } finally {
+                    zis.closeEntry()
+                }
+                entry = zis.nextEntry
+            }
+        }
+        return extracted
+    }
+
     suspend fun closePosSession(
         posAccessToken: String,
         proxyCredentials: String,
@@ -292,10 +347,10 @@ class ApiRepository @Inject constructor(
         return try {
             val cookie = buildCookieHeader()
             val payload = """
-            {
-            "id": ${jsonEscape(sessionId)}
-            }
-            """.trimIndent()
+    {
+    "id": ${jsonEscape(sessionId)}
+    }
+    """.trimIndent()
             val body = payload.toRequestBody("application/json".toMediaType())
 
             Timber.tag("ApiRepository").d("Closing POS session: id=$sessionId")
@@ -326,12 +381,12 @@ class ApiRepository @Inject constructor(
             val cookie = buildCookieHeader()
 
             val payload = """
-            {
-            "serial": ${jsonEscape(serial)},
-            "latitude": $latitude,
-            "longitude": $longitude
-            }
-            """.trimIndent()
+    {
+    "serial": ${jsonEscape(serial)},
+    "latitude": $latitude,
+    "longitude": $longitude
+    }
+    """.trimIndent()
 
             val body = payload.toRequestBody("application/json".toMediaType())
 
@@ -362,18 +417,18 @@ class ApiRepository @Inject constructor(
 
             // Mesmo body do curl: todos os arrays vazios
             val payload = """
-            {
-            "orders": [],
-            "payments": [],
-            "acquisitions": [],
-            "passes": [],
-            "refunds": [],
-            "consumptions": [],
-            "giftcards": [],
-            "redemptions": [],
-            "cashups": []
-            }
-            """.trimIndent()
+    {
+    "orders": [],
+    "payments": [],
+    "acquisitions": [],
+    "passes": [],
+    "refunds": [],
+    "consumptions": [],
+    "giftcards": [],
+    "redemptions": [],
+    "cashups": []
+    }
+    """.trimIndent()
 
             val body = payload.toRequestBody("application/json".toMediaType())
 

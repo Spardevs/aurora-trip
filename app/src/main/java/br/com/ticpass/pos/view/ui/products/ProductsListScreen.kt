@@ -215,7 +215,6 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
                     return@launch
                 }
 
-
                 val menuId: String by lazy {
                     val value = sessionPrefs.all["selected_menu_id"]
                     when (value) {

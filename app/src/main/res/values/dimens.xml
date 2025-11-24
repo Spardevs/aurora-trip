@@ -18,8 +18,8 @@
     <dimen name="padding_payment_screen">24dp</dimen>
     <dimen name="product_image_size">70dp</dimen>
     <dimen name="payment_icon_size">15dp</dimen>
-    <dimen name="text_xs">9sp</dimen>
-    <dimen name="text_sm">11sp</dimen>
+    <dimen name="text_xs">12sp</dimen>
+    <dimen name="text_sm">14sp</dimen>
     <dimen name="text_md">15sp</dimen>
 
     <dimen name="grid_spacing_small">2dp</dimen>
