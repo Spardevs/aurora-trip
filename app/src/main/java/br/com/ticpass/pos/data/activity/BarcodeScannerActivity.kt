@@ -48,7 +48,7 @@ class BarcodeScannerActivity : AppCompatActivity() {
     private val refundViewModel: RefundViewModel by viewModels()
 
     companion object {
-        private const val TAG = "CashPaymentFragment"
+        private const val TAG = "QRCodeScannerActivity"
         private const val REQ_CAMERA = 2001
         const val EXTRA_SCAN_TEXT = "extra_scan_text"
 
@@ -63,19 +63,11 @@ class BarcodeScannerActivity : AppCompatActivity() {
         binding = ActivityBarcodeScannerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.overlayBarcode.setAspect(4f, 3f)
-        binding.overlayBarcode.setMaxHeightFactor(0.38f)
+        binding.overlayBarcode.setAspect(1f, 1f) // QR Code é quadrado
+        binding.overlayBarcode.setMaxHeightFactor(0.5f)
 
-        val formats = listOf(
-            BarcodeFormat.CODE_128,
-            BarcodeFormat.EAN_13,
-            BarcodeFormat.EAN_8,
-            BarcodeFormat.UPC_A,
-            BarcodeFormat.UPC_E,
-            BarcodeFormat.CODE_39,
-            BarcodeFormat.CODE_93,
-            BarcodeFormat.ITF
-        )
+        // Configurar para ler apenas QR Codes
+        val formats = listOf(BarcodeFormat.QR_CODE)
         binding.zxingBarcodeScanner.decoderFactory = DefaultDecoderFactory(formats)
         binding.btnOpenKeyboard.setOnClickListener { showKeyboard() }
         binding.btnClose.setOnClickListener { finish() }
@@ -206,18 +198,18 @@ class BarcodeScannerActivity : AppCompatActivity() {
                 val barcodeInfo = validateAndReadBarcode(result)
 
                 if (barcodeInfo != null) {
-                    Timber.tag(TAG).i("✓ Barcode válido lido: ${barcodeInfo.text}")
+                    Timber.tag(TAG).i("✓ QR Code válido lido: ${barcodeInfo.text}")
 
                     displayBarcodeInfo(result)
 
                     // Ao ler com sucesso, iniciar o fluxo de estorno diretamente (sem mostrar modal com opções)
                     processScannedPayload(barcodeInfo.text)
                 } else {
-                    Timber.tag(TAG).w("✗ Código de barras inválido detectado")
+                    Timber.tag(TAG).w("✗ QR Code inválido detectado")
 
                     Toast.makeText(
                         this@BarcodeScannerActivity,
-                        "Código de barras inválido. Tente novamente.",
+                        "QR Code inválido. Tente novamente.",
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -293,7 +285,7 @@ class BarcodeScannerActivity : AppCompatActivity() {
         val barcodeFormat = result.barcodeFormat.toString()
 
         Timber.tag(TAG).d("════")
-        Timber.tag(TAG).d("CÓDIGO DE BARRAS DETECTADO")
+        Timber.tag(TAG).d("QR CODE DETECTADO")
         Timber.tag(TAG).d("════")
         Timber.tag(TAG).d("Formato: $barcodeFormat")
         Timber.tag(TAG).d("Conteúdo: $barcodeText")
@@ -302,14 +294,14 @@ class BarcodeScannerActivity : AppCompatActivity() {
 
         Toast.makeText(
             this,
-            "Código lido: $barcodeText",
+            "QR Code lido: $barcodeText",
             Toast.LENGTH_LONG
         ).show()
     }
 
     private fun validateAndReadBarcode(barcodeResult: BarcodeResult?): BarcodeInfo? {
         if (barcodeResult == null) {
-            Timber.tag("BarcodeValidator").w("Resultado do barcode é nulo")
+            Timber.tag("QRCodeValidator").w("Resultado do QR Code é nulo")
             return null
         }
 
@@ -317,11 +309,17 @@ class BarcodeScannerActivity : AppCompatActivity() {
         val format = barcodeResult.barcodeFormat
 
         if (text.isNullOrBlank()) {
-            Timber.tag("BarcodeValidator").w("Texto do barcode está vazio")
+            Timber.tag("QRCodeValidator").w("Texto do QR Code está vazio")
             return null
         }
 
-        Timber.tag("BarcodeValidator").i("✓ Barcode lido: formato=$format, texto=$text")
+        // Validar que é um QR Code
+        if (format != BarcodeFormat.QR_CODE) {
+            Timber.tag("QRCodeValidator").w("Formato não é QR Code: $format")
+            return null
+        }
+
+        Timber.tag("QRCodeValidator").i("✓ QR Code lido: formato=$format, texto=$text")
 
         return BarcodeInfo(
             text = text,

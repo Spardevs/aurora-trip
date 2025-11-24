@@ -58,28 +58,21 @@ fun isValidEAN13(code: String): Boolean {
     return checksum == calculatedChecksum
 }
 
-fun generateEAN13BarcodeBitmap(code: String, width: Int = 350): Bitmap {
-    if (code.isBlank()) throw IllegalArgumentException("Barcode cannot be empty")
-
-    val cleanCode = code.replace("[^0-9]".toRegex(), "")
-    val finalCode = when {
-        cleanCode.length == 12 -> calculateEAN13Checksum(cleanCode)
-        cleanCode.length == 13 -> if (!isValidEAN13(cleanCode)) calculateEAN13Checksum(cleanCode.substring(0, 12)) else cleanCode
-        else -> throw IllegalArgumentException("EAN-13 requires 12 or 13 digits")
-    }
+// Função para gerar QR Code
+fun generateQRCodeBitmap(content: String, size: Int = 400): Bitmap {
+    if (content.isBlank()) throw IllegalArgumentException("QR Code content cannot be empty")
 
     val writer = MultiFormatWriter()
-    val height: Int = (width / 4.0).toInt()
+    val bitMatrix = writer.encode(content, BarcodeFormat.QR_CODE, size, size)
 
-    val bitMatrix = writer.encode(finalCode, BarcodeFormat.EAN_13, width + 30, height)
-
-    val barcodeBitmap = createBitmap(bitMatrix.width, height, Bitmap.Config.RGB_565)
-    for (x in 0 until bitMatrix.width) {
-        val column = IntArray(height) { if (bitMatrix[x, 0]) Color.BLACK else Color.WHITE }
-        barcodeBitmap.setPixels(column, 0, 1, x, 0, 1, height)
+    val bitmap = createBitmap(size, size, Bitmap.Config.RGB_565)
+    for (x in 0 until size) {
+        for (y in 0 until size) {
+            bitmap[x, y] = if (bitMatrix[x, y]) Color.BLACK else Color.WHITE
+        }
     }
 
-    return barcodeBitmap
+    return bitmap
 }
 
 /**
@@ -91,36 +84,8 @@ fun generateEAN13BarcodeBitmap(code: String, width: Int = 350): Bitmap {
 fun generateBarcodeBitmapAuto(payload: String, width: Int = 350, height: Int = (width / 2.5).toInt()): Bitmap {
     if (payload.isBlank()) throw IllegalArgumentException("Barcode cannot be empty")
 
-    val numeric = payload.replace("[^0-9]".toRegex(), "")
-
-    // Se o payload contiver '|' (separador) ou qualquer caractere não numérico, forçar CODE_128
-    if (payload.contains("|") || payload.any { !it.isDigit() }) {
-        val writer = MultiFormatWriter()
-        val matrix = writer.encode(payload, BarcodeFormat.CODE_128, width, height)
-        val bmp = createBitmap(matrix.width, matrix.height, Bitmap.Config.RGB_565)
-        for (x in 0 until matrix.width) {
-            for (y in 0 until matrix.height) {
-                bmp[x, y] = if (matrix[x, y]) Color.BLACK else Color.WHITE
-            }
-        }
-        return bmp
-    }
-
-    // Caso totalmente numérico: decide entre EAN13 e CODE128 conforme tamanho
-    if (numeric.length == 12 || (numeric.length == 13 && payload == numeric)) {
-        return generateEAN13BarcodeBitmap(payload, width)
-    }
-
-    // Fallback: CODE_128
-    val writer = MultiFormatWriter()
-    val matrix = writer.encode(payload, BarcodeFormat.CODE_128, width, height)
-    val bmp = createBitmap(matrix.width, matrix.height, Bitmap.Config.RGB_565)
-    for (x in 0 until matrix.width) {
-        for (y in 0 until matrix.height) {
-            bmp[x, y] = if (matrix[x, y]) Color.BLACK else Color.WHITE
-        }
-    }
-    return bmp
+    // Para compatibilidade, manter a função original mas usar QR Code como padrão
+    return generateQRCodeBitmap(payload, width)
 }
 
 /**
@@ -130,7 +95,7 @@ fun generateBarcodeBitmapAuto(payload: String, width: Int = 350, height: Int = (
 fun generate12DigitTokenFromPaymentId(paymentId: String): String {
     val crc = CRC32()
     crc.update(paymentId.toByteArray(Charsets.UTF_8))
-    val v = crc.value and 0xFFFFFFFFL
+    val v = crc.value and 0xFFFFL
     val num = (v % 1_000_000_000_000L).toString().padStart(12, '0')
     return num
 }
@@ -159,7 +124,7 @@ fun paymentIdToEan13AndSaveMapping(context: Context, paymentId: String): String 
  * Se o originalBarcode for um paymentId alfanumérico, gera EAN-13 curto e salva mapping.
  */
 fun buildBarcodeForPrinting(context: Context, originalBarcode: String?): String {
-    if (originalBarcode.isNullOrBlank()) return "0000000000000" // fallback
+    if (originalBarcode.isNullOrBlank()) return "0000" // fallback
 
     val numericOnly = originalBarcode.replace("[^0-9]".toRegex(), "")
 
@@ -238,10 +203,11 @@ private fun inflateProductLayout(
     // Usa a função centralizada que gera um payload curto e grava mapping se necessário
     val payload = buildBarcodeForPrinting(inflater.context, data.header.barcode)
     val barcodeBitmap = try {
-        Timber.tag("inflateProductLayout").d("Payload para barcode: $payload")
-        generateBarcodeBitmapAuto(payload)
+        Timber.tag("inflateProductLayout").d("Payload para QR Code: $payload")
+        // Usar QR Code em vez de barcode tradicional
+        generateQRCodeBitmap(payload)
     } catch (e: Exception) {
-        Timber.tag("inflateProductLayout").e(e, "Erro ao gerar bitmap do barcode: ${e.message}")
+        Timber.tag("inflateProductLayout").e(e, "Erro ao gerar bitmap do QR Code: ${e.message}")
         null
     }
     barcodeImage?.setImageBitmap(barcodeBitmap)
@@ -275,10 +241,11 @@ private fun inflateGroupedLayout(inflater: LayoutInflater, data: PassData, atk: 
     // Gera e seta o bitmap no ImageView do layout agrupado (corrigido)
     val payload = buildBarcodeForPrinting(inflater.context, data.header.barcode)
     val barcodeBitmap = try {
-        Timber.tag("inflateGroupedLayout").d("Payload para barcode (grouped): $payload")
-        generateBarcodeBitmapAuto(payload)
+        Timber.tag("inflateGroupedLayout").d("Payload para QR Code (grouped): $payload")
+        // Usar QR Code em vez de barcode tradicional
+        generateQRCodeBitmap(payload)
     } catch (e: Exception) {
-        Timber.tag("inflateGroupedLayout").e(e, "Erro ao gerar bitmap do barcode agrupado: ${e.message}")
+        Timber.tag("inflateGroupedLayout").e(e, "Erro ao gerar bitmap do QR Code agrupado: ${e.message}")
         null
     }
     view.findViewById<ImageView>(R.id.barcodeImageView)?.setImageBitmap(barcodeBitmap)

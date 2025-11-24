@@ -73,6 +73,8 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
     private var loadingObserver: Observer<Boolean>? = null
     private var categoriesObserver: Observer<List<String>>? = null
     private var productsObserver: Observer<Map<String, List<Product>>>? = null
+    private var pageChangeCallback: ViewPager2.OnPageChangeCallback? = null
+
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -145,6 +147,21 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
                     val customView = LayoutInflater.from(requireContext())
                         .inflate(R.layout.item_tab, null) as TextView
                     customView.text = categories[position]
+
+                    // Enable swipe-to-refresh only when the "Todos" category is selected
+                    // Set initial enabled state
+                    val initialCategory = pagerAdapter.getCategoryAt(viewPager.currentItem)
+                    swipeRefreshLayout.isEnabled = initialCategory.equals("Todos", ignoreCase = true)
+
+                    // Register page change callback to update enabled state when the user switches tabs/pages
+                    pageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
+                        override fun onPageSelected(position: Int) {
+                            val category = pagerAdapter.getCategoryAt(position)
+                            swipeRefreshLayout.isEnabled = category.equals("Todos", ignoreCase = true)
+                        }
+                    }
+                    viewPager.registerOnPageChangeCallback(pageChangeCallback!!)
+
                     tab.customView = customView
                 }.attach()
 
@@ -167,21 +184,12 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
             R.color.design_default_color_primary_variant
         )
 
-        swipeRefreshLayout.setOnTouchListener { v, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    val touchY = event.y
-                    val headerHeight = 200 // altura do seu header em pixels
-
-                    // Só permite pull se tocar no header
-                    swipeRefreshLayout.isEnabled = touchY <= headerHeight
-
-                    swipeRefreshLayout.isRefreshing = true
-                    refreshData()
-                }
-            }
-            false
+        swipeRefreshLayout.setOnRefreshListener {
+            swipeRefreshLayout.isRefreshing = true
+            refreshData()
         }
+
+        swipeRefreshLayout.setDistanceToTriggerSync(200)
     }
 
     private fun refreshData() {
@@ -270,7 +278,6 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
         PaymentMethod("Crédito", R.drawable.credit, "credit_card"),
         PaymentMethod("Débito", R.drawable.debit, "debit_card"),
         PaymentMethod("Pix", R.drawable.pix,  "pix"),
-        PaymentMethod("Debug", R.drawable.icon,  "debug")
     )
 
     private fun setupPaymentMethods() {
@@ -304,7 +311,7 @@ class ProductsListScreen : Fragment(R.layout.fragment_products) {
     }
 
     private fun formatCurrency(valueInCents: BigInteger): String {
-        val valueInReais = valueInCents.toDouble() / 100000
+        val valueInReais = valueInCents.toDouble() / 10000
         val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
         return format.format(valueInReais)
     }

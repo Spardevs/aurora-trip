@@ -8,12 +8,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
-// REMOVA esse import se não for mais usar PosItem
-// import br.com.ticpass.pos.data.api.PosItem
 import br.com.ticpass.pos.data.model.Pos
 import br.com.ticpass.pos.util.calculatePercent
 import java.math.BigInteger
-import com.google.gson.JsonParser
 
 
 class PosAdapter(

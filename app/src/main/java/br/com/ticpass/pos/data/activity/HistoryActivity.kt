@@ -4,8 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.FrameLayout
-import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -29,7 +27,8 @@ class HistoryActivity : DrawerBaseActivity() {
         val contentFrame = findViewById<FrameLayout>(R.id.content_frame)
         layoutInflater.inflate(R.layout.activity_history, contentFrame, true)
 
-        supportActionBar?.title = "Histórico"
+        // Mostrar título centralizado e ícone de voltar que sempre traz ProductsActivity
+        showCenteredTitleWithBack("Histórico")
 
         setupViewModel()
         setupRecyclerView()
@@ -66,8 +65,6 @@ class HistoryActivity : DrawerBaseActivity() {
         // Observa o estado de loading (opcional)
         viewModel.isLoading.observe(this) { isLoading ->
             // Aqui você pode mostrar/esconder um loading
-            // findViewById<ProgressBar>(R.id.progressBar).visibility =
-            //     if (isLoading) View.VISIBLE else View.GONE
         }
 
         // Carrega os dados
@@ -84,7 +81,7 @@ class HistoryActivity : DrawerBaseActivity() {
         val productAdapter = ProductModalAdapter(history.products)
         recyclerView.adapter = productAdapter
 
-        val dialog = AlertDialog.Builder(this)
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
             .setView(dialogView)
             .setCancelable(true)
             .create()
@@ -118,6 +115,7 @@ class HistoryActivity : DrawerBaseActivity() {
     }
 
     override fun openProducts() {
+        // abre a activity que hospeda a lista de produtos
         startActivity(Intent(this, ProductsActivity::class.java))
     }
 

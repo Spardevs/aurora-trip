@@ -10,9 +10,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.util.generateEAN13BarcodeBitmap
 import br.com.ticpass.pos.view.ui.pass.PassData
 import br.com.ticpass.pos.view.ui.pass.PassType
+import br.com.ticpass.pos.util.generateQRCodeBitmap
 
 class PassAdapter(
     private var passType: PassType,
@@ -46,7 +46,8 @@ class PassAdapter(
         protected fun bindCommonViews(passData: PassData) {
             val barcodeImage = itemView.findViewById<ImageView>(R.id.barcodeImageView)
             val barcodeBitmap = try {
-                generateEAN13BarcodeBitmap(passData.header.barcode)
+                // Gera QR Code a partir do payload (substitui generateEAN13BarcodeBitmap)
+                generateQRCodeBitmap(passData.header.barcode, 350)
             } catch (_: Exception) {
                 null
             }

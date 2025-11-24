@@ -20,6 +20,7 @@
             android:contentInsetStartWithNavigation="0dp"
             app:title="">
 
+            <!-- Logo (usado na tela de produtos) - escondido por padrão -->
             <ImageView
                 android:id="@+id/toolbar_logo"
                 android:layout_width="wrap_content"
@@ -28,7 +29,22 @@
                 android:adjustViewBounds="true"
                 android:contentDescription="@string/app_name"
                 android:scaleType="fitCenter"
-                android:src="@drawable/logo_full_light" />
+                android:src="@drawable/logo_full_light"
+                android:visibility="gone" />
+
+            <!-- Título central (usado em telas como Histórico) - escondido por padrão -->
+            <TextView
+                android:id="@+id/toolbar_center_title"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:text=""
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:visibility="gone" />
+
         </com.google.android.material.appbar.MaterialToolbar>
 
         <FrameLayout

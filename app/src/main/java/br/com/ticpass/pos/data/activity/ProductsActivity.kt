@@ -51,18 +51,11 @@ class ProductsActivity : DrawerBaseActivity() {
         }
     }
 
-    private fun launchSyncWithViewModel(vm: ForYouViewModel) {
-        // Esta função roda quando o usuário clica em "Sincronizar"
-        runSyncJob(
-            viewModel = vm,
-            onStart = { /* Opcional: adicionar lógica extra ao iniciar */ },
-            onSuccess = { /* Opcional: adicionar lógica extra ao sucesso */ },
-            onError = { cause -> /* Opcional: adicionar lógica extra ao erro */ }
-        )
-    }
-
     override fun onResume() {
         super.onResume()
+        // Mostrar logo no header da tela de Produtos e exibir hamburger para abrir o drawer
+        showToolbarLogo(true, showHamburger = true)
+
         shoppingCartManager.cartUpdates.observe(this, cartUpdatesObserver)
         updateCartBadge()
     }
@@ -100,6 +93,7 @@ class ProductsActivity : DrawerBaseActivity() {
     }
 
     override fun openProducts() {
+        // já estamos aqui; trazer a activity existente (se necessário)
         startActivity(Intent(this, ProductsActivity::class.java))
         finish()
     }

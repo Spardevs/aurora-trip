@@ -26,10 +26,7 @@ import java.util.Locale
 @AndroidEntryPoint
 class PaymentScreen : BaseActivity() {
 
-    // ViewModel correto para dados do carrinho e totais
     private val paymentViewModel: PaymentViewModel by viewModels()
-
-    // Se precisar do outro ViewModel para processamento, declare aqui
     private val paymentProcessingViewModel: PaymentProcessingViewModel by viewModels()
 
     private lateinit var tvTotalPrice: TextView
@@ -62,7 +59,6 @@ class PaymentScreen : BaseActivity() {
 
         setContentView(R.layout.activity_payment)
 
-
         tvTotalPrice = findViewById(R.id.tv_total_price)
         tvSubTotal = findViewById(R.id.tv_sub_total)
         tvTotalCommission = findViewById(R.id.tv_total_commission)
@@ -74,6 +70,7 @@ class PaymentScreen : BaseActivity() {
         cartContainer = findViewById(R.id.cart_container)
 
         if (cartContainer == null) {
+            // Apenas log — não crashar. Verifique seu layout activity_payment para adicionar cart_container.
             Log.e("PaymentScreen", "cart_container view not found in activity_payment layout")
         } else {
             if (!showCartButton) {
@@ -84,18 +81,15 @@ class PaymentScreen : BaseActivity() {
                 cartContainer!!.visibility = View.VISIBLE
             }
 
+            // Clique no container do carrinho -> abrir ShoppingCartScreen
             cartContainer!!.setOnClickListener {
+                // Recomenda-se NÃO passar objetos grandes aqui. Ex.: NÃO: intent.putExtra("product", product)
                 val intent = Intent(this, ShoppingCartScreen::class.java)
                 startActivityForResult(intent, ProductsListScreen.REQUEST_CART_UPDATE)
             }
         }
 
-        cartContainer?.setOnClickListener {
-            val intent = Intent(this, ShoppingCartScreen::class.java)
-            startActivityForResult(intent, ProductsListScreen.REQUEST_CART_UPDATE)
-        }
-
-        // Observa os dados do carrinho para atualizar os valores na UI
+        // Observa os dados do carrinho para atualizar UI
         paymentViewModel.cartData.observe(this) { cart ->
             tvTotalPrice.text = formatCurrency(cart.totalPrice)
             if (!showCartButton) {
@@ -113,11 +107,9 @@ class PaymentScreen : BaseActivity() {
         Log.d("PaymentScreen", "Opening payment screen for type: $paymentType")
 
         val fragment = when (paymentType) {
-            "credit_card", "debit_card" -> {
-                CardPaymentFragment().apply {
-                    arguments = Bundle().apply {
-                        putString("payment_type", paymentType)
-                    }
+            "credit_card", "debit_card" -> CardPaymentFragment().apply {
+                arguments = Bundle().apply {
+                    putString("payment_type", paymentType)
                 }
             }
             "pix" -> PixPaymentFragment().apply {
@@ -142,7 +134,9 @@ class PaymentScreen : BaseActivity() {
     }
 
     private fun formatCurrency(valueInCents: BigInteger): String {
-        val valueInReais = valueInCents.toDouble() / 100000
+        // Assumi que valueInCents representa centavos (por ex. 2500 => R$25,00).
+        // Ajuste o divisor conforme seu domínio. Se for centavos: /100. Se for outra unidade, ajuste.
+        val valueInReais = valueInCents.toDouble() / 100.0
         val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
         return format.format(valueInReais)
     }

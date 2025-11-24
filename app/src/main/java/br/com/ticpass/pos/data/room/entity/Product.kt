@@ -25,18 +25,21 @@ data class ProductEntity(
 ) : Parcelable {
     override fun toString(): String {
         return "Product(id=$id, title='$name')"
-    }}
+    }
+}
 
+@Parcelize
 data class CategoryWithProducts(
     @Embedded
     val category: CategoryEntity,
     @Relation(
-        parentColumn  = "id",
-        entityColumn  = "categoryId"
+        parentColumn = "id",
+        entityColumn = "categoryId"
     )
     val products: List<ProductEntity>
-)
+) : Parcelable
 
+@Parcelize
 data class CategoryWithEnabledProducts(
     @Embedded
     val category: CategoryEntity,
@@ -45,7 +48,7 @@ data class CategoryWithEnabledProducts(
         entityColumn = "categoryId"
     )
     val allProducts: List<ProductEntity>
-) {
+) : Parcelable {
     val enabledProducts: List<ProductEntity>
         get() = allProducts.filter { it.isEnabled }
 }

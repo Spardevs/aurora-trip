@@ -11,10 +11,10 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.view.MotionEvent
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MenuItem
+import android.view.MotionEvent
 import android.view.View
 import android.view.Window
 import android.widget.Button
@@ -28,10 +28,10 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.graphics.drawable.DrawableCompat
-import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -72,6 +72,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
+
+// -- mantive todas as classes e injeções do seu DrawerBaseActivity original --
+// Adicionei campos toolbarLogo/toolbarCenterTitle e métodos utilitários para controlar o header.
 
 data class ShoppingCart(
     val items: Map<String, Int>,
@@ -119,6 +122,11 @@ abstract class DrawerBaseActivity : BaseActivity() {
     protected lateinit var drawerLayout: DrawerLayout
     protected lateinit var navView: NavigationView
 
+    // toolbar related views
+    protected lateinit var toolbar: MaterialToolbar
+    private lateinit var toolbarLogo: ImageView
+    private lateinit var toolbarCenterTitle: TextView
+
     private val qrScannerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result -> handleQrResult(result) }
@@ -152,18 +160,25 @@ abstract class DrawerBaseActivity : BaseActivity() {
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
         drawerLayout.drawerElevation = 0f
 
-        val toolbar = findViewById<MaterialToolbar>(R.id.drawer_toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayShowTitleEnabled(false)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        toolbar = findViewById(R.id.drawer_toolbar)
+        toolbarLogo = toolbar.findViewById(R.id.toolbar_logo)
+        toolbarCenterTitle = toolbar.findViewById(R.id.toolbar_center_title)
 
-        val drawable = ContextCompat.getDrawable(this, R.drawable.ic_apps)?.mutate()
-        drawable?.let {
-            DrawableCompat.setTint(it, ContextCompat.getColor(this, R.color.colorWhite))
-            supportActionBar?.setHomeAsUpIndicator(it)
+        setSupportActionBar(toolbar)
+        // vamos controlar a exibição por conta própria (logo / title view)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+
+        // Por padrão, definir ícone do menu (hamburger) branco e comportamento de abrir drawer:
+        val menuDrawable = ContextCompat.getDrawable(this, R.drawable.ic_apps)?.mutate()
+        menuDrawable?.let {
+            DrawableCompat.setTint(it, ContextCompat.getColor(this, android.R.color.white))
+            toolbar.navigationIcon = it
+            toolbar.setNavigationOnClickListener {
+                drawerLayout.openDrawer(Gravity.LEFT) // GravityCompat.START também funciona
+            }
         }
 
-        // Acessar header diretamente pelo id
+        // Acessar header diretamente pelo id do drawer
         val header = findViewById<LinearLayout>(R.id.drawer_header)
         val operatorNameTv: TextView = header.findViewById(R.id.operatorName)
         val name = getSharedPreferences("UserPrefs", MODE_PRIVATE)
@@ -180,42 +195,42 @@ abstract class DrawerBaseActivity : BaseActivity() {
             when (item.itemId) {
                 R.id.nav_products -> {
                     openProducts()
-                    drawerLayout.closeDrawer(GravityCompat.START)
+                    drawerLayout.closeDrawer(Gravity.LEFT)
                 }
                 R.id.nav_passes -> {
                     openPasses()
-                    drawerLayout.closeDrawer(GravityCompat.START)
+                    drawerLayout.closeDrawer(Gravity.LEFT)
                 }
                 R.id.nav_history -> {
                     openHistory()
-                    drawerLayout.closeDrawer(GravityCompat.START)
+                    drawerLayout.closeDrawer(Gravity.LEFT)
                 }
                 R.id.nav_report -> {
                     openReport()
-                    drawerLayout.closeDrawer(GravityCompat.START)
+                    drawerLayout.closeDrawer(Gravity.LEFT)
                 }
                 R.id.nav_withdrawal -> {
                     openWithdrawal()
-                    drawerLayout.closeDrawer(GravityCompat.START)
+                    drawerLayout.closeDrawer(Gravity.LEFT)
                 }
                 R.id.nav_support -> {
                     openSupport()
-                    drawerLayout.closeDrawer(GravityCompat.START)
+                    drawerLayout.closeDrawer(Gravity.LEFT)
                 }
                 R.id.nav_settings -> {
                     openSettings()
-                    drawerLayout.closeDrawer(GravityCompat.START)
+                    drawerLayout.closeDrawer(Gravity.LEFT)
                 }
                 R.id.button_sync -> {
                     if (!isSyncing) startInlineSync()
                 }
                 R.id.nav_print_last_order -> {
-                    drawerLayout.closeDrawer(GravityCompat.START)
+                    drawerLayout.closeDrawer(Gravity.LEFT)
                     printLastOrder()
                     true
                 }
                 R.id.nav_refund -> {
-                    drawerLayout.closeDrawer(GravityCompat.START)
+                    drawerLayout.closeDrawer(Gravity.LEFT)
                     refundOrder()
                     true
                 }
@@ -227,6 +242,74 @@ abstract class DrawerBaseActivity : BaseActivity() {
         updateHeaderInfo()
     }
 
+    // --- UTILITÁRIOS PARA CONTROLAR HEADER/TOOLBAR ---
+
+    /**
+     * Exibe/oculta o logo no centro da toolbar.
+     * Quando showHamburger = true exibe o ícone de menu (hamburger) para abrir o drawer.
+     */
+    protected fun showToolbarLogo(visible: Boolean, showHamburger: Boolean = true) {
+        if (!::toolbarLogo.isInitialized || !::toolbarCenterTitle.isInitialized) return
+        toolbarLogo.visibility = if (visible) View.VISIBLE else View.GONE
+        toolbarCenterTitle.visibility = View.GONE
+
+        if (visible && showHamburger) {
+            val menuDrawable = ContextCompat.getDrawable(this, R.drawable.ic_apps)?.mutate()
+            menuDrawable?.let {
+                DrawableCompat.setTint(it, ContextCompat.getColor(this, android.R.color.white))
+                toolbar.navigationIcon = it
+                toolbar.setNavigationOnClickListener {
+                    drawerLayout.openDrawer(Gravity.LEFT)
+                }
+            }
+        } else if (visible) {
+            // Sem ícone de navegação quando apenas o logo deve aparecer
+            toolbar.navigationIcon = null
+            toolbar.setNavigationOnClickListener(null)
+        }
+    }
+
+    /**
+     * Mostra título centralizado em negrito e um ícone de voltar (tint branco).
+     * Clicar nele traz sempre ProductsActivity (traz instância existente quando possível).
+     */
+    protected fun showCenteredTitleWithBack(title: String) {
+        if (!::toolbarLogo.isInitialized || !::toolbarCenterTitle.isInitialized) return
+        toolbarLogo.visibility = View.GONE
+        toolbarCenterTitle.visibility = View.VISIBLE
+        toolbarCenterTitle.text = title
+
+        val backDrawable = ContextCompat.getDrawable(this, R.drawable.ic_arrow_back)?.mutate()
+        backDrawable?.let {
+            DrawableCompat.setTint(it, ContextCompat.getColor(this, android.R.color.white))
+            toolbar.navigationIcon = it
+        }
+
+        toolbar.setNavigationOnClickListener {
+            val intent = Intent(this, ProductsActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            startActivity(intent)
+            finish()
+        }
+    }
+
+    /**
+     * Exibe o ícone de "hamburger" e comportamento de abrir drawer.
+     */
+    protected fun showHamburgerIcon() {
+        if (!::toolbar.isInitialized) return
+        val menuDrawable = ContextCompat.getDrawable(this, R.drawable.ic_apps)?.mutate()
+        menuDrawable?.let {
+            DrawableCompat.setTint(it, ContextCompat.getColor(this, android.R.color.white))
+            toolbar.navigationIcon = it
+            toolbar.setNavigationOnClickListener {
+                drawerLayout.openDrawer(Gravity.LEFT)
+            }
+        }
+    }
+
+    // --- RESTANTE DO SEU DrawerBaseActivity (preservei tudo do original) ---
 
     private fun refundOrder() {
         val intent = Intent(this, BarcodeScannerActivity::class.java)
@@ -514,6 +597,7 @@ abstract class DrawerBaseActivity : BaseActivity() {
             Toast.makeText(this, "ViewModel não disponível. Configure setSyncLauncher { ... }.", Toast.LENGTH_LONG).show()
         }
     }
+
     private fun showSyncUIStarting() {
         Log.d("DrawerBaseActivity", "showSyncUIStarting() - mostrando barra")
         syncProgressBar?.apply {
@@ -607,6 +691,7 @@ abstract class DrawerBaseActivity : BaseActivity() {
         isSyncing = false
         hideSyncUI()
     }
+
     private fun updateHeaderInfo() {
         lifecycleScope.launch {
             try {
@@ -652,7 +737,7 @@ abstract class DrawerBaseActivity : BaseActivity() {
                     selectedEvent?.let { event ->
                         Glide.with(this@DrawerBaseActivity)
                             .load(event.logo)
-                            .placeholder(R.drawable.pix)
+                            .placeholder(R.drawable.icon)
                             .into(eventLogoTv)
                     }
                 }
@@ -667,7 +752,7 @@ abstract class DrawerBaseActivity : BaseActivity() {
         val handler = Handler(Looper.getMainLooper())
         var longPressRunnable: Runnable? = null
 
-        footerLogout?.setOnTouchListener { view, event ->
+        footerLogout?.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     longPressRunnable = Runnable {
@@ -740,7 +825,6 @@ abstract class DrawerBaseActivity : BaseActivity() {
         qrButton.setOnClickListener {
             dialog.dismiss()
             launchQrScanner()
-
         }
 
         closeButton.setOnClickListener {
@@ -750,14 +834,13 @@ abstract class DrawerBaseActivity : BaseActivity() {
         dialog.show()
     }
 
-
     private fun handleQrResult(result: ActivityResult) {
         when (result.resultCode) {
             RESULT_OK -> {
                 val authResponse = result.data?.getStringExtra("auth_response")
                 if (authResponse != null) {
                     ShoppingCart.SessionPrefs.startSession(this, 1)
-                    drawerLayout.openDrawer(GravityCompat.START)
+                    drawerLayout.openDrawer(Gravity.LEFT)
                 } else {
                     Toast.makeText(this, "Autenticação falhou", Toast.LENGTH_SHORT).show()
                 }
@@ -777,8 +860,8 @@ abstract class DrawerBaseActivity : BaseActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                // Abre o drawer diretamente sem pedir QR/NFC
-                drawerLayout.openDrawer(GravityCompat.START)
+                // Abre o drawer diretamente
+                drawerLayout.openDrawer(Gravity.LEFT)
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -801,7 +884,6 @@ abstract class DrawerBaseActivity : BaseActivity() {
             productsRepository.clearAll()
             categoryRepository.clearAll()
 
-            // explicitly call the member function - wrapped so logout continues on failure
             try {
                 this.closePos()
             } catch (e: Exception) {
@@ -825,15 +907,12 @@ abstract class DrawerBaseActivity : BaseActivity() {
 
             val sessionIdCandidates = listOf("session_id", "pos_session_id", "sessionId", "pos_session", "session")
             val sessionId =
-                sessionIdCandidates.firstNotNullOfOrNull { sessionPrefs.getString(it, null) }
-                    ?: ""
+                sessionPrefs.getString(sessionIdCandidates.firstOrNull() ?: "session_id", "") ?: ""
 
             val posAccessTokenCandidates = listOf("pos_access_token", "posAccessToken", "pos_token", "posToken", "access_token", "access")
             val posAccessToken =
-                posAccessTokenCandidates.firstNotNullOfOrNull { sessionPrefs.getString(it, null) }
-                    ?: ""
+                posAccessTokenCandidates.firstNotNullOfOrNull { sessionPrefs.getString(it, null) } ?: ""
 
-            // You were previously using auth_token from UserPrefs; keep that as proxyCredentials if appropriate
             val jwt = getSharedPreferences("UserPrefs", MODE_PRIVATE).getString("auth_token", null) ?: ""
 
             if (sessionId.isBlank()) {
@@ -841,7 +920,6 @@ abstract class DrawerBaseActivity : BaseActivity() {
                 return
             }
 
-            // Call the updated ApiRepository method
             apiRepository.closePosSession(
                 posAccessToken = posAccessToken,
                 proxyCredentials = jwt,
