@@ -21,7 +21,7 @@
         android:id="@+id/tv_success"
         android:layout_width="160dp"
         android:layout_height="wrap_content"
-        android:text="Credenciais validadas com sucesso"
+        android:text="@string/credentials_validated"
         android:textColor="#4CAF50"
         android:textStyle="bold"
         android:textSize="18sp"

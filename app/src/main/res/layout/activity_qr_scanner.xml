@@ -5,19 +5,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Scanner -->
+    <!-- Scanner embutido (BarcodeView, NÃO DecoratedBarcodeView) -->
     <com.journeyapps.barcodescanner.BarcodeView
         android:id="@+id/zxing_qr_scanner"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Overlay de escurecimento com recorte -->
+    <!-- Seu overlay custom (ViewFinderView) por cima do scanner -->
     <br.com.ticpass.pos.compose.ui.commons.ViewFinderView
         android:id="@+id/viewfinderOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Texto informativo -->
+    <!-- Texto informativo (overlay no bottom) -->
     <TextView
         android:id="@+id/overlayPrompt"
         android:layout_width="match_parent"
@@ -26,15 +26,16 @@
         android:padding="16dp"
         android:background="#80000000"
         android:text="@string/point_to_qr_code"
-        android:textColor="#FFFF"
+        android:textColor="#FFFFFF"
         android:textAlignment="center"
         android:textSize="16sp"
         tools:ignore="RtlCompat" />
 
-    <!-- Container para fragments -->
+    <!-- Container para fragments, se necessário (deixe por último se quiser sobrepor) -->
     <FrameLayout
         android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:visibility="gone" />
 
 </FrameLayout>

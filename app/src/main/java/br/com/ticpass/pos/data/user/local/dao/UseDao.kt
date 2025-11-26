@@ -1,0 +1,23 @@
+package br.com.ticpass.pos.data.user.local.dao
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import br.com.ticpass.pos.data.user.local.entity.UserEntity
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface UserDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(user: UserEntity) // não-nulo agora
+
+    @Query("SELECT * FROM user WHERE id = :userId")
+    fun getUserById(userId: String): Flow<UserEntity?>
+
+    @Query("SELECT * FROM user LIMIT 1")
+    suspend fun getAnyUserOnce(): UserEntity?
+
+    @Query("DELETE FROM user")
+    suspend fun deleteAll()
+}

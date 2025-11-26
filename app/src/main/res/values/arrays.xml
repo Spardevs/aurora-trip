@@ -58,12 +58,6 @@
         <item>2</item>
     </string-array>
 
-    <string-array name="pref_updates_auto">
-        <item>@string/pref_updates_auto_off</item>
-        <item>@string/pref_updates_auto_notify</item>
-        <item>@string/pref_updates_auto_install</item>
-    </string-array>
-
     <string-array name="link_urls">
         <item>https://auroraoss.com/</item>
         <item>https://gitlab.com/AuroraOSS/AuroraStore/-/wikis/home</item>
@@ -77,42 +71,6 @@
         <item>"upi://pay?pa=whyorean@dbs&amp;pn=whyorean&amp;tn=AuroraOSS"</item>
         <item>"https://paypal.me/AuroraDev"</item>
         <item>"https://liberapay.com/on/gitlab/whyorean/ "</item>
-    </string-array>
-
-    <string-array name="link_titles">
-        <item>@string/title_about</item>
-        <item>@string/about_wiki_title</item>
-        <item>@string/about_xda</item>
-        <item>@string/about_telegram</item>
-        <item>@string/about_gitlab</item>
-        <item>@string/about_fdroid</item>
-        <item>@string/about_bitcoin_btc</item>
-        <item>@string/about_bitcoin_bch</item>
-        <item>@string/about_bitcoin_eth</item>
-        <item>@string/about_bhim</item>
-        <item>@string/about_paypal</item>
-        <item>@string/about_libera</item>
-    </string-array>
-
-    <string-array name="link_subtitle">
-        <item>@string/about_aurora_store_subtitle</item>
-        <item>@string/about_wiki_summary</item>
-        <item>@string/about_xda_summary</item>
-        <item>@string/about_telegram_summary</item>
-        <item>@string/about_gitlab_summary</item>
-        <item>@string/about_fdroid_summary</item>
-        <item>@string/about_bitcoin_btc_summary</item>
-        <item>@string/about_bitcoin_bch_summary</item>
-        <item>@string/about_bitcoin_eth_summary</item>
-        <item>@string/about_bhim_summary</item>
-        <item>@string/about_paypal_summary</item>
-        <item>@string/about_libera_summary</item>
-    </string-array>
-
-    <string-array name="pref_default_tab">
-        <item>@string/title_apps</item>
-        <item>@string/title_games</item>
-        <item>@string/title_updates</item>
     </string-array>
 
     <string-array name="pref_default_tab_values">
@@ -131,16 +89,6 @@
         <item>4.7</item>
     </string-array>
 
-    <string-array name="filterRatingLabels" translatable="false">
-        <item>@string/action_filter_all</item>
-        <item> 1★ + </item>
-        <item> 2★ + </item>
-        <item> 3★ + </item>
-        <item> 4★ + </item>
-        <item> 4.5★ + </item>
-        <item> 4.7★ + </item>
-    </string-array>
-
     <string-array name="filterDownloadsValues" translatable="false">
         <item>0</item>
         <item>100</item>
@@ -152,25 +100,6 @@
         <item>10000000</item>
         <item>50000000</item>
         <item>100000000</item>
-    </string-array>
-
-    <string-array name="filterDownloadsLabels" translatable="false">
-        <item>@string/action_filter_all</item>
-        <item> 100 + </item>
-        <item> 1K + </item>
-        <item> 10K + </item>
-        <item> 50K + </item>
-        <item> 100K + </item>
-        <item> 1M + </item>
-        <item> 10M + </item>
-        <item> 50M + </item>
-        <item> 100M + </item>
-    </string-array>
-
-    <string-array name="pref_vending_version" translatable="false">
-        <item>@string/pref_vending_version_device</item>
-        <item>7.9.80.Q-all [0] [PR] 159305549</item>
-        <item>22.0.17-21 [0] [PR] 332555730</item>
     </string-array>
 
     <string-array name="pref_vending_version_codes" translatable="false">

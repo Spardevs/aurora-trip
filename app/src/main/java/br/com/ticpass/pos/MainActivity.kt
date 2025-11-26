@@ -17,271 +17,35 @@ package br.com.ticpass.pos
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
-import android.os.Build.SERIAL
 import android.os.Bundle
-import android.os.Handler
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
-import androidx.datastore.preferences.preferencesDataStore
-import br.com.ticpass.pos.view.ui.login.LoginScreen
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import br.com.ticpass.Constants.CHECK_DUE_PAYMENTS_INTERVAL
-import br.com.ticpass.Constants.EVENT_SYNC_INTERVAL
-import br.com.ticpass.Constants.POS_SYNC_INTERVAL
-import br.com.ticpass.Constants.REMOVE_OLD_RECORDS_INTERVAL
-import br.com.ticpass.Constants.TELEMETRY_INTERVAL
-import br.com.ticpass.pos.data.acquirers.workers.jobs.syncEvent
-import br.com.ticpass.pos.data.acquirers.workers.jobs.syncPos
-import br.com.ticpass.pos.data.activity.BaseActivity
-import br.com.ticpass.pos.data.activity.ProductsActivity
-import br.com.ticpass.pos.data.event.ForYouViewModel
-import br.com.ticpass.pos.data.room.AuthManager
-import br.com.ticpass.pos.data.room.service.GPSService
-import br.com.ticpass.pos.util.ConnectionStatusBar
-import br.com.ticpass.pos.data.activity.PermissionsActivity
-import br.com.ticpass.pos.data.api.ApiRepository
-import br.com.ticpass.pos.sdk.AcquirerSdk
-import br.com.ticpass.pos.util.ConnectivityMonitor
-import br.com.ticpass.pos.util.DeviceUtils
+import br.com.ticpass.pos.core.util.ConnectionStatusBar
+import br.com.ticpass.pos.core.util.ConnectivityMonitor
+import br.com.ticpass.pos.core.util.DeviceUtils
+import br.com.ticpass.pos.data.user.repository.UserRepository
+import br.com.ticpass.pos.presentation.login.activities.LoginActivity
+import br.com.ticpass.pos.presentation.login.activities.PermissionsLoginActivity
+import br.com.ticpass.pos.presentation.shared.activities.BaseActivity
 import com.topjohnwu.superuser.internal.UiThreadHandler.handler
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
-import javax.inject.Inject
-import kotlin.getValue
-import kotlin.toString
-
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user")
-
-class POSSYNCTaskRunnable @Inject constructor(
-    private val handler: Handler,
-    private val forYouViewModel: ForYouViewModel,
-): Runnable {
-    override fun run() {
-        val runnable = this
-
-        val defaultScope = CoroutineScope(Dispatchers.Default)
-        val exceptionHandler = CoroutineExceptionHandler { _, _ -> }
-
-        defaultScope.launch(exceptionHandler) {
-            try {
-                withContext(Dispatchers.Default) {
-                    // ✅ Ler sessionId do SharedPreferences
-                    val sessionPref = MainActivity.appContext.getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE)
-                    val sessionId = sessionPref.getString("pos_session_id", "") ?: ""
-
-                    if (sessionId.isBlank()) {
-                        Timber.tag("POSSYNCTaskRunnable")
-                            .w("sessionId não encontrado, pulando sync")
-                        return@withContext
-                    }
-
-                    syncPos(
-                        forYouViewModel = forYouViewModel,
-                        sessionId = sessionId, // ✅ Passar sessionId aqui
-                        onProgress = {},
-                        onFailure = {},
-                        onDone = {}
-                    )
-                }
-            } catch (e: Exception) {
-                Timber.tag("POSSYNCTaskRunnable").d(e.toString())
-            }
-            handler.postDelayed(runnable, (POS_SYNC_INTERVAL * 60) * 1000)
-        }
-    }
-}
-
-class ClearOldEntitiesTaskRunnable @Inject constructor(
-    private val handler: Handler,
-    private val forYouViewModel: ForYouViewModel,
-): Runnable {
-    override fun run() {
-        val runnable = this
-
-        val defaultScope = CoroutineScope(Dispatchers.Default)
-        val exceptionHandler = CoroutineExceptionHandler { _, _ -> }
-
-        defaultScope.launch(exceptionHandler) {
-            try{
-                withContext(Dispatchers.IO) {
-                    forYouViewModel.orderRepository.deleteOld()
-                    forYouViewModel.paymentRepository.deleteOld()
-                    forYouViewModel.cashupRepository.deleteOld()
-                    forYouViewModel.voucherRepository.deleteOld()
-                    forYouViewModel.voucherRedemptionRepository.deleteOld()
-                    forYouViewModel.refundRepository.deleteOld()
-                    forYouViewModel.acquisitionRepository.deleteOld()
-                    forYouViewModel.consumptionRepository.deleteOld()
-                    forYouViewModel.passRepository.deleteOld()
-                }
-            }
-            catch (e: Exception) {
-                Log.d("ClearOldEntitiesTaskRunnable", e.toString())
-            }
-            handler.postDelayed(runnable, (REMOVE_OLD_RECORDS_INTERVAL * 60) * 1000)
-        }
-    }
-}
-
-class SyncEventTaskRunnable @Inject constructor(
-    private val handler: Handler,
-    private val forYouViewModel: ForYouViewModel,
-): Runnable {
-    override fun run() {
-        val runnable = this
-
-        val defaultScope = CoroutineScope(Dispatchers.Default)
-        val exceptionHandler = CoroutineExceptionHandler { _, _ -> }
-
-        defaultScope.launch(exceptionHandler) {
-            try{
-                val selectedEvent = withContext(Dispatchers.IO) {
-                    forYouViewModel.eventRepository.getSelectedEvent()
-                }
-
-                if(selectedEvent == null){
-                    throw IllegalArgumentException("No Event selected")
-                }
-
-                val doSyncEvent = withContext(Dispatchers.Default) {
-                    syncEvent(
-                        forYouViewModel,
-                        false,
-                        onFailure = {
-                            throw IllegalArgumentException("Failed to sync Event")
-                        }
-                    )
-                }
-            }
-            catch (e: Exception) {
-                Log.d("SyncEventTaskRunnable", e.toString())
-            }
-
-            handler.postDelayed(runnable, (EVENT_SYNC_INTERVAL * 60) * 1000)
-        }
-    }
-}
-
-class MyGPSTaskRunnable @Inject constructor(
-    private val handler: Handler,
-    private val forYouViewModel: ForYouViewModel,
-): Runnable {
-    override fun run() {
-        val runnable = this
-
-        try{
-
-            val defaultScope = CoroutineScope(Dispatchers.Default)
-            val exceptionHandler = CoroutineExceptionHandler { _, _ -> }
-
-            defaultScope.launch(exceptionHandler) {
-                val data = withContext(Dispatchers.IO) {
-                    val authManager = AuthManager(MainActivity.appContext.dataStore)
-                    val gps = GPSService(MainActivity.appContext) { lat, long -> }
-                    val event = forYouViewModel.eventRepository.getSelectedEvent()
-                    val pos = forYouViewModel.posRepository.getSelectedPos()
-                    val cashier = authManager.getCashierName()
-
-                    object {
-                        val event = event
-                        val pos = pos
-                        val cashier = cashier
-                        val gps = gps
-                    }
-                }
-
-                /*val doPingDevice = withContext(Dispatchers.IO) {
-                    data.gps.getUserCoordinates() { location ->
-                        MainActivity.location = location
-
-                        defaultScope.launch(exceptionHandler) {
-                            withContext(Dispatchers.IO) {
-                                forYouViewModel.apiRepository.pingDeviceLocation(
-                                    serial = SERIAL,
-                                    coords = "${location.latitude}, ${location.longitude}",
-                                    posId = data.pos.id.toInt(),
-                                    eventId = data.event?.id?.toInt(),
-                                    cashier = data.cashier.ifEmpty { null },
-                                )
-                            }
-                        }
-                    }
-                }*/
-
-                handler.postDelayed(runnable, (TELEMETRY_INTERVAL * 60) * 1000)
-            }
-        }
-        catch (e: Exception) {
-            Log.d("POSSYNCTaskRunnable", e.toString())
-        }
-    }
-}
-
-class CheckDuePaymentsRunnable @Inject constructor(
-    private val handler: Handler,
-    private val forYouViewModel: ForYouViewModel,
-): Runnable {
-    override fun run() {
-        val runnable = this
-        val defaultScope = CoroutineScope(Dispatchers.Default)
-        val exceptionHandler = CoroutineExceptionHandler { _, _ -> }
-
-        defaultScope.launch(exceptionHandler) {
-            try{
-                val authManager = AuthManager(MainActivity.appContext.dataStore)
-
-                val data = withContext(Dispatchers.IO) {
-                    val token = authManager.getJwtToken()
-
-                    object {
-                        val token = token
-                    }
-                }
-
-                if(data.token.isEmpty()) return@launch
-            }
-            catch (e: Exception) {
-                Log.d("duePayment", e.toString())
-            }
-            finally {
-                handler.postDelayed(runnable, (CHECK_DUE_PAYMENTS_INTERVAL * 60) * 1000)
-                // defaultScope.cancel()
-            }
-        }
-    }
-}
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity() {
-    private val forYouViewModel: ForYouViewModel by viewModels()
-
-    private var gpsTaskRunnable: MyGPSTaskRunnable? = null
-
-    private var backgroundTaskRunnable: POSSYNCTaskRunnable? = null
-    private var clearOldEntitiesTaskRunnable: ClearOldEntitiesTaskRunnable? = null
-    private var syncEventTaskRunnable: SyncEventTaskRunnable? = null
-    private var checkDuePaymentsRunnable: CheckDuePaymentsRunnable? = null
-//    private var alertDuePaymentsRunnable: AlertDuePaymentsRunnable? = null
-
-    @Inject
-    lateinit var apiRepository: ApiRepository
 
     private var connectivityMonitor: ConnectivityMonitor? = null
     private var connectionStatusBar: ConnectionStatusBar? = null
 
+    lateinit var userRepository: UserRepository
 
     companion object {
         lateinit  var location: Location
@@ -308,11 +72,6 @@ class MainActivity : BaseActivity() {
             val model = DeviceUtils.getDeviceModel()
             val acquirer = DeviceUtils.getAcquirer()
             val serial = DeviceUtils.getDeviceSerial(this)
-            val stoneCode = if (AcquirerSdk.isInitialized()) {
-                AcquirerSdk.getStoneCode()
-            } else {
-                "SDK not initialized"
-            }
 
             Log.i("DeviceInfo", "═══════════════════════════════════════════")
             Log.i("DeviceInfo", "          DEVICE INFORMATION")
@@ -320,7 +79,6 @@ class MainActivity : BaseActivity() {
             Log.i("DeviceInfo", "Model:       $model")
             Log.i("DeviceInfo", "Acquirer:    $acquirer")
             Log.i("DeviceInfo", "Serial:      $serial")
-            Log.i("DeviceInfo", "Stone Code:  ${if (stoneCode.isEmpty()) "N/A" else stoneCode}")
             Log.i("DeviceInfo", "═══════════════════════════════════════════")
         } catch (e: Exception) {
             Log.e("DeviceInfo", "Error logging device info: ${e.message}", e)
@@ -334,8 +92,6 @@ class MainActivity : BaseActivity() {
         activity = this
 
         // Initialize Acquirer SDK first
-        AcquirerSdk.initialize(applicationContext)
-
         // Log device information
         logDeviceInfo()
 
@@ -343,25 +99,29 @@ class MainActivity : BaseActivity() {
 
 
         if (!hasAllPermissions()) {
-            startActivity(Intent(this, PermissionsActivity::class.java))
+            startActivity(Intent(this, PermissionsLoginActivity::class.java))
             finish()
             return
         }
 
-        val prefs =
-            getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        lifecycleScope.launch {
+            val user = withContext(Dispatchers.IO) {
+                try {
+                    userRepository.getLoggedUser()
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Erro ao acessar DB: ${e.message}", e)
+                    null
+                }
+            }
 
-        val hasLogged = prefs.contains("user_logged")
-
-
-        Log.d("hasLogged", "$hasLogged")
-        val intent: Intent = if (!hasLogged) {
-            Intent(this, LoginScreen::class.java)
-        } else {
-            Intent(this, ProductsActivity::class.java)
+            if (user == null) {
+                startActivity(Intent(this@MainActivity, LoginActivity::class.java))
+                finish()
+            } else {
+                Log.d("MainActivity", "Usuário encontrado no DB: ${user.id}")
+                // continuar inicialização normal
+            }
         }
-
-
 
         startActivity(intent)
         finish()
@@ -391,55 +151,9 @@ class MainActivity : BaseActivity() {
             }
         }
 
-//    val appName = getAppName(this)
-//    when(BuildConfig.FLAVOR) {
-//    "stone" -> {
-//    Stone.setAppName(appName)
-//    }
-//    else -> {}
-//    }
-
-        backgroundTaskRunnable = POSSYNCTaskRunnable(handler, forYouViewModel)
-        handler.post(backgroundTaskRunnable as POSSYNCTaskRunnable)
-
-        gpsTaskRunnable = MyGPSTaskRunnable(handler, forYouViewModel)
-        handler.post(gpsTaskRunnable as MyGPSTaskRunnable)
-
-        clearOldEntitiesTaskRunnable = ClearOldEntitiesTaskRunnable(handler, forYouViewModel)
-        handler.post(clearOldEntitiesTaskRunnable as ClearOldEntitiesTaskRunnable)
-
-        syncEventTaskRunnable = SyncEventTaskRunnable(handler, forYouViewModel)
-        handler.post(syncEventTaskRunnable as SyncEventTaskRunnable)
-
-        checkDuePaymentsRunnable = CheckDuePaymentsRunnable(handler, forYouViewModel)
-        handler.post(checkDuePaymentsRunnable as CheckDuePaymentsRunnable)
-
-//    alertDuePaymentsRunnable = AlertDuePaymentsRunnable(handler, cartViewModel, forYouViewModel)
-//    handler.post(alertDuePaymentsRunnable as AlertDuePaymentsRunnable)
 
     }
 
-    fun Application.getCurrentActivity(): Activity? {
-        var currentActivity: Activity? = null
-
-        registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
-            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
-            override fun onActivityStarted(activity: Activity) {}
-            override fun onActivityResumed(activity: Activity) {
-                currentActivity = activity
-            }
-            override fun onActivityPaused(activity: Activity) {
-                if (currentActivity == activity) {
-                    currentActivity = null
-                }
-            }
-            override fun onActivityStopped(activity: Activity) {}
-            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-            override fun onActivityDestroyed(activity: Activity) {}
-        })
-
-        return currentActivity
-    }
     override fun onStop() {
         super.onStop()
         connectivityMonitor?.cleanup()

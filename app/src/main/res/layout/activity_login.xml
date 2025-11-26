@@ -6,9 +6,7 @@
     android:id="@+id/login_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_with_gradient"
-    >
-
+    android:background="@drawable/bg_with_gradient">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/choiceContainer"
@@ -32,6 +30,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
         <Button
             android:id="@+id/email_login_button"
             android:layout_width="wrap_content"
@@ -49,6 +48,7 @@
             app:layout_constraintEnd_toStartOf="@+id/qr_code_login_button"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/login_text_choice" />
+
         <Button
             android:id="@+id/qr_code_login_button"
             android:layout_width="wrap_content"
@@ -77,14 +77,13 @@
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/falling"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        >
+        app:layout_constraintStart_toStartOf="parent">
 
         <TextView
             android:id="@+id/login_text_form"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Insira as informações do login"
+            android:text="@string/login_form_title"
             android:textColor="@android:color/white"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -96,7 +95,7 @@
             android:id="@+id/editTextTextEmailAddress"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="nome@exemplo.com"
+            android:hint="@string/hint_email"
             android:inputType="textEmailAddress"
             android:background="@drawable/bg_card_button"
             android:padding="12dp"
@@ -111,7 +110,7 @@
             android:id="@+id/editTextTextPassword"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="Senha"
+            android:hint="@string/hint_password"
             android:inputType="textPassword"
             android:background="@drawable/bg_card_button"
             android:padding="12dp"
@@ -132,36 +131,36 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_back"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:backgroundTint="#FF666F"
-            android:text="Voltar"
-            android:textColor="@android:color/white"
-            android:textSize="16sp"
-            app:cornerRadius="12dp"
-            app:icon="@drawable/ic_arrow_back"
-            app:iconGravity="textStart"
-            app:iconPadding="8dp"
-            android:layout_marginEnd="8dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_back"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:backgroundTint="#FF666F"
+                android:text="@string/btn_back"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                app:cornerRadius="12dp"
+                app:icon="@drawable/ic_arrow_back"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                android:layout_marginEnd="8dp" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_confirm"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:backgroundTint="#FF666F"
-            android:text="Confirmar"
-            android:textColor="@android:color/white"
-            android:textSize="16sp"
-            app:cornerRadius="12dp"
-            app:icon="@drawable/ic_login_arrow_right"
-            app:iconGravity="textStart"
-            app:iconPadding="8dp"
-            android:layout_marginStart="8dp" />
-    </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_confirm"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:backgroundTint="#FF666F"
+                android:text="@string/btn_confirm"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                app:cornerRadius="12dp"
+                app:icon="@drawable/ic_login_arrow_right"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -171,9 +170,8 @@
         android:layout_height="wrap_content"
         android:foregroundGravity="center"
         android:src="@drawable/skydiving"
-        tools:ignore="MissingConstraints"
-        />
-
+        android:contentDescription="@string/desc_skydiving"
+        tools:ignore="MissingConstraints" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -186,12 +184,12 @@
             android:layout_height="wrap_content"
             android:foregroundGravity="center"
             android:padding="10dp"
-            android:src="@drawable/gear"
+            android:src="@drawable/ic_gear"
+            android:contentDescription="@string/desc_device_info"
             app:tint="@color/colorWhite"
             tools:ignore="MissingConstraints"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            />
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

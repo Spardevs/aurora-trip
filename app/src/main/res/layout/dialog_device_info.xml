@@ -9,7 +9,7 @@
         android:id="@+id/tvTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Dipositivo"
+        android:text="@string/device_title"
         android:textSize="26sp"
         android:textStyle="bold"
         android:textColor="#000000"
@@ -22,7 +22,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Serial:"
+            android:text="@string/label_serial"
             android:textSize="16sp"
             android:layout_marginEnd="5dp"
             android:textColor="#333333"/>
@@ -31,11 +31,12 @@
             android:id="@+id/tvSerial"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="1651561165156"
+            android:text="@string/sample_serial_value"
             android:textColor="@color/colorAccent"
             android:textSize="16sp"
             android:textStyle="bold" />
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -43,7 +44,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Adquirente:"
+            android:text="@string/label_acquirer"
             android:textSize="16sp"
             android:layout_marginEnd="5dp"
             android:textColor="#333333"/>
@@ -52,11 +53,12 @@
             android:id="@+id/tvAcquirer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="pagseguro"
+            android:text="@string/sample_acquirer_value"
             android:textColor="@color/colorAccent"
             android:textSize="16sp"
             android:textStyle="bold" />
     </LinearLayout>
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -65,7 +67,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Serial:"
+            android:text="@string/label_model"
             android:textSize="16sp"
             android:layout_marginEnd="5dp"
             android:textColor="#333333"/>
@@ -74,13 +76,11 @@
             android:id="@+id/tvModel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="A930"
+            android:text="@string/sample_model_value"
             android:textColor="@color/colorAccent"
             android:textSize="16sp"
             android:textStyle="bold" />
     </LinearLayout>
-
-
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -92,7 +92,7 @@
             android:id="@+id/btnOk"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
-            android:text="ok"
+            android:text="@string/ok"
             android:textColor="#FFFFFF"
             android:textStyle="bold"
             android:drawableTint="#FFFFFF"

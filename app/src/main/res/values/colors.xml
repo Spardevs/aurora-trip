@@ -1,25 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-  ~ Copyright (c) 2025 Ticpass. All rights reserved.
-  ~
-  ~ PROPRIETARY AND CONFIDENTIAL
-  ~
-  ~ This software is the confidential and proprietary information of Ticpass
-  ~ ("Confidential Information"). You shall not disclose such Confidential Information
-  ~ and shall use it only in accordance with the terms of the license agreement you
-  ~ entered into with Ticpass.
-  ~
-  ~ Unauthorized copying, distribution, or use of this software, via any medium,
-  ~ is strictly prohibited without the express written permission of Ticpass.
-  -->
-
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!--Common Colors-->
     <color name="colorAccent">#6C63FF</color>
-    <color name="ic_launcher_background">#6C63FF</color>
     <color name="material_dynamic_neutral_variant95">#F5F5F5</color>
-
-
-    <!-- AppDetailsFragment | Dialog -->
     <color name="colorRed">#E4002B</color>
     <color name="colorWhite">#FFFFFF</color>
     <color name="colorOrange">#FF9933</color>
@@ -27,3 +9,4 @@
     <color name="colorGray">#757575</color>
     <color name="colorBlack">#000000</color>
 </resources>
+

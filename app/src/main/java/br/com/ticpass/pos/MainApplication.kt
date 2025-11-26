@@ -1,12 +1,12 @@
 package br.com.ticpass.pos
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.os.Handler
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
-import br.com.ticpass.pos.sdk.payment.PaymentProvider
-import br.com.ticpass.pos.util.ConnectivityMonitor
-import br.com.ticpass.pos.util.ConnectionStatusBar
+import br.com.ticpass.pos.core.util.ConnectionStatusBar
+import br.com.ticpass.pos.core.util.ConnectivityMonitor
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 import javax.inject.Inject
@@ -18,7 +18,9 @@ class MainApplication : Application(), Configuration.Provider {
         lateinit var instance: MainApplication
             private set
 
+        @SuppressLint("StaticFieldLeak")
         lateinit var connectivityMonitor: ConnectivityMonitor
+        @SuppressLint("StaticFieldLeak")
         lateinit var connectionStatusBar: ConnectionStatusBar
     }
 
@@ -28,7 +30,6 @@ class MainApplication : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         instance = this
-        PaymentProvider.initialize(this)
 
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
