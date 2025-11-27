@@ -23,7 +23,8 @@ class AuthRepositoryImpl @Inject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 val credentials = Base64.encodeToString("$email:$password".toByteArray(), Base64.NO_WRAP)
-                val requestBody = "".toRequestBody("application/json".toMediaType())
+                // Enviar um JSON vazio válido (não string vazia)
+                val requestBody = "{}".toRequestBody("application/json".toMediaType())
 
                 val response = authService.signIn(
                     requestBody = requestBody,
@@ -62,7 +63,8 @@ class AuthRepositoryImpl @Inject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 val cookieHeader = "shortLived=$token"
-                val requestBody = "".toRequestBody("application/json".toMediaType())
+                // Enviar um JSON vazio válido (não string vazia)
+                val requestBody = "{}".toRequestBody("application/json".toMediaType())
 
                 val response = authService.signInShortLived(
                     requestBody = requestBody,
@@ -97,7 +99,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    // Tornado suspend porque TokenManager.getAccessToken é suspend
+    // Tornando suspend porque TokenManager.getAccessToken é suspend
     suspend fun getStoredAccessToken(): String? {
         return tokenManager.getAccessToken()
     }
