@@ -31,7 +31,7 @@ import br.com.ticpass.pos.core.util.ConnectivityMonitor
 import br.com.ticpass.pos.core.util.DeviceUtils
 import br.com.ticpass.pos.data.user.repository.UserRepository
 import br.com.ticpass.pos.presentation.login.activities.LoginActivity
-import br.com.ticpass.pos.presentation.login.activities.PermissionsLoginActivity
+import br.com.ticpass.pos.presentation.login.activities.LoginPermissionsActivity
 import br.com.ticpass.pos.presentation.shared.activities.BaseActivity
 import com.topjohnwu.superuser.internal.UiThreadHandler.handler
 import kotlinx.coroutines.Dispatchers
@@ -183,7 +183,7 @@ class MainActivity : BaseActivity() {
         lifecycleScope.launch {
             // Se não tem permissões, vai para PermissionsLoginActivity
             if (!hasAllPermissions()) {
-                startActivity(Intent(this@MainActivity, PermissionsLoginActivity::class.java))
+                startActivity(Intent(this@MainActivity, LoginPermissionsActivity::class.java))
                 finish()
                 return@launch
             }

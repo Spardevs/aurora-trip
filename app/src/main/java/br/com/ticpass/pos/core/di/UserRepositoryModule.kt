@@ -1,4 +1,4 @@
-package br.com.ticpass.pos.di
+package br.com.ticpass.pos.core.di
 
 import br.com.ticpass.pos.data.user.repository.UserRepository
 import br.com.ticpass.pos.data.user.repository.UserRepositoryImpl

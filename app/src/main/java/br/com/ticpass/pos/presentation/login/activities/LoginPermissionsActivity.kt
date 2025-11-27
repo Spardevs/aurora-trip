@@ -19,7 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class PermissionsLoginActivity : BaseActivity() {
+class LoginPermissionsActivity : BaseActivity() {
     private val permissionsLauncher =
         registerForActivityResult(RequestMultiplePermissions()) { results ->
             val cameraGranted = results[Manifest.permission.CAMERA] == true
@@ -85,7 +85,7 @@ class PermissionsLoginActivity : BaseActivity() {
         lifecycleScope.launch {
             val user = withContext(Dispatchers.IO) {
                 try {
-                    AppDatabase.getDatabase(this@PermissionsLoginActivity).userDao().getAnyUserOnce()
+                    AppDatabase.getDatabase(this@LoginPermissionsActivity).userDao().getAnyUserOnce()
                 } catch (e: Exception) {
                     // Em caso de erro ao acessar DB, tratamos como "não autenticado".
                     null
@@ -96,7 +96,7 @@ class PermissionsLoginActivity : BaseActivity() {
 //            if (user != null) {
 //                Intent(this@PermissionsLoginActivity, MenuActivity::class.java)
 //            } else {
-                Intent(this@PermissionsLoginActivity, LoginActivity::class.java)
+                Intent(this@LoginPermissionsActivity, LoginActivity::class.java)
 //            }
             startActivity(next)
             finish()

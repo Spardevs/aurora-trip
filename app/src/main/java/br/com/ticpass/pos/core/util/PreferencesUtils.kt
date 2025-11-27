@@ -12,14 +12,13 @@
  * is strictly prohibited without the express written permission of Ticpass.
  */
 
-package br.com.ticpass.pos.util
+package br.com.ticpass.pos.core.util
 
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
-import br.com.ticpass.pos.BuildConfig
 
 object Preferences {
 

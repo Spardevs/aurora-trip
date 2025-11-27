@@ -4,16 +4,21 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import br.com.ticpass.pos.data.menu.local.dao.MenuDao
+import br.com.ticpass.pos.data.menu.local.entity.MenuEntity
 import br.com.ticpass.pos.data.user.local.dao.UserDao
 import br.com.ticpass.pos.data.user.local.entity.UserEntity
 
 @Database(
-    entities = [UserEntity::class],
+    entities = [UserEntity::class, MenuEntity::class],
     version = 1,
     exportSchema = false
 )
+
+
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
+    abstract fun menuDao(): MenuDao
 
     companion object {
         @Volatile

@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.presentation.login.activities
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -33,6 +34,7 @@ import retrofit2.Response
 import timber.log.Timber
 import javax.inject.Inject
 import br.com.ticpass.pos.data.auth.remote.dto.LoginResponse
+import br.com.ticpass.pos.presentation.menu.LoginMenuActivity
 
 @AndroidEntryPoint
 class LoginActivity : AppCompatActivity(), LoadingLoginFragment.LoadingListener {
@@ -379,7 +381,7 @@ class LoginActivity : AppCompatActivity(), LoadingLoginFragment.LoadingListener 
             supportFragmentManager.beginTransaction().remove(frag).commitAllowingStateLoss()
         }
 
-        // startActivity(Intent(this, MenuActivity::class.java))
+        startActivity(Intent(this, LoginMenuActivity::class.java))
         finish()
     }
 

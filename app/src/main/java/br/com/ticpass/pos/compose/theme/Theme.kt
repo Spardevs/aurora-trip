@@ -26,7 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.util.Preferences
+import br.com.ticpass.pos.core.util.Preferences
 
 /**
  * App theme for Ticpass based on [MaterialTheme]

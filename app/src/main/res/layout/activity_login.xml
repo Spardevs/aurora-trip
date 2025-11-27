@@ -54,7 +54,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/qr_code"
-            app:icon="@drawable/baseline_qr_code_24"
+            app:icon="@drawable/ic_baseline_qr_code_24"
             app:iconGravity="textEnd"
             app:iconPadding="7dp"
             android:stateListAnimator="@animator/button_elevation"

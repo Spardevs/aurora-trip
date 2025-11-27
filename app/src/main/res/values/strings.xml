@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="title_blacklist_manager">"Blacklist manager"</string>
+    <!--Login Menu-->
+    <string name="manu_image">Menu logo</string>
+    <string name="whats_going_on_today">Whats going on today?</string>
+
 
     <!-- Formulário de login -->
     <string name="login_form_title">Insira as informações do login</string>

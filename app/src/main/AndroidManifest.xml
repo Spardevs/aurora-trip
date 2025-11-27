@@ -107,7 +107,7 @@
         </provider>
 
         <activity
-            android:name=".presentation.login.activities.PermissionsLoginActivity"
+            android:name=".presentation.login.activities.LoginPermissionsActivity"
             android:exported="false"/>
         <activity
             android:name=".presentation.login.activities.LoginActivity"

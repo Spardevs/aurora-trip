@@ -1,8 +1,9 @@
-package br.com.ticpass.pos.di
+package br.com.ticpass.pos.core.di
 
 import android.content.Context
 import androidx.room.Room
 import br.com.ticpass.pos.data.local.database.AppDatabase
+import br.com.ticpass.pos.data.menu.local.dao.MenuDao
 import br.com.ticpass.pos.data.user.local.dao.UserDao
 import dagger.Module
 import dagger.Provides
@@ -30,7 +31,9 @@ object DatabaseModule {
     @Provides
     fun provideUserDao(db: AppDatabase): UserDao = db.userDao()
 
-    // Se tiver NFCQueueDao / RefundQueueDao, adicione aqui:
-    // @Provides fun provideNfcQueueDao(db: AppDatabase): NFCQueueDao = db.nfcQueueDao()
-    // @Provides fun provideRefundQueueDao(db: AppDatabase): RefundQueueDao = db.refundQueueDao()
+    @Provides
+    @Singleton
+    fun provideMenuDao(appDatabase: AppDatabase): MenuDao {
+        return appDatabase.menuDao()
+    }
 }
