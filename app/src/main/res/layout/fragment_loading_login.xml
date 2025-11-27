@@ -15,7 +15,7 @@
         android:id="@+id/imageView"
         android:layout_width="match_parent"
         android:layout_height="300dp"
-        android:src="@drawable/jorge_p2b_pagseguro"/>
+        android:src="@drawable/waiting"/>
 
     <LinearLayout
         android:id="@+id/loading_info"

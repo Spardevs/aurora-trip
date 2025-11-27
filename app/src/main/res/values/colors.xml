@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorAccent">#6C63FF</color>
+    <color name="colorRedAccent">#FF666F</color>s
     <color name="material_dynamic_neutral_variant95">#F5F5F5</color>
     <color name="colorRed">#E4002B</color>
     <color name="colorWhite">#FFFFFF</color>

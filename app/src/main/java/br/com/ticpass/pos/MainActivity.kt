@@ -22,7 +22,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -36,8 +35,16 @@ import br.com.ticpass.pos.presentation.login.activities.PermissionsLoginActivity
 import br.com.ticpass.pos.presentation.shared.activities.BaseActivity
 import com.topjohnwu.superuser.internal.UiThreadHandler.handler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import javax.inject.Inject
+import br.com.ticpass.pos.data.device.remote.service.DeviceService
+import br.com.ticpass.pos.data.device.remote.dto.RegisterDeviceRequest
+import retrofit2.HttpException
+import timber.log.Timber
+import java.io.IOException
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity() {
@@ -45,13 +52,17 @@ class MainActivity : BaseActivity() {
     private var connectivityMonitor: ConnectivityMonitor? = null
     private var connectionStatusBar: ConnectionStatusBar? = null
 
+    @Inject
     lateinit var userRepository: UserRepository
 
+    @Inject
+    lateinit var deviceService: DeviceService
+
     companion object {
-        lateinit  var location: Location
-        lateinit  var appContext: Context
+        lateinit var location: Location
+        lateinit var appContext: Context
         @SuppressLint("StaticFieldLeak")
-        lateinit  var activity: Activity
+        lateinit var activity: Activity
         private val REQUIRED_PERMISSIONS = arrayOf(
             Manifest.permission.CAMERA,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -67,49 +78,122 @@ class MainActivity : BaseActivity() {
     /**
      * Logs comprehensive device information including model, acquirer, serial, and stone code
      */
-    private fun logDeviceInfo() {
-        try {
+    private fun logDeviceInfo(): Map<String, String> {
+        return try {
             val model = DeviceUtils.getDeviceModel()
             val acquirer = DeviceUtils.getAcquirer()
             val serial = DeviceUtils.getDeviceSerial(this)
 
-            Log.i("DeviceInfo", "═══════════════════════════════════════════")
-            Log.i("DeviceInfo", "          DEVICE INFORMATION")
-            Log.i("DeviceInfo", "═══════════════════════════════════════════")
-            Log.i("DeviceInfo", "Model:       $model")
-            Log.i("DeviceInfo", "Acquirer:    $acquirer")
-            Log.i("DeviceInfo", "Serial:      $serial")
-            Log.i("DeviceInfo", "═══════════════════════════════════════════")
+            Timber.tag("DeviceInfo").i("════")
+            Timber.tag("DeviceInfo").i("    DEVICE INFORMATION")
+            Timber.tag("DeviceInfo").i("════")
+            Timber.tag("DeviceInfo").i("Model:    $model")
+            Timber.tag("DeviceInfo").i("Acquirer:    $acquirer")
+            Timber.tag("DeviceInfo").i("Serial:    $serial")
+            Timber.tag("DeviceInfo").i("════")
+
+            mapOf(
+                "model" to model,
+                "acquirer" to acquirer,
+                "serial" to serial
+            )
         } catch (e: Exception) {
-            Log.e("DeviceInfo", "Error logging device info: ${e.message}", e)
+            Timber.tag("DeviceInfo").e(e, "Error logging device info: ${e.message}")
+            emptyMap()
         }
     }
 
+    /**
+     * Registers the device with the backend API -- suspend function so caller can await completion
+     */
+    private suspend fun registerDevice(deviceInfo: Map<String, String>) {
+        try {
+            val serial = deviceInfo["serial"] ?: run {
+                Timber.tag("DeviceRegistration").w("Missing serial, skipping registration")
+                return
+            }
+            val acquirer = deviceInfo["acquirer"] ?: run {
+                Timber.tag("DeviceRegistration").w("Missing acquirer, skipping registration")
+                return
+            }
+            val variant = deviceInfo["model"] ?: run {
+                Timber.tag("DeviceRegistration").w("Missing variant, skipping registration")
+                return
+            }
+
+            val request = RegisterDeviceRequest(
+                serial = serial,
+                acquirer = acquirer,
+                variant = variant
+            )
+
+            Timber.tag("DeviceRegistration").d("Registering device: $request")
+
+            val response = withContext(Dispatchers.IO) {
+                deviceService.registerDevice(request)
+            }
+
+            if (response.isSuccessful) {
+                Timber.tag("DeviceRegistration").i("Device registered successfully: ${response.body()}")
+            } else {
+                Timber.tag("DeviceRegistration").w(
+                    "Failed to register device. Code: ${response.code()}, Error: ${
+                        response.errorBody()?.string()
+                    }"
+                )
+            }
+        } catch (e: HttpException) {
+            Timber.tag("DeviceRegistration")
+                .e(e, "HTTP error during device registration: ${e.message()}")
+        } catch (e: IOException) {
+            Timber.tag("DeviceRegistration").e(e, "Network error during device registration: ${e.message}")
+        } catch (e: Exception) {
+            Timber.tag("DeviceRegistration").e(e, "Unexpected error during device registration: ${e.message}")
+        }
+    }
+
+    @SuppressLint("UnsafeIntentLaunch")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         appContext = applicationContext
         activity = this
 
-        // Initialize Acquirer SDK first
         // Log device information
-        logDeviceInfo()
+        val deviceInfo = logDeviceInfo()
 
+        // Inicializa UI componentes que não dependem da navegação imediata
         connectionStatusBar = ConnectionStatusBar(this)
 
-
-        if (!hasAllPermissions()) {
-            startActivity(Intent(this, PermissionsLoginActivity::class.java))
-            finish()
-            return
+        // Fire-and-forget registration in background with timeout so it cannot hang the UI flow
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                // limite de tempo para não pendurar indefinidamente (ajuste conforme necessário)
+                withTimeout(5_000L) {
+                    registerDevice(deviceInfo)
+                }
+            } catch (t: TimeoutCancellationException) {
+                Timber.tag("DeviceRegistration").w("Device registration timed out after 5s")
+            } catch (e: Exception) {
+                Timber.tag("DeviceRegistration").e(e, "Background device registration failed: ${e.message}")
+            }
         }
 
+        // Continue inicialização e navegação imediatamente (não aguardamos o registro)
         lifecycleScope.launch {
+            // Se não tem permissões, vai para PermissionsLoginActivity
+            if (!hasAllPermissions()) {
+                startActivity(Intent(this@MainActivity, PermissionsLoginActivity::class.java))
+                finish()
+                return@launch
+            }
+
+            // Carrega usuário do DB
             val user = withContext(Dispatchers.IO) {
                 try {
                     userRepository.getLoggedUser()
                 } catch (e: Exception) {
-                    Log.e("MainActivity", "Erro ao acessar DB: ${e.message}", e)
+                    Timber.tag("MainActivity").e(e, "Erro ao acessar DB: ${e.message}")
                     null
                 }
             }
@@ -118,13 +202,11 @@ class MainActivity : BaseActivity() {
                 startActivity(Intent(this@MainActivity, LoginActivity::class.java))
                 finish()
             } else {
-                Log.d("MainActivity", "Usuário encontrado no DB: ${user.id}")
-                // continuar inicialização normal
+                Timber.tag("MainActivity").d("Usuário encontrado no DB: ${user.id}")
+                 startActivity(Intent(this@MainActivity, LoginActivity::class.java))
+                 finish()
             }
         }
-
-        startActivity(intent)
-        finish()
     }
 
     override fun onStart() {
@@ -133,7 +215,7 @@ class MainActivity : BaseActivity() {
         connectivityMonitor = ConnectivityMonitor(appContext, handler).apply {
             onConnectionChanged = { isConnected ->
                 connectionStatusBar?.show(isConnected)
-                Log.d("NetworkStatus", "Connection changed: $isConnected")
+                Timber.tag("NetworkStatus").d("Connection changed: $isConnected")
                 connectionStatusBar?.show(isConnected)
 
                 // Atualiza outros componentes conforme necessário
@@ -150,8 +232,6 @@ class MainActivity : BaseActivity() {
                 }
             }
         }
-
-
     }
 
     override fun onStop() {
@@ -167,5 +247,4 @@ class MainActivity : BaseActivity() {
         connectionStatusBar?.dismiss()
         handler.removeCallbacksAndMessages(null)
     }
-
 }

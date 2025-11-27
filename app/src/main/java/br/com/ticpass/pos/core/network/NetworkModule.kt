@@ -1,7 +1,9 @@
 package br.com.ticpass.pos.di
 
+import br.com.ticpass.Constants
 import br.com.ticpass.pos.core.network.interceptor.AuthInterceptor
 import br.com.ticpass.pos.data.auth.remote.service.AuthService
+import br.com.ticpass.pos.data.device.remote.service.DeviceService
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -40,7 +42,7 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(client: OkHttpClient, moshi: Moshi): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("https://dev.ticpass.com.br/") // ajuste para sua baseUrl
+            .baseUrl(Constants.API_HOST)
             .client(client)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
@@ -50,5 +52,11 @@ object NetworkModule {
     @Singleton
     fun provideAuthService(retrofit: Retrofit): AuthService {
         return retrofit.create(AuthService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeviceService(retrofit: Retrofit): DeviceService {
+        return retrofit.create(DeviceService::class.java)
     }
 }
