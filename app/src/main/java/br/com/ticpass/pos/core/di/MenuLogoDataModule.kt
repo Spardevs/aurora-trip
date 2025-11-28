@@ -20,17 +20,10 @@ object MenuLogoDataModule {
 
     @Provides
     @Singleton
-    fun provideMenuLogoApiService(retrofit: Retrofit): MenuLogoService {
-        return retrofit.create(MenuLogoService::class.java)
-    }
-
-    @Provides
-    @Singleton
     fun provideMenuRemoteDataSource(
-        menuApiService: br.com.ticpass.pos.data.menu.remote.service.MenuApiService?, // se existir provider
+        menuApiService: br.com.ticpass.pos.data.menu.remote.service.MenuApiService,
         logoService: MenuLogoService
     ): MenuRemoteDataSource {
-        // MenuRemoteDataSource aceita parâmetros nullable; aqui passamos os providers existentes
         return MenuRemoteDataSource(
             menuApiService,
             logoService

@@ -23,31 +23,30 @@ class MenuRepositoryImpl @Inject constructor(
 ) : MenuRepository {
 
     // assinatura
+    // file: MenuRepositoryImpl.kt (inside class)
     override fun getMenuItems(take: Int, page: Int): Flow<List<MenuDb>> = flow {
         try {
             // cache (MenuEntity -> MenuDb)
             val cachedEntities = localDataSource.getAllMenus().first()
             if (!cachedEntities.isNullOrEmpty()) {
-                val cachedDomain = cachedEntities.map { it.toDomainModel() } // MenuDb
+                val cachedDomain: List<MenuDb> = cachedEntities.map { it.toDomainModel() } // MenuEntity -> MenuDb
                 emit(cachedDomain)
             }
 
-            // remoto
+            // remote: fetch remote Menu (domain Menu), convert to entities and persist
             val response = remoteDataSource.getMenu(take, page)
-            val remoteDomain: List<br.com.ticpass.pos.domain.menu.model.Menu> = response.edges.map { it.toDomainModel() }
-
-            // persistir no DB (Menu -> MenuEntity)
-            val entities = remoteDomain.map { it.toEntity() } // MenuEntity
+            val remoteDomain = response.edges.map { it.toDomainModel() } // List<Menu> (remote -> domain Menu)
+            val entities = remoteDomain.map { it.toEntity() } // Menu -> MenuEntity
             localDataSource.insertMenus(entities)
 
-            // converter para MenuDb e emitir
-            val remoteAsDb = entities.map { it.toDomainModel() } // MenuEntity -> MenuDb
+            // convert persisted entities -> MenuDb and emit
+            val remoteAsDb: List<MenuDb> = entities.map { it.toDomainModel() } // MenuEntity -> MenuDb
             emit(remoteAsDb)
         } catch (e: Exception) {
-            // fallback
+            // fallback to cached
             try {
                 val cached = localDataSource.getAllMenus().first()
-                val domain = cached.map { it.toDomainModel() }
+                val domain: List<MenuDb> = cached.map { it.toDomainModel() }
                 emit(domain)
             } catch (_: Exception) {
                 emit(emptyList())

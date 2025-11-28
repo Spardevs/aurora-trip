@@ -7,14 +7,12 @@ import okhttp3.ResponseBody
 import javax.inject.Inject
 
 class MenuRemoteDataSource @Inject constructor(
-    private val apiService: MenuApiService?,
-    private val logoService: MenuLogoService?
+    private val apiService: MenuApiService,
+    private val logoService: MenuLogoService
 ) {
-    suspend fun getMenu(take: Int, page: Int): MenuResponse {
-        return apiService?.getMenu(take, page) ?: throw Exception("MenuApiService is null")
-    }
+    suspend fun getMenu(take: Int, page: Int): MenuResponse =
+        apiService.getMenu(take, page)
 
-    suspend fun downloadLogo(logoId: String): ResponseBody {
-        return logoService?.downloadLogo(logoId) ?: throw Exception("MenuLogoService is null")
-    }
+    suspend fun downloadLogo(logoId: String): ResponseBody =
+        logoService.downloadLogo(logoId)
 }

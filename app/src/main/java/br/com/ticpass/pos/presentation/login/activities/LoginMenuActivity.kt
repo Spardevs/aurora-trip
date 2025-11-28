@@ -1,10 +1,8 @@
-package br.com.ticpass.pos.presentation.menu
+package br.com.ticpass.pos.presentation.login.activities
 
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
-import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -12,10 +10,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.domain.menu.model.Menu
 import br.com.ticpass.pos.domain.menu.model.MenuDb
 import br.com.ticpass.pos.presentation.login.adapters.LoginMenuAdapter
 import br.com.ticpass.pos.presentation.login.states.LoginMenuUiState
+
+import br.com.ticpass.pos.core.util.SessionPrefsManager
+import br.com.ticpass.pos.presentation.menu.LoginMenuViewModel
+import br.com.ticpass.pos.presentation.menu.MenuLogoViewModel
 
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -35,6 +36,9 @@ class LoginMenuActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login_menu)
+
+        // Inicializa SessionPrefsManager
+        SessionPrefsManager.init(this)
 
         setupViews()
         observeViewModels()
@@ -105,12 +109,15 @@ class LoginMenuActivity : AppCompatActivity() {
         }
     }
 
-    private fun onMenuClicked(menu: Menu) {
+    private fun onMenuClicked(menu: MenuDb) {
         Timber.tag("MenuActivity").d("Menu selecionado: ${menu.id}")
 
-        // Navega para PosActivity
-//        val intent = PosActivity.newIntent(this, menu.id)
-        startActivity(intent)
+        // Salva o id selecionado no SessionPrefs
+        SessionPrefsManager.saveSelectedMenuId(menu.id.toString())
+
+        // Navega para PosActivity (descomente se quiser navegar)
+//    val intent = PosActivity.newIntent(this, menu.id)
+//    startActivity(intent)
     }
 
     private fun showError(message: String) {

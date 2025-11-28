@@ -12,43 +12,48 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.ViewCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.auth.repository.AuthRepositoryImpl
 import br.com.ticpass.pos.data.local.database.AppDatabase
 import br.com.ticpass.pos.data.user.local.entity.UserEntity
 import br.com.ticpass.pos.presentation.scanners.contracts.QrScannerContract
-import br.com.ticpass.pos.presentation.login.fragments.LoadingLoginFragment
 import com.google.android.material.button.MaterialButton
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Response
 import timber.log.Timber
 import javax.inject.Inject
 import br.com.ticpass.pos.data.auth.remote.dto.LoginResponse
-import br.com.ticpass.pos.presentation.menu.LoginMenuActivity
+import br.com.ticpass.pos.presentation.scanners.fragments.QrCodeErrorFragment
+import br.com.ticpass.pos.presentation.scanners.fragments.QrCodeProcessingFragment
+import br.com.ticpass.pos.presentation.scanners.fragments.QrCodeSuccessFragment
+import br.com.ticpass.pos.presentation.scanners.states.QrLoginState
+import br.com.ticpass.pos.presentation.scanners.viewmodels.QrLoginViewModel
 
 @AndroidEntryPoint
-class LoginActivity : AppCompatActivity(), LoadingLoginFragment.LoadingListener {
+class LoginActivity : AppCompatActivity() {
 
     @Inject
     lateinit var authRepository: AuthRepositoryImpl
-
     private lateinit var emailEditText: EditText
     private lateinit var passwordEditText: EditText
     private lateinit var loginButton: Button
     private lateinit var qrLoginButton: Button
     private lateinit var loginErrorText: TextView
-
-    // UI containers
     private lateinit var choiceContainer: View
     private lateinit var formContainer: View
     private lateinit var emailChoiceButton: Button
@@ -57,12 +62,15 @@ class LoginActivity : AppCompatActivity(), LoadingLoginFragment.LoadingListener 
     private var fallingOriginalTranslationY: Float = 0f
     private val fallingUpOffsetDp = 190
 
+    // Use apenas uma instância do ViewModel
+    private val qrViewModel: QrLoginViewModel by viewModels()
+
     private val qrScannerLauncher = registerForActivityResult(QrScannerContract()) { qrText ->
         if (qrText == null) {
             Toast.makeText(this, "Leitura do QR cancelada ou inválida", Toast.LENGTH_SHORT).show()
             return@registerForActivityResult
         }
-        performQrLogin(qrText)
+        qrViewModel.signInWithQr(qrText)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -106,7 +114,6 @@ class LoginActivity : AppCompatActivity(), LoadingLoginFragment.LoadingListener 
         emailEditText.addTextChangedListener(clearErrorWatcher)
         passwordEditText.addTextChangedListener(clearErrorWatcher)
 
-        // CLICK: mostrar formulário de login por e-mail
         emailChoiceButton.setOnClickListener {
             choiceContainer.visibility = View.GONE
             formContainer.visibility = View.VISIBLE
@@ -116,13 +123,11 @@ class LoginActivity : AppCompatActivity(), LoadingLoginFragment.LoadingListener 
             imm?.showSoftInput(emailEditText, InputMethodManager.SHOW_IMPLICIT)
         }
 
-        // CLICK: voltar para escolha
         buttonBack.setOnClickListener {
             animateFalling(raise = false)
             formContainer.visibility = View.GONE
             choiceContainer.visibility = View.VISIBLE
 
-            // esconde teclado
             val imm = getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager
             imm?.hideSoftInputFromWindow(it.windowToken, 0)
         }
@@ -136,8 +141,37 @@ class LoginActivity : AppCompatActivity(), LoadingLoginFragment.LoadingListener 
 
         // CLICK: iniciar leitor QR
         qrLoginButton.setOnClickListener { startQrLogin() }
-    }
 
+        // Observa o state do ViewModel para exibir os fragments de status
+        lifecycleScope.launch {
+            qrViewModel.state.collect { state ->
+                when (state) {
+                    is QrLoginState.Processing -> {
+                        showFragment(QrCodeProcessingFragment())
+                    }
+                    is QrLoginState.Error -> {
+                        // mostrar fragment de erro; você pode passar a mensagem via args se quiser
+                        val frag = QrCodeErrorFragment()
+                        val args = Bundle().apply { putString("qr_error_message", state.message) }
+                        frag.arguments = args
+                        showFragment(frag)
+                    }
+                    is QrLoginState.Success -> {
+                        showFragment(QrCodeSuccessFragment())
+                        // pequeno delay para o usuário ver o sucesso
+                        launch {
+                            delay(800)
+                            // Aqui navegamos para LoginMenuActivity
+                            onLoadingFinished()
+                        }
+                    }
+                    is QrLoginState.Idle -> {
+                        removeLoadingFragmentIfExists()
+                    }
+                }
+            }
+        }
+    }
 
     private fun dpToPx(dp: Int): Float {
         return dp * resources.displayMetrics.density
@@ -154,11 +188,9 @@ class LoginActivity : AppCompatActivity(), LoadingLoginFragment.LoadingListener 
 
     private fun resetFieldState(field: EditText) {
         try {
-            // restaura cor do texto e do contorno para o estado normal
             field.setTextColor(ContextCompat.getColor(this, android.R.color.black))
             field.background?.let { DrawableCompat.setTint(it, ContextCompat.getColor(this, R.color.colorWhite)) }
         } catch (e: Exception) {
-            // fallback: ignore
         }
     }
 
@@ -205,7 +237,7 @@ class LoginActivity : AppCompatActivity(), LoadingLoginFragment.LoadingListener 
         return true
     }
 
-    private fun startQrLogin() {
+    fun startQrLogin() {
         qrScannerLauncher.launch(Unit)
     }
 
@@ -250,7 +282,7 @@ class LoginActivity : AppCompatActivity(), LoadingLoginFragment.LoadingListener 
         val handler = CoroutineExceptionHandler { _, throwable ->
             Timber.tag("LoginActivity").e(throwable, "Exception no handler (email login)")
             runOnUiThread {
-                Toast.makeText(this, "Erro de conexão: ${'$'}{throwable.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Erro de conexão: ${throwable.message}", Toast.LENGTH_LONG).show()
             }
         }
 
@@ -262,7 +294,7 @@ class LoginActivity : AppCompatActivity(), LoadingLoginFragment.LoadingListener 
                     authRepository.signIn(email, password)
                 }
 
-                Timber.tag("LoginActivity").d("HTTP=${'$'}{response.code()} success=${'$'}{response.isSuccessful}")
+                Timber.tag("LoginActivity").d("HTTP=${response.code()} success=${response.isSuccessful}")
 
                 if (response.isSuccessful && (response.code() == 200 || response.code() == 201)) {
                     val body = response.body()
@@ -284,7 +316,6 @@ class LoginActivity : AppCompatActivity(), LoadingLoginFragment.LoadingListener 
 
                     saveUserDataLocally(body, accessToken, refreshToken)
 
-                    showLoadingFragment("Carregando dados do usuário...")
 
                 } else {
                     handleErrorResponse(response)
@@ -292,90 +323,13 @@ class LoginActivity : AppCompatActivity(), LoadingLoginFragment.LoadingListener 
             } catch (e: Exception) {
                 Timber.tag("LoginActivity").e(e, "Erro no login por e-mail")
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@LoginActivity, "Erro no login: ${'$'}{e.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@LoginActivity, "Erro no login: ${e.message}", Toast.LENGTH_LONG).show()
                 }
             }
         }
     }
 
-    private fun performQrLogin(qrText: String) {
-        val handler = CoroutineExceptionHandler { _, throwable ->
-            Timber.tag("LoginActivity").e(throwable, "Exception no handler (QR login)")
-            runOnUiThread {
-                Toast.makeText(this, "Erro no login via QR: ${'$'}{throwable.message}", Toast.LENGTH_LONG).show()
-            }
-        }
-
-        lifecycleScope.launch(handler) {
-            try {
-                val parts = qrText.split("@")
-                if (parts.size != 2) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(this@LoginActivity, "QR inválido: formato esperado token@pin", Toast.LENGTH_LONG).show()
-                    }
-                    return@launch
-                }
-
-                val token = parts[0].trim()
-                val pin = parts[1].trim()
-
-                Timber.tag("LoginActivity").d("Chamando authRepository.signInWithQrCode()")
-                val response: Response<LoginResponse> = withContext(Dispatchers.IO) {
-                    authRepository.signInWithQrCode(token, pin)
-                }
-
-                Timber.tag("LoginActivity").d("HTTP=${'$'}{response.code()} success=${'$'}{response.isSuccessful}")
-
-                if (response.isSuccessful && (response.code() == 200 || response.code() == 201)) {
-                    val body = response.body()
-                    if (body == null) {
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(this@LoginActivity, "Resposta vazia do servidor", Toast.LENGTH_LONG).show()
-                        }
-                        return@launch
-                    }
-
-                    val cookies = response.headers().values("Set-Cookie")
-                    val accessToken = cookies.firstOrNull { it.startsWith("access=") }
-                        ?.substringAfter("access=")?.substringBefore(";")
-                        ?: body.jwt.access
-
-                    val refreshToken = cookies.firstOrNull { it.startsWith("refresh=") }
-                        ?.substringAfter("refresh=")?.substringBefore(";")
-                        ?: body.jwt.refresh
-
-                    saveUserDataLocally(body, accessToken, refreshToken)
-
-                    showLoadingFragment("Carregando dados do usuário...")
-
-                } else {
-                    val errorMsg = when (response.code()) {
-                        400 -> "Requisição inválida"
-                        401 -> "E-mail, token ou PIN incorretos"
-                        in 500..599 -> "Erro no servidor"
-                        else -> "Erro desconhecido (status ${'$'}{response.code()})"
-                    }
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(this@LoginActivity, errorMsg, Toast.LENGTH_LONG).show()
-                    }
-                }
-            } catch (e: Exception) {
-                Timber.tag("LoginActivity").e(e, "Erro no login via QR")
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(this@LoginActivity, "Erro no login via QR: ${'$'}{e.message}", Toast.LENGTH_LONG).show()
-                }
-            }
-        }
-    }
-
-    private fun showLoadingFragment(message: String) {
-        val frag = LoadingLoginFragment.newInstance(message)
-        supportFragmentManager.beginTransaction()
-            .add(android.R.id.content, frag, "loading_fragment")
-            .commitAllowingStateLoss()
-    }
-
-    override fun onLoadingFinished() {
+    fun onLoadingFinished() {
         val frag = supportFragmentManager.findFragmentByTag("loading_fragment")
         if (frag != null) {
             supportFragmentManager.beginTransaction().remove(frag).commitAllowingStateLoss()
@@ -390,11 +344,10 @@ class LoginActivity : AppCompatActivity(), LoadingLoginFragment.LoadingListener 
             400 -> "Requisição inválida"
             401 -> "E-mail ou senha incorretos"
             in 500..599 -> "Erro no servidor"
-            else -> "Erro desconhecido (status ${'$'}{response.code()})"
+            else -> "Erro desconhecido (status ${response.code()})"
         }
 
         withContext(Dispatchers.Main) {
-            // Mostrar mensagem no campo de erro abaixo dos inputs
             loginErrorText.text = errorMsg
             loginErrorText.visibility = View.VISIBLE
         }
@@ -414,5 +367,25 @@ class LoginActivity : AppCompatActivity(), LoadingLoginFragment.LoadingListener 
             }
         }
         Timber.tag("LoginActivity").d("Dados de autenticação salvos")
+    }
+
+    private fun startMenusPreloadAndProceed() {
+        onLoadingFinished()
+    }
+
+    // Helpers para exibir/remover fragments de status (tag = "loading_fragment")
+    private fun showFragment(fragment: Fragment) {
+        // removemos anterior (se houver) e adicionamos o novo com a mesma tag
+        removeLoadingFragmentIfExists()
+        supportFragmentManager.beginTransaction()
+            .add(android.R.id.content, fragment, "loading_fragment")
+            .commitAllowingStateLoss()
+    }
+
+    private fun removeLoadingFragmentIfExists() {
+        val existing = supportFragmentManager.findFragmentByTag("loading_fragment")
+        if (existing != null) {
+            supportFragmentManager.beginTransaction().remove(existing).commitAllowingStateLoss()
+        }
     }
 }

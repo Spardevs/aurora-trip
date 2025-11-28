@@ -1,9 +1,11 @@
-package br.com.ticpass.pos.di
+package br.com.ticpass.pos.core.network
 
 import br.com.ticpass.Constants
 import br.com.ticpass.pos.core.network.interceptor.AuthInterceptor
 import br.com.ticpass.pos.data.auth.remote.service.AuthService
 import br.com.ticpass.pos.data.device.remote.service.DeviceService
+import br.com.ticpass.pos.data.menu.remote.service.MenuApiService
+import br.com.ticpass.pos.data.menu.remote.service.MenuLogoService
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -14,6 +16,7 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
@@ -58,5 +61,17 @@ object NetworkModule {
     @Singleton
     fun provideDeviceService(retrofit: Retrofit): DeviceService {
         return retrofit.create(DeviceService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMenuApiService(retrofit: Retrofit): MenuApiService {
+        return retrofit.create(MenuApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMenuLogoService(retrofit: Retrofit): MenuLogoService {
+        return retrofit.create(MenuLogoService::class.java)
     }
 }

@@ -46,6 +46,7 @@
     <string name="label_model">Modelo:</string>
 
     <!-- Valores de exemplo (substituir dinamicamente em runtime quando possível) -->
+    <string name="loading_default">Loading...</string>
     <string name="sample_serial_value">1651561165156</string>
     <string name="sample_acquirer_value">pagseguro</string>
     <string name="sample_model_value">A930</string>

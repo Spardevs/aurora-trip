@@ -8,6 +8,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_with_gradient">
 
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/choiceContainer"
         android:layout_width="match_parent"
