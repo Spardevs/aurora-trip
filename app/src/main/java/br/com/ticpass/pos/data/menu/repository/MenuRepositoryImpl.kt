@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import okhttp3.ResponseBody
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -21,29 +22,24 @@ class MenuRepositoryImpl @Inject constructor(
     private val localDataSource: MenuLocalDataSource,
     private val context: Context
 ) : MenuRepository {
-
-    // assinatura
-    // file: MenuRepositoryImpl.kt (inside class)
     override fun getMenuItems(take: Int, page: Int): Flow<List<MenuDb>> = flow {
         try {
-            // cache (MenuEntity -> MenuDb)
             val cachedEntities = localDataSource.getAllMenus().first()
-            if (!cachedEntities.isNullOrEmpty()) {
-                val cachedDomain: List<MenuDb> = cachedEntities.map { it.toDomainModel() } // MenuEntity -> MenuDb
+            if (cachedEntities.isNotEmpty()) {
+                val cachedDomain: List<MenuDb> = cachedEntities.map { it.toDomainModel() }
                 emit(cachedDomain)
             }
 
-            // remote: fetch remote Menu (domain Menu), convert to entities and persist
+            Timber.d("MenuRepositoryImpl.getMenuItems - tentando obter cache e remote")
             val response = remoteDataSource.getMenu(take, page)
+            Timber.d("MenuRepositoryImpl.getMenuItems - remote response edges=${response.edges.size}")
             val remoteDomain = response.edges.map { it.toDomainModel() } // List<Menu> (remote -> domain Menu)
             val entities = remoteDomain.map { it.toEntity() } // Menu -> MenuEntity
             localDataSource.insertMenus(entities)
 
-            // convert persisted entities -> MenuDb and emit
-            val remoteAsDb: List<MenuDb> = entities.map { it.toDomainModel() } // MenuEntity -> MenuDb
+            val remoteAsDb: List<MenuDb> = entities.map { it.toDomainModel() }
             emit(remoteAsDb)
         } catch (e: Exception) {
-            // fallback to cached
             try {
                 val cached = localDataSource.getAllMenus().first()
                 val domain: List<MenuDb> = cached.map { it.toDomainModel() }

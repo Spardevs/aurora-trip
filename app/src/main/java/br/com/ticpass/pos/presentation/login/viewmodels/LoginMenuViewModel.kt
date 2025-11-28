@@ -1,4 +1,4 @@
-package br.com.ticpass.pos.presentation.menu
+package br.com.ticpass.pos.presentation.login.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -25,6 +26,7 @@ class LoginMenuViewModel @Inject constructor(
     val uiState: StateFlow<LoginMenuUiState> = _uiState
 
     fun loadMenuItems(take: Int = 10, page: Int = 1) {
+        Timber.d("LoginMenuViewModel.loadMenuItems called take=$take page=$page")
         viewModelScope.launch {
             getMenuItemsUseCase(take, page)
                 .catch { exception ->

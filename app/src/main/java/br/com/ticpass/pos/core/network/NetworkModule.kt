@@ -2,6 +2,7 @@ package br.com.ticpass.pos.core.network
 
 import br.com.ticpass.Constants
 import br.com.ticpass.pos.core.network.interceptor.AuthInterceptor
+import br.com.ticpass.pos.core.network.interceptor.VersionInterceptor
 import br.com.ticpass.pos.data.auth.remote.service.AuthService
 import br.com.ticpass.pos.data.device.remote.service.DeviceService
 import br.com.ticpass.pos.data.menu.remote.service.MenuApiService
@@ -12,7 +13,9 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
@@ -25,9 +28,24 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
+    fun provideVersionInterceptor(): Interceptor {
+        return VersionInterceptor()
+    }
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(
+        authInterceptor: AuthInterceptor,
+        versionInterceptor: VersionInterceptor
+    ): OkHttpClient {
+        val logging = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+
         return OkHttpClient.Builder()
+            .addInterceptor(versionInterceptor)
             .addInterceptor(authInterceptor)
+            .addInterceptor(logging)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .build()

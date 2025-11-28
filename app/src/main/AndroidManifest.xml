@@ -9,7 +9,7 @@
   ~ entered into with Ticpass.
   ~
   ~ Unauthorized copying, distribution, or use of this software, via any medium,
-  ~ is strictly prohibited without the express written permission of Ticpass.
+  ~ is strictly prohibited without the express written permission of Tifcpass.
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
@@ -33,6 +33,7 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <uses-permission android:name="android.permission.ENFORCE_UPDATE_OWNERSHIP" />
     <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
@@ -111,6 +112,11 @@
             android:exported="false"/>
         <activity
             android:name=".presentation.login.activities.LoginActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:exported="false"
+            />
+        <activity
+            android:name=".presentation.login.activities.LoginMenuActivity"
             android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="false"
             />

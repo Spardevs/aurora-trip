@@ -15,8 +15,9 @@ import br.com.ticpass.pos.presentation.login.adapters.LoginMenuAdapter
 import br.com.ticpass.pos.presentation.login.states.LoginMenuUiState
 
 import br.com.ticpass.pos.core.util.SessionPrefsManager
-import br.com.ticpass.pos.presentation.menu.LoginMenuViewModel
-import br.com.ticpass.pos.presentation.menu.MenuLogoViewModel
+import br.com.ticpass.pos.presentation.login.viewmodels.LoginMenuViewModel
+import br.com.ticpass.pos.presentation.login.viewmodels.MenuLogoViewModel
+import br.com.ticpass.pos.presentation.common.LoginLoadingFragment
 
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -24,7 +25,7 @@ import timber.log.Timber
 import java.io.File
 
 @AndroidEntryPoint
-class LoginMenuActivity : AppCompatActivity() {
+class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
 
     private val menuViewModel: LoginMenuViewModel by viewModels()
     private val logoViewModel: MenuLogoViewModel by viewModels()
@@ -32,6 +33,10 @@ class LoginMenuActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private var menus: List<MenuDb> = emptyList()
     private var logoFiles: Map<String, File> = emptyMap()
+
+    // Loading fragment
+    private var loadingFragment: LoginLoadingFragment? = null
+    private var expectedLogoCount: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,32 +47,58 @@ class LoginMenuActivity : AppCompatActivity() {
 
         setupViews()
         observeViewModels()
+
+        // Mostra o fragment de loading antes de iniciar o carregamento
+        loadingFragment = LoginLoadingFragment.newInstance(getString(R.string.loading_default), cancelable = true)
+        supportFragmentManager.beginTransaction()
+            .add(android.R.id.content, loadingFragment!!, "login_loading")
+            .commitAllowingStateLoss()
+
         loadMenus()
     }
 
     private fun setupViews() {
         recyclerView = findViewById(R.id.menusRecyclerView)
         recyclerView.layoutManager = GridLayoutManager(this, 2)
+        recyclerView.adapter = LoginMenuAdapter(emptyList(), emptyMap()) { /* noop */ }
     }
 
     private fun observeViewModels() {
-        // Observa o estado dos menus
         lifecycleScope.launch {
             menuViewModel.uiState.collect { state ->
                 when (state) {
                     is LoginMenuUiState.Loading -> {
-                        // Mostrar loading
+                        loadingFragment?.updateMessage(getString(R.string.loading_menus))
+                        loadingFragment?.showProgress(true)
                     }
                     is LoginMenuUiState.Success -> {
-                        menus = state.menus // lista de MenuDb
+                        menus = state.menus
                         showMenus()
-                        downloadMenuLogos(state.menus)
+                        expectedLogoCount = menus.count { !it.logo.isNullOrEmpty() }
+
+                        if (expectedLogoCount > 0) {
+                            loadingFragment?.updateMessage(getString(R.string.downloading_logos))
+                            loadingFragment?.showProgress(true)
+                            downloadMenuLogos(state.menus)
+                        } else {
+                            removeLoadingFragmentIfExists()
+                        }
                     }
                     is LoginMenuUiState.Error -> {
+                        loadingFragment?.updateMessage(state.message)
+                        loadingFragment?.showProgress(false)
                         showError(state.message)
                     }
                     is LoginMenuUiState.Empty -> {
-                        // Tratar lista vazia
+                        val msg = try {
+                            getString(R.string.no_menus_found)
+                        } catch (e: Exception) {
+                            "Nenhum menu encontrado"
+                        }
+                        loadingFragment?.updateMessage(msg)
+                        loadingFragment?.showProgress(false)
+                        removeLoadingFragmentIfExists()
+                        showError(msg)
                     }
                 }
             }
@@ -85,12 +116,20 @@ class LoginMenuActivity : AppCompatActivity() {
                 if (menus.isNotEmpty()) {
                     showMenus()
                 }
+
+                // Se já tivermos todas as logos esperadas, remover o loading
+                if (expectedLogoCount == 0) {
+                    removeLoadingFragmentIfExists()
+                } else if (files.size >= expectedLogoCount) {
+                    removeLoadingFragmentIfExists()
+                }
             }
         }
     }
 
     private fun loadMenus() {
         menuViewModel.loadMenuItems(take = 10, page = 1)
+        // Carrega logos locais imediatamente (pode já conter algumas imagens)
         logoViewModel.loadAllLocalLogos()
     }
 
@@ -122,6 +161,31 @@ class LoginMenuActivity : AppCompatActivity() {
 
     private fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+
+    private fun removeLoadingFragmentIfExists() {
+        val frag = supportFragmentManager.findFragmentByTag("login_loading")
+        if (frag != null) {
+            supportFragmentManager.beginTransaction().remove(frag).commitAllowingStateLoss()
+            loadingFragment = null
+        }
+    }
+
+    // LoginLoadingFragment.Listener implementation
+    override fun onLoadingCancelled() {
+        removeLoadingFragmentIfExists()
+    }
+
+    override fun onLoadingAction(action: String) {
+        // exemplo: action = "retry"
+        if (action.equals("retry", ignoreCase = true)) {
+            // reinicia o carregamento
+            expectedLogoCount = 0
+            loadingFragment?.updateMessage(getString(R.string.loading_default))
+            loadingFragment?.showProgress(true)
+            menuViewModel.loadMenuItems(take = 10, page = 1)
+            logoViewModel.loadAllLocalLogos()
+        }
     }
 
     companion object {

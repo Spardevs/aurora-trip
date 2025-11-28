@@ -249,7 +249,7 @@ class LoginActivity : AppCompatActivity() {
         val tvSerial = dialogView.findViewById<TextView>(R.id.tvSerial)
         val tvAcquirer = dialogView.findViewById<TextView>(R.id.tvAcquirer)
         val tvModel = dialogView.findViewById<TextView>(R.id.tvModel)
-        val btnOk = dialogView.findViewById<android.widget.Button>(R.id.btnOk)
+        val btnOk = dialogView.findViewById<Button>(R.id.btnOk)
 
         // Obtém os valores do DeviceUtils
         val model = br.com.ticpass.pos.core.util.DeviceUtils.getDeviceModel()

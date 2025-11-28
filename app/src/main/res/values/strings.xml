@@ -46,6 +46,9 @@
     <string name="label_model">Modelo:</string>
 
     <!-- Valores de exemplo (substituir dinamicamente em runtime quando possível) -->
+    <string name="no_menus_found">No menus found...</string>
+    <string name="downloading_logos">Downloading menus...</string>
+    <string name="loading_menus">Loading menus...</string>
     <string name="loading_default">Loading...</string>
     <string name="sample_serial_value">1651561165156</string>
     <string name="sample_acquirer_value">pagseguro</string>
