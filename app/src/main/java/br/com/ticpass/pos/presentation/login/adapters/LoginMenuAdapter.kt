@@ -16,7 +16,8 @@ import java.util.Locale
 
 class LoginMenuAdapter(
     private val items: List<MenuDb>,
-    private val logos: Map<String, File>,
+    private val onRequestLogo: (menuId: String, rawLogo: String?) -> Unit,
+    private val logos: Map<String, File>? = null,
     private val onClick: (MenuDb) -> Unit
 ) : RecyclerView.Adapter<LoginMenuAdapter.MenuViewHolder>() {
 
@@ -28,10 +29,18 @@ class LoginMenuAdapter(
 
     override fun onBindViewHolder(holder: MenuViewHolder, position: Int) {
         val menu = items[position]
-        holder.bind(menu, logos[menu.id])
-        holder.itemView.setOnClickListener { onClick(menu) }
-    }
+        val logoFile = logos?.get(menu.id) ?: menu.logo?.let { path ->
+            val f = File(path)
+            if (f.exists()) f else null
+        }
 
+        holder.bind(menu, logoFile)
+        holder.itemView.setOnClickListener { onClick(menu) }
+
+        if (logoFile == null && !menu.logo.isNullOrBlank()) {
+            onRequestLogo(menu.id, menu.logo)
+        }
+    }
     override fun getItemCount(): Int = items.size
 
     class MenuViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

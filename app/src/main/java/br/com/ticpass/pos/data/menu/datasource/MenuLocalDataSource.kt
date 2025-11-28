@@ -14,5 +14,7 @@ class MenuLocalDataSource @Inject constructor(
 
     suspend fun insertMenus(menus: List<MenuEntity>) = menuDao.insertMenus(menus)
 
+    suspend fun insertOrUpdateMenu(menu: MenuEntity) = menuDao.insertMenus(listOf(menu))
+
     suspend fun clearAllMenus() = menuDao.clearAllMenus()
 }

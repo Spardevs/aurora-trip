@@ -11,6 +11,9 @@ import br.com.ticpass.pos.domain.menu.model.MenuDb
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
 import timber.log.Timber
 import java.io.File
@@ -36,6 +39,30 @@ class MenuRepositoryImpl @Inject constructor(
             val remoteDomain = response.edges.map { it.toDomainModel() } // List<Menu> (remote -> domain Menu)
             val entities = remoteDomain.map { it.toEntity() } // Menu -> MenuEntity
             localDataSource.insertMenus(entities)
+
+            // Iniciar downloads em paralelo (não bloquear a emissão)
+            try {
+                coroutineScope {
+                    entities.forEach { entity ->
+                        val logoId = entity.logo
+                        if (!logoId.isNullOrBlank()) {
+                            launch(Dispatchers.IO) {
+                                try {
+                                    val body = logoRemoteDataSource.downloadLogo(logoId)
+                                    val file = writeResponseBodyToDisk(body, logoId)
+                                    file?.let {
+                                        // Atualiza o registro no banco para apontar para o arquivo local
+                                        val updated = entity.copy(logo = it.absolutePath)
+                                        localDataSource.insertOrUpdateMenu(updated)
+                                    }
+                                } catch (e: Exception) {
+                                    Timber.e(e, "Erro ao baixar logo id=$logoId")
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (ignored: Exception) { /* log se necessário */ }
 
             val remoteAsDb: List<MenuDb> = entities.map { it.toDomainModel() }
             emit(remoteAsDb)
@@ -85,5 +112,19 @@ class MenuRepositoryImpl @Inject constructor(
 
     override fun getAllLogoFiles(): List<File> {
         return logoDirectory.listFiles()?.toList() ?: emptyList()
+    }
+
+    override suspend fun updateMenuLogoPath(menuId: String, localPath: String) {
+        try {
+            val existing = localDataSource.getMenuById(menuId)
+            if (existing != null) {
+                val updated = existing.copy(logo = localPath)
+                localDataSource.insertOrUpdateMenu(updated)
+            } else {
+                Timber.w("updateMenuLogoPath: menuId=$menuId not found in local DB")
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to update menu logo path for $menuId")
+        }
     }
 }

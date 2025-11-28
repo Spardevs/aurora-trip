@@ -8,8 +8,11 @@ import br.com.ticpass.pos.data.auth.remote.dto.LoginResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Response
+import timber.log.Timber
 import java.io.IOException
 import javax.inject.Inject
 
@@ -59,17 +62,16 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    suspend fun signInWithQrCode(token: String, pin: String): Response<LoginResponse> {
+    suspend fun signInWithQrCode(qrToken: String, payloadJson: String): Response<LoginResponse> {
         return withContext(Dispatchers.IO) {
             try {
-                val cookieHeader = "shortLived=$token"
-                // Enviar um JSON vazio válido (não string vazia)
-                val requestBody = "{}".toRequestBody("application/json".toMediaType())
+                val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
+                val requestBody: RequestBody = payloadJson.toRequestBody(mediaType)
 
-                val response = authService.signInShortLived(
-                    requestBody = requestBody,
-                    cookieHeader = cookieHeader
-                )
+                // Header Cookie exatamente como no curl
+                val cookieHeader = "shortLived=$qrToken"
+
+                val response = authService.signInShortLived(requestBody, cookieHeader)
 
                 if (response.isSuccessful) {
                     response.body()?.let { loginResponse ->
@@ -92,6 +94,7 @@ class AuthRepositoryImpl @Inject constructor(
                         tokenManager.saveTokens(accessToken, refreshToken)
                     }
                 }
+
                 response
             } catch (e: Exception) {
                 throw IOException("Erro de rede", e)
@@ -99,7 +102,6 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    // Tornando suspend porque TokenManager.getAccessToken é suspend
     suspend fun getStoredAccessToken(): String? {
         return tokenManager.getAccessToken()
     }

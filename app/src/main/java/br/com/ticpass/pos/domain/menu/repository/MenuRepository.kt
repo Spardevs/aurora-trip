@@ -9,4 +9,6 @@ interface MenuRepository {
     fun downloadLogo(logoId: String): Flow<File?>
     fun getLogoFile(logoId: String): File?
     fun getAllLogoFiles(): List<File>
+
+    suspend fun updateMenuLogoPath(menuId: String, localPath: String)
 }

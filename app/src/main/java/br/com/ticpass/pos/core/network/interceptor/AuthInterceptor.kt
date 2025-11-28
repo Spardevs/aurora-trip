@@ -15,16 +15,35 @@ class AuthInterceptor @Inject constructor(
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
-        val originalRequest = chain.request()
-        val accessToken = tokenManager.getAccessTokenSync()
-        Timber.tag("AuthInterceptor")
-            .d("intercept called, token present=${!accessToken.isNullOrEmpty()}")
-        if (accessToken.isNullOrEmpty()) {
-            return chain.proceed(originalRequest)
+        val original = chain.request()
+        val path = original.url.encodedPath
+
+        // 1) Se o request já traz Cookie, respeita (ex: você montou o request com Cookie shortLived)
+        if (!original.header("Cookie").isNullOrBlank()) {
+            Timber.tag("AuthInterceptor").d("Request already has Cookie header, skipping injection for path=$path")
+            return chain.proceed(original)
         }
-        val authenticatedRequest = originalRequest.newBuilder()
-            .addHeader("Cookie", "access=$accessToken")
-            .build()
-        return chain.proceed(authenticatedRequest)
+
+        // 2) Exceção explícita para a rota short-lived signin (não injetar cookie)
+        if (path.contains("signin/pos/short-lived")) {
+            Timber.tag("AuthInterceptor").d("Skipping cookie injection for short-lived signin route: $path")
+            return chain.proceed(original)
+        }
+
+        val accessToken = tokenManager.getAccessTokenSync()
+
+        val cookieValue = when {
+            !accessToken.isNullOrEmpty() -> "access=$accessToken"
+            else -> null
+        }
+
+        return if (cookieValue == null) {
+            chain.proceed(original)
+        } else {
+            val authenticatedRequest = original.newBuilder()
+                .header("Cookie", cookieValue) // usa header para evitar duplicatas
+                .build()
+            chain.proceed(authenticatedRequest)
+        }
     }
 }

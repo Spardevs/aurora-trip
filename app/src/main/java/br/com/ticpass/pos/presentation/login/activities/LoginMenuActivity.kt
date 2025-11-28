@@ -60,7 +60,12 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
     private fun setupViews() {
         recyclerView = findViewById(R.id.menusRecyclerView)
         recyclerView.layoutManager = GridLayoutManager(this, 2)
-        recyclerView.adapter = LoginMenuAdapter(emptyList(), emptyMap()) { /* noop */ }
+        recyclerView.adapter = LoginMenuAdapter(
+            emptyList(),
+            onRequestLogo = { _, _ -> /* noop */ },
+            logos = emptyMap(),
+            onClick = { /* noop */ }
+        )
     }
 
     private fun observeViewModels() {
@@ -79,7 +84,7 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
                         if (expectedLogoCount > 0) {
                             loadingFragment?.updateMessage(getString(R.string.downloading_logos))
                             loadingFragment?.showProgress(true)
-                            downloadMenuLogos(state.menus)
+                            // logos ser�o baixadas de forma lazy pelo Adapter quando as c�lulas aparecerem
                         } else {
                             removeLoadingFragmentIfExists()
                         }
@@ -134,9 +139,15 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
     }
 
     private fun showMenus() {
-        val adapter = LoginMenuAdapter(menus, logoFiles) { selectedMenu ->
-            onMenuClicked(selectedMenu)
-        }
+        val adapter = LoginMenuAdapter(
+            menus,
+            onRequestLogo = { menuId, rawLogo ->
+                // solicita o download lazy via ViewModel
+                menuViewModel.downloadLogoForMenu(menuId, rawLogo)
+            },
+            logos = logoFiles,
+            onClick = { selectedMenu -> onMenuClicked(selectedMenu) }
+        )
         recyclerView.adapter = adapter
     }
 

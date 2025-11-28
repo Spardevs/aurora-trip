@@ -2,6 +2,7 @@ package br.com.ticpass.pos.presentation.login.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.ticpass.pos.domain.menu.repository.MenuRepository
 import br.com.ticpass.pos.domain.menu.usecase.GetMenuItemsUseCase
 import br.com.ticpass.pos.domain.menu.usecase.DownloadMenuLogoUseCase
 import br.com.ticpass.pos.domain.menu.usecase.GetMenuLogoFileUseCase
@@ -19,7 +20,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginMenuViewModel @Inject constructor(
-    private val getMenuItemsUseCase: GetMenuItemsUseCase
+    private val getMenuItemsUseCase: GetMenuItemsUseCase,
+    private val downloadMenuLogoUseCase: DownloadMenuLogoUseCase,
+    private val menuRepository: MenuRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<LoginMenuUiState>(LoginMenuUiState.Loading)
@@ -41,6 +44,38 @@ class LoginMenuViewModel @Inject constructor(
                 }
         }
     }
+
+    /**
+     * Baixa a logo de forma lazy e atualiza o caminho local no banco para o menu informado.
+     * rawLogo pode ser id ou URL (será normalizado automaticamente).
+     */
+    fun downloadLogoForMenu(menuId: String, rawLogo: String?) {
+        if (rawLogo.isNullOrBlank()) return
+
+        viewModelScope.launch {
+            val logoParam = try {
+                if (rawLogo.startsWith("http")) android.net.Uri.parse(rawLogo).lastPathSegment ?: rawLogo
+                else rawLogo
+            } catch (e: Exception) {
+                rawLogo
+            }
+
+            downloadMenuLogoUseCase(logoParam)
+                .catch { e -> Timber.e(e, "downloadLogoForMenu failed for $logoParam") }
+                .collect { file ->
+                    file?.let {
+                        try {
+                            // atualiza DB para que o fluxo do Room emita novamente
+                            menuRepository.updateMenuLogoPath(menuId, it.absolutePath)
+                            Timber.d("Logo baixada e DB atualizada: menuId=$menuId path=${it.absolutePath}")
+                        } catch (e: Exception) {
+                            Timber.e(e, "Erro ao atualizar DB com logo para menuId=$menuId")
+                        }
+                    }
+                }
+        }
+    }
+
 }
 
 @HiltViewModel
@@ -81,4 +116,6 @@ class MenuLogoViewModel @Inject constructor(
             _localLogosState.value = getAllMenuLogoFilesUseCase()
         }
     }
+
+
 }

@@ -1,8 +1,8 @@
 package br.com.ticpass.pos.domain.login.usecase
 
-
 import br.com.ticpass.pos.data.auth.remote.dto.LoginResponse
 import br.com.ticpass.pos.data.auth.repository.AuthRepositoryImpl
+import retrofit2.Response
 import javax.inject.Inject
 
 class SignInWithQrUseCase @Inject constructor(
@@ -11,12 +11,14 @@ class SignInWithQrUseCase @Inject constructor(
     suspend operator fun invoke(shortLivedToken: String, pin: String): Result<Pair<LoginResponse, Pair<String?, String?>>> {
         return try {
             val response = authRepositoryImpl.signInWithQrCode(shortLivedToken, pin)
+
             if (response.isSuccessful) {
                 val body = response.body() ?: return Result.failure(Exception("Resposta vazia do servidor"))
+
                 // Extrai cookies Set-Cookie: access=...; ..., refresh=...; ...
-                val cookies = response.headers().values("Set-Cookie")
-                val accessCookie = cookies.firstOrNull { it.startsWith("access=") }
-                val refreshCookie = cookies.firstOrNull { it.startsWith("refresh=") }
+                val cookies: List<String> = response.headers().values("Set-Cookie")
+                val accessCookie = cookies.firstOrNull { cookie -> cookie.startsWith("access=") }
+                val refreshCookie = cookies.firstOrNull { cookie -> cookie.startsWith("refresh=") }
 
                 val accessToken = accessCookie
                     ?.substringAfter("access=")
