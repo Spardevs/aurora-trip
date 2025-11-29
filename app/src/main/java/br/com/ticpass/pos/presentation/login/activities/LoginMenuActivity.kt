@@ -166,11 +166,30 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
         }
     }
 
+    // LoginMenuActivity.kt (trecho)
     private fun onMenuClicked(menu: MenuDb) {
         Timber.tag("MenuActivity").d("Menu selecionado: ${menu.id}")
 
-        // Salva o id selecionado no SessionPrefs
         SessionPrefsManager.saveSelectedMenuId(menu.id.toString())
+
+        // Cria o fragment PosFragment (pode obter menuId via args ou ler SessionPrefs dentro do fragment)
+        val posFragment = br.com.ticpass.pos.presentation.login.LoginPosFragment.newInstance(menu.id)
+
+        // Se você adicionou um container no layout (R.id.pos_fragment_container) use-o:
+        val containerId = resources.getIdentifier("pos_fragment_container", "id", packageName)
+        if (containerId != 0) {
+            supportFragmentManager.beginTransaction()
+                .replace(containerId, posFragment)
+                .addToBackStack("pos")
+                .commitAllowingStateLoss()
+            return
+        }
+
+        // Caso não tenha container, substitui todo o conteúdo da Activity:
+        supportFragmentManager.beginTransaction()
+            .replace(android.R.id.content, posFragment)
+            .addToBackStack("pos")
+            .commitAllowingStateLoss()
     }
 
     private fun showError(message: String) {

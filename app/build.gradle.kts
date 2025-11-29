@@ -296,6 +296,7 @@ dependencies {
     implementation(libs.zxing.core)
     implementation(libs.zxing)
     implementation("com.jakewharton.timber:timber:5.0.1")
+    implementation("io.insert-koin:koin-android:3.4.0")
 
     // Google's Goodies
     implementation(libs.google.android.material)
