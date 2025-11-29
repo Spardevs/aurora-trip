@@ -84,11 +84,15 @@ class MenuRepositoryImpl @Inject constructor(
     }
 
     override fun downloadLogo(logoId: String): Flow<File?> = flow {
+        Timber.d("MenuRepositoryImpl.downloadLogo called logoId=$logoId")
         try {
             val responseBody: ResponseBody = logoRemoteDataSource.downloadLogo(logoId)
+            Timber.d("MenuRepositoryImpl.downloadLogo got responseBody for $logoId")
             val file = writeResponseBodyToDisk(responseBody, logoId)
+            Timber.d("MenuRepositoryImpl.downloadLogo wrote file=$file for $logoId")
             emit(file)
         } catch (e: Exception) {
+            Timber.e(e, "MenuRepositoryImpl.downloadLogo failed for $logoId")
             emit(null)
         }
     }

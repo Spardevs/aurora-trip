@@ -84,7 +84,15 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
                         if (expectedLogoCount > 0) {
                             loadingFragment?.updateMessage(getString(R.string.downloading_logos))
                             loadingFragment?.showProgress(true)
-                            // logos ser�o baixadas de forma lazy pelo Adapter quando as c�lulas aparecerem
+
+                            // FORÇAR download das logos aqui para não depender do Adapter ficar visível
+                            menus.forEach { menu ->
+                                menu.logo?.let { rawLogo ->
+                                    Timber.d("Activity -> forcing download for menu=${menu.id} rawLogo=$rawLogo")
+                                    // usa o ViewModel que atualiza o DB quando o download termina
+                                    menuViewModel.downloadLogoForMenu(menu.id, rawLogo)
+                                }
+                            }
                         } else {
                             removeLoadingFragmentIfExists()
                         }
@@ -112,9 +120,8 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
         // Observa o estado das logos
         lifecycleScope.launch {
             logoViewModel.localLogosState.collect { files ->
-                // Atualiza o mapa de logos
+                // Atualiza o mapa de logos (key = logoId)
                 logoFiles = files.associateBy { file ->
-                    // Extrai o ID do menu do nome do arquivo
                     file.name.replace("logo_", "").replace(".png", "")
                 }
                 // Atualiza a lista se já estiver carregada
@@ -142,7 +149,7 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
         val adapter = LoginMenuAdapter(
             menus,
             onRequestLogo = { menuId, rawLogo ->
-                // solicita o download lazy via ViewModel
+                // solicita o download lazy via ViewModel (backup)
                 menuViewModel.downloadLogoForMenu(menuId, rawLogo)
             },
             logos = logoFiles,
@@ -153,8 +160,8 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
 
     private fun downloadMenuLogos(menus: List<MenuDb>) {
         menus.forEach { menu ->
-            menu.logo?.let { logoId ->
-                logoViewModel.downloadLogo(logoId)
+            menu.logo?.let { rawLogo ->
+                menuViewModel.downloadLogoForMenu(menu.id, rawLogo)
             }
         }
     }
@@ -164,10 +171,6 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
 
         // Salva o id selecionado no SessionPrefs
         SessionPrefsManager.saveSelectedMenuId(menu.id.toString())
-
-        // Navega para PosActivity (descomente se quiser navegar)
-//    val intent = PosActivity.newIntent(this, menu.id)
-//    startActivity(intent)
     }
 
     private fun showError(message: String) {
@@ -188,9 +191,7 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
     }
 
     override fun onLoadingAction(action: String) {
-        // exemplo: action = "retry"
         if (action.equals("retry", ignoreCase = true)) {
-            // reinicia o carregamento
             expectedLogoCount = 0
             loadingFragment?.updateMessage(getString(R.string.loading_default))
             loadingFragment?.showProgress(true)

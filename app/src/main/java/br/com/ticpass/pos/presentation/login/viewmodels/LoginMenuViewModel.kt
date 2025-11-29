@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
+import androidx.core.net.toUri
 
 @HiltViewModel
 class LoginMenuViewModel @Inject constructor(
@@ -50,19 +51,25 @@ class LoginMenuViewModel @Inject constructor(
      * rawLogo pode ser id ou URL (será normalizado automaticamente).
      */
     fun downloadLogoForMenu(menuId: String, rawLogo: String?) {
+        Timber.d("downloadLogoForMenu called menuId=$menuId rawLogo=$rawLogo")
         if (rawLogo.isNullOrBlank()) return
 
         viewModelScope.launch {
             val logoParam = try {
-                if (rawLogo.startsWith("http")) android.net.Uri.parse(rawLogo).lastPathSegment ?: rawLogo
+                if (rawLogo.startsWith("http")) rawLogo.toUri().lastPathSegment ?: rawLogo
                 else rawLogo
             } catch (e: Exception) {
                 rawLogo
             }
 
+            Timber.d("downloadLogoForMenu -> normalized logoParam=$logoParam for menuId=$menuId")
+
             downloadMenuLogoUseCase(logoParam)
-                .catch { e -> Timber.e(e, "downloadLogoForMenu failed for $logoParam") }
+                .catch { e ->
+                    Timber.e(e, "downloadLogoForMenu failed for $logoParam")
+                }
                 .collect { file ->
+                    Timber.d("downloadLogoForMenu collect file=$file for menuId=$menuId")
                     file?.let {
                         try {
                             // atualiza DB para que o fluxo do Room emita novamente
@@ -75,7 +82,6 @@ class LoginMenuViewModel @Inject constructor(
                 }
         }
     }
-
 }
 
 @HiltViewModel
@@ -116,6 +122,4 @@ class MenuLogoViewModel @Inject constructor(
             _localLogosState.value = getAllMenuLogoFilesUseCase()
         }
     }
-
-
 }
