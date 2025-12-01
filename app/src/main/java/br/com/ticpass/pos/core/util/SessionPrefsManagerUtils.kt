@@ -7,11 +7,16 @@ import androidx.core.content.edit
 object SessionPrefsManagerUtils {
     private const val PREFS_NAME = "SessionPrefs"
     private const val SELECTED_MENU_ID_KEY = "selected_menu_id"
+    private const val MENU_START_DATE_KEY = "menu_start_date"
+    private const val MENU_END_DATE_KEY = "menu_end_date"
+    private const val MENU_NAME_KEY = "menu_name"
     private const val POS_ID_KEY = "pos_id"
     private const val POS_NAME_KEY = "pos_name"
     private const val POS_COMMISSION_KEY = "pos_commission"
     private const val POS_ACCESS_TOKEN_KEY = "pos_access_token"
     private const val PROXY_CREDENTIALS_KEY = "proxy_credentials"
+
+    private const val OPERATOR_NAME_KEY = "operator_name"
 
     private lateinit var prefs: SharedPreferences
 
@@ -27,8 +32,36 @@ object SessionPrefsManagerUtils {
         return prefs.getString(SELECTED_MENU_ID_KEY, null)
     }
 
+    fun saveMenuStartDate(startDate: String) {
+        prefs.edit { putString(MENU_START_DATE_KEY, startDate) }
+    }
+
+    fun getMenuStartDate(): String? {
+        return prefs.getString(MENU_START_DATE_KEY, null)
+    }
+
+    fun saveMenuEndDate(endDate: String) {
+        prefs.edit { putString(MENU_END_DATE_KEY, endDate) }
+    }
+
+    fun getMenuEndDate(): String? {
+        return prefs.getString(MENU_END_DATE_KEY, null)
+    }
+
+    fun saveMenuName(name: String) {
+        prefs.edit { putString(MENU_NAME_KEY, name) }
+    }
+
+    fun getMenuName(): String? {
+        return prefs.getString(MENU_NAME_KEY, null)
+    }
     fun clearSelectedMenuId() {
-        prefs.edit { remove(SELECTED_MENU_ID_KEY) }
+        prefs.edit {
+            remove(SELECTED_MENU_ID_KEY)
+            remove(MENU_START_DATE_KEY)
+            remove(MENU_END_DATE_KEY)
+            remove(MENU_NAME_KEY)
+        }
     }
 
     fun savePosId(posId: String) {
@@ -69,5 +102,13 @@ object SessionPrefsManagerUtils {
 
     fun getProxyCredentials(): String? {
         return prefs.getString(PROXY_CREDENTIALS_KEY, null)
+    }
+
+    fun saveOperatorName(credentials: String) {
+        prefs.edit { putString(OPERATOR_NAME_KEY, credentials) }
+    }
+
+    fun getOperatorName(): String? {
+        return prefs.getString(OPERATOR_NAME_KEY, null)
     }
 }

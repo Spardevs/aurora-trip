@@ -159,6 +159,9 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
         Timber.tag("MenuActivity").d("Menu selecionado: ${menu.id}")
 
         SessionPrefsManagerUtils.saveSelectedMenuId(menu.id)
+        SessionPrefsManagerUtils.saveMenuStartDate(menu.date.start)
+        SessionPrefsManagerUtils.saveMenuEndDate(menu.date.end)
+        SessionPrefsManagerUtils.saveMenuName(menu.label)
 
         val posFragment = LoginPosFragment.newInstance(menu.id)
 
