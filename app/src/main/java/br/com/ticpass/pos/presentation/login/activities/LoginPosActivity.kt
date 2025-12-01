@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
+import br.com.ticpass.pos.core.util.SessionPrefsManagerUtils
 import br.com.ticpass.pos.presentation.login.adapters.LoginPosAdapter
 import br.com.ticpass.pos.presentation.login.states.LoginPosUiState
 import br.com.ticpass.pos.presentation.login.viewmodels.LoginPosViewModel
@@ -33,34 +34,27 @@ class LoginPosActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login_pos)
 
+        SessionPrefsManagerUtils.init(this)
+
         recyclerView = findViewById(R.id.pos_recycler_view)
         recyclerView.layoutManager = GridLayoutManager(this, 3)
 
         adapter = LoginPosAdapter(
-            items = mutableListOf(),
             onClick = { pos ->
-                // salva POS escolhido nas preferencias de sessão
-                val prefs = getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE)
-                prefs.edit().apply {
-                    putString("pos_id", pos.id)
-                    putString("pos_name", pos.name)
-                    putLong("pos_commission", pos.commission.toLong())
-                    apply()
-                }
-                // navegar para próxima tela, se houver
+                SessionPrefsManagerUtils.savePosId(pos.id)
+                SessionPrefsManagerUtils.savePosName("${pos.prefix} ${pos.sequence}")
+                SessionPrefsManagerUtils.savePosCommission(pos.commission)
             },
             onLongClick = { pos ->
-                // mostra diálogo de fechar (implemente Close via usecase se desejar)
                 showClosePosDialog(pos)
             }
         )
         recyclerView.adapter = adapter
 
-        // Recupera menuId e cabeçalhos (pos access token / proxy) das preferências
-        val prefs = getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE)
-        val menuId = prefs.getString("selected_menu_id", null)
-        val posAccessToken = prefs.getString("pos_access_token", "") ?: ""
-        val proxyCredentials = prefs.getString("proxy_credentials", "") ?: ""
+
+        val menuId = SessionPrefsManagerUtils.getSelectedMenuId()
+        val posAccessToken = SessionPrefsManagerUtils.getPosAccessToken() ?: ""
+        val proxyCredentials = SessionPrefsManagerUtils.getProxyCredentials() ?: ""
 
         if (menuId.isNullOrBlank()) {
             Toast.makeText(this, getString(R.string.no_menu_selected), Toast.LENGTH_LONG).show()
@@ -100,8 +94,6 @@ class LoginPosActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
             }
         }
 
-        // Inicia a observação e tentativa de refresh
-        // Atenção à ordem: observeMenu(menuId, authorization, cookie)
         posViewModel.observeMenu(menuId, authorization = proxyCredentials, cookie = posAccessToken)
     }
 
@@ -115,7 +107,6 @@ class LoginPosActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
 
     private fun showClosePosDialog(pos: br.com.ticpass.pos.domain.pos.model.Pos) {
         Timber.d("Solicitado fechar POS id=${pos.id}")
-        // ex.: abrir AlertDialog aqui ou chamar UseCase para fechar sessão
         Toast.makeText(this, "Fechar POS: ${pos.prefix} ${pos.sequence}", Toast.LENGTH_SHORT).show()
     }
 
@@ -126,21 +117,29 @@ class LoginPosActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
 
     override fun onLoadingAction(action: String) {
         if (action.equals("retry", ignoreCase = true)) {
-            // reinicia carregamento
             loadingFragment = LoginLoadingFragment.newInstance(getString(R.string.loading_default), cancelable = true)
             supportFragmentManager.beginTransaction()
                 .add(android.R.id.content, loadingFragment!!, "login_loading_pos")
                 .commitAllowingStateLoss()
 
-            val prefs = getSharedPreferences("SessionPrefs", Context.MODE_PRIVATE)
-            val menuId = prefs.getString("selected_menu_id", null) ?: return
-            val posAccessToken = prefs.getString("pos_access_token", "") ?: ""
-            val proxyCredentials = prefs.getString("proxy_credentials", "") ?: ""
-            posViewModel.observeMenu(menuId, authorization = proxyCredentials, cookie = posAccessToken)
+            val menuId = SessionPrefsManagerUtils.getSelectedMenuId()
+            val posAccessToken = SessionPrefsManagerUtils.getPosAccessToken() ?: ""
+            val proxyCredentials = SessionPrefsManagerUtils.getProxyCredentials() ?: ""
+            posViewModel.observeMenu(menuId.toString(), authorization = proxyCredentials, cookie = posAccessToken)
         }
     }
+    val menuId = SessionPrefsManagerUtils.getSelectedMenuId()
+    val posAccessToken = SessionPrefsManagerUtils.getPosAccessToken() ?: ""
+    val proxyCredentials = SessionPrefsManagerUtils.getProxyCredentials() ?: ""
 
     companion object {
         fun newIntent(context: Context): Intent = Intent(context, LoginPosActivity::class.java)
+    }
+
+    fun onPosSelected(posId: String, posName: String) {
+        val intent = Intent(this, LoginConfirmActivity::class.java)
+        intent.putExtra("POS_ID", posId)
+        intent.putExtra("POS_NAME", posName)
+        startActivity(intent)
     }
 }

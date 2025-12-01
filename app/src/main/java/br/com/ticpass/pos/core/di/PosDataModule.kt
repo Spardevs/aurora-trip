@@ -33,7 +33,9 @@ object PosDataModule {
     @Provides
     @Singleton
     fun providePosRepository(
-        remote: PosRemoteDataSource,
-        local: PosLocalDataSource
-    ): PosRepository = PosRepositoryImpl(remote, local)
+        remoteDataSource: PosRemoteDataSource,
+        localDataSource: PosLocalDataSource
+    ): PosRepository {
+        return PosRepositoryImpl(remoteDataSource, localDataSource)
+    }
 }

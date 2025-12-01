@@ -26,15 +26,30 @@ fun PosEntity.toDomain(): Pos = Pos(
     mode = mode,
     commission = commission,
     menu = menu,
-    session = sessionId?.let {
-        // Only partial Session on local DB; set null or build a minimal Session if needed
+    session = sessionId?.let { sid ->
+        // Only partial Session on local DB; build a minimal Session
         Session(
-            id = sessionId ?: "",
+            id = sid,
             accountable = "",
             device = "",
-            menu = menu,
+            menu = menu ?: "",
             pos = id,
-            cashier = cashierName?.let { Cashier(id = cashierId ?: "", avatar = null, username = null, name = cashierName, email = null, role = null, totp = null, managers = emptyList(), oauth2 = emptyList(), createdBy = null, createdAt = null, updatedAt = null) },
+            cashier = if (cashierId != null || cashierName != null) {
+                Cashier(
+                    id = cashierId ?: "",
+                    avatar = null,
+                    username = null,
+                    name = cashierName ?: "",
+                    email = null,
+                    role = null,
+                    totp = null,
+                    managers = emptyList(),
+                    oauth2 = emptyList(),
+                    createdBy = null,
+                    createdAt = null,
+                    updatedAt = null
+                )
+            } else null,
             createdAt = createdAt
         )
     },
@@ -67,7 +82,7 @@ fun SessionDto.toDomain(): Session = Session(
 )
 
 fun CashierDto.toDomain(): Cashier = Cashier(
-    id = id,
+    id = id.toString(),
     avatar = avatar,
     username = username,
     name = name,

@@ -9,9 +9,9 @@ import javax.inject.Singleton
 @Singleton
 class PosLocalDataSource @Inject constructor(private val dao: PosDao) {
 
-    fun getPosByMenu(menuId: String): Flow<List<PosEntity>> = dao.getByMenu(menuId)
+    fun getPosByMenu(menuId: String): Flow<List<PosEntity>> = dao.getPosByMenu(menuId)
 
     suspend fun savePosList(list: List<PosEntity>) = dao.insertAll(list)
 
-    suspend fun clearAll() = dao.clearAll()
+    suspend fun clearAll() = dao.deleteAll()
 }

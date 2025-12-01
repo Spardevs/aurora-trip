@@ -120,6 +120,20 @@
             android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="false"
             />
+
+        <activity
+            android:name=".presentation.login.activities.LoginPosActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:exported="false"
+            />
+
+        <activity
+            android:name=".presentation.login.activities.LoginConfirmActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:exported="false"
+            />
+
+
         <activity
             android:name=".presentation.scanners.activities.QrScannerActivity"
             android:screenOrientation="fullSensor"

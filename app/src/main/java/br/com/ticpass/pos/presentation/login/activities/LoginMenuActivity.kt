@@ -10,14 +10,15 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.domain.menu.model.MenuDb
+import br.com.ticpass.pos.core.util.SessionPrefsManagerUtils
+import br.com.ticpass.pos.domain.menu.model.Menu
 import br.com.ticpass.pos.presentation.login.adapters.LoginMenuAdapter
 import br.com.ticpass.pos.presentation.login.states.LoginMenuUiState
 
-import br.com.ticpass.pos.core.util.SessionPrefsManager
 import br.com.ticpass.pos.presentation.login.viewmodels.LoginMenuViewModel
 import br.com.ticpass.pos.presentation.login.viewmodels.MenuLogoViewModel
 import br.com.ticpass.pos.presentation.common.LoginLoadingFragment
+import br.com.ticpass.pos.presentation.login.fragments.LoginPosFragment
 
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -26,29 +27,25 @@ import java.io.File
 
 @AndroidEntryPoint
 class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
-
     private val menuViewModel: LoginMenuViewModel by viewModels()
     private val logoViewModel: MenuLogoViewModel by viewModels()
-
     private lateinit var recyclerView: RecyclerView
-    private var menus: List<MenuDb> = emptyList()
+    private var menus: List<Menu> = emptyList()
     private var logoFiles: Map<String, File> = emptyMap()
-
-    // Loading fragment
     private var loadingFragment: LoginLoadingFragment? = null
     private var expectedLogoCount: Int = 0
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login_menu)
 
-        // Inicializa SessionPrefsManager
-        SessionPrefsManager.init(this)
+        SessionPrefsManagerUtils.init(this)
 
         setupViews()
         observeViewModels()
 
-        // Mostra o fragment de loading antes de iniciar o carregamento
         loadingFragment = LoginLoadingFragment.newInstance(getString(R.string.loading_default), cancelable = true)
         supportFragmentManager.beginTransaction()
             .add(android.R.id.content, loadingFragment!!, "login_loading")
@@ -85,11 +82,9 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
                             loadingFragment?.updateMessage(getString(R.string.downloading_logos))
                             loadingFragment?.showProgress(true)
 
-                            // FORÇAR download das logos aqui para não depender do Adapter ficar visível
                             menus.forEach { menu ->
                                 menu.logo?.let { rawLogo ->
                                     Timber.d("Activity -> forcing download for menu=${menu.id} rawLogo=$rawLogo")
-                                    // usa o ViewModel que atualiza o DB quando o download termina
                                     menuViewModel.downloadLogoForMenu(menu.id, rawLogo)
                                 }
                             }
@@ -117,19 +112,15 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
             }
         }
 
-        // Observa o estado das logos
         lifecycleScope.launch {
             logoViewModel.localLogosState.collect { files ->
-                // Atualiza o mapa de logos (key = logoId)
                 logoFiles = files.associateBy { file ->
                     file.name.replace("logo_", "").replace(".png", "")
                 }
-                // Atualiza a lista se já estiver carregada
                 if (menus.isNotEmpty()) {
                     showMenus()
                 }
 
-                // Se já tivermos todas as logos esperadas, remover o loading
                 if (expectedLogoCount == 0) {
                     removeLoadingFragmentIfExists()
                 } else if (files.size >= expectedLogoCount) {
@@ -141,7 +132,6 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
 
     private fun loadMenus() {
         menuViewModel.loadMenuItems(take = 10, page = 1)
-        // Carrega logos locais imediatamente (pode já conter algumas imagens)
         logoViewModel.loadAllLocalLogos()
     }
 
@@ -149,7 +139,6 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
         val adapter = LoginMenuAdapter(
             menus,
             onRequestLogo = { menuId, rawLogo ->
-                // solicita o download lazy via ViewModel (backup)
                 menuViewModel.downloadLogoForMenu(menuId, rawLogo)
             },
             logos = logoFiles,
@@ -158,7 +147,7 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
         recyclerView.adapter = adapter
     }
 
-    private fun downloadMenuLogos(menus: List<MenuDb>) {
+    private fun downloadMenuLogos(menus: List<Menu>) {
         menus.forEach { menu ->
             menu.logo?.let { rawLogo ->
                 menuViewModel.downloadLogoForMenu(menu.id, rawLogo)
@@ -166,16 +155,13 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
         }
     }
 
-    // LoginMenuActivity.kt (trecho)
-    private fun onMenuClicked(menu: MenuDb) {
+    private fun onMenuClicked(menu: Menu) {
         Timber.tag("MenuActivity").d("Menu selecionado: ${menu.id}")
 
-        SessionPrefsManager.saveSelectedMenuId(menu.id.toString())
+        SessionPrefsManagerUtils.saveSelectedMenuId(menu.id)
 
-        // Cria o fragment PosFragment (pode obter menuId via args ou ler SessionPrefs dentro do fragment)
-        val posFragment = br.com.ticpass.pos.presentation.login.LoginPosFragment.newInstance(menu.id)
+        val posFragment = LoginPosFragment.newInstance(menu.id)
 
-        // Se você adicionou um container no layout (R.id.pos_fragment_container) use-o:
         val containerId = resources.getIdentifier("pos_fragment_container", "id", packageName)
         if (containerId != 0) {
             supportFragmentManager.beginTransaction()
@@ -185,7 +171,6 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
             return
         }
 
-        // Caso não tenha container, substitui todo o conteúdo da Activity:
         supportFragmentManager.beginTransaction()
             .replace(android.R.id.content, posFragment)
             .addToBackStack("pos")
@@ -204,7 +189,6 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
         }
     }
 
-    // LoginLoadingFragment.Listener implementation
     override fun onLoadingCancelled() {
         removeLoadingFragmentIfExists()
     }

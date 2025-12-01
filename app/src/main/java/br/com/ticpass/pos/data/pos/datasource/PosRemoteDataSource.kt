@@ -18,6 +18,6 @@ class PosRemoteDataSource @Inject constructor(
         authorization: String,
         cookie: String
     ): Response<PosResponseDto> {
-        return api.getMenuPos(take, page, menu, available, authorization, cookie)
+        return api.getPosList(take, page, menu, available, authorization, cookie)
     }
 }

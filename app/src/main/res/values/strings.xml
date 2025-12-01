@@ -3,6 +3,13 @@
     <string name="title_blacklist_manager">"Blacklist manager"</string>
 
     <!--Login Pos-->
+    <string name="lets_take_off_sales">Last take off sales</string>
+    <string name="menu">Menu</string>
+    <string name="date_hour_title">Date and hour</string>
+    <string name="pos_title">POS</string>
+
+    <!--Login Pos-->
+    <string name="loading_pos">Loading Pos...</string>
     <string name="choose_pos">Choose Pos</string>
     <string name="no_pos_found">No pos found</string>
     <string name="no_menu_selected">No menu selected</string>

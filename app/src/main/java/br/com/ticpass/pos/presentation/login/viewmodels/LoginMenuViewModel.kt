@@ -3,7 +3,6 @@ package br.com.ticpass.pos.presentation.login.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.ticpass.pos.domain.menu.repository.MenuRepository
-import br.com.ticpass.pos.domain.menu.usecase.GetMenuItemsUseCase
 import br.com.ticpass.pos.domain.menu.usecase.DownloadMenuLogoUseCase
 import br.com.ticpass.pos.domain.menu.usecase.GetMenuLogoFileUseCase
 import br.com.ticpass.pos.domain.menu.usecase.GetAllMenuLogoFilesUseCase
@@ -18,6 +17,7 @@ import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 import androidx.core.net.toUri
+import br.com.ticpass.pos.domain.menu.usecase.GetMenuItemsUseCase
 
 @HiltViewModel
 class LoginMenuViewModel @Inject constructor(

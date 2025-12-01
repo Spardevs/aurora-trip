@@ -1,4 +1,3 @@
-// file: LoginMenuAdapter.kt
 package br.com.ticpass.pos.presentation.login.adapters
 
 import android.view.LayoutInflater
@@ -8,17 +7,17 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.domain.menu.model.MenuDb
+import br.com.ticpass.pos.domain.menu.model.Menu
 import com.bumptech.glide.Glide
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 class LoginMenuAdapter(
-    private val items: List<MenuDb>,
+    private val items: List<Menu>,
     private val onRequestLogo: (menuId: String, rawLogo: String?) -> Unit,
     private val logos: Map<String, File>? = null,
-    private val onClick: (MenuDb) -> Unit
+    private val onClick: (Menu) -> Unit
 ) : RecyclerView.Adapter<LoginMenuAdapter.MenuViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MenuViewHolder {
@@ -35,12 +34,13 @@ class LoginMenuAdapter(
         }
 
         holder.bind(menu, logoFile)
-        holder.itemView.setOnClickListener { onClick(menu) }
+        holder.itemView.setOnClickListener { onClick(items[position]) }
 
         if (logoFile == null && !menu.logo.isNullOrBlank()) {
             onRequestLogo(menu.id, menu.logo)
         }
     }
+
     override fun getItemCount(): Int = items.size
 
     class MenuViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -49,10 +49,11 @@ class LoginMenuAdapter(
         private val menuDateStart: TextView = itemView.findViewById(R.id.menuDateStart)
         private val menuDateEnd: TextView = itemView.findViewById(R.id.menuDateEnd)
 
-        fun bind(menu: MenuDb, logoFile: File?) {
-            menuName.text = menu.name
-            menuDateStart.text = formatDate(menu.dateStart)
-            menuDateEnd.text = formatDate(menu.dateEnd)
+        fun bind(menu: Menu, logoFile: File?) {
+            // Use domain model properties
+            menuName.text = menu.label
+            menuDateStart.text = formatDate(menu.date.start)
+            menuDateEnd.text = formatDate(menu.date.end)
 
             val imageSource = when {
                 logoFile != null && logoFile.exists() -> logoFile

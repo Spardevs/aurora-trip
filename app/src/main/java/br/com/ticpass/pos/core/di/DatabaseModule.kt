@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import br.com.ticpass.pos.data.local.database.AppDatabase
 import br.com.ticpass.pos.data.menu.local.dao.MenuDao
+import br.com.ticpass.pos.data.pos.local.dao.PosDao
 import br.com.ticpass.pos.data.user.local.dao.UserDao
 import dagger.Module
 import dagger.Provides
@@ -20,19 +21,23 @@ object DatabaseModule {
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
         return Room.databaseBuilder(
-            context.applicationContext,
+            context,
             AppDatabase::class.java,
             "ticpass_database"
-        )
-            .fallbackToDestructiveMigration()
-            .build()
+        ).build()
     }
 
     @Provides
-    fun provideUserDao(db: AppDatabase): UserDao = db.userDao()
+    fun providePosDao(appDatabase: AppDatabase): PosDao {
+        return appDatabase.posDao()
+    }
 
     @Provides
-    @Singleton
+    fun provideUserDao(appDatabase: AppDatabase): UserDao {
+        return appDatabase.userDao()
+    }
+
+    @Provides
     fun provideMenuDao(appDatabase: AppDatabase): MenuDao {
         return appDatabase.menuDao()
     }

@@ -2,8 +2,11 @@ package br.com.ticpass.pos.domain.pos.usecase
 
 import br.com.ticpass.pos.domain.pos.model.Pos
 import br.com.ticpass.pos.domain.pos.repository.PosRepository
+import javax.inject.Inject
 
-class RefreshPosListUseCase(private val repository: PosRepository) {
+class RefreshPosListUseCase @Inject constructor(
+    private val posRepository: PosRepository
+) {
     suspend operator fun invoke(
         take: Int,
         page: Int,
@@ -11,7 +14,6 @@ class RefreshPosListUseCase(private val repository: PosRepository) {
         available: String,
         authorization: String,
         cookie: String
-    ): Result<List<Pos>> = repository.refreshPosList(
-        take, page, menu, available, authorization, cookie
-    )
+    ): Result<List<Pos>> =
+        posRepository.refreshPosList(take, page, menu, available, authorization, cookie)
 }
