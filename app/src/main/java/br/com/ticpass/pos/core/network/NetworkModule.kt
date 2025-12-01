@@ -4,9 +4,11 @@ import br.com.ticpass.Constants
 import br.com.ticpass.pos.core.network.interceptor.AuthInterceptor
 import br.com.ticpass.pos.core.network.interceptor.VersionInterceptor
 import br.com.ticpass.pos.data.auth.remote.service.AuthService
+import br.com.ticpass.pos.data.category.remote.service.CategoryApiService
 import br.com.ticpass.pos.data.device.remote.service.DeviceService
 import br.com.ticpass.pos.data.menu.remote.service.MenuApiService
 import br.com.ticpass.pos.data.menu.remote.service.MenuLogoService
+import br.com.ticpass.pos.data.product.remote.service.ProductApiService
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -85,6 +87,18 @@ object NetworkModule {
     @Singleton
     fun provideMenuApiService(retrofit: Retrofit): MenuApiService {
         return retrofit.create(MenuApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideProductApiService(retrofit: Retrofit): ProductApiService {
+        return retrofit.create(ProductApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCategoryApiService(retrofit: Retrofit): CategoryApiService {
+        return retrofit.create(CategoryApiService::class.java)
     }
 
     @Provides

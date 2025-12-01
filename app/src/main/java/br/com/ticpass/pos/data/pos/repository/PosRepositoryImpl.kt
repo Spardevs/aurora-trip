@@ -34,7 +34,7 @@ class PosRepositoryImpl @Inject constructor(
     ): Result<List<Pos>> {
         return try {
             // call the remote data source method you actually defined
-            val response = remoteDataSource.getMenuPos(take, page, menu, available, authorization, cookie)
+            val response = remoteDataSource.getMenuPos(take, page, menu, available)
 
             if (!response.isSuccessful) {
                 return Result.failure(Exception("Failed to fetch POS data: ${response.message()}"))

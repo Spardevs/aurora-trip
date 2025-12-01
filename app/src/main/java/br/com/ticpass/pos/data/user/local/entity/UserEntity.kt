@@ -8,5 +8,6 @@ data class UserEntity(
     @PrimaryKey
     val id: String,
     val accessToken: String? = null,
-    val refreshToken: String? = null
+    val refreshToken: String? = null,
+    val isLogged: Boolean = false
 )

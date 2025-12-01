@@ -15,9 +15,8 @@ object SessionPrefsManagerUtils {
     private const val POS_COMMISSION_KEY = "pos_commission"
     private const val POS_ACCESS_TOKEN_KEY = "pos_access_token"
     private const val PROXY_CREDENTIALS_KEY = "proxy_credentials"
-
     private const val OPERATOR_NAME_KEY = "operator_name"
-
+    private const val DEVICE_SERIAL_KEY = "device_serial"
     private lateinit var prefs: SharedPreferences
 
     fun init(context: Context) {
@@ -104,11 +103,18 @@ object SessionPrefsManagerUtils {
         return prefs.getString(PROXY_CREDENTIALS_KEY, null)
     }
 
-    fun saveOperatorName(credentials: String) {
-        prefs.edit { putString(OPERATOR_NAME_KEY, credentials) }
+    fun saveOperatorName(name: String) {
+        prefs.edit { putString(OPERATOR_NAME_KEY, name) }
     }
 
     fun getOperatorName(): String? {
         return prefs.getString(OPERATOR_NAME_KEY, null)
+    }
+    fun saveDeviceSerial(serial: String) {
+        prefs.edit { putString(DEVICE_SERIAL_KEY, serial) }
+    }
+
+    fun getDeviceSerial(): String? {
+        return prefs.getString(DEVICE_SERIAL_KEY, null)
     }
 }

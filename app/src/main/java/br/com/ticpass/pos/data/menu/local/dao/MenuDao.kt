@@ -21,4 +21,10 @@ interface MenuDao {
 
     @Query("DELETE FROM menus")
     suspend fun clearAllMenus()
+
+    @Query("UPDATE menus SET isSelected = :selected WHERE id = :id")
+    suspend fun selectMenu(id: String, selected: Boolean)
+
+    @Query("SELECT * FROM menus WHERE isSelected = :selected")
+    suspend fun getSelectedMenu(selected: Boolean): MenuEntity?
 }

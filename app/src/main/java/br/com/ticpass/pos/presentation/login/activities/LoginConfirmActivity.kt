@@ -3,15 +3,14 @@ package br.com.ticpass.pos.presentation.login.activities
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.TextView
 import br.com.ticpass.pos.R
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.util.*
-import androidx.core.content.edit
 import br.com.ticpass.pos.core.util.SessionPrefsManagerUtils
 import br.com.ticpass.pos.presentation.shared.activities.BaseActivity
 
@@ -47,9 +46,15 @@ class LoginConfirmActivity : BaseActivity() {
         dateValueTv.text = "${formatDate(dateStartStr.toString())} - ${formatDate(dateEndStr.toString())}"
         menuValueTv.text = menuName
         posValueTv.text = posName
+
+        // Configura o listener do botão de confirmação
+        val confirmButton = findViewById<ImageButton>(R.id.imageButton)
+        confirmButton.setOnClickListener {
+            loginFinish()
+        }
     }
 
-    fun loginFinish() {
+    private fun loginFinish() {
         val name = findViewById<EditText>(R.id.nameText).text.toString()
         SessionPrefsManagerUtils.saveOperatorName(name)
         val intent = Intent(this, LoadingDownloadFragmentActivity::class.java)

@@ -27,4 +27,10 @@ interface PosDao {
 
     @Query("DELETE FROM pos")
     suspend fun deleteAll()
+
+    @Query("UPDATE pos SET isSelected = :selected WHERE id = :id")
+    suspend fun selectPos(id: String, selected: Boolean)
+
+    @Query("SELECT * FROM pos WHERE isSelected = :selected")
+    suspend fun getSelectedPos(selected: Boolean): PosEntity?
 }

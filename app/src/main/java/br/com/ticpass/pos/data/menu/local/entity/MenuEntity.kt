@@ -13,5 +13,6 @@ data class MenuEntity(
     val details: String,
     val dateStart: String,
     val dateEnd: String,
-    val mode: String
+    val mode: String,
+    val isSelected: Boolean = false
 )

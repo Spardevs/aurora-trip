@@ -13,10 +13,7 @@ fun PosDto.toEntity(): PosEntity = PosEntity(
     menu = menu,
     sessionId = session?.id,
     cashierId = session?.cashier?.id,
-    cashierName = session?.cashier?.name,
-    createdBy = createdBy,
-    createdAt = createdAt,
-    updatedAt = updatedAt
+    cashierName = session?.cashier?.name
 )
 
 fun PosEntity.toDomain(): Pos = Pos(
@@ -27,7 +24,6 @@ fun PosEntity.toDomain(): Pos = Pos(
     commission = commission,
     menu = menu,
     session = sessionId?.let { sid ->
-        // Only partial Session on local DB; build a minimal Session
         Session(
             id = sid,
             accountable = "",
@@ -50,12 +46,8 @@ fun PosEntity.toDomain(): Pos = Pos(
                     updatedAt = null
                 )
             } else null,
-            createdAt = createdAt
         )
-    },
-    createdBy = createdBy,
-    createdAt = createdAt,
-    updatedAt = updatedAt
+    }
 )
 
 fun PosDto.toDomain(): Pos = Pos(
@@ -65,10 +57,7 @@ fun PosDto.toDomain(): Pos = Pos(
     mode = mode,
     commission = commission,
     menu = menu,
-    session = session?.toDomain(),
-    createdBy = createdBy,
-    createdAt = createdAt,
-    updatedAt = updatedAt
+    session = session?.toDomain()
 )
 
 fun SessionDto.toDomain(): Session = Session(
@@ -77,8 +66,7 @@ fun SessionDto.toDomain(): Session = Session(
     device = device,
     menu = menu,
     pos = pos,
-    cashier = cashier?.toDomain(),
-    createdAt = createdAt
+    cashier = cashier?.toDomain()
 )
 
 fun CashierDto.toDomain(): Cashier = Cashier(

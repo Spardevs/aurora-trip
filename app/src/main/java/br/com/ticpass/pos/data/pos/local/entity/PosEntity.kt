@@ -16,9 +16,6 @@ data class PosEntity(
     val sessionId: String? = null,
     val cashierId: String? = null,
     val cashierName: String? = null,
-    val createdBy: String,
-    val createdAt: String,
-    val updatedAt: String,
     val isClosed: Boolean = false,
     val isSelected: Boolean = false
 )

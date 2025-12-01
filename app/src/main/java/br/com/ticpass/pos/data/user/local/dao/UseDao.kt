@@ -20,4 +20,10 @@ interface UserDao {
 
     @Query("DELETE FROM user")
     suspend fun deleteAll()
+
+    @Query("UPDATE user SET isLogged = :isLogged WHERE id = :userId")
+    suspend fun updateUserLogged(userId: String, isLogged: Boolean)
+
+    @Query("SELECT * FROM user WHERE isLogged = 1 LIMIT 1")
+    suspend fun getLoggedUser(): UserEntity?
 }

@@ -29,6 +29,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import br.com.ticpass.pos.core.util.ConnectionStatusBar
 import br.com.ticpass.pos.core.util.ConnectivityMonitor
 import br.com.ticpass.pos.core.util.DeviceUtils
+import br.com.ticpass.pos.core.util.SessionPrefsManagerUtils
 import br.com.ticpass.pos.data.user.repository.UserRepository
 import br.com.ticpass.pos.presentation.login.activities.LoginActivity
 import br.com.ticpass.pos.presentation.login.activities.LoginPermissionsActivity
@@ -42,6 +43,7 @@ import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
 import br.com.ticpass.pos.data.device.remote.service.DeviceService
 import br.com.ticpass.pos.data.device.remote.dto.RegisterDeviceRequest
+import br.com.ticpass.pos.presentation.login.activities.LoadingDownloadFragmentActivity
 import retrofit2.HttpException
 import timber.log.Timber
 import java.io.IOException
@@ -91,6 +93,8 @@ class MainActivity : BaseActivity() {
             Timber.tag("DeviceInfo").i("Acquirer:    $acquirer")
             Timber.tag("DeviceInfo").i("Serial:    $serial")
             Timber.tag("DeviceInfo").i("════")
+
+            SessionPrefsManagerUtils.saveDeviceSerial(serial)
 
             mapOf(
                 "model" to model,
@@ -199,7 +203,7 @@ class MainActivity : BaseActivity() {
             }
 
             if (user == null) {
-                startActivity(Intent(this@MainActivity, LoginActivity::class.java))
+                startActivity(Intent(this@MainActivity, LoadingDownloadFragmentActivity::class.java))
                 finish()
             } else {
                 Timber.tag("MainActivity").d("Usuário encontrado no DB: ${user.id}")

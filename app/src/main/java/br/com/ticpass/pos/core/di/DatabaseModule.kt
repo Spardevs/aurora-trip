@@ -2,9 +2,11 @@ package br.com.ticpass.pos.core.di
 
 import android.content.Context
 import androidx.room.Room
+import br.com.ticpass.pos.data.category.local.dao.CategoryDao
 import br.com.ticpass.pos.data.local.database.AppDatabase
 import br.com.ticpass.pos.data.menu.local.dao.MenuDao
 import br.com.ticpass.pos.data.pos.local.dao.PosDao
+import br.com.ticpass.pos.data.product.local.dao.ProductDao
 import br.com.ticpass.pos.data.user.local.dao.UserDao
 import dagger.Module
 import dagger.Provides
@@ -40,5 +42,15 @@ object DatabaseModule {
     @Provides
     fun provideMenuDao(appDatabase: AppDatabase): MenuDao {
         return appDatabase.menuDao()
+    }
+
+    @Provides
+    fun provideProductDao(database: AppDatabase): ProductDao {
+        return database.productDao()
+    }
+
+    @Provides
+    fun provideCategoryDao(database: AppDatabase): CategoryDao {
+        return database.categoryDao()
     }
 }

@@ -7,10 +7,7 @@ data class Pos(
     val mode: String,
     val commission: Long,
     val menu: String,
-    val session: Session?,
-    val createdBy: String,
-    val createdAt: String,
-    val updatedAt: String
+    val session: Session?
 )
 
 data class Session(
@@ -20,7 +17,6 @@ data class Session(
     val menu: String,
     val pos: String,
     val cashier: Cashier?,
-    val createdAt: String
 )
 
 data class Cashier(
