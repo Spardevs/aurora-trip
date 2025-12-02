@@ -11,9 +11,7 @@ class RefreshPosListUseCase @Inject constructor(
         take: Int,
         page: Int,
         menu: String,
-        available: String,
-        authorization: String,
-        cookie: String
+        available: String
     ): Result<List<Pos>> =
-        posRepository.refreshPosList(take, page, menu, available, authorization, cookie)
+        posRepository.refreshPosList(take, page, menu, available)
 }

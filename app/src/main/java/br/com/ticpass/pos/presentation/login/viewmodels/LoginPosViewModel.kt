@@ -31,7 +31,7 @@ class LoginPosViewModel @Inject constructor(
                     else _uiState.value = LoginPosUiState.Success(cached)
 
                     // try refresh
-                    val res = refreshPosListUseCase(10, 1, menuId, "both", authorization, cookie)
+                    val res = refreshPosListUseCase(10, 1, menuId, "both")
                     res.onSuccess { refreshed ->
                         _uiState.value = LoginPosUiState.Success(refreshed)
                     }.onFailure { ex ->

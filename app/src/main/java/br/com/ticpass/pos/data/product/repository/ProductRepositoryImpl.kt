@@ -40,7 +40,7 @@ class ProductRepositoryImpl @Inject constructor(
         localDataSource.insertAll(entities)
     }
 
-    suspend fun downloadAndExtractThumbnails(menuId: String, thumbnailsDir: File) {
+    override suspend fun downloadAndExtractThumbnails(menuId: String, thumbnailsDir: File) {
         val responseBody = remoteDataSource.downloadThumbnails(menuId)
         saveAndExtractZip(responseBody, thumbnailsDir)
     }

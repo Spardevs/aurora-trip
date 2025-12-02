@@ -5,7 +5,9 @@ import br.com.ticpass.pos.data.pos.datasource.PosRemoteDataSource
 import br.com.ticpass.pos.data.pos.mapper.toDomain
 import br.com.ticpass.pos.data.pos.mapper.toEntity
 import br.com.ticpass.pos.data.pos.remote.dto.PosDto
+import br.com.ticpass.pos.data.pos.remote.dto.SessionDto
 import br.com.ticpass.pos.domain.pos.model.Pos
+import br.com.ticpass.pos.domain.pos.model.Session
 import br.com.ticpass.pos.domain.pos.repository.PosRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -28,9 +30,7 @@ class PosRepositoryImpl @Inject constructor(
         take: Int,
         page: Int,
         menu: String,
-        available: String,
-        authorization: String,
-        cookie: String
+        available: String
     ): Result<List<Pos>> {
         return try {
             // call the remote data source method you actually defined
@@ -58,6 +58,33 @@ class PosRepositoryImpl @Inject constructor(
             localDataSource.savePosList(posEntities)
 
             Result.success(posDtos.map { it.toDomain() })
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun selectPos(posId: String): Result<Unit> {
+        return try {
+            localDataSource.selectPos(posId)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun openPosSession(posId: String, deviceId: String, cashierId: String): Result<Session> {
+        return try {
+            val response = remoteDataSource.openPosSession(posId, deviceId, cashierId)
+
+            if (!response.isSuccessful) {
+                return Result.failure(Exception("Failed to open POS session: ${response.message()}"))
+            }
+
+            val sessionDto = response.body() ?: return Result.failure(Exception("Empty session response"))
+
+            // Mapear SessionDto para Session do domínio
+            val session = sessionDto.toDomain()
+            Result.success(session)
         } catch (e: Exception) {
             Result.failure(e)
         }

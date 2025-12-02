@@ -8,7 +8,7 @@ data class CategoryDto(
     val products: List<String>
 )
 
-data class CategoriesResponse(
+data class CategoriesResponseDto(
     @SerializedName("categories")
     val categories: List<CategoryDto>? = emptyList()
 )

@@ -14,4 +14,13 @@ class PosLocalDataSource @Inject constructor(private val dao: PosDao) {
     suspend fun savePosList(list: List<PosEntity>) = dao.insertAll(list)
 
     suspend fun clearAll() = dao.deleteAll()
+
+    suspend fun selectPos(posId: String) {
+        val currentlySelected = dao.getSelectedPos(true)
+        currentlySelected?.let {
+            dao.selectPos(it.id, false)
+        }
+
+        dao.selectPos(posId, true)
+    }
 }
