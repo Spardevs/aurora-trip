@@ -2,6 +2,7 @@ package br.com.ticpass.pos.data.user.repository
 
 import br.com.ticpass.pos.data.user.local.dao.UserDao
 import br.com.ticpass.pos.data.user.local.entity.UserEntity
+import br.com.ticpass.pos.domain.user.repository.UserRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -12,5 +13,9 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun getLoggedUser(): UserEntity? {
         return userDao.getAnyUserOnce()
+    }
+
+    override suspend fun isLoggedIn(): Boolean {
+        return userDao.getAnyUserOnce() != null
     }
 }

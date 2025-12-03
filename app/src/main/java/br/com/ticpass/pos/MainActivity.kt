@@ -30,7 +30,6 @@ import br.com.ticpass.pos.core.util.ConnectionStatusBar
 import br.com.ticpass.pos.core.util.ConnectivityMonitor
 import br.com.ticpass.pos.core.util.DeviceUtils
 import br.com.ticpass.pos.core.util.SessionPrefsManagerUtils
-import br.com.ticpass.pos.data.user.repository.UserRepository
 import br.com.ticpass.pos.presentation.login.activities.LoginActivity
 import br.com.ticpass.pos.presentation.login.activities.LoginPermissionsActivity
 import br.com.ticpass.pos.presentation.shared.activities.BaseActivity
@@ -43,6 +42,7 @@ import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
 import br.com.ticpass.pos.data.device.remote.service.DeviceService
 import br.com.ticpass.pos.data.device.remote.dto.RegisterDeviceRequest
+import br.com.ticpass.pos.domain.user.repository.UserRepository
 import br.com.ticpass.pos.presentation.login.activities.LoadingDownloadFragmentActivity
 import retrofit2.HttpException
 import timber.log.Timber

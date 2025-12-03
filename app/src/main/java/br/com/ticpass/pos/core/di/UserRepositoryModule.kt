@@ -1,6 +1,6 @@
 package br.com.ticpass.pos.core.di
 
-import br.com.ticpass.pos.data.user.repository.UserRepository
+import br.com.ticpass.pos.domain.user.repository.UserRepository
 import br.com.ticpass.pos.data.user.repository.UserRepositoryImpl
 import dagger.Binds
 import dagger.Module

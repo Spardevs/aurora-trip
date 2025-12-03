@@ -74,8 +74,8 @@ class LoginPosFragment : Fragment() {
             }
         }
 
-        // start observing & refresh
-        vm.observeMenu(menuId, auth, cookie)
+        // Load first page initially
+        vm.loadPosList(menuId, auth, cookie, page = 1)
     }
 
     companion object {

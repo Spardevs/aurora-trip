@@ -42,17 +42,9 @@ class PosRepositoryImpl @Inject constructor(
 
             val body = response.body() ?: return Result.failure(Exception("Empty response body"))
 
-            val posDtos: List<PosDto> = when {
-                (body::class.members.any { it.name == "edges" }) ->
-                    @Suppress("UNCHECKED_CAST")
-                    (body as? Any /*PosResponseDto*/)?.let { resp ->
-                        resp::class.members.firstOrNull { it.name == "edges" }?.let {
-                            body.edges
-                        }
-                    } ?: emptyList()
-                false -> (body as List<PosDto>)
-                else -> emptyList()
-            }
+            // Since we know the response is PosResponseDto, we can directly access edges
+            val posDtos = body.edges
+            val pageInfo = body.info
 
             val posEntities = posDtos.map { it.toEntity() }
             localDataSource.savePosList(posEntities)
