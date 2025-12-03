@@ -12,6 +12,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -39,6 +40,7 @@ class LoadingDownloadViewModel @Inject constructor(
                 productRepository.downloadAndExtractThumbnails(menuId, thumbnailsDir)
                 _uiState.value = LoadingDownloadUiState.Success("Download completo!")
             } catch (e: Exception) {
+                Timber.tag("LoadingDownload").e("erro ao fazer download: ${e.message}")
                 _uiState.value = LoadingDownloadUiState.Error("Erro no download: ${e.message}")
             }
         }
