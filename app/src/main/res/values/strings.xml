@@ -2,6 +2,10 @@
 <resources>
     <string name="title_blacklist_manager">"Blacklist manager"</string>
 
+    <!-- Generic -->
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
     <!-- Drawer Header -->
     <string name="menu_logout">Close POS</string>
     <string name="operator_name">Operator name</string>
@@ -9,6 +13,8 @@
     <string name="menu_total">Total menu</string>
 
     <!--Login Pos-->
+    <string name="pos_closing_request">Do you want to close the POS?</string>
+    <string name="close_pos">Close POS?</string>
     <string name="lets_take_off_sales">Last take off sales</string>
     <string name="menu">Menu</string>
     <string name="date_hour_title">Date and hour</string>

@@ -15,4 +15,5 @@ interface PosRepository {
 
     suspend fun selectPos(posId: String): Result<Unit>
     suspend fun openPosSession(posId: String, deviceId: String, cashierId: String): Result<Session>
+    suspend fun closePosSession(posId: String): Result<Unit>
 }

@@ -2,6 +2,7 @@ package br.com.ticpass.pos.data.pos.datasource
 
 import br.com.ticpass.pos.data.pos.remote.dto.PosResponseDto
 import br.com.ticpass.pos.data.pos.remote.dto.SessionDto
+import br.com.ticpass.pos.data.pos.remote.service.CloseSessionRequest
 import br.com.ticpass.pos.data.pos.remote.service.OpenSessionRequest
 import br.com.ticpass.pos.data.pos.remote.service.PosApiService
 import retrofit2.Response
@@ -28,5 +29,9 @@ class PosRemoteDataSource @Inject constructor(
             cashier = cashierId
         )
         return api.openPosSession(request)
+    }
+
+    suspend fun closePosSession(posId: CloseSessionRequest): Response<SessionDto> {
+        return api.closePosSession(posId)
     }
 }
