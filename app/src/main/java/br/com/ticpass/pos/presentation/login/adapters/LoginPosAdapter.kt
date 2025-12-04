@@ -34,6 +34,17 @@ class LoginPosAdapter(
             tvName.text = "${p.prefix} ${p.sequence}"
             val closed = p.session == null
             tvState.text = if (closed) "Fechado" else "Aberto"
+
+            if (closed) {
+                iv.setColorFilter(itemView.context.getColor(R.color.colorGreen))
+                tvState.setTextColor(itemView.context.getColor(R.color.colorGreen))
+            } else {
+                iv.setColorFilter(itemView.context.getColor(R.color.colorRed))
+                tvState.setTextColor(itemView.context.getColor(R.color.colorRed))
+                tvName.setTextColor(itemView.context.getColor(R.color.colorGray))
+                tvCommission.setTextColor(itemView.context.getColor(R.color.colorGray))
+            }
+
             tvCommission.text = if (closed) {
                 if (p.commission > 0) "${numericUtils.convertLongToPercentString(p.commission)} de comissão" else "Sem comissão"
             } else {
