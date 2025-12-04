@@ -7,6 +7,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import br.com.ticpass.pos.core.util.ConnectionStatusBar
 import br.com.ticpass.pos.core.util.ConnectivityMonitor
+import br.com.ticpass.pos.core.util.SessionPrefsManagerUtils
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 import javax.inject.Inject
@@ -32,6 +33,8 @@ class MainApplication : Application(), Configuration.Provider {
         instance = this
 
         if (BuildConfig.DEBUG) {
+            SessionPrefsManagerUtils.init(this)
+
             Timber.plant(Timber.DebugTree())
         }
 

@@ -6,115 +6,101 @@ import androidx.core.content.edit
 
 object SessionPrefsManagerUtils {
     private const val PREFS_NAME = "SessionPrefs"
-    private const val SELECTED_MENU_ID_KEY = "selected_menu_id"
-    private const val MENU_START_DATE_KEY = "menu_start_date"
-    private const val MENU_END_DATE_KEY = "menu_end_date"
-    private const val MENU_NAME_KEY = "menu_name"
-    private const val POS_ID_KEY = "pos_id"
-    private const val POS_NAME_KEY = "pos_name"
-    private const val POS_COMMISSION_KEY = "pos_commission"
-    private const val POS_ACCESS_TOKEN_KEY = "pos_access_token"
-    private const val PROXY_CREDENTIALS_KEY = "proxy_credentials"
-    private const val OPERATOR_NAME_KEY = "operator_name"
-    private const val DEVICE_SERIAL_KEY = "device_serial"
     private lateinit var prefs: SharedPreferences
 
     fun init(context: Context) {
         prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
 
+    fun clearAll() {
+        prefs.edit { clear() }
+    }
+
     fun saveSelectedMenuId(menuId: String) {
-        prefs.edit { putString(SELECTED_MENU_ID_KEY, menuId) }
+        prefs.edit { putString("selected_menu_id", menuId) }
     }
 
     fun getSelectedMenuId(): String? {
-        return prefs.getString(SELECTED_MENU_ID_KEY, null)
+        return prefs.getString("selected_menu_id", null)
     }
 
     fun saveMenuStartDate(startDate: String) {
-        prefs.edit { putString(MENU_START_DATE_KEY, startDate) }
+        prefs.edit { putString("menu_start_date", startDate) }
     }
 
     fun getMenuStartDate(): String? {
-        return prefs.getString(MENU_START_DATE_KEY, null)
+        return prefs.getString("menu_start_date", null)
     }
 
     fun saveMenuEndDate(endDate: String) {
-        prefs.edit { putString(MENU_END_DATE_KEY, endDate) }
+        prefs.edit { putString("menu_end_date", endDate) }
     }
 
     fun getMenuEndDate(): String? {
-        return prefs.getString(MENU_END_DATE_KEY, null)
+        return prefs.getString("menu_end_date", null)
     }
 
     fun saveMenuName(name: String) {
-        prefs.edit { putString(MENU_NAME_KEY, name) }
+        prefs.edit { putString("menu_name", name) }
     }
 
     fun getMenuName(): String? {
-        return prefs.getString(MENU_NAME_KEY, null)
-    }
-    fun clearSelectedMenuId() {
-        prefs.edit {
-            remove(SELECTED_MENU_ID_KEY)
-            remove(MENU_START_DATE_KEY)
-            remove(MENU_END_DATE_KEY)
-            remove(MENU_NAME_KEY)
-        }
+        return prefs.getString("menu_name", null)
     }
 
     fun savePosId(posId: String) {
-        prefs.edit { putString(POS_ID_KEY, posId) }
+        prefs.edit { putString("pos_id", posId) }
     }
 
     fun getPosId(): String? {
-        return prefs.getString(POS_ID_KEY, null)
+        return prefs.getString("pos_id", null)
     }
 
     fun savePosName(posName: String) {
-        prefs.edit { putString(POS_NAME_KEY, posName) }
+        prefs.edit { putString("pos_name", posName) }
     }
 
     fun getPosName(): String? {
-        return prefs.getString(POS_NAME_KEY, null)
+        return prefs.getString("pos_name", null)
     }
 
     fun savePosCommission(commission: Long) {
-        prefs.edit { putLong(POS_COMMISSION_KEY, commission) }
+        prefs.edit { putLong("pos_commission", commission) }
     }
 
     fun getPosCommission(): Long? {
-        return prefs.getLong(POS_COMMISSION_KEY, 0)
+        return prefs.getLong("pos_commission", 0)
     }
 
     fun savePosAccessToken(token: String) {
-        prefs.edit { putString(POS_ACCESS_TOKEN_KEY, token) }
+        prefs.edit { putString("pos_access_token", token) }
     }
 
     fun getPosAccessToken(): String? {
-        return prefs.getString(POS_ACCESS_TOKEN_KEY, null)
+        return prefs.getString("pos_access_token", null)
     }
 
     fun saveProxyCredentials(credentials: String) {
-        prefs.edit { putString(PROXY_CREDENTIALS_KEY, credentials) }
+        prefs.edit { putString("proxy_credentials", credentials) }
     }
 
     fun getProxyCredentials(): String? {
-        return prefs.getString(PROXY_CREDENTIALS_KEY, null)
+        return prefs.getString("proxy_credentials", null)
     }
 
     fun saveOperatorName(name: String) {
-        prefs.edit { putString(OPERATOR_NAME_KEY, name) }
+        prefs.edit { putString("operator_name", name) }
     }
 
     fun getOperatorName(): String? {
-        return prefs.getString(OPERATOR_NAME_KEY, null)
-    }
-    fun saveDeviceSerial(serial: String) {
-        prefs.edit { putString(DEVICE_SERIAL_KEY, serial) }
+        return prefs.getString("operator_name", null)
     }
 
-    fun getDeviceSerial(): String? {
-        return prefs.getString(DEVICE_SERIAL_KEY, null)
+    fun saveDeviceId(id: String) {
+        prefs.edit { putString("device_id", id) }
+    }
+
+    fun getDeviceId(): String? {
+        return prefs.getString("device_id", null)
     }
 }

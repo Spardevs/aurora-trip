@@ -30,6 +30,7 @@ import br.com.ticpass.pos.core.util.ConnectionStatusBar
 import br.com.ticpass.pos.core.util.ConnectivityMonitor
 import br.com.ticpass.pos.core.util.DeviceUtils
 import br.com.ticpass.pos.core.util.SessionPrefsManagerUtils
+import br.com.ticpass.pos.domain.user.repository.UserRepository
 import br.com.ticpass.pos.presentation.login.activities.LoginActivity
 import br.com.ticpass.pos.presentation.login.activities.LoginPermissionsActivity
 import br.com.ticpass.pos.presentation.shared.activities.BaseActivity
@@ -42,7 +43,7 @@ import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
 import br.com.ticpass.pos.data.device.remote.service.DeviceService
 import br.com.ticpass.pos.data.device.remote.dto.RegisterDeviceRequest
-import br.com.ticpass.pos.domain.user.repository.UserRepository
+import br.com.ticpass.pos.data.user.local.dao.UserDao
 import br.com.ticpass.pos.presentation.login.activities.LoadingDownloadFragmentActivity
 import retrofit2.HttpException
 import timber.log.Timber
@@ -59,6 +60,9 @@ class MainActivity : BaseActivity() {
 
     @Inject
     lateinit var deviceService: DeviceService
+
+    @Inject
+    lateinit var userDao: UserDao
 
     companion object {
         lateinit var location: Location
@@ -93,8 +97,6 @@ class MainActivity : BaseActivity() {
             Timber.tag("DeviceInfo").i("Acquirer:    $acquirer")
             Timber.tag("DeviceInfo").i("Serial:    $serial")
             Timber.tag("DeviceInfo").i("════")
-
-            SessionPrefsManagerUtils.saveDeviceSerial(serial)
 
             mapOf(
                 "model" to model,
@@ -133,12 +135,17 @@ class MainActivity : BaseActivity() {
 
             Timber.tag("DeviceRegistration").d("Registering device: $request")
 
-            val response = withContext(Dispatchers.IO) {
-                deviceService.registerDevice(request)
-            }
+            val response = deviceService.registerDevice(request)
 
             if (response.isSuccessful) {
-                Timber.tag("DeviceRegistration").i("Device registered successfully: ${response.body()}")
+                val responseBody = response.body()
+                Timber.tag("DeviceRegistration").i("Device registered successfully: $responseBody")
+
+                // Save the device ID returned from the API instead of the serial
+                responseBody?.id?.let { deviceId ->
+                    SessionPrefsManagerUtils.saveDeviceId(deviceId)
+                    Timber.tag("DeviceRegistration").i("Device ID saved: $deviceId")
+                }
             } else {
                 Timber.tag("DeviceRegistration").w(
                     "Failed to register device. Code: ${response.code()}, Error: ${
@@ -169,8 +176,7 @@ class MainActivity : BaseActivity() {
         // Inicializa UI componentes que não dependem da navegação imediata
         connectionStatusBar = ConnectionStatusBar(this)
 
-        // Fire-and-forget registration in background with timeout so it cannot hang the UI flow
-        lifecycleScope.launch(Dispatchers.IO) {
+        lifecycleScope.launch {
             try {
                 // limite de tempo para não pendurar indefinidamente (ajuste conforme necessário)
                 withTimeout(5_000L) {
@@ -192,24 +198,19 @@ class MainActivity : BaseActivity() {
                 return@launch
             }
 
-            // Carrega usuário do DB
-            val user = withContext(Dispatchers.IO) {
-                try {
-                    userRepository.getLoggedUser()
-                } catch (e: Exception) {
-                    Timber.tag("MainActivity").e(e, "Erro ao acessar DB: ${e.message}")
-                    null
-                }
-            }
+            val user = userDao.getAnyUserOnce()
 
-            if (user == null) {
+            if (user?.isLogged == true) {
                 startActivity(Intent(this@MainActivity, LoadingDownloadFragmentActivity::class.java))
                 finish()
             } else {
-                Timber.tag("MainActivity").d("Usuário encontrado no DB: ${user.id}")
-                 startActivity(Intent(this@MainActivity, LoginActivity::class.java))
-                 finish()
+                SessionPrefsManagerUtils.clearAll()
+                startActivity(Intent(this@MainActivity, LoginActivity::class.java))
+                finish()
             }
+
+            Timber.tag("MainActivity").d("Usuário encontrado no DB: ${user?.id}")
+
         }
     }
 

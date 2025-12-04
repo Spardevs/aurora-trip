@@ -12,7 +12,11 @@ class UserRepositoryImpl @Inject constructor(
 ) : UserRepository {
 
     override suspend fun getLoggedUser(): UserEntity? {
-        return userDao.getAnyUserOnce()
+        return userDao.getLoggedUser()
+    }
+
+    override suspend fun setUserLogged(userId: String, isLogged: Boolean) {
+        userDao.updateUserLogged(userId, isLogged)
     }
 
     override suspend fun isLoggedIn(): Boolean {

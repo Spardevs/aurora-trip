@@ -138,6 +138,11 @@
             android:exported="false"
             />
 
+        <activity android:name=".presentation.product.activities.ProductsListActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:exported="false"
+            />
+
 
         <activity
             android:name=".presentation.scanners.activities.QrScannerActivity"

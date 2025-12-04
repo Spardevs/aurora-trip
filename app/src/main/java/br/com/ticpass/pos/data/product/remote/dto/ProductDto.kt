@@ -1,9 +1,5 @@
 package br.com.ticpass.pos.data.product.remote.dto
 
-import br.com.ticpass.pos.data.auth.remote.dto.UserDto
-import br.com.ticpass.pos.data.category.remote.dto.CategoryDto
-import br.com.ticpass.pos.data.menu.remote.dto.MenuEdge
-
 data class ProductDto(
     val id: String,
     val label: String,
