@@ -72,8 +72,8 @@ class LoginPosViewModel @Inject constructor(
         }
     }
 
-    suspend fun closePosSession(posId: String) {
-        val result = posRepository.closePosSession(posId)
+    suspend fun closePosSession(sessionId: String) {
+        val result = posRepository.closePosSession(sessionId)
         // Handle result as needed
     }
 

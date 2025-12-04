@@ -28,11 +28,11 @@ data class PosDto(
 @JsonClass(generateAdapter = true)
 data class SessionDto(
     val id: String,
-    val accountable: String,
+    val accountable: String?,
     val device: String,
     val menu: String,
     val pos: String,
-    val cashier: CashierDto?,
+    val cashier: CashierDto,
     val createdAt: String
 )
 

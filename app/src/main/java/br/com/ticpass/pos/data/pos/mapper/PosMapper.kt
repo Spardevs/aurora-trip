@@ -2,6 +2,7 @@ package br.com.ticpass.pos.data.pos.mapper
 
 import br.com.ticpass.pos.data.pos.local.entity.PosEntity
 import br.com.ticpass.pos.data.pos.remote.dto.*
+
 import br.com.ticpass.pos.domain.pos.model.*
 
 fun PosDto.toEntity(): PosEntity = PosEntity(
@@ -62,11 +63,31 @@ fun PosDto.toDomain(): Pos = Pos(
 
 fun SessionDto.toDomain(): Session = Session(
     id = id,
-    accountable = accountable,
+    accountable = accountable.toString(),
     device = device,
     menu = menu,
     pos = pos,
-    cashier = cashier?.toDomain()
+    cashier = try {
+        val moshi = com.squareup.moshi.Moshi.Builder().build()
+        val adapter = moshi.adapter(CashierDto::class.java)
+        val cashierDto = adapter.fromJsonValue(cashier)
+        cashierDto?.toDomain()
+    } catch (e: Exception) {
+        Cashier(
+            id = cashier.toString(),
+            avatar = null,
+            username = null,
+            name = null,
+            email = null,
+            role = null,
+            totp = null,
+            managers = emptyList(),
+            oauth2 = emptyList(),
+            createdBy = null,
+            createdAt = null,
+            updatedAt = null
+        )
+    }
 )
 
 fun CashierDto.toDomain(): Cashier = Cashier(

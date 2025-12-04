@@ -14,6 +14,7 @@ import br.com.ticpass.pos.data.device.remote.service.DeviceService
 import br.com.ticpass.pos.data.menu.remote.service.MenuApiService
 import br.com.ticpass.pos.data.menu.remote.service.MenuLogoService
 import br.com.ticpass.pos.data.product.remote.service.ProductApiService
+import br.com.ticpass.pos.data.pos.remote.adapters.CashierDtoJsonAdapterFactory
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -91,6 +92,7 @@ object NetworkModule {
     @Singleton
     fun provideMoshi(): Moshi {
         return Moshi.Builder()
+            .add(CashierDtoJsonAdapterFactory)
             .add(KotlinJsonAdapterFactory())
             .build()
     }

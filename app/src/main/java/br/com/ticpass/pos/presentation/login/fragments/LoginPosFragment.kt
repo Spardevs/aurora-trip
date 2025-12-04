@@ -98,7 +98,7 @@ class LoginPosFragment : Fragment() {
 
         dialogView.findViewById<Button>(R.id.btnYes).setOnClickListener {
             lifecycleScope.launch {
-                vm.closePosSession(pos.id)
+                vm.closePosSession(pos.session?.id ?: throw IllegalStateException("Session ID is null"))
             }
             dialog.dismiss()
         }

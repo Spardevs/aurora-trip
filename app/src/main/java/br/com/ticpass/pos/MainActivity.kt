@@ -45,6 +45,7 @@ import br.com.ticpass.pos.data.device.remote.service.DeviceService
 import br.com.ticpass.pos.data.device.remote.dto.RegisterDeviceRequest
 import br.com.ticpass.pos.data.user.local.dao.UserDao
 import br.com.ticpass.pos.presentation.login.activities.LoadingDownloadFragmentActivity
+import kotlinx.coroutines.CancellationException
 import retrofit2.HttpException
 import timber.log.Timber
 import java.io.IOException
@@ -176,19 +177,6 @@ class MainActivity : BaseActivity() {
         // Inicializa UI componentes que não dependem da navegação imediata
         connectionStatusBar = ConnectionStatusBar(this)
 
-        lifecycleScope.launch {
-            try {
-                // limite de tempo para não pendurar indefinidamente (ajuste conforme necessário)
-                withTimeout(5_000L) {
-                    registerDevice(deviceInfo)
-                }
-            } catch (t: TimeoutCancellationException) {
-                Timber.tag("DeviceRegistration").w("Device registration timed out after 5s")
-            } catch (e: Exception) {
-                Timber.tag("DeviceRegistration").e(e, "Background device registration failed: ${e.message}")
-            }
-        }
-
         // Continue inicialização e navegação imediatamente (não aguardamos o registro)
         lifecycleScope.launch {
             // Se não tem permissões, vai para PermissionsLoginActivity
@@ -196,6 +184,16 @@ class MainActivity : BaseActivity() {
                 startActivity(Intent(this@MainActivity, LoginPermissionsActivity::class.java))
                 finish()
                 return@launch
+            }
+
+            lifecycleScope.launch {
+                try {
+                    registerDevice(deviceInfo)
+                } catch (e: CancellationException) {
+                    Timber.tag("DeviceRegistration").w("Device registration was cancelled")
+                } catch (e: Exception) {
+                    Timber.tag("DeviceRegistration").e(e, "Background device registration failed: ${e.message}")
+                }
             }
 
             val user = userDao.getAnyUserOnce()

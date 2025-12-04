@@ -73,9 +73,9 @@ class PosRepositoryImpl(
         }
     }
 
-    override suspend fun closePosSession(posId: String): Result<Unit> {
+    override suspend fun closePosSession(sessionId: String): Result<Unit> {
         return try {
-            val request = CloseSessionRequest(posId)
+            val request = CloseSessionRequest(sessionId)
             val response = remoteDataSource.closePosSession(request)
             if (!response.isSuccessful) {
                 return Result.failure(Exception("Failed to close POS session: ${response.message()}"))
