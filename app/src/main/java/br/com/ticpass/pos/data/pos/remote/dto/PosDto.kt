@@ -29,9 +29,9 @@ data class PosDto(
 data class SessionDto(
     val id: String,
     val accountable: String?,
-    val device: String,
-    val menu: String,
-    val pos: String,
+    val device: String?,
+    val menu: String?,
+    val pos: String?,
     val cashier: CashierDto,
     val createdAt: String
 )
