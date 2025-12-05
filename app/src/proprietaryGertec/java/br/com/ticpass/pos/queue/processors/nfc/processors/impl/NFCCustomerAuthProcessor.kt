@@ -6,6 +6,8 @@ import br.com.ticpass.pos.queue.models.NFCError
 import br.com.ticpass.pos.queue.models.ProcessingResult
 import br.com.ticpass.pos.queue.processors.nfc.models.NFCQueueItem
 import br.com.ticpass.pos.queue.processors.nfc.processors.core.NFCProcessorBase
+import br.com.ticpass.pos.queue.processors.nfc.utils.NFCOperations
+import javax.inject.Inject
 
 /**
  * Gertec NFC Customer Auth Processor (NO-OP)
@@ -13,7 +15,9 @@ import br.com.ticpass.pos.queue.processors.nfc.processors.core.NFCProcessorBase
  * This variant does not support NFC operations.
  * Always returns unsupported error.
  */
-class NFCCustomerAuthProcessor : NFCProcessorBase() {
+class NFCCustomerAuthProcessor @Inject constructor(
+    nfcOperations: NFCOperations
+) : NFCProcessorBase(nfcOperations) {
 
     private val TAG = this.javaClass.simpleName
 
@@ -23,6 +27,6 @@ class NFCCustomerAuthProcessor : NFCProcessorBase() {
     }
 
     override suspend fun onAbort(item: NFCQueueItem?): Boolean {
-        TODO("Not yet implemented")
+        return true
     }
 }

@@ -1,7 +1,6 @@
 package br.com.ticpass.pos.queue.processors.nfc.processors.impl
 
 import android.util.Log
-import br.com.stone.posandroid.providers.PosMifareProvider
 import br.com.ticpass.pos.nfc.models.NFCTagCustomerData
 import br.com.ticpass.pos.nfc.models.NFCTagData
 import br.com.ticpass.pos.nfc.models.NFCTagSectorKeyType
@@ -16,9 +15,9 @@ import br.com.ticpass.pos.queue.processors.nfc.exceptions.NFCException
 import br.com.ticpass.pos.queue.processors.nfc.models.NFCEvent
 import br.com.ticpass.pos.queue.processors.nfc.models.NFCQueueItem
 import br.com.ticpass.pos.queue.processors.nfc.processors.core.NFCProcessorBase
+import br.com.stone.posandroid.providers.PosMifareProvider
+import br.com.ticpass.pos.queue.processors.nfc.utils.NFCOperations
 import br.com.ticpass.pos.queue.processors.nfc.utils.NFCTagMapper
-import br.com.ticpass.pos.sdk.AcquirerSdk
-import org.json.JSONObject
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,23 +25,24 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import javax.inject.Inject
 
 /**
  * Stone NFC Auth Processor
- * Do nfc using the acquirer SDK
+ * Processes NFC authentication using the Stone SDK via constructor injection.
  */
-class NFCCustomerAuthProcessor : NFCProcessorBase() {
+class NFCCustomerAuthProcessor @Inject constructor(
+    nfcOperations: NFCOperations
+) : NFCProcessorBase(nfcOperations) {
 
     private val TAG = this.javaClass.simpleName
-    private val nfcProviderFactory = AcquirerSdk.nfc.getInstance()
     private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var _item: NFCQueueItem.CustomerAuthOperation
-    private lateinit var nfcProvider: PosMifareProvider
 
     override suspend fun process(item: NFCQueueItem.CustomerAuthOperation): ProcessingResult {
         try {
             _item = item
-            nfcProvider = nfcProviderFactory()
 
             val result = withContext(Dispatchers.IO) {
                 doAuth()
@@ -72,7 +72,8 @@ class NFCCustomerAuthProcessor : NFCProcessorBase() {
 
         try {
             scope.launch {
-                nfcProvider.powerOff();
+                nfcOperations.stopAntenna()
+                nfcOperations.abortDetection();
                 cleanup()
             }
             deferred.complete(true)

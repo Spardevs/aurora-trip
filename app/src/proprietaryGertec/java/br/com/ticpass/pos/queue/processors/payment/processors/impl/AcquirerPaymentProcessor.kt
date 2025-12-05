@@ -6,6 +6,7 @@ import br.com.ticpass.pos.queue.models.PaymentError
 import br.com.ticpass.pos.queue.models.ProcessingResult
 import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingQueueItem
 import br.com.ticpass.pos.queue.processors.payment.processors.core.PaymentProcessorBase
+import javax.inject.Inject
 
 /**
  * Gertec Payment Processor (NO-OP)
@@ -13,7 +14,7 @@ import br.com.ticpass.pos.queue.processors.payment.processors.core.PaymentProces
  * This variant does not support payment operations.
  * Always returns unsupported error.
  */
-class AcquirerPaymentProcessor : PaymentProcessorBase() {
+class AcquirerPaymentProcessor @Inject constructor() : PaymentProcessorBase() {
 
     private val TAG = this.javaClass.simpleName
 

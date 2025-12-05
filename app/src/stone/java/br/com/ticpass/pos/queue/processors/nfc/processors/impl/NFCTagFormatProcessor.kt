@@ -7,6 +7,7 @@ import br.com.ticpass.pos.nfc.models.NFCBruteForceProgressCallback
 import br.com.ticpass.pos.nfc.models.NFCTagSectorKeyType
 import br.com.ticpass.pos.nfc.models.NFCTagSectorKeys
 import br.com.ticpass.pos.queue.processors.nfc.utils.NFCBruteForcer
+import br.com.ticpass.pos.queue.processors.nfc.utils.NFCOperations
 import br.com.ticpass.pos.queue.processors.nfc.utils.NFCTagFormatter
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
 import br.com.ticpass.pos.queue.models.NFCError
@@ -17,7 +18,6 @@ import br.com.ticpass.pos.queue.processors.nfc.exceptions.NFCException
 import br.com.ticpass.pos.queue.processors.nfc.models.NFCEvent
 import br.com.ticpass.pos.queue.processors.nfc.models.NFCQueueItem
 import br.com.ticpass.pos.queue.processors.nfc.processors.core.NFCProcessorBase
-import br.com.ticpass.pos.sdk.AcquirerSdk
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,18 +25,19 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 /**
  * Stone NFC Format Processor
- * Do nfc using the acquirer SDK
+ * Formats NFC tags using the Stone SDK via constructor injection.
  */
-class NFCTagFormatProcessor : NFCProcessorBase() {
+class NFCTagFormatProcessor @Inject constructor(
+    nfcOperations: NFCOperations
+) : NFCProcessorBase(nfcOperations) {
 
     private val TAG = this.javaClass.simpleName
-    private val nfcProviderFactory = AcquirerSdk.nfc.getInstance()
     private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var _item: NFCQueueItem.TagFormatOperation
-    private lateinit var nfcProvider: PosMifareProvider
     private lateinit var ownedKeys: Map<NFCTagSectorKeyType, String>
     private lateinit var foundKeys:  Map<Int, NFCTagSectorKeys>
     private val bruteForceUtil = NFCBruteForcer
@@ -44,7 +45,6 @@ class NFCTagFormatProcessor : NFCProcessorBase() {
     override suspend fun process(item: NFCQueueItem.TagFormatOperation): ProcessingResult {
         try {
             _item = item
-            nfcProvider = nfcProviderFactory()
 
             withContext(Dispatchers.IO) {
                 doFormat()
@@ -79,7 +79,8 @@ class NFCTagFormatProcessor : NFCProcessorBase() {
 
         try {
             scope.launch {
-                nfcProvider.powerOff();
+                nfcOperations.stopAntenna()
+                nfcOperations.abortDetection();
                 bruteForceUtil.abortBruteForce()
                 cleanup()
             }

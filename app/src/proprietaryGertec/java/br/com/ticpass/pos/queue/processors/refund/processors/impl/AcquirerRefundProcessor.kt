@@ -6,6 +6,7 @@ import br.com.ticpass.pos.queue.models.RefundError
 import br.com.ticpass.pos.queue.models.ProcessingResult
 import br.com.ticpass.pos.queue.processors.refund.models.RefundQueueItem
 import br.com.ticpass.pos.queue.processors.refund.processors.core.RefundProcessorBase
+import javax.inject.Inject
 
 /**
  * Gertec Refund Processor (NO-OP)
@@ -13,7 +14,7 @@ import br.com.ticpass.pos.queue.processors.refund.processors.core.RefundProcesso
  * This variant does not support refund operations.
  * Always returns unsupported error.
  */
-class AcquirerRefundProcessor : RefundProcessorBase() {
+class AcquirerRefundProcessor @Inject constructor() : RefundProcessorBase() {
 
     private val TAG = this.javaClass.simpleName
 

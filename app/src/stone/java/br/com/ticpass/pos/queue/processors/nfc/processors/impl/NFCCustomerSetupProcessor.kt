@@ -1,7 +1,6 @@
 package br.com.ticpass.pos.queue.processors.nfc.processors.impl
 
 import android.util.Log
-import br.com.stone.posandroid.providers.PosMifareProvider
 import br.com.ticpass.pos.nfc.models.NFCTagCartHeader
 import br.com.ticpass.pos.nfc.models.NFCTagCustomerData
 import br.com.ticpass.pos.nfc.models.NFCTagCustomerDataInput
@@ -19,10 +18,10 @@ import br.com.ticpass.pos.queue.processors.nfc.exceptions.NFCException
 import br.com.ticpass.pos.queue.processors.nfc.models.NFCEvent
 import br.com.ticpass.pos.queue.processors.nfc.models.NFCQueueItem
 import br.com.ticpass.pos.queue.processors.nfc.processors.core.NFCProcessorBase
+import br.com.stone.posandroid.providers.PosMifareProvider
 import br.com.ticpass.pos.queue.processors.nfc.utils.NFCCartStorage
-import br.com.ticpass.pos.queue.processors.nfc.utils.NFCTagWriter
+import br.com.ticpass.pos.queue.processors.nfc.utils.NFCOperations
 import br.com.ticpass.pos.queue.processors.nfc.utils.NFCUtils
-import br.com.ticpass.pos.sdk.AcquirerSdk
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,23 +29,24 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 /**
  * Stone NFC Setup Processor
- * Formats card, sets owned keys, and configures secure access bits
+ * Formats card, sets owned keys, and configures secure access bits using Stone SDK via constructor injection.
  */
-class NFCCustomerSetupProcessor : NFCProcessorBase() {
+class NFCCustomerSetupProcessor @Inject constructor(
+    nfcOperations: NFCOperations,
+    private val cartStorage: NFCCartStorage
+) : NFCProcessorBase(nfcOperations) {
 
     private val TAG = this.javaClass.simpleName
-    private val nfcProviderFactory = AcquirerSdk.nfc.getInstance()
     private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var _item: NFCQueueItem.CustomerSetupOperation
-    private lateinit var nfcProvider: PosMifareProvider
 
     override suspend fun process(item: NFCQueueItem.CustomerSetupOperation): ProcessingResult {
         try {
             _item = item
-            nfcProvider = nfcProviderFactory()
 
             val result = withContext(Dispatchers.IO) {
                 doSetup()
@@ -81,7 +81,8 @@ class NFCCustomerSetupProcessor : NFCProcessorBase() {
 
         try {
             scope.launch {
-                nfcProvider.powerOff()
+                nfcOperations.stopAntenna()
+                nfcOperations.abortDetection()
                 cleanup()
             }
             deferred.complete(true)
@@ -122,7 +123,7 @@ class NFCCustomerSetupProcessor : NFCProcessorBase() {
                 )
                 
                 val headerData = header.toByteArray()
-                val success = NFCTagWriter.writeBlock(0, 1, headerData, sectorKeys)
+                val success = nfcOperations.writeBlock(0, 1, headerData, sectorKeys)
                 
                 if (!success) throw NFCException(ProcessingErrorEvent.NFC_WRITE_ERROR)
             }
@@ -174,7 +175,7 @@ class NFCCustomerSetupProcessor : NFCProcessorBase() {
                     if (blockOffset >= customerData.size) {
                         // No more data to write, fill with zeros
                         val emptyBlock = ByteArray(blockSize)
-                        val didWrite = NFCTagWriter.writeBlock(
+                        val didWrite = nfcOperations.writeBlock(
                             currentSector,
                             blockNum,
                             emptyBlock,
@@ -198,7 +199,7 @@ class NFCCustomerSetupProcessor : NFCProcessorBase() {
                             blockOffset + bytesToCopy
                         )
 
-                        val didWrite = NFCTagWriter.writeBlock(
+                        val didWrite = nfcOperations.writeBlock(
                             currentSector,
                             blockNum,
                             blockData,
@@ -333,7 +334,7 @@ class NFCCustomerSetupProcessor : NFCProcessorBase() {
                     endBlock = 0,
                     totalBytes = 0,
                 )
-                NFCCartStorage.writeCartHeader(emptyCartHeader, sectorKeys)
+                cartStorage.writeCartHeader(emptyCartHeader, sectorKeys)
                 Log.i(TAG, "✅ Initialized empty cart header")
 
                 val didSavePin = requestNFCCustomerSavePIN(customerData.pin)

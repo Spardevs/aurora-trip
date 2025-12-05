@@ -13,7 +13,7 @@ import br.com.ticpass.pos.queue.processors.printing.exceptions.PrintingException
 import br.com.ticpass.pos.queue.processors.printing.models.PrintingEvent
 import br.com.ticpass.pos.queue.processors.printing.models.PrintingQueueItem
 import br.com.ticpass.pos.queue.processors.printing.processors.core.PrintingProcessorBase
-import br.com.ticpass.pos.sdk.AcquirerSdk
+import br.com.ticpass.pos.sdk.factory.AcquirerPrintingProvider
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,15 +25,17 @@ import stone.application.enums.Action
 import stone.application.enums.ErrorsEnum
 import stone.application.interfaces.StoneActionCallback
 import androidx.core.graphics.scale
+import javax.inject.Inject
 
 /**
  * Stone Printing Processor
- * Do printings using the acquirer SDK
+ * Processes printing using the Stone SDK via constructor injection.
  */
-class AcquirerPrintingProcessor : PrintingProcessorBase() {
+class AcquirerPrintingProcessor @Inject constructor(
+    private val printingProviderFactory: AcquirerPrintingProvider
+) : PrintingProcessorBase() {
 
     private val tag = this.javaClass.simpleName
-    private val printingProviderFactory = AcquirerSdk.printing.getInstance()
     private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var _item: PrintingQueueItem
     private lateinit var printingProvider: PosPrintProvider

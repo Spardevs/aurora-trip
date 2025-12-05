@@ -1,7 +1,6 @@
 package br.com.ticpass.pos.queue.processors.nfc.processors.impl
 
 import android.util.Log
-import br.com.stone.posandroid.providers.PosMifareProvider
 import br.com.ticpass.pos.nfc.models.CartOperation
 import br.com.ticpass.pos.nfc.models.NFCCartItem
 import br.com.ticpass.pos.nfc.models.NFCTagSectorKeyType
@@ -17,7 +16,7 @@ import br.com.ticpass.pos.queue.processors.nfc.models.NFCQueueItem
 import br.com.ticpass.pos.queue.processors.nfc.processors.core.NFCProcessorBase
 import br.com.ticpass.pos.queue.processors.nfc.utils.NFCCartOperations
 import br.com.ticpass.pos.queue.processors.nfc.utils.NFCCartStorage
-import br.com.ticpass.pos.sdk.AcquirerSdk
+import br.com.ticpass.pos.queue.processors.nfc.utils.NFCOperations
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,18 +24,20 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 /**
  * Stone NFC Cart Update Processor
- * Updates cart items on NFC tag (add, remove, increment, decrement)
+ * Updates cart items on NFC tag using the Stone SDK via constructor injection.
  */
-class NFCCartUpdateProcessor : NFCProcessorBase() {
+class NFCCartUpdateProcessor @Inject constructor(
+    nfcOperations: NFCOperations,
+    private val cartStorage: NFCCartStorage
+) : NFCProcessorBase(nfcOperations) {
 
     private val TAG = this.javaClass.simpleName
-    private val nfcProviderFactory = AcquirerSdk.nfc.getInstance()
     private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var _item: NFCQueueItem.CartUpdateOperation
-    private lateinit var nfcProvider: PosMifareProvider
 
     override suspend fun process(item: NFCQueueItem.CartUpdateOperation): ProcessingResult {
         try {
@@ -77,7 +78,7 @@ class NFCCartUpdateProcessor : NFCProcessorBase() {
                 )
 
                 // Validate that customer data exists first
-                val customerHeader = NFCCartStorage.readCustomerHeader(sectorKeys)
+                val customerHeader = cartStorage.readCustomerHeader(sectorKeys)
                 if (customerHeader == null) {
                     Log.e(TAG, "❌ Customer data not found - card must be set up first")
                     throw NFCException(ProcessingErrorEvent.NFC_READING_TAG_CUSTOMER_DATA_ERROR)
@@ -86,9 +87,9 @@ class NFCCartUpdateProcessor : NFCProcessorBase() {
                 _events.tryEmit(NFCEvent.READING_TAG_CART_DATA)
 
                 // Read existing cart
-                val cartHeader = NFCCartStorage.readCartHeader(sectorKeys)
+                val cartHeader = cartStorage.readCartHeader(sectorKeys)
                 val existingItems = if (cartHeader != null && cartHeader.itemCount > 0) {
-                    NFCCartStorage.readCart(cartHeader, sectorKeys)
+                    cartStorage.readCart(cartHeader, sectorKeys)
                 } else {
                     emptyList()
                 }
@@ -121,7 +122,7 @@ class NFCCartUpdateProcessor : NFCProcessorBase() {
                 }
 
                 // Write modified cart
-                val newCartHeader = NFCCartStorage.writeCart(
+                val newCartHeader = cartStorage.writeCart(
                     items = modifiedItems,
                     startSector = cartStartSector,
                     startBlock = cartStartBlock,
@@ -129,7 +130,7 @@ class NFCCartUpdateProcessor : NFCProcessorBase() {
                 )
 
                 // Write cart header
-                NFCCartStorage.writeCartHeader(newCartHeader, sectorKeys)
+                cartStorage.writeCartHeader(newCartHeader, sectorKeys)
 
                 Log.i(TAG, "✅ Cart updated successfully: ${modifiedItems.size} items")
                 return@withContext NFCSuccess.CartUpdateSuccess(modifiedItems)
@@ -155,7 +156,8 @@ class NFCCartUpdateProcessor : NFCProcessorBase() {
 
         try {
             scope.launch {
-                nfcProvider.powerOff()
+                nfcOperations.stopAntenna()
+                nfcOperations.abortDetection()
                 cleanup()
             }
             deferred.complete(true)

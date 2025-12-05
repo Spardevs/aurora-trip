@@ -24,22 +24,24 @@ import br.com.ticpass.pos.queue.processors.printing.models.PaperCutType
 import br.com.ticpass.pos.queue.processors.printing.models.PrintingEvent
 import br.com.ticpass.pos.queue.processors.printing.models.PrintingQueueItem
 import br.com.ticpass.pos.queue.processors.printing.processors.core.PrintingProcessorBase
-import br.com.ticpass.pos.sdk.AcquirerSdk
+import br.com.ticpass.pos.sdk.factory.AcquirerPrintingProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.withContext
 import java.util.Locale
+import javax.inject.Inject
 
 /**
  * Gertec Printing Processor
- * Performs printing using the Gertec EasyLayer SDK
+ * Performs printing using the Gertec EasyLayer SDK via constructor injection.
  */
-class AcquirerPrintingProcessor : PrintingProcessorBase() {
+class AcquirerPrintingProcessor @Inject constructor(
+    private val printingProviderFactory: AcquirerPrintingProvider
+) : PrintingProcessorBase() {
 
     private val tag = this.javaClass.simpleName
-    private val printingProviderFactory = AcquirerSdk.printing.getInstance()
     private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var _item: PrintingQueueItem
     private lateinit var printer: Printer

@@ -1,7 +1,6 @@
 package br.com.ticpass.pos.queue.processors.nfc.processors.impl
 
 import android.util.Log
-import br.com.stone.posandroid.providers.PosMifareProvider
 import br.com.ticpass.pos.nfc.models.NFCTagSectorKeyType
 import br.com.ticpass.pos.nfc.models.NFCTagSectorKeys
 import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
@@ -14,7 +13,7 @@ import br.com.ticpass.pos.queue.processors.nfc.models.NFCEvent
 import br.com.ticpass.pos.queue.processors.nfc.models.NFCQueueItem
 import br.com.ticpass.pos.queue.processors.nfc.processors.core.NFCProcessorBase
 import br.com.ticpass.pos.queue.processors.nfc.utils.NFCCartStorage
-import br.com.ticpass.pos.sdk.AcquirerSdk
+import br.com.ticpass.pos.queue.processors.nfc.utils.NFCOperations
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,23 +21,24 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 /**
  * Stone NFC Cart Read Processor
- * Reads cart data from NFC tag
+ * Reads cart data from NFC tag using the Stone SDK via constructor injection.
  */
-class NFCCartReadProcessor : NFCProcessorBase() {
+class NFCCartReadProcessor @Inject constructor(
+    nfcOperations: NFCOperations,
+    private val cartStorage: NFCCartStorage
+) : NFCProcessorBase(nfcOperations) {
 
     private val TAG = this.javaClass.simpleName
-    private val nfcProviderFactory = AcquirerSdk.nfc.getInstance()
     private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var _item: NFCQueueItem.CartReadOperation
-    private lateinit var nfcProvider: PosMifareProvider
 
     override suspend fun process(item: NFCQueueItem.CartReadOperation): ProcessingResult {
         try {
             _item = item
-            nfcProvider = nfcProviderFactory()
 
             val result = withContext(Dispatchers.IO) {
                 doRead()
@@ -75,7 +75,7 @@ class NFCCartReadProcessor : NFCProcessorBase() {
                 )
 
                 // Validate that customer data exists first
-                val customerHeader = NFCCartStorage.readCustomerHeader(sectorKeys)
+                val customerHeader = cartStorage.readCustomerHeader(sectorKeys)
                 if (customerHeader == null) {
                     Log.e(TAG, "❌ Customer data not found - card must be set up first")
                     throw NFCException(ProcessingErrorEvent.NFC_READING_TAG_CUSTOMER_DATA_ERROR)
@@ -84,7 +84,7 @@ class NFCCartReadProcessor : NFCProcessorBase() {
                 _events.tryEmit(NFCEvent.READING_TAG_CART_DATA)
                 
                 // Read cart header
-                val cartHeader = NFCCartStorage.readCartHeader(sectorKeys)
+                val cartHeader = cartStorage.readCartHeader(sectorKeys)
                 if (cartHeader == null) {
                     Log.w(TAG, "⚠️ No cart header found - returning empty cart")
                     return@withContext NFCSuccess.CartReadSuccess(emptyList())
@@ -93,7 +93,7 @@ class NFCCartReadProcessor : NFCProcessorBase() {
                 Log.d(TAG, "📋 Found cart header: ${cartHeader.itemCount} items, ${cartHeader.totalBytes} bytes")
 
                 // Read cart items
-                val items = NFCCartStorage.readCart(cartHeader, sectorKeys)
+                val items = cartStorage.readCart(cartHeader, sectorKeys)
                 
                 Log.i(TAG, "✅ Successfully read ${items.size} cart items")
                 return@withContext NFCSuccess.CartReadSuccess(items)
@@ -118,7 +118,8 @@ class NFCCartReadProcessor : NFCProcessorBase() {
 
         try {
             scope.launch {
-                nfcProvider.powerOff()
+                nfcOperations.stopAntenna()
+                nfcOperations.abortDetection()
                 cleanup()
             }
             deferred.complete(true)

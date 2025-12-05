@@ -11,13 +11,14 @@ import br.com.ticpass.pos.queue.processors.payment.AcquirerPaymentAction
 import br.com.ticpass.pos.queue.processors.payment.AcquirerPaymentActionCode
 import br.com.ticpass.pos.queue.processors.payment.AcquirerPaymentActionCodeError
 import br.com.ticpass.pos.queue.processors.payment.AcquirerPaymentMethod
-import br.com.ticpass.pos.queue.processors.payment.AcquirerPaymentStatusError
 import br.com.ticpass.pos.queue.processors.payment.AcquirerPaymentProcessingException
+import br.com.ticpass.pos.queue.processors.payment.AcquirerPaymentStatusError
 import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent
 import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingQueueItem
 import br.com.ticpass.pos.queue.processors.payment.processors.core.PaymentProcessorBase
 import br.com.ticpass.pos.queue.processors.payment.utils.SystemCustomerReceiptPrinting
-import br.com.ticpass.pos.sdk.AcquirerSdk
+import br.com.ticpass.pos.sdk.factory.CustomerReceiptProvider
+import br.com.ticpass.pos.sdk.factory.TransactionProvider
 import br.com.ticpass.utils.toMoney
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -32,15 +33,18 @@ import stone.application.enums.InstalmentTransactionEnum
 import stone.application.interfaces.StoneActionCallback
 import stone.application.interfaces.StoneCallbackInterface
 import stone.database.transaction.TransactionObject
+import javax.inject.Inject
 
 /**
  * Stone Payment Processor
- * Processes payments using the acquirer SDK
+ * Processes payments using the Stone SDK via constructor injection.
  */
-class AcquirerPaymentProcessor : PaymentProcessorBase() {
+class AcquirerPaymentProcessor @Inject constructor(
+    private val transactionProviderFactory: TransactionProvider,
+    private val customerReceiptProviderFactory: CustomerReceiptProvider
+) : PaymentProcessorBase() {
 
     private val tag = this.javaClass.simpleName
-    private val providers = AcquirerSdk.payment.getInstance()
     private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var transactionData: TransactionObject
     private lateinit var paymentProvider: PosTransactionProvider
@@ -50,7 +54,6 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
     override suspend fun processPayment(item: PaymentProcessingQueueItem): ProcessingResult {
         try {
             _item = item
-            val (payment, customerReceipt) = providers
             val commission = (_item.amount * _item.commission).toMoney()
 
             transactionData = TransactionObject()
@@ -60,8 +63,8 @@ class AcquirerPaymentProcessor : PaymentProcessorBase() {
             transactionData.isCapture = true
             transactionData.externalId = _item.id
 
-            paymentProvider = payment(transactionData)
-            customerReceiptProvider = customerReceipt(transactionData)
+            paymentProvider = transactionProviderFactory(transactionData)
+            customerReceiptProvider = customerReceiptProviderFactory(transactionData)
 
             val result = execTransaction()
             if(result is PaymentSuccess) printCustomerReceipt()

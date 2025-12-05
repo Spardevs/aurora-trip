@@ -10,7 +10,7 @@ import br.com.ticpass.pos.queue.processors.refund.AcquirerRefundException
 import br.com.ticpass.pos.queue.processors.refund.models.RefundEvent
 import br.com.ticpass.pos.queue.processors.refund.models.RefundQueueItem
 import br.com.ticpass.pos.queue.processors.refund.processors.core.RefundProcessorBase
-import br.com.ticpass.pos.sdk.AcquirerSdk
+import br.com.ticpass.pos.sdk.factory.AcquirerRefundProvider
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,15 +22,17 @@ import stone.application.enums.ErrorsEnum
 import stone.application.interfaces.StoneCallbackInterface
 import stone.database.transaction.TransactionObject
 import stone.providers.CancellationProvider
+import javax.inject.Inject
 
 /**
  * Stone Refund Processor
- * Do refunds using the acquirer SDK
+ * Processes refunds using the Stone SDK via constructor injection.
  */
-class AcquirerRefundProcessor : RefundProcessorBase() {
+class AcquirerRefundProcessor @Inject constructor(
+    private val refundProviderFactory: AcquirerRefundProvider
+) : RefundProcessorBase() {
 
     private val tag = this.javaClass.simpleName
-    private val refundProviderFactory = AcquirerSdk.refund.getInstance()
     private var scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var _item: RefundQueueItem
     private lateinit var refundProvider: CancellationProvider
