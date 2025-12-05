@@ -1,8 +1,8 @@
-package br.com.ticpass.pos.queue.processors.nfc.utils
+package br.com.ticpass.pos.core.queue.processors.nfc.utils
 
 import android.util.Log
-import br.com.ticpass.pos.nfc.models.NFCTagSectorKeyType
-import br.com.ticpass.pos.sdk.AcquirerSdk
+import br.com.ticpass.pos.core.nfc.models.NFCTagSectorKeyType
+import br.com.ticpass.pos.core.sdk.AcquirerSdk
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPag
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagNearFieldCardData
 import br.com.uol.pagseguro.plugpagservice.wrapper.data.request.EM1KeyType

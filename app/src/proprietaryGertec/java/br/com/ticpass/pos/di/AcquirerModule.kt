@@ -1,12 +1,12 @@
 package br.com.ticpass.pos.di
 
 import android.content.Context
-import br.com.ticpass.pos.queue.processors.nfc.utils.NFCOperations
-import br.com.ticpass.pos.queue.processors.nfc.utils.ProprietaryGertecNFCOperations
-import br.com.ticpass.pos.sdk.AcquirerCapabilities
-import br.com.ticpass.pos.sdk.FlavorCapabilities
-import br.com.ticpass.pos.sdk.factory.AcquirerPrintingProvider
-import br.com.ticpass.pos.sdk.factory.AcquirerPrintingProviderFactory
+import br.com.ticpass.pos.core.queue.processors.nfc.utils.NFCOperations
+import br.com.ticpass.pos.core.queue.processors.nfc.utils.ProprietaryGertecNFCOperations
+import br.com.ticpass.pos.core.sdk.AcquirerCapabilities
+import br.com.ticpass.pos.core.sdk.FlavorCapabilities
+import br.com.ticpass.pos.core.sdk.factory.AcquirerPrintingProvider
+import br.com.ticpass.pos.core.sdk.factory.AcquirerPrintingProviderFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

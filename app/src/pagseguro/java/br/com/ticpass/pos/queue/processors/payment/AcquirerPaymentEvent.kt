@@ -1,6 +1,6 @@
-package br.com.ticpass.pos.queue.processors.payment
+package br.com.ticpass.pos.core.queue.processors.payment
 
-import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent
+import br.com.ticpass.pos.core.queue.processors.payment.models.PaymentProcessingEvent
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagEventData
 
 enum class AcquirerPaymentEvent(val code: Int, val event: PaymentProcessingEvent) {

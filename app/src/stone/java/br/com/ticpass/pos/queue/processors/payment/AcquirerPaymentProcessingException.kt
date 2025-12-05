@@ -1,6 +1,6 @@
-package br.com.ticpass.pos.queue.processors.payment
+package br.com.ticpass.pos.core.queue.processors.payment
 
-import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
+import br.com.ticpass.pos.core.queue.error.ProcessingErrorEvent
 import stone.application.enums.ErrorsEnum
 
 /**

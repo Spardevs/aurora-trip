@@ -1,6 +1,6 @@
-package br.com.ticpass.pos.queue.processors.payment
+package br.com.ticpass.pos.core.queue.processors.payment
 
-import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingEvent
+import br.com.ticpass.pos.core.queue.processors.payment.models.PaymentProcessingEvent
 import stone.application.enums.Action
 
 enum class AcquirerPaymentAction(val action: Action, val event: PaymentProcessingEvent) {

@@ -1,11 +1,11 @@
-package br.com.ticpass.pos.queue.processors.refund.processors.impl
+package br.com.ticpass.pos.core.queue.processors.refund.processors.impl
 
 import android.util.Log
-import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
-import br.com.ticpass.pos.queue.models.RefundError
-import br.com.ticpass.pos.queue.models.ProcessingResult
-import br.com.ticpass.pos.queue.processors.refund.models.RefundQueueItem
-import br.com.ticpass.pos.queue.processors.refund.processors.core.RefundProcessorBase
+import br.com.ticpass.pos.core.queue.error.ProcessingErrorEvent
+import br.com.ticpass.pos.core.queue.models.RefundError
+import br.com.ticpass.pos.core.queue.models.ProcessingResult
+import br.com.ticpass.pos.core.queue.processors.refund.models.RefundQueueItem
+import br.com.ticpass.pos.core.queue.processors.refund.processors.core.RefundProcessorBase
 import javax.inject.Inject
 
 /**

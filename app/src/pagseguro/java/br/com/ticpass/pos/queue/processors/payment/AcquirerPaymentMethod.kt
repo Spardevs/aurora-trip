@@ -1,6 +1,6 @@
-package br.com.ticpass.pos.queue.processors.payment
+package br.com.ticpass.pos.core.queue.processors.payment
 
-import br.com.ticpass.pos.payment.models.SystemPaymentMethod
+import br.com.ticpass.pos.core.payment.models.SystemPaymentMethod
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPag
 
 enum class AcquirerPaymentMethod(val key: SystemPaymentMethod, val code: Int) {

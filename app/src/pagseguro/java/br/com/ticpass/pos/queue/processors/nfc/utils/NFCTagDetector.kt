@@ -1,12 +1,12 @@
-package br.com.ticpass.pos.queue.processors.nfc.utils
+package br.com.ticpass.pos.core.queue.processors.nfc.utils
 
 import android.util.Log
-import br.com.ticpass.pos.nfc.models.NFCTagDetectionResult
-import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
-import br.com.ticpass.pos.queue.processors.nfc.AcquirerNFCException
-import br.com.ticpass.pos.queue.processors.nfc.exceptions.NFCException
-import br.com.ticpass.pos.queue.processors.nfc.utils.NFCUtils.byteArrayToHexString
-import br.com.ticpass.pos.sdk.AcquirerSdk
+import br.com.ticpass.pos.core.nfc.models.NFCTagDetectionResult
+import br.com.ticpass.pos.core.queue.error.ProcessingErrorEvent
+import br.com.ticpass.pos.core.queue.processors.nfc.AcquirerNFCException
+import br.com.ticpass.pos.core.queue.processors.nfc.exceptions.NFCException
+import br.com.ticpass.pos.core.queue.processors.nfc.utils.NFCUtils.byteArrayToHexString
+import br.com.ticpass.pos.core.sdk.AcquirerSdk
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPag
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagNearFieldCardData
 import br.com.uol.pagseguro.plugpagservice.wrapper.exception.PlugPagException

@@ -1,6 +1,6 @@
-package br.com.ticpass.pos.queue.processors.refund
+package br.com.ticpass.pos.core.queue.processors.refund
 
-import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
+import br.com.ticpass.pos.core.queue.error.ProcessingErrorEvent
 
 /**
  * Gertec proprietary refund error events (NO-OP)

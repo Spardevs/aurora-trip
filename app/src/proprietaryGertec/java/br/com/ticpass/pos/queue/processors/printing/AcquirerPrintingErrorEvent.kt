@@ -1,7 +1,7 @@
-package br.com.ticpass.pos.queue.processors.printing
+package br.com.ticpass.pos.core.queue.processors.printing
 
 import br.com.gertec.easylayer.utils.Status
-import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
+import br.com.ticpass.pos.core.queue.error.ProcessingErrorEvent
 
 /**
  * Gertec-specific error events emitted during printing processing

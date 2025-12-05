@@ -1,4 +1,4 @@
-package br.com.ticpass.pos.sdk
+package br.com.ticpass.pos.core.sdk
 
 /**
  * Stone flavor capabilities.

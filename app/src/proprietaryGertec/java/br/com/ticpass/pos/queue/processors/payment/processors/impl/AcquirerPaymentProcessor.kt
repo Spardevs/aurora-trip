@@ -1,11 +1,11 @@
-package br.com.ticpass.pos.queue.processors.payment.processors.impl
+package br.com.ticpass.pos.core.queue.processors.payment.processors.impl
 
 import android.util.Log
-import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
-import br.com.ticpass.pos.queue.models.PaymentError
-import br.com.ticpass.pos.queue.models.ProcessingResult
-import br.com.ticpass.pos.queue.processors.payment.models.PaymentProcessingQueueItem
-import br.com.ticpass.pos.queue.processors.payment.processors.core.PaymentProcessorBase
+import br.com.ticpass.pos.core.queue.error.ProcessingErrorEvent
+import br.com.ticpass.pos.core.queue.models.PaymentError
+import br.com.ticpass.pos.core.queue.models.ProcessingResult
+import br.com.ticpass.pos.core.queue.processors.payment.models.PaymentProcessingQueueItem
+import br.com.ticpass.pos.core.queue.processors.payment.processors.core.PaymentProcessorBase
 import javax.inject.Inject
 
 /**

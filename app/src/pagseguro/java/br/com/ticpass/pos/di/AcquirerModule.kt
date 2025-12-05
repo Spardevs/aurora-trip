@@ -1,10 +1,10 @@
 package br.com.ticpass.pos.di
 
 import android.content.Context
-import br.com.ticpass.pos.queue.processors.nfc.utils.NFCOperations
-import br.com.ticpass.pos.queue.processors.nfc.utils.PagSeguroNFCOperations
-import br.com.ticpass.pos.sdk.AcquirerCapabilities
-import br.com.ticpass.pos.sdk.FlavorCapabilities
+import br.com.ticpass.pos.core.queue.processors.nfc.utils.NFCOperations
+import br.com.ticpass.pos.core.queue.processors.nfc.utils.PagSeguroNFCOperations
+import br.com.ticpass.pos.core.sdk.AcquirerCapabilities
+import br.com.ticpass.pos.core.sdk.FlavorCapabilities
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPag
 import dagger.Module
 import dagger.Provides

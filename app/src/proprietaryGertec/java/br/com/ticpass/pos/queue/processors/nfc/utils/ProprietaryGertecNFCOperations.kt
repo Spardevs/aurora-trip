@@ -1,8 +1,8 @@
-package br.com.ticpass.pos.queue.processors.nfc.utils
+package br.com.ticpass.pos.core.queue.processors.nfc.utils
 
 import android.util.Log
-import br.com.ticpass.pos.nfc.models.NFCTagDetectionResult
-import br.com.ticpass.pos.nfc.models.NFCTagSectorKeys
+import br.com.ticpass.pos.core.nfc.models.NFCTagDetectionResult
+import br.com.ticpass.pos.core.nfc.models.NFCTagSectorKeys
 import javax.inject.Inject
 import javax.inject.Singleton
 

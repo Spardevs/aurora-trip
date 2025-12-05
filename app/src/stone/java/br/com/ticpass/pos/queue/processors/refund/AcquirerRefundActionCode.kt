@@ -1,6 +1,6 @@
-package br.com.ticpass.pos.queue.processors.refund
+package br.com.ticpass.pos.core.queue.processors.refund
 
-import br.com.ticpass.pos.queue.processors.refund.models.RefundEvent
+import br.com.ticpass.pos.core.queue.processors.refund.models.RefundEvent
 
 
 enum class AcquirerRefundActionCode(val actionCode: String, val event: RefundEvent) {

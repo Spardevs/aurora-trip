@@ -1,15 +1,15 @@
-package br.com.ticpass.pos.queue.processors.refund.processors.impl
+package br.com.ticpass.pos.core.queue.processors.refund.processors.impl
 
 import android.util.Log
-import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
-import br.com.ticpass.pos.queue.models.RefundError
-import br.com.ticpass.pos.queue.models.RefundSuccess
-import br.com.ticpass.pos.queue.models.ProcessingResult
-import br.com.ticpass.pos.queue.processors.refund.AcquirerRefundErrorEvent
-import br.com.ticpass.pos.queue.processors.refund.AcquirerRefundException
-import br.com.ticpass.pos.queue.processors.refund.models.RefundEvent
-import br.com.ticpass.pos.queue.processors.refund.models.RefundQueueItem
-import br.com.ticpass.pos.queue.processors.refund.processors.core.RefundProcessorBase
+import br.com.ticpass.pos.core.queue.error.ProcessingErrorEvent
+import br.com.ticpass.pos.core.queue.models.RefundError
+import br.com.ticpass.pos.core.queue.models.RefundSuccess
+import br.com.ticpass.pos.core.queue.models.ProcessingResult
+import br.com.ticpass.pos.core.queue.processors.refund.AcquirerRefundErrorEvent
+import br.com.ticpass.pos.core.queue.processors.refund.AcquirerRefundException
+import br.com.ticpass.pos.core.queue.processors.refund.models.RefundEvent
+import br.com.ticpass.pos.core.queue.processors.refund.models.RefundQueueItem
+import br.com.ticpass.pos.core.queue.processors.refund.processors.core.RefundProcessorBase
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPag
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagVoidData
 import br.com.uol.pagseguro.plugpagservice.wrapper.exception.PlugPagException

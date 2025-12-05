@@ -1,10 +1,10 @@
-package br.com.ticpass.pos.queue.processors.nfc.utils
+package br.com.ticpass.pos.core.queue.processors.nfc.utils
 
 import android.util.Log
 import br.com.stone.posandroid.hal.api.mifare.MifareKeyType
 import br.com.stone.posandroid.providers.PosMifareProvider
-import br.com.ticpass.pos.nfc.models.NFCTagSectorKeyType
-import br.com.ticpass.pos.sdk.AcquirerSdk
+import br.com.ticpass.pos.core.nfc.models.NFCTagSectorKeyType
+import br.com.ticpass.pos.core.sdk.AcquirerSdk
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeoutOrNull
 import stone.application.enums.ErrorsEnum

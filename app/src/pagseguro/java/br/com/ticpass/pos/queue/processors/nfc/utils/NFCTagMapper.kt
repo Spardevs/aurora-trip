@@ -1,14 +1,14 @@
-package br.com.ticpass.pos.queue.processors.nfc.utils
+package br.com.ticpass.pos.core.queue.processors.nfc.utils
 
 import android.util.Log
-import br.com.ticpass.pos.nfc.models.NFCTagModel
-import br.com.ticpass.pos.nfc.models.NFCTagManufacturer
-import br.com.ticpass.pos.nfc.models.NFCTagData
-import br.com.ticpass.pos.nfc.models.NFCTagDataHeader
-import br.com.ticpass.pos.nfc.models.NFCTagDataType
-import br.com.ticpass.pos.nfc.models.NFCTagSectorData
-import br.com.ticpass.pos.nfc.models.NFCTagSectorKeys
-import br.com.ticpass.pos.queue.processors.nfc.utils.NFCUtils.hexStringToByteArray
+import br.com.ticpass.pos.core.nfc.models.NFCTagModel
+import br.com.ticpass.pos.core.nfc.models.NFCTagManufacturer
+import br.com.ticpass.pos.core.nfc.models.NFCTagData
+import br.com.ticpass.pos.core.nfc.models.NFCTagDataHeader
+import br.com.ticpass.pos.core.nfc.models.NFCTagDataType
+import br.com.ticpass.pos.core.nfc.models.NFCTagSectorData
+import br.com.ticpass.pos.core.nfc.models.NFCTagSectorKeys
+import br.com.ticpass.pos.core.queue.processors.nfc.utils.NFCUtils.hexStringToByteArray
 
 /**
  * Utility for mapping and reading complete NFC tag data

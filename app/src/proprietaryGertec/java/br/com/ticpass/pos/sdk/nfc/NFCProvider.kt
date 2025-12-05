@@ -1,4 +1,4 @@
-package br.com.ticpass.pos.sdk.nfc
+package br.com.ticpass.pos.core.sdk.nfc
 
 import android.content.Context
 

@@ -1,6 +1,6 @@
-package br.com.ticpass.pos.queue.processors.payment
+package br.com.ticpass.pos.core.queue.processors.payment
 
-import br.com.ticpass.pos.payment.models.SystemPaymentMethod
+import br.com.ticpass.pos.core.payment.models.SystemPaymentMethod
 import stone.application.enums.TypeOfTransactionEnum
 
 enum class AcquirerPaymentMethod(val key: SystemPaymentMethod, val code: TypeOfTransactionEnum) {

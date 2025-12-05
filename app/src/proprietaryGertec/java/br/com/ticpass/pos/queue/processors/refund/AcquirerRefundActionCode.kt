@@ -1,4 +1,4 @@
-package br.com.ticpass.pos.queue.processors.refund
+package br.com.ticpass.pos.core.queue.processors.refund
 
 /**
  * Refund action codes (NO-OP)

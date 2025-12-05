@@ -1,7 +1,7 @@
-package br.com.ticpass.pos.sdk.nfc
+package br.com.ticpass.pos.core.sdk.nfc
 
 import android.content.Context
-import br.com.ticpass.pos.sdk.SdkInstance
+import br.com.ticpass.pos.core.sdk.SdkInstance
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPag
 
 /**

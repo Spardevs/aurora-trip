@@ -1,0 +1,49 @@
+package br.com.ticpass.pos.core.queue.processors.payment.utils
+
+import br.com.ticpass.pos.core.queue.config.PersistenceStrategy
+import br.com.ticpass.pos.core.queue.config.ProcessorStartMode
+import br.com.ticpass.pos.core.queue.core.HybridQueueManager
+import br.com.ticpass.pos.core.queue.processors.payment.data.PaymentProcessingStorage
+import br.com.ticpass.pos.core.queue.processors.payment.models.PaymentProcessingEvent
+import br.com.ticpass.pos.core.queue.processors.payment.models.PaymentProcessingQueueItem
+import br.com.ticpass.pos.core.queue.processors.payment.processors.PaymentProcessorRegistry
+import kotlinx.coroutines.CoroutineScope
+import javax.inject.Inject
+import javax.inject.Singleton
+
+/**
+ * Payment Queue Factory
+ * Injectable factory class to create configured payment queue instances.
+ */
+@Singleton
+class PaymentProcessingQueueFactory @Inject constructor(
+    private val paymentProcessorRegistry: PaymentProcessorRegistry
+) {
+    
+    /**
+     * Create a payment queue that can handle multiple payment types in a single queue
+     * Uses a DynamicPaymentProcessor that delegates to the appropriate processor based on the item's processorType
+     * 
+     * @param storage The payment storage to use
+     * @param persistenceStrategy The persistence strategy to use
+     * @param scope The coroutine scope to use
+     * @return A configured HybridQueueManager with a DynamicPaymentProcessor
+     */
+    fun createDynamicPaymentQueue(
+        storage: PaymentProcessingStorage,
+        persistenceStrategy: PersistenceStrategy = PersistenceStrategy.IMMEDIATE,
+        startMode: ProcessorStartMode = ProcessorStartMode.IMMEDIATE,
+        scope: CoroutineScope
+    ): HybridQueueManager<PaymentProcessingQueueItem, PaymentProcessingEvent> {
+        // Get a dynamic processor from the registry
+        val dynamicProcessor = paymentProcessorRegistry.createDynamicProcessor()
+        
+        return HybridQueueManager(
+            storage = storage,
+            processor = dynamicProcessor,
+            persistenceStrategy = persistenceStrategy,
+            startMode = startMode,
+            scope = scope
+        )
+    }
+}

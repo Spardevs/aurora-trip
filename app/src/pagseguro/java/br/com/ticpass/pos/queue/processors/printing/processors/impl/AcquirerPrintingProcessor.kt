@@ -1,15 +1,15 @@
-package br.com.ticpass.pos.queue.processors.printing.processors.impl
+package br.com.ticpass.pos.core.queue.processors.printing.processors.impl
 
 import android.util.Log
-import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
-import br.com.ticpass.pos.queue.models.PrintingError
-import br.com.ticpass.pos.queue.models.PrintingSuccess
-import br.com.ticpass.pos.queue.models.ProcessingResult
-import br.com.ticpass.pos.queue.processors.printing.AcquirerPrintingErrorEvent
-import br.com.ticpass.pos.queue.processors.printing.AcquirerPrintingException
-import br.com.ticpass.pos.queue.processors.printing.models.PrintingEvent
-import br.com.ticpass.pos.queue.processors.printing.models.PrintingQueueItem
-import br.com.ticpass.pos.queue.processors.printing.processors.core.PrintingProcessorBase
+import br.com.ticpass.pos.core.queue.error.ProcessingErrorEvent
+import br.com.ticpass.pos.core.queue.models.PrintingError
+import br.com.ticpass.pos.core.queue.models.PrintingSuccess
+import br.com.ticpass.pos.core.queue.models.ProcessingResult
+import br.com.ticpass.pos.core.queue.processors.printing.AcquirerPrintingErrorEvent
+import br.com.ticpass.pos.core.queue.processors.printing.AcquirerPrintingException
+import br.com.ticpass.pos.core.queue.processors.printing.models.PrintingEvent
+import br.com.ticpass.pos.core.queue.processors.printing.models.PrintingQueueItem
+import br.com.ticpass.pos.core.queue.processors.printing.processors.core.PrintingProcessorBase
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPag
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPagPrinterData
 import br.com.uol.pagseguro.plugpagservice.wrapper.exception.PlugPagException

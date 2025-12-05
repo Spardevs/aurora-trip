@@ -1,6 +1,6 @@
-package br.com.ticpass.pos.queue.processors.nfc
+package br.com.ticpass.pos.core.queue.processors.nfc
 
-import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
+import br.com.ticpass.pos.core.queue.error.ProcessingErrorEvent
 
 /**
  * PagSeguro-specific error events emitted during nfc processing

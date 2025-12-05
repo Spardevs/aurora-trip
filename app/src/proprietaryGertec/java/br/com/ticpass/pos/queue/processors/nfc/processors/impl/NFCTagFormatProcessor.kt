@@ -1,12 +1,12 @@
-package br.com.ticpass.pos.queue.processors.nfc.processors.impl
+package br.com.ticpass.pos.core.queue.processors.nfc.processors.impl
 
 import android.util.Log
-import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
-import br.com.ticpass.pos.queue.models.NFCError
-import br.com.ticpass.pos.queue.models.ProcessingResult
-import br.com.ticpass.pos.queue.processors.nfc.models.NFCQueueItem
-import br.com.ticpass.pos.queue.processors.nfc.processors.core.NFCProcessorBase
-import br.com.ticpass.pos.queue.processors.nfc.utils.NFCOperations
+import br.com.ticpass.pos.core.queue.error.ProcessingErrorEvent
+import br.com.ticpass.pos.core.queue.models.NFCError
+import br.com.ticpass.pos.core.queue.models.ProcessingResult
+import br.com.ticpass.pos.core.queue.processors.nfc.models.NFCQueueItem
+import br.com.ticpass.pos.core.queue.processors.nfc.processors.core.NFCProcessorBase
+import br.com.ticpass.pos.core.queue.processors.nfc.utils.NFCOperations
 import javax.inject.Inject
 
 /**

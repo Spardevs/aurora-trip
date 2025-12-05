@@ -1,7 +1,7 @@
-package br.com.ticpass.pos.sdk.printing
+package br.com.ticpass.pos.core.sdk.printing
 
 import android.content.Context
-import br.com.ticpass.pos.sdk.SdkInstance
+import br.com.ticpass.pos.core.sdk.SdkInstance
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPag
 
 /**

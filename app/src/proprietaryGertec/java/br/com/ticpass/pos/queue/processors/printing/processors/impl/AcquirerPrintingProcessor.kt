@@ -1,4 +1,4 @@
-package br.com.ticpass.pos.queue.processors.printing.processors.impl
+package br.com.ticpass.pos.core.queue.processors.printing.processors.impl
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -13,18 +13,18 @@ import br.com.gertec.easylayer.printer.PrintConfig
 import br.com.gertec.easylayer.printer.Printer
 import br.com.gertec.easylayer.printer.PrinterError
 import br.com.gertec.easylayer.printer.PrinterException
-import br.com.ticpass.pos.queue.error.ProcessingErrorEvent
-import br.com.ticpass.pos.queue.input.UserInputRequest
-import br.com.ticpass.pos.queue.models.PrintingError
-import br.com.ticpass.pos.queue.models.PrintingSuccess
-import br.com.ticpass.pos.queue.models.ProcessingResult
-import br.com.ticpass.pos.queue.processors.printing.AcquirerPrintingException
-import br.com.ticpass.pos.queue.processors.printing.exceptions.PrintingException
-import br.com.ticpass.pos.queue.processors.printing.models.PaperCutType
-import br.com.ticpass.pos.queue.processors.printing.models.PrintingEvent
-import br.com.ticpass.pos.queue.processors.printing.models.PrintingQueueItem
-import br.com.ticpass.pos.queue.processors.printing.processors.core.PrintingProcessorBase
-import br.com.ticpass.pos.sdk.factory.AcquirerPrintingProvider
+import br.com.ticpass.pos.core.queue.error.ProcessingErrorEvent
+import br.com.ticpass.pos.core.queue.input.UserInputRequest
+import br.com.ticpass.pos.core.queue.models.PrintingError
+import br.com.ticpass.pos.core.queue.models.PrintingSuccess
+import br.com.ticpass.pos.core.queue.models.ProcessingResult
+import br.com.ticpass.pos.core.queue.processors.printing.AcquirerPrintingException
+import br.com.ticpass.pos.core.queue.processors.printing.exceptions.PrintingException
+import br.com.ticpass.pos.core.queue.processors.printing.models.PaperCutType
+import br.com.ticpass.pos.core.queue.processors.printing.models.PrintingEvent
+import br.com.ticpass.pos.core.queue.processors.printing.models.PrintingQueueItem
+import br.com.ticpass.pos.core.queue.processors.printing.processors.core.PrintingProcessorBase
+import br.com.ticpass.pos.core.sdk.factory.AcquirerPrintingProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

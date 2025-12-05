@@ -1,6 +1,6 @@
-package br.com.ticpass.pos.queue.processors.nfc.utils
+package br.com.ticpass.pos.core.queue.processors.nfc.utils
 
-import br.com.ticpass.pos.sdk.AcquirerSdk
+import br.com.ticpass.pos.core.sdk.AcquirerSdk
 import br.com.uol.pagseguro.plugpagservice.wrapper.PlugPag
 import br.com.uol.pagseguro.plugpagservice.wrapper.exception.PlugPagException
 
