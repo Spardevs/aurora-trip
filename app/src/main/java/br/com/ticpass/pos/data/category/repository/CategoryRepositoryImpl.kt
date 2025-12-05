@@ -22,8 +22,13 @@ class CategoryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun refreshCategories(menuId: String) {
-        val response = remoteDataSource.getCategories(menuId)
-        val entities = response.categories?.map { it.toDomain().toEntity() }
-        entities?.let { localDataSource.insertAll(it) }
+        try {
+            val response = remoteDataSource.getCategories(menuId)
+            val entities = response.categories?.map { it.toDomain().toEntity() } ?: emptyList()
+            localDataSource.insertAll(entities)
+        } catch (e: Exception) {
+            // Log error or handle accordingly
+            throw e
+        }
     }
 }
