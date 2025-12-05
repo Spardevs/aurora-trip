@@ -4,10 +4,10 @@ data class ProductDto(
     val id: String,
     val label: String,
     val price: Int,
-    val thumbnail: ThumbnailDto,
-    val category: String,  // objeto, não string
+    val thumbnail: ThumbnailDto?,
+    val category: String?,  // corrigido para String?
     val menu: String,
-    val createdBy: String,     // objeto, não string
+    val createdBy: String,  // já está correto como String
     val createdAt: String,
     val updatedAt: String
 )

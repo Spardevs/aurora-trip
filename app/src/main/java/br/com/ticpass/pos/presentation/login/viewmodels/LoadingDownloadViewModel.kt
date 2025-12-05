@@ -5,9 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.ticpass.pos.domain.pos.repository.PosRepository
 import br.com.ticpass.pos.domain.product.repository.ProductRepository
-import br.com.ticpass.pos.domain.product.usecase.RefreshCategoriesUseCase
 import br.com.ticpass.pos.domain.product.usecase.RefreshProductsUseCase
 import br.com.ticpass.pos.domain.user.repository.UserRepository
+import br.com.ticpass.pos.domain.category.usecase.RefreshCategoriesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,7 +32,6 @@ class LoadingDownloadViewModel @Inject constructor(
 
     fun startCompleteProcess(menuId: String, posId: String, deviceId: String, cashierName: String, userId: String) {
         viewModelScope.launch {
-            _uiState.value = LoadingDownloadUiState.Loading("Baixando categorias...")
             try {
                 // Etapa 1: Download de categorias
                 _uiState.value = LoadingDownloadUiState.Loading("Baixando categorias...")

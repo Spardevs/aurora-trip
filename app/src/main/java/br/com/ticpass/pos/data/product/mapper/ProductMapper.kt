@@ -7,7 +7,6 @@ import br.com.ticpass.pos.data.product.remote.dto.ProductDto
 fun ProductDto.toEntity(): ProductEntity {
     val categoryId = when (val cat = this.category) {
         is String -> cat
-        is Map<*, *> -> cat["id"] as? String ?: ""
         else -> ""
     }
 
@@ -15,7 +14,7 @@ fun ProductDto.toEntity(): ProductEntity {
         id = this.id,
         category = categoryId,
         name = this.label,
-        thumbnail = this.thumbnail.id,
+        thumbnail = this.thumbnail?.id ?: "",
         price = this.price.toLong(),
         stock = 0,
         isEnabled = true

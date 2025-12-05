@@ -1,7 +1,9 @@
 package br.com.ticpass.pos.data.category.remote.dto
 
-import com.google.gson.annotations.SerializedName
 
+data class CategoriesResponseDto(
+    val categories: List<CategoryDto>?
+)
 data class CategoryDto(
     val id: String,
     val label: String,
@@ -11,8 +13,4 @@ data class CategoryDto(
     val createdBy: String,
     val createdAt: String,
     val updatedAt: String
-)
-data class CategoriesResponseDto(
-    @SerializedName("categories")
-    val categories: List<CategoryDto>? = emptyList()
 )
