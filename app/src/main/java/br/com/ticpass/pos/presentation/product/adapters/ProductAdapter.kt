@@ -10,6 +10,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.domain.product.model.ProductModel
+import android.util.Log
 import java.io.File
 
 class ProductAdapter(
@@ -41,13 +42,27 @@ class ProductAdapter(
         fun bind(product: ProductModel) {
             nameTextView.text = product.name
 
-            // Carregar a imagem da thumbnail do diretório thumbnails
-            val thumbnailFileName = product.thumbnail // id que é o nome do arquivo
+            // Construir o nome do arquivo com extensão .webp (cada produto tem thumbnail = id do arquivo)
+            val thumbnailFileName = if (product.thumbnail.endsWith(".webp")) {
+                product.thumbnail
+            } else {
+                "${product.thumbnail}.webp"
+            }
+
             val dir = File(context.filesDir, "thumbnails")
             val file = File(dir, thumbnailFileName)
+
+            Log.d("ProductAdapter", "Tentando carregar thumbnail: $thumbnailFileName")
+            Log.d("ProductAdapter", "Caminho do arquivo: ${file.absolutePath}, existe? ${file.exists()}")
+
             if (file.exists()) {
                 val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                thumbnailImageView.setImageBitmap(bitmap)
+                if (bitmap != null) {
+                    thumbnailImageView.setImageBitmap(bitmap)
+                } else {
+                    Log.w("ProductAdapter", "Bitmap nulo ao decodificar: ${file.absolutePath}")
+                    thumbnailImageView.setImageResource(R.drawable.placeholder_image)
+                }
             } else {
                 // Caso não exista, colocar uma imagem padrão ou limpar
                 thumbnailImageView.setImageResource(R.drawable.placeholder_image)
