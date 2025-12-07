@@ -10,16 +10,16 @@ import br.com.ticpass.pos.core.util.SessionPrefsManagerUtils
 import br.com.ticpass.pos.data.user.local.dao.UserDao
 import br.com.ticpass.pos.presentation.login.viewmodels.LoadingDownloadUiState
 import br.com.ticpass.pos.presentation.login.viewmodels.LoadingDownloadViewModel
-import br.com.ticpass.pos.presentation.product.activities.ProductsListActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 import br.com.ticpass.pos.R
+import br.com.ticpass.pos.presentation.product.activities.ProductsListActivity
 
 @AndroidEntryPoint
-class LoadingDownloadFragmentActivity : AppCompatActivity() {
+class LoginLoadingDownloadActivity : AppCompatActivity() {
 
     private val loadingDownloadViewModel: LoadingDownloadViewModel by viewModels()
 

@@ -44,7 +44,7 @@ import javax.inject.Inject
 import br.com.ticpass.pos.data.device.remote.service.DeviceService
 import br.com.ticpass.pos.data.device.remote.dto.RegisterDeviceRequest
 import br.com.ticpass.pos.data.user.local.dao.UserDao
-import br.com.ticpass.pos.presentation.login.activities.LoadingDownloadFragmentActivity
+import br.com.ticpass.pos.presentation.login.activities.LoginLoadingDownloadActivity
 import kotlinx.coroutines.CancellationException
 import retrofit2.HttpException
 import timber.log.Timber
@@ -199,7 +199,7 @@ class MainActivity : BaseActivity() {
             val user = userDao.getAnyUserOnce()
 
             if (user?.isLogged == true) {
-                startActivity(Intent(this@MainActivity, LoadingDownloadFragmentActivity::class.java))
+                startActivity(Intent(this@MainActivity, LoginLoadingDownloadActivity::class.java))
                 finish()
             } else {
                 SessionPrefsManagerUtils.clearAll()
