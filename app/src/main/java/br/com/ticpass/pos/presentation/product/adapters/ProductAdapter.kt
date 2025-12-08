@@ -11,12 +11,15 @@ import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.domain.product.model.ProductModel
 import android.util.Log
+import br.com.ticpass.pos.core.util.NumericConversionUtils
 import java.io.File
 
 class ProductAdapter(
     private val context: Context,
     private var products: List<ProductModel>
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
+
+    val numericConversionUtils = NumericConversionUtils
 
     fun updateProducts(newProducts: List<ProductModel>) {
         products = newProducts
@@ -38,9 +41,13 @@ class ProductAdapter(
     inner class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val thumbnailImageView: ImageView = itemView.findViewById(R.id.imageThumbnail)
         private val nameTextView: TextView = itemView.findViewById(R.id.textProductName)
+        private val priceTextView: TextView = itemView.findViewById(R.id.productPrice)
+
 
         fun bind(product: ProductModel) {
             nameTextView.text = product.name
+            priceTextView.text = "R$${numericConversionUtils.convertLongToBrCurrencyString(product.price)}"
+
 
             // Construir o nome do arquivo com extensão .webp (cada produto tem thumbnail = id do arquivo)
             val thumbnailFileName = if (product.thumbnail.endsWith(".webp")) {
