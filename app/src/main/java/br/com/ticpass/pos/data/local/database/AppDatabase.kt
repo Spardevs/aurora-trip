@@ -14,10 +14,28 @@ import br.com.ticpass.pos.data.product.local.dao.ProductDao
 import br.com.ticpass.pos.data.product.local.entity.ProductEntity
 import br.com.ticpass.pos.data.user.local.dao.UserDao
 import br.com.ticpass.pos.data.user.local.entity.UserEntity
+import br.com.ticpass.pos.core.queue.processors.payment.data.PaymentProcessingQueueDao
+import br.com.ticpass.pos.core.queue.processors.payment.models.PaymentProcessingEntity
+import br.com.ticpass.pos.core.queue.processors.nfc.data.NFCQueueDao
+import br.com.ticpass.pos.core.queue.processors.nfc.models.NFCQueueEntity
+import br.com.ticpass.pos.core.queue.processors.printing.data.PrintingQueueDao
+import br.com.ticpass.pos.core.queue.processors.printing.models.PrintingEntity
+import br.com.ticpass.pos.core.queue.processors.refund.data.RefundQueueDao
+import br.com.ticpass.pos.core.queue.processors.refund.models.RefundQueueEntity
 
 @Database(
-    entities = [UserEntity::class, MenuEntity::class, PosEntity::class, ProductEntity::class, CategoryEntity::class],
-    version = 1,
+    entities = [
+        UserEntity::class, 
+        MenuEntity::class, 
+        PosEntity::class, 
+        ProductEntity::class, 
+        CategoryEntity::class,
+        PaymentProcessingEntity::class,
+        NFCQueueEntity::class,
+        PrintingEntity::class,
+        RefundQueueEntity::class
+    ],
+    version = 2,
     exportSchema = false
 )
 
@@ -28,6 +46,12 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun posDao(): PosDao
     abstract fun productDao(): ProductDao
     abstract fun categoryDao(): CategoryDao
+    
+    // Queue processor DAOs
+    abstract fun paymentProcessingQueueDao(): PaymentProcessingQueueDao
+    abstract fun nfcQueueDao(): NFCQueueDao
+    abstract fun printingQueueDao(): PrintingQueueDao
+    abstract fun refundQueueDao(): RefundQueueDao
 
     companion object {
         @Volatile

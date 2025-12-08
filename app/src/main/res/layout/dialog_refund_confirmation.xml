@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Refund Information Header -->
+    <TextView
+        android:id="@+id/text_refund_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/next_refund_progress"
+        android:textSize="16sp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Refund Method Field -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/refund_method"
+        android:textStyle="bold" />
+
+    <Spinner
+        android:id="@+id/spinner_refund_method"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Processor type is automatically selected based on refund method -->
+
+    <!-- Note about editing -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/edit_refund_note"
+        android:textStyle="italic"
+        android:textSize="12sp"
+        android:layout_marginTop="8dp" />
+        
+    <!-- Timeout Countdown View -->
+    <br.com.ticpass.pos.common.view.TimeoutCountdownView
+        android:id="@+id/timeout_countdown_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp" />
+</LinearLayout>

@@ -1,76 +1,23 @@
 package br.com.ticpass.pos.di
 
-import android.content.Context
 import br.com.ticpass.pos.core.queue.processors.nfc.utils.NFCOperations
 import br.com.ticpass.pos.core.queue.processors.nfc.utils.StoneNFCOperations
 import br.com.ticpass.pos.core.sdk.AcquirerCapabilities
+import br.com.ticpass.pos.core.sdk.AcquirerSdk
 import br.com.ticpass.pos.core.sdk.FlavorCapabilities
-import br.com.ticpass.pos.core.sdk.SdkInstance
-import br.com.ticpass.pos.core.sdk.factory.AcquirerNFCProvider
-import br.com.ticpass.pos.core.sdk.factory.AcquirerNFCProviderFactory
-import br.com.ticpass.pos.core.sdk.factory.AcquirerPrintingProvider
-import br.com.ticpass.pos.core.sdk.factory.AcquirerPrintingProviderFactory
-import br.com.ticpass.pos.core.sdk.factory.AcquirerRefundProvider
-import br.com.ticpass.pos.core.sdk.factory.CustomerReceiptProvider
-import br.com.ticpass.pos.core.sdk.factory.CustomerReceiptProviderFactory
-import br.com.ticpass.pos.core.sdk.factory.RefundProviderFactory
-import br.com.ticpass.pos.core.sdk.factory.TransactionProvider
-import br.com.ticpass.pos.core.sdk.factory.TransactionProviderFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import stone.user.UserModel
 import javax.inject.Singleton
 
 /**
  * Hilt module for Stone acquirer dependencies.
+ * Note: Most providers are accessed directly via AcquirerSdk singleton.
  */
 @Module
 @InstallIn(SingletonComponent::class)
 object AcquirerModule {
-    
-    @Provides
-    @Singleton
-    fun provideStoneSdk(@ApplicationContext context: Context): Pair<UserModel, Context> {
-        return SdkInstance.initialize(context)
-    }
-    
-    @Provides
-    @Singleton
-    fun provideTransactionProvider(sdk: Pair<UserModel, Context>): TransactionProvider {
-        val (userModel, context) = sdk
-        return TransactionProviderFactory(context, userModel).create()
-    }
-    
-    @Provides
-    @Singleton
-    fun provideCustomerReceiptProvider(sdk: Pair<UserModel, Context>): CustomerReceiptProvider {
-        val (_, context) = sdk
-        return CustomerReceiptProviderFactory(context).create()
-    }
-    
-    @Provides
-    @Singleton
-    fun provideNFCProvider(sdk: Pair<UserModel, Context>): AcquirerNFCProvider {
-        val (_, context) = sdk
-        return AcquirerNFCProviderFactory(context).create()
-    }
-    
-    @Provides
-    @Singleton
-    fun providePrintingProvider(sdk: Pair<UserModel, Context>): AcquirerPrintingProvider {
-        val (_, context) = sdk
-        return AcquirerPrintingProviderFactory(context).create()
-    }
-    
-    @Provides
-    @Singleton
-    fun provideRefundProvider(sdk: Pair<UserModel, Context>): AcquirerRefundProvider {
-        val (_, context) = sdk
-        return RefundProviderFactory(context).create()
-    }
     
     @Provides
     @Singleton
@@ -80,7 +27,7 @@ object AcquirerModule {
     
     @Provides
     @Singleton
-    fun provideNFCOperations(nfcProvider: AcquirerNFCProvider): NFCOperations {
-        return StoneNFCOperations(nfcProvider)
+    fun provideNFCOperations(): NFCOperations {
+        return StoneNFCOperations(AcquirerSdk.nfc.getInstance())
     }
 }

@@ -8,6 +8,10 @@ import br.com.ticpass.pos.data.menu.local.dao.MenuDao
 import br.com.ticpass.pos.data.pos.local.dao.PosDao
 import br.com.ticpass.pos.data.product.local.dao.ProductDao
 import br.com.ticpass.pos.data.user.local.dao.UserDao
+import br.com.ticpass.pos.core.queue.processors.payment.data.PaymentProcessingQueueDao
+import br.com.ticpass.pos.core.queue.processors.nfc.data.NFCQueueDao
+import br.com.ticpass.pos.core.queue.processors.printing.data.PrintingQueueDao
+import br.com.ticpass.pos.core.queue.processors.refund.data.RefundQueueDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -26,7 +30,7 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "ticpass_database"
-        ).build()
+        ).fallbackToDestructiveMigration().build()
     }
 
     @Provides
@@ -52,5 +56,26 @@ object DatabaseModule {
     @Provides
     fun provideCategoryDao(database: AppDatabase): CategoryDao {
         return database.categoryDao()
+    }
+
+    // Queue processor DAOs
+    @Provides
+    fun providePaymentProcessingQueueDao(database: AppDatabase): PaymentProcessingQueueDao {
+        return database.paymentProcessingQueueDao()
+    }
+
+    @Provides
+    fun provideNFCQueueDao(database: AppDatabase): NFCQueueDao {
+        return database.nfcQueueDao()
+    }
+
+    @Provides
+    fun providePrintingQueueDao(database: AppDatabase): PrintingQueueDao {
+        return database.printingQueueDao()
+    }
+
+    @Provides
+    fun provideRefundQueueDao(database: AppDatabase): RefundQueueDao {
+        return database.refundQueueDao()
     }
 }
