@@ -1,6 +1,7 @@
 package br.com.ticpass.pos.presentation.product.activities
 
 import android.os.Bundle
+import android.widget.FrameLayout
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
@@ -23,9 +24,12 @@ class ProductsListActivity : BaseDrawerActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_products_list)
 
-        recyclerView = findViewById(R.id.recyclerViewProducts)
+        val contentView = layoutInflater.inflate(R.layout.activity_products_list, null)
+        val contentFrame = findViewById<FrameLayout>(R.id.content_frame)
+        contentFrame.addView(contentView)
+
+        recyclerView = contentView.findViewById(R.id.recyclerViewProducts)
         adapter = ProductAdapter(this, emptyList())
         recyclerView.layoutManager = GridLayoutManager(this, 3)
         recyclerView.adapter = adapter

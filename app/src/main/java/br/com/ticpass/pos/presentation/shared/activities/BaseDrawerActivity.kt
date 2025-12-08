@@ -10,6 +10,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.presentation.product.activities.ProductsListActivity
@@ -78,7 +79,10 @@ abstract class BaseDrawerActivity : AppCompatActivity() {
         }
 
         // Configurar ícone do menu para abrir drawer
-        drawerToolbar.setNavigationIcon(R.drawable.ic_apps) // Ajuste o ícone conforme seu drawable
+        drawerToolbar.setNavigationIcon(R.drawable.ic_apps)
+        drawerToolbar.navigationIcon?.let { drawable ->
+            DrawableCompat.setTint(drawable, resources.getColor(android.R.color.white, theme))
+        }
         drawerToolbar.setNavigationOnClickListener {
             drawerLayout.openDrawer(GravityCompat.START)
         }
@@ -89,13 +93,15 @@ abstract class BaseDrawerActivity : AppCompatActivity() {
         toolbarTextTitle.text = getNoMenuToolbarTitle()
 
         // Configurar ícone para abrir nova tela
-        noMenuToolbar.setNavigationIcon(R.drawable.ic_arrow_back) // Ajuste o ícone conforme seu drawable
+        noMenuToolbar.setNavigationIcon(R.drawable.ic_arrow_back)
+        noMenuToolbar.navigationIcon?.let { drawable ->
+            DrawableCompat.setTint(drawable, resources.getColor(android.R.color.white, theme))
+        }
         noMenuToolbar.setNavigationOnClickListener {
             onNoMenuIconClicked()
         }
     }
 
-    // Método para inserir fragment no content_frame correto
     protected fun setContentFragment(fragment: Fragment) {
         val frameId = if (hasMenu) R.id.content_frame else R.id.no_menu_content_frame
         supportFragmentManager.beginTransaction()
@@ -114,7 +120,7 @@ abstract class BaseDrawerActivity : AppCompatActivity() {
 
     // Override para definir ação ao clicar no ícone no modo sem menu
     protected open fun onNoMenuIconClicked() {
-         val intent = Intent(this, ProductsListActivity::class.java)
-         startActivity(intent)
+        val intent = Intent(this, ProductsListActivity::class.java)
+        startActivity(intent)
     }
 }
