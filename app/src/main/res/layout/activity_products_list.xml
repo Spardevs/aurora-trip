@@ -6,13 +6,19 @@
     android:orientation="vertical">
 
     <com.google.android.material.tabs.TabLayout
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="5dp"
         android:id="@+id/tabLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:tabMode="scrollable"
-        app:tabIndicatorColor="@color/colorAccent"
-        app:tabSelectedTextColor="@color/colorAccent"
-        app:tabTextColor="@android:color/black" />
+        android:layout_height="26dp"
+        app:tabIndicatorHeight="0dp"
+        app:tabIndicator="@null"
+        android:background="@android:color/transparent"
+        android:elevation="0dp"
+        app:tabBackground="@drawable/tab_selector_background"
+        app:tabSelectedTextColor="@color/colorWhite"
+        app:tabTextColor="@color/colorAccent"
+        app:tabMode="scrollable"/>
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
