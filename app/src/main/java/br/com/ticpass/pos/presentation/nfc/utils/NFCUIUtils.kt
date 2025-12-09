@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.Log
 import br.com.ticpass.Constants.NFC_KEY_TYPE_A
 import br.com.ticpass.Constants.NFC_KEY_TYPE_B
-import br.com.ticpass.pos.presentation.nfc.models.NFCTagSectorKeyType
+import br.com.ticpass.pos.core.nfc.models.NFCTagSectorKeyType
 import br.com.ticpass.pos.core.queue.error.ProcessingErrorEvent
 import br.com.ticpass.pos.core.queue.error.ProcessingErrorEventResourceMapper
 import br.com.ticpass.pos.core.queue.processors.nfc.processors.models.NFCProcessorType

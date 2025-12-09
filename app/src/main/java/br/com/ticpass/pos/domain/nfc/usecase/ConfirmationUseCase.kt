@@ -10,7 +10,7 @@ import br.com.ticpass.pos.core.queue.core.QueueItem
 import br.com.ticpass.pos.core.queue.processors.nfc.models.NFCEvent
 import br.com.ticpass.pos.presentation.nfc.states.NFCSideEffect
 import br.com.ticpass.pos.core.nfc.models.NFCTagCustomerDataInput
-import br.com.ticpass.pos.presentation.nfc.models.NFCTagSectorKeyType
+import br.com.ticpass.pos.core.nfc.models.NFCTagSectorKeyType
 import br.com.ticpass.pos.core.queue.processors.nfc.models.NFCQueueItem
 import javax.inject.Inject
 

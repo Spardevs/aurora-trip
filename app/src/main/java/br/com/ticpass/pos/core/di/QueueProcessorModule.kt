@@ -8,7 +8,7 @@ import br.com.ticpass.pos.core.queue.processors.printing.data.PrintingQueueDao
 import br.com.ticpass.pos.core.queue.processors.printing.data.PrintingStorage
 import br.com.ticpass.pos.core.queue.processors.refund.data.RefundQueueDao
 import br.com.ticpass.pos.core.queue.processors.refund.data.RefundStorage
-import br.com.ticpass.pos.presentation.payment.utils.PixCodeGenerator
+import br.com.ticpass.pos.core.payment.utils.PixCodeGenerator
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
