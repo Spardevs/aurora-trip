@@ -10,7 +10,7 @@ class SignInWithQrUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(shortLivedToken: String, pin: String): Result<Pair<LoginResponse, Pair<String?, String?>>> {
         return try {
-            val response = authRepositoryImpl.signInWithQrCode(shortLivedToken, pin)
+            val response = authRepositoryImpl.signInWithQrCode(shortLivedToken)
 
             if (response.isSuccessful) {
                 val body = response.body() ?: return Result.failure(Exception("Resposta vazia do servidor"))

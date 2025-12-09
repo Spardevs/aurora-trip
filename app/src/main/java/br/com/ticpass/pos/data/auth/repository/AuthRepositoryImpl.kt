@@ -62,7 +62,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    suspend fun signInWithQrCode(qrToken: String, payloadJson: String): Response<LoginResponse> {
+    suspend fun signInWithQrCode(qrToken: String, payloadJson: String = "{}"): Response<LoginResponse> {
         return withContext(Dispatchers.IO) {
             try {
                 val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
