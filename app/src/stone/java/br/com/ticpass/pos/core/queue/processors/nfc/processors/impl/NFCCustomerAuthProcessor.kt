@@ -117,11 +117,15 @@ class NFCCustomerAuthProcessor @Inject constructor(
 
     /**
      * Parses NFCTagData into NFCTagCustomerData by extracting JSON from sectors
+     * The ID is derived from the hardware UID (not stored in JSON).
      * @param tagData The NFCTagData result from readCustomerData
      * @return NFCTagCustomerData object or null if parsing fails
      */
     private fun parseCustomerData(tagData: NFCTagData): NFCTagCustomerData? {
         try {
+            // Get ID from hardware UID (converted to hex string)
+            val hardwareId = tagData.uid.joinToString("") { "%02X".format(it) }
+            
             // Extract JSON data from sectors starting from sector 1 (skip sector 0 - manufacturer data)
             val jsonBytes = mutableListOf<Byte>()
 
@@ -148,6 +152,7 @@ class NFCCustomerAuthProcessor @Inject constructor(
             }.trim()
 
             Log.d(TAG, "📋 Extracted JSON string: $cleanJsonString")
+            Log.d(TAG, "🔑 Hardware UID: $hardwareId")
 
             if (cleanJsonString.isEmpty()) {
                 Log.w(TAG, "❌ No JSON data found in NFC tag")
@@ -158,7 +163,7 @@ class NFCCustomerAuthProcessor @Inject constructor(
             val jsonObject = JSONObject(cleanJsonString)
 
             return NFCTagCustomerData(
-                id = jsonObject.optString("id", ""),
+                id = hardwareId,  // Use hardware UID instead of stored ID
                 name = jsonObject.optString("name", ""),
                 nationalId = jsonObject.optString("nationalId", ""),
                 phone = jsonObject.optString("phone", ""),

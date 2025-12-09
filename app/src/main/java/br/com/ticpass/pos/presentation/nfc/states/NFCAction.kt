@@ -1,6 +1,6 @@
 package br.com.ticpass.pos.presentation.nfc.states
 
-import br.com.ticpass.pos.presentation.nfc.models.NFCTagCustomerDataInput
+import br.com.ticpass.pos.core.nfc.models.NFCTagCustomerDataInput
 import br.com.ticpass.pos.presentation.nfc.models.NFCTagSectorKeyType
 import br.com.ticpass.pos.core.queue.core.QueueItem
 import br.com.ticpass.pos.core.queue.error.ErrorHandlingAction

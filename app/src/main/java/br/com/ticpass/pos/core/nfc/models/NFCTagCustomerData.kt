@@ -1,6 +1,11 @@
 package br.com.ticpass.pos.core.nfc.models
 
 data class NFCTagCustomerData(
+    /**
+     * Unique identifier derived from the NFC tag's hardware UID.
+     * This is a hex string representation of the tag's UID (e.g., "04A1B2C3D4").
+     * Not stored in the JSON payload - extracted directly from sector 0, block 0.
+     */
     val id: String,
 
     /**
@@ -30,9 +35,11 @@ data class NFCTagCustomerData(
     val subjectId: String
 )
 
+/**
+ * Input data for creating a new NFC customer tag.
+ * Note: The tag ID is not included here as it's derived from the hardware UID.
+ */
 data class NFCTagCustomerDataInput(
-    val id: String,
-
     /**
      * The name of the customer.
      */

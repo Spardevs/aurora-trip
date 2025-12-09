@@ -16,12 +16,11 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import br.com.ticpass.pos.core.nfc.models.CartOperation
-import br.com.ticpass.pos.presentation.nfc.models.NFCTagCustomerDataInput
+import br.com.ticpass.pos.core.nfc.models.NFCTagCustomerDataInput
 import br.com.ticpass.pos.util.BrazilianPhoneUtils
 import br.com.ticpass.pos.util.CpfUtils
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import java.util.UUID
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.presentation.nfc.NFCViewModel
 import br.com.ticpass.pos.presentation.nfc.states.NFCUiState
@@ -269,9 +268,9 @@ class NFCDialogManager(
         }
         
         // Function to create customer data from form
+        // Note: ID is not included - it's derived from hardware UID
         fun createCustomerData(): NFCTagCustomerDataInput {
             return NFCTagCustomerDataInput(
-                id = UUID.randomUUID().toString(),
                 name = editName.text.toString().trim(),
                 nationalId = CpfUtils.cleanCpf(editCpf.text.toString()),
                 phone = BrazilianPhoneUtils.cleanPhone(editPhone.text.toString()),

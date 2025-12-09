@@ -253,12 +253,14 @@ class NFCCustomerSetupProcessor @Inject constructor(
 
     /**
      * Processes customer data and converts it to a JSON byte array.
+     * Note: The ID is not stored in JSON - it's derived from the hardware UID.
      * @param customerData The customer data to process
      * @return ByteArray containing the JSON representation of the customer data
      */
     private fun processCustomerData(customerData: NFCTagCustomerData): ByteArray {
-        val (id, name, nationalId, phone, pin, subjectId) = customerData
-        val json = """{"name":"$name","nationalId":"$nationalId","phone":"$phone","id":"$id","pin":"$pin","subjectId":"$subjectId"}"""
+        val (_, name, nationalId, phone, pin, subjectId) = customerData
+        // ID is not stored - it comes from hardware UID
+        val json = """{"name":"$name","nationalId":"$nationalId","phone":"$phone","pin":"$pin","subjectId":"$subjectId"}"""
         val jsonBytes = json.toByteArray(Charsets.UTF_8)
 
         return jsonBytes
@@ -275,7 +277,7 @@ class NFCCustomerSetupProcessor @Inject constructor(
         }.value as? NFCTagCustomerDataInput ?: throw NFCException(ProcessingErrorEvent.CANCELLED_BY_USER)
 
         return NFCTagCustomerData(
-            id = input.id,
+            id = "",  // ID will be set from hardware UID after tag detection
             name = input.name,
             nationalId = input.nationalId,
             phone = input.phone,
