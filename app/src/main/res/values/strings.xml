@@ -1036,4 +1036,8 @@
     <string name="error_wifi_networks_not_found">WiFi networks not found</string>
     <string name="error_wifi_network_unavailable">WiFi network unavailable</string>
     <string name="refund_time_limit_exceeded">Refund time limit exceeded</string>
+
+    <!-- Close POS Dialog -->
+    <string name="close_pos">Fechar POS</string>
+    <string name="pos_closing_request">Deseja realmente fechar o POS?</string>
 </resources>
