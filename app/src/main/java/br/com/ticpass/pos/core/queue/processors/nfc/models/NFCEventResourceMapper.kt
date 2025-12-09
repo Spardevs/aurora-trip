@@ -28,6 +28,8 @@ object NFCEventResourceMapper {
             NFCEvent.PROCESSING_TAG_CART_DATA -> R.string.event_nfc_processing_tag_cart_data
             NFCEvent.READING_TAG_CART_DATA -> R.string.event_nfc_reading_tag_cart_data
             NFCEvent.WRITING_TAG_CART_DATA -> R.string.event_nfc_writing_tag_cart_data
+            NFCEvent.READING_TAG_BALANCE_DATA -> R.string.event_nfc_reading_tag_balance_data
+            NFCEvent.WRITING_TAG_BALANCE_DATA -> R.string.event_nfc_writing_tag_balance_data
         }
     }
 }

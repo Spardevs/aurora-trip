@@ -7,7 +7,10 @@ enum class SystemNFCMethod(
     TAG_FORMAT("tag_format"),
     CUSTOMER_SETUP("customer_setup"),
     CART_READ("cart_read"),
-    CART_UPDATE("cart_update");
+    CART_UPDATE("cart_update"),
+    BALANCE_READ("balance_read"),
+    BALANCE_SET("balance_set"),
+    BALANCE_CLEAR("balance_clear");
 
     companion object {
         fun fromValue(value: String): SystemNFCMethod {

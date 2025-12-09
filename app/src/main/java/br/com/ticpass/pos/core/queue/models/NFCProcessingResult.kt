@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.core.queue.models
 
+import br.com.ticpass.Constants
 import br.com.ticpass.pos.core.queue.error.ProcessingErrorEvent
 
 /**
@@ -48,6 +49,44 @@ sealed class NFCSuccess : ProcessingResult.Success() {
     class CartUpdateSuccess(
         val items: List<br.com.ticpass.pos.core.nfc.models.NFCCartItem>
     ) : NFCSuccess()
+    
+    /**
+     * NFC Balance Read operation success with balance data
+     */
+    class BalanceReadSuccess(
+        val balance: UInt,  // Balance in smallest units (based on CONVERSION_FACTOR)
+        val timestamp: Long
+    ) : NFCSuccess() {
+        /**
+         * Returns balance formatted as currency string using CONVERSION_FACTOR
+         */
+        fun formattedBalance(): String {
+            val factor = Constants.CONVERSION_FACTOR
+            val whole = balance.toLong() / factor
+            val fraction = balance.toLong() % factor
+            val fractionDigits = factor.toString().length - 1
+            return "$${whole}.${fraction.toString().padStart(fractionDigits, '0')}"
+        }
+    }
+    
+    /**
+     * NFC Balance Update operation success with new balance data
+     */
+    class BalanceUpdateSuccess(
+        val balance: UInt,  // New balance in smallest units (based on CONVERSION_FACTOR)
+        val timestamp: Long
+    ) : NFCSuccess() {
+        /**
+         * Returns balance formatted as currency string using CONVERSION_FACTOR
+         */
+        fun formattedBalance(): String {
+            val factor = Constants.CONVERSION_FACTOR
+            val whole = balance.toLong() / factor
+            val fraction = balance.toLong() % factor
+            val fractionDigits = factor.toString().length - 1
+            return "$${whole}.${fraction.toString().padStart(fractionDigits, '0')}"
+        }
+    }
 }
 
 class NFCError(event: ProcessingErrorEvent) : ProcessingResult.Error(event)

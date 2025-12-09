@@ -15,6 +15,7 @@ import br.com.ticpass.pos.presentation.nfc.NFCViewModel
 import br.com.ticpass.pos.presentation.nfc.coordination.NFCActivityCoordinator
 import br.com.ticpass.pos.presentation.nfc.dialogs.NFCDialogManager
 import br.com.ticpass.pos.presentation.nfc.events.NFCEventHandler
+import br.com.ticpass.pos.core.nfc.models.BalanceOperation
 import br.com.ticpass.pos.core.nfc.models.CartOperation
 import br.com.ticpass.pos.core.nfc.models.SupportedNFCMethods
 import br.com.ticpass.pos.core.nfc.models.SystemNFCMethod
@@ -171,6 +172,15 @@ class NFCActivity : AppCompatActivity() {
                                 )
                             }
                         }
+                        SystemNFCMethod.BALANCE_SET -> {
+                            // Show dialog to get balance amount
+                            dialogManager.showBalanceSetDialog { amount ->
+                                enqueueBalanceNFC(
+                                    amount = amount,
+                                    operation = BalanceOperation.SET
+                                )
+                            }
+                        }
                         else -> {
                             enqueueNFC(method)
                         }
@@ -189,6 +199,9 @@ class NFCActivity : AppCompatActivity() {
             SystemNFCMethod.TAG_FORMAT -> getString(R.string.enqueue_format_nfc)
             SystemNFCMethod.CART_READ -> getString(R.string.enqueue_cart_read_nfc)
             SystemNFCMethod.CART_UPDATE -> getString(R.string.enqueue_cart_update_nfc)
+            SystemNFCMethod.BALANCE_READ -> getString(R.string.enqueue_balance_read_nfc)
+            SystemNFCMethod.BALANCE_SET -> getString(R.string.enqueue_balance_set_nfc)
+            SystemNFCMethod.BALANCE_CLEAR -> getString(R.string.enqueue_balance_clear_nfc)
         }
     }
     
@@ -262,6 +275,19 @@ class NFCActivity : AppCompatActivity() {
                 )
             }
             SystemNFCMethod.CART_UPDATE -> {}
+            SystemNFCMethod.BALANCE_READ -> {
+                nfcViewModel.enqueueBalanceReadOperation(
+                    timeout = 15000L
+                )
+            }
+            SystemNFCMethod.BALANCE_SET -> {}  // Handled by dialog
+            SystemNFCMethod.BALANCE_CLEAR -> {
+                nfcViewModel.enqueueBalanceUpdateOperation(
+                    amount = 0u,
+                    operation = BalanceOperation.CLEAR,
+                    timeout = 15000L
+                )
+            }
         }
     }
 
@@ -287,5 +313,19 @@ class NFCActivity : AppCompatActivity() {
             }
             else -> {}
         }
+    }
+
+    /**
+     * Enqueue a balance NFC operation
+     */
+    private fun enqueueBalanceNFC(
+        amount: UInt,
+        operation: BalanceOperation,
+    ) {
+        nfcViewModel.enqueueBalanceUpdateOperation(
+            amount = amount,
+            operation = operation,
+            timeout = 15000L
+        )
     }
 }

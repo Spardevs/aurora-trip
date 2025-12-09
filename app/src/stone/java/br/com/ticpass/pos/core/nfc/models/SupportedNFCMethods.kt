@@ -9,6 +9,9 @@ object SupportedNFCMethods {
         SystemNFCMethod.TAG_FORMAT,
         SystemNFCMethod.CUSTOMER_SETUP,
         SystemNFCMethod.CART_READ,
-        SystemNFCMethod.CART_UPDATE
+        SystemNFCMethod.CART_UPDATE,
+        SystemNFCMethod.BALANCE_READ,
+        SystemNFCMethod.BALANCE_SET,
+        SystemNFCMethod.BALANCE_CLEAR
     )
 }

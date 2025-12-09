@@ -9,4 +9,6 @@ enum class NFCProcessorType {
     CUSTOMER_SETUP,
     CART_READ,
     CART_UPDATE,
+    BALANCE_READ,
+    BALANCE_UPDATE,
 }

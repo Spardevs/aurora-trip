@@ -649,6 +649,20 @@
     <string name="nfc_cart_error_price_required">Price is required</string>
     <string name="enqueue_cart_read_nfc">Read Cart</string>
     <string name="enqueue_cart_update_nfc">Update Cart</string>
+    <string name="enqueue_balance_read_nfc">Read Balance</string>
+    <string name="enqueue_balance_set_nfc">Set Balance</string>
+    <string name="enqueue_balance_clear_nfc">Clear Balance</string>
+
+    <!-- NFC Balance -->
+    <string name="nfc_balance_set_title">Set Balance</string>
+    <string name="nfc_balance_set_description">Enter the balance amount to store on the NFC tag.</string>
+    <string name="nfc_balance_amount_hint">Amount</string>
+    <string name="nfc_balance_max_info">Maximum: $4,294,967.295</string>
+    <string name="nfc_balance_error_amount_required">Amount is required</string>
+    <string name="nfc_balance_error_invalid_amount">Invalid amount format</string>
+    <string name="nfc_balance_error_max_exceeded">Amount exceeds maximum limit</string>
+    <string name="nfc_balance_read_success">Balance: %1$s</string>
+    <string name="nfc_balance_update_success">Balance updated: %1$s</string>
 
     <!-- NFC PIN Memorization -->
     <string name="nfc_pin_memorization_title">Memorize Your PIN</string>
@@ -745,6 +759,8 @@
     <string name="event_nfc_processing_tag_cart_data">Processing cart data...</string>
     <string name="event_nfc_reading_tag_cart_data">Reading cart data...</string>
     <string name="event_nfc_writing_tag_cart_data">Writing cart data...</string>
+    <string name="event_nfc_reading_tag_balance_data">Reading balance...</string>
+    <string name="event_nfc_writing_tag_balance_data">Writing balance...</string>
     <string name="reversing_transaction_with_error">Reversing transaction due to error...</string>
     <string name="select_payment_method">Select payment method</string>
     <string name="swipe_card_requested">Please swipe card</string>
@@ -909,6 +925,9 @@
     <string name="error_nfc_tag_reach_timeout">NFC tag reach timeout</string>
     <string name="error_nfc_unsupported_tag_model">NFC unsupported tag model</string>
     <string name="error_nfc_write_error">NFC write error</string>
+    <string name="error_nfc_balance_read">Failed to read balance from NFC tag</string>
+    <string name="error_nfc_balance_write">Failed to write balance to NFC tag</string>
+    <string name="error_nfc_balance_invalid_amount">Balance amount exceeds maximum limit</string>
     <string name="error_no_active_application">No active application</string>
     <string name="error_no_authentication_data">No authentication data</string>
     <string name="error_no_gsm_signal">No GSM signal</string>

@@ -15,7 +15,9 @@ import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import br.com.ticpass.Constants
 import br.com.ticpass.pos.core.nfc.models.CartOperation
+import br.com.ticpass.pos.core.nfc.models.NFCTagBalanceHeader
 import br.com.ticpass.pos.core.nfc.models.NFCTagCustomerDataInput
 import br.com.ticpass.pos.util.BrazilianPhoneUtils
 import br.com.ticpass.pos.util.CpfUtils
@@ -651,6 +653,57 @@ class NFCDialogManager(
         }
         
         dialog.show()
+    }
+
+    /**
+     * Show a dialog to input balance amount for SET operation
+     */
+    fun showBalanceSetDialog(callback: (amount: UInt) -> Unit) {
+        // Create a simple dialog with EditText for balance input
+        val dialogView = layoutInflater.inflate(R.layout.dialog_nfc_balance_set, null)
+        
+        val layoutAmount = dialogView.findViewById<TextInputLayout>(R.id.layout_amount)
+        val editAmount = dialogView.findViewById<TextInputEditText>(R.id.edit_amount)
+        val btnCancel = dialogView.findViewById<Button>(R.id.btn_cancel)
+        val btnConfirm = dialogView.findViewById<Button>(R.id.btn_confirm)
+        
+        val dialog = AlertDialog.Builder(context)
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+        
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+        
+        btnConfirm.setOnClickListener {
+            val amountText = editAmount.text.toString().trim()
+            
+            if (amountText.isEmpty()) {
+                layoutAmount.error = context.getString(R.string.nfc_balance_error_amount_required)
+                return@setOnClickListener
+            }
+            
+            val amountDouble = amountText.toDoubleOrNull()
+            if (amountDouble == null || amountDouble < 0) {
+                layoutAmount.error = context.getString(R.string.nfc_balance_error_invalid_amount)
+                return@setOnClickListener
+            }
+            
+            // Convert using CONVERSION_FACTOR (4 bytes max = 4,294,967,295)
+            val amountUnits = (amountDouble * Constants.CONVERSION_FACTOR).toUInt()
+            if (amountUnits > NFCTagBalanceHeader.MAX_BALANCE) {
+                layoutAmount.error = context.getString(R.string.nfc_balance_error_max_exceeded)
+                return@setOnClickListener
+            }
+            
+            layoutAmount.error = null
+            dialog.dismiss()
+            callback(amountUnits)
+        }
+        
+        dialog.show()
+        editAmount.requestFocus()
     }
 
     /**

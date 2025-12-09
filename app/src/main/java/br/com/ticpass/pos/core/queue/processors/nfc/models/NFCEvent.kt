@@ -68,6 +68,16 @@ sealed class NFCEvent : BaseProcessingEvent {
     object WRITING_TAG_CART_DATA : NFCEvent()
 
     /**
+     * Reading balance data from the NFC tag.
+     */
+    object READING_TAG_BALANCE_DATA : NFCEvent()
+
+    /**
+     * Writing balance data to the NFC tag.
+     */
+    object WRITING_TAG_BALANCE_DATA : NFCEvent()
+
+    /**
      * User should place the NFC tag on the reader.
      */
     data class REACH_TAG(

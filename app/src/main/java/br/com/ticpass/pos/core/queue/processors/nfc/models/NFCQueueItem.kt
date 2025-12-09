@@ -1,5 +1,6 @@
 package br.com.ticpass.pos.core.queue.processors.nfc.models
 
+import br.com.ticpass.pos.core.nfc.models.BalanceOperation
 import br.com.ticpass.pos.core.nfc.models.CartOperation
 import br.com.ticpass.pos.core.queue.core.QueueItem
 import br.com.ticpass.pos.core.queue.core.QueueItemStatus
@@ -70,5 +71,30 @@ sealed class NFCQueueItem : QueueItem {
         val quantity: UByte,
         val price: UInt, // Price per unit in cents when adding to cart
         val operation: CartOperation
+    ) : NFCQueueItem()
+    
+    /**
+     * NFC Balance Read operation
+     */
+    data class BalanceReadOperation(
+        override val id: String = UUID.randomUUID().toString(),
+        override val priority: Int = 0,
+        override var status: QueueItemStatus = QueueItemStatus.PENDING,
+        override val processorType: NFCProcessorType = NFCProcessorType.BALANCE_READ,
+        val timeout: Long = 15000L // Read timeout in milliseconds
+    ) : NFCQueueItem()
+    
+    /**
+     * NFC Balance Update operation (SET or CLEAR)
+     * Balance is stored as 4 bytes (max 4,294,967,295 units)
+     */
+    data class BalanceUpdateOperation(
+        override val id: String = UUID.randomUUID().toString(),
+        override val priority: Int = 0,
+        override var status: QueueItemStatus = QueueItemStatus.PENDING,
+        override val processorType: NFCProcessorType = NFCProcessorType.BALANCE_UPDATE,
+        val timeout: Long = 20000L, // Update timeout in milliseconds
+        val amount: UInt, // Balance amount in smallest units based on CONVERSION_FACTOR
+        val operation: BalanceOperation
     ) : NFCQueueItem()
 }

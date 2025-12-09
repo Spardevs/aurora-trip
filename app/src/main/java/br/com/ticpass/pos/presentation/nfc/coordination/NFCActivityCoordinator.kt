@@ -10,6 +10,7 @@ import br.com.ticpass.pos.presentation.nfc.NFCViewModel
 import br.com.ticpass.pos.presentation.nfc.states.NFCUiState
 import br.com.ticpass.pos.presentation.nfc.dialogs.NFCDialogManager
 import br.com.ticpass.pos.presentation.nfc.events.NFCEventHandler
+import br.com.ticpass.pos.core.nfc.models.BalanceOperation
 import br.com.ticpass.pos.core.nfc.models.SystemNFCMethod
 import br.com.ticpass.pos.presentation.nfc.utils.NFCUIUtils
 import br.com.ticpass.pos.presentation.nfc.view.NFCQueueView
@@ -117,7 +118,7 @@ class NFCActivityCoordinator(
                                     // Handle cart read success
                                     Log.i("NFCActivityCoordinator", "✅ Cart read successfully: ${result.items.size} items")
                                     result.items.forEach { item ->
-                                        Log.i("NFCActivityCoordinator", "   - ${item.id}, Qty: ${item.count}, Price : $${item.price.toDouble()/100.0}" )
+                                        Log.i("NFCActivityCoordinator", "   - ID: ${item.id}, Qty: ${item.count}, Price: ${item.formattedPrice()}")
                                     }
                                 }
 
@@ -125,8 +126,18 @@ class NFCActivityCoordinator(
                                     // Handle cart update success
                                     Log.i("NFCActivityCoordinator", "✅ Cart updated successfully: ${result.items.size} items")
                                     result.items.forEach { item ->
-                                        Log.i("NFCActivityCoordinator", "   - ${item.id}, Qty: ${item.count}, Price : $${item.price.toDouble()/100.0}" )
+                                        Log.i("NFCActivityCoordinator", "   - ID: ${item.id}, Qty: ${item.count}, Price: ${item.formattedPrice()}")
                                     }
+                                }
+
+                                is NFCSuccess.BalanceReadSuccess -> {
+                                    // Handle balance read success
+                                    Log.i("NFCActivityCoordinator", "✅ Balance read: ${result.formattedBalance()} (${result.balance} units)")
+                                }
+
+                                is NFCSuccess.BalanceUpdateSuccess -> {
+                                    // Handle balance update success
+                                    Log.i("NFCActivityCoordinator", "✅ Balance updated: ${result.formattedBalance()} (${result.balance} units)")
                                 }
 
                                 else -> {}
@@ -260,9 +271,22 @@ class NFCActivityCoordinator(
     }
     
     private fun updateNFCInfo(item: NFCQueueItem) {
-        // Update nfc method
-        val nfcMethod = SystemNFCMethod.entries.find { it.toString() == item.processorType.toString() }
-            ?: throw IllegalArgumentException("Unknown nfc method: ${item.processorType}")
+        // Update nfc method - map from queue item type to display method
+        val nfcMethod = when (item) {
+            is NFCQueueItem.CustomerAuthOperation -> SystemNFCMethod.CUSTOMER_AUTH
+            is NFCQueueItem.TagFormatOperation -> SystemNFCMethod.TAG_FORMAT
+            is NFCQueueItem.CustomerSetupOperation -> SystemNFCMethod.CUSTOMER_SETUP
+            is NFCQueueItem.CartReadOperation -> SystemNFCMethod.CART_READ
+            is NFCQueueItem.CartUpdateOperation -> SystemNFCMethod.CART_UPDATE
+            is NFCQueueItem.BalanceReadOperation -> SystemNFCMethod.BALANCE_READ
+            is NFCQueueItem.BalanceUpdateOperation -> {
+                // Map to SET or CLEAR based on operation type
+                when (item.operation) {
+                    BalanceOperation.SET -> SystemNFCMethod.BALANCE_SET
+                    BalanceOperation.CLEAR -> SystemNFCMethod.BALANCE_CLEAR
+                }
+            }
+        }
         val nfcMethodDisplayName = getNFCMethodDisplayName(nfcMethod)
         dialogNFCMethodTextView.text = nfcMethodDisplayName
     }
@@ -274,6 +298,9 @@ class NFCActivityCoordinator(
             SystemNFCMethod.TAG_FORMAT -> context.getString(R.string.enqueue_format_nfc)
             SystemNFCMethod.CART_READ -> context.getString(R.string.enqueue_cart_read_nfc)
             SystemNFCMethod.CART_UPDATE -> context.getString(R.string.enqueue_cart_update_nfc)
+            SystemNFCMethod.BALANCE_READ -> context.getString(R.string.enqueue_balance_read_nfc)
+            SystemNFCMethod.BALANCE_SET -> context.getString(R.string.enqueue_balance_set_nfc)
+            SystemNFCMethod.BALANCE_CLEAR -> context.getString(R.string.enqueue_balance_clear_nfc)
         }
     }
 

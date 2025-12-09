@@ -1536,6 +1536,24 @@ sealed class ProcessingErrorEvent : BaseProcessingEvent {
     object NFC_CART_ITEM_NOT_FOUND : ProcessingErrorEvent()
 
     /**
+     * NFC balance read error.
+     * Failed to read balance data from the NFC tag.
+     */
+    object NFC_BALANCE_READ_ERROR : ProcessingErrorEvent()
+
+    /**
+     * NFC balance write error.
+     * Failed to write balance data to the NFC tag.
+     */
+    object NFC_BALANCE_WRITE_ERROR : ProcessingErrorEvent()
+
+    /**
+     * NFC balance invalid amount.
+     * The balance amount exceeds the maximum allowed (16,777,215 cents).
+     */
+    object NFC_BALANCE_INVALID_AMOUNT : ProcessingErrorEvent()
+
+    /**
      * Transaction fallback initiated.
      * Transaction is falling back to alternative processing method.
      */

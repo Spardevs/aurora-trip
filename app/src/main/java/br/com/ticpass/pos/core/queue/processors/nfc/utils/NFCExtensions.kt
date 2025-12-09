@@ -1,6 +1,7 @@
 package br.com.ticpass.pos.core.queue.processors.nfc.utils
 
 import br.com.ticpass.pos.core.queue.core.QueueItemStatus
+import br.com.ticpass.pos.core.nfc.models.BalanceOperation
 import br.com.ticpass.pos.core.queue.processors.nfc.models.NFCBruteForce
 import br.com.ticpass.pos.core.queue.processors.nfc.models.NFCQueueEntity
 import br.com.ticpass.pos.core.queue.processors.nfc.models.NFCQueueItem
@@ -49,6 +50,18 @@ fun NFCQueueItem.toEntity(): NFCQueueEntity {
             status = status.toString(),
             processorType = NFCProcessorType.CART_UPDATE,
         )
+        is NFCQueueItem.BalanceReadOperation -> NFCQueueEntity(
+            id = id,
+            priority = priority,
+            status = status.toString(),
+            processorType = NFCProcessorType.BALANCE_READ,
+        )
+        is NFCQueueItem.BalanceUpdateOperation -> NFCQueueEntity(
+            id = id,
+            priority = priority,
+            status = status.toString(),
+            processorType = NFCProcessorType.BALANCE_UPDATE,
+        )
     }
 }
 
@@ -91,6 +104,20 @@ fun NFCQueueEntity.toQueueItem(): NFCQueueItem {
             priority = priority,
             status = queueStatus,
             timeout = timeout ?: 30000L
+        )
+        NFCProcessorType.BALANCE_READ -> NFCQueueItem.BalanceReadOperation(
+            id = id,
+            priority = priority,
+            status = queueStatus,
+            timeout = timeout ?: 15000L
+        )
+        NFCProcessorType.BALANCE_UPDATE -> NFCQueueItem.BalanceUpdateOperation(
+            id = id,
+            priority = priority,
+            status = queueStatus,
+            timeout = timeout ?: 20000L,
+            amount = 0u,
+            operation = BalanceOperation.SET
         )
     }
 }

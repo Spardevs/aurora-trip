@@ -37,6 +37,8 @@ class QueueManagementUseCase @Inject constructor() {
             is NFCQueueItem.CustomerSetupOperation -> "Customer Setup"
             is NFCQueueItem.CartReadOperation -> "Cart Read"
             is NFCQueueItem.CartUpdateOperation -> "Cart Update"
+            is NFCQueueItem.BalanceReadOperation -> "Balance Read"
+            is NFCQueueItem.BalanceUpdateOperation -> "Balance Update"
         }
         emitUiEvent(NFCUiEvent.ShowToast("$operationType NFC operation added to queue"))
         return NFCSideEffect.EnqueueNFCItem { nfcQueue.enqueue(nfcItem) }

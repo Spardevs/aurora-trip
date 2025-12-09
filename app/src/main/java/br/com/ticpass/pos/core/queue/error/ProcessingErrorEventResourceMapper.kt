@@ -334,6 +334,9 @@ object ProcessingErrorEventResourceMapper {
             is ProcessingErrorEvent.ISSUER_UNAVAILABLE -> R.string.error_issuer_unavailable
             is ProcessingErrorEvent.INVALID_LIFE_CYCLE -> R.string.error_invalid_life_cycle
             is ProcessingErrorEvent.UNBLOCK_THE_CARD -> R.string.error_unblock_the_card
+            is ProcessingErrorEvent.NFC_BALANCE_READ_ERROR -> R.string.error_nfc_balance_read
+            is ProcessingErrorEvent.NFC_BALANCE_WRITE_ERROR -> R.string.error_nfc_balance_write
+            is ProcessingErrorEvent.NFC_BALANCE_INVALID_AMOUNT -> R.string.error_nfc_balance_invalid_amount
             else -> R.string.event_generic_error
         }
     }
