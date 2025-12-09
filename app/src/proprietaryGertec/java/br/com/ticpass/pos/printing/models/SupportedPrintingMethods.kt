@@ -1,4 +1,4 @@
-package br.com.ticpass.pos.printing.models
+package br.com.ticpass.pos.core.printing.models
 
 /**
  * Gertec supported printing methods

@@ -1,4 +1,4 @@
-package br.com.ticpass.pos.sdk
+package br.com.ticpass.pos.core.sdk
 
 import android.content.Context
 import android.os.Build
@@ -90,20 +90,21 @@ object SdkInstance {
     
     /**
      * Create a new Stone SDK instance
-     * Falls back to mock in debug mode or emulator environments
+     * Always initializes Stone SDK on real devices to ensure Koin is started.
+     * Falls back to mock only on emulators.
      * 
      * @param context The application context
      * @return A new SDK instance
      */
     private fun createInstance(context: Context): Pair<UserModel, Context> {
-        // Use mock in debug builds or emulators
-        if (BuildConfig.DEBUG || isEmulator()) {
-            Log.w("SdkInstance", "Running in debug/emulator mode - using mock Stone SDK")
+        // Only use mock on emulators - real devices need Stone SDK for Koin initialization
+        if (isEmulator()) {
+            Log.w("SdkInstance", "Running on emulator - using mock Stone SDK")
             val mockUser = createMockUserModel()
             return Pair(mockUser, context)
         }
         
-        // Try real Stone SDK initialization for production devices
+        // Initialize Stone SDK on real devices (required for Koin)
         return try {
             val stoneKeys: HashMap<StoneKeyType, String> =
                 object : HashMap<StoneKeyType, String>() {

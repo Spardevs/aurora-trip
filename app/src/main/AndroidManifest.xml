@@ -159,6 +159,23 @@
             </intent-filter>
         </activity>
 
+        <!-- Testing Activities -->
+        <activity
+            android:name=".presentation.payment.PaymentProcessingActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".presentation.nfc.NFCActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".presentation.printing.PrintingActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".presentation.refund.RefundActivity"
+            android:exported="true" />
+
         <meta-data
             android:name="androidx.work.WorkManagerInitializer"
             android:value="androidx.startup"

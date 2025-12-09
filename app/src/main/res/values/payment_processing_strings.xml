@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Payment Processing UI Strings -->
+    <string name="payment_processing_title">Payment Processing</string>
+    <string name="refund_processing_title">Refund Processing</string>
+    <string name="payment_progress_first">First Payment</string>
+    <string name="refund_progress_first">First Refunding</string>
+    <string name="payment_progress">Payment %1$d out of %2$d</string>
+    <string name="refund_progress">Refund %1$d out of %2$d</string>
+    <string name="enqueue_credit_payment">Credit</string>
+    <string name="enqueue_debit_payment">Debit</string>
+    <string name="enqueue_acquirer_refund">Acquirer</string>
+    <string name="enqueue_voucher_payment">Voucher</string>
+    <string name="enqueue_pix_payment">PIX</string>
+    <string name="enqueue_cash_payment">Cash</string>
+    <string name="enqueue_bitcoin_ln_payment">Bitcoin LN</string>
+    <string name="enqueue_personal_pix_payment">Meu PIX</string>
+    <string name="start_processing">Start Processing</string>
+    <string name="cancel_all_payments">Cancel All</string>
+    <string name="clear_queue">Clear Queue</string>
+
+    <string name="enqueue_acquirer_printing">Acquirer</string>
+    <string name="enqueue_mp4200HS_printing">MP 4200 HS</string>
+    <string name="enqueue_mptII_printing">MPT II</string>
+    <string name="printing_processing_title">Printing Processing</string>
+    <string name="printing_progress_first">First Printing</string>
+    <string name="printing_progress">Printing %1$d out of %2$d</string>
+    <string name="next_printing_progress_first">Ready for first printing?</string>
+    <string name="next_printing_progress">Ready for printing %1$d of %2$d?</string>
+    <string name="printing_method">Printing Method</string>
+    <string name="edit_printing_note">You can modify printing details before proceeding</string>
+    <string name="error_printing_retry_description">Choose how to handle this printing error:</string>
+    
+    <!-- Paper Cut Confirmation -->
+    <string name="paper_cut_confirmation_title">Paper Cut Options</string>
+    <string name="paper_cut_confirmation_message">Choose how to cut the paper after printing:</string>
+    <string name="paper_cut_full">Full Cut</string>
+    <string name="paper_cut_partial">Partial Cut</string>
+    <string name="paper_cut_none">No Cut</string>
+
+    <string name="enqueue_auth_nfc">Customer Auth</string>
+    <string name="enqueue_format_nfc">Tag Format</string>
+    <string name="enqueue_setup_nfc">Customer Setup</string>
+    <string name="nfc_processing_title">NFC Processing</string>
+    <string name="nfc_progress_first">First NFC</string>
+    <string name="nfc_progress">NFC %1$d out of %2$d</string>
+
+    <string name="next_nfc_progress_first">Ready for first nfc?</string>
+    <string name="next_nfc_progress">Ready for nfc %1$d of %2$d?</string>
+    <string name="nfc_method">NFC Method</string>
+    <string name="edit_nfc_note">You can modify nfc details before proceeding</string>
+    <string name="error_nfc_retry_description">Choose how to handle this nfc error:</string>
+
+    <!-- Processing Event Messages -->
+    <string name="pin_entry_display">PIN: %1$s</string>
+    <string name="event_fail">Payment failed: %1$s</string>
+
+    <!-- Customer Receipt Dialog -->
+    <string name="print_customer_receipt_title">Print Customer Receipt?</string>
+    <string name="print_customer_receipt_message">Would you like to print a receipt for the customer?</string>
+    
+    <!-- Next Processor Confirmation Dialog -->
+    <string name="confirm_next_processor_title">Continue to Next Payment?</string>
+    <string name="next_payment_progress_first">Ready for first payment?</string>
+    <string name="next_refund_progress_first">Ready for first refund?</string>
+    <string name="next_payment_progress">Ready for payment %1$d of %2$d?</string>
+    <string name="next_refund_progress">Ready for refund %1$d of %2$d?</string>
+    <string name="proceed">Proceed</string>
+    <string name="skip">Skip</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    
+    <!-- Payment Confirmation Dialog -->
+    <string name="payment_amount">Payment Amount (R$)</string>
+    <string name="payment_amount_hint">Enter amount</string>
+    <string name="payment_method">Payment Method</string>
+    <string name="refund_method">Refund Method</string>
+    <string name="processor_type">Processor Type</string>
+    <string name="edit_payment_note">You can modify payment details before proceeding</string>
+    <string name="edit_refund_note">You can modify refund details before proceeding</string>
+
+    <string name="error_retry_title">Payment Error</string>
+    <string name="error_retry_description">Choose how to handle this payment error:</string>
+    <string name="error_refund_retry_description">Choose how to handle this refund error:</string>
+    <string name="retry">Retry</string>
+    <string name="abort">Abort</string>
+    <string name="abort_all">Abort All Payments</string>
+    
+    <!-- Queue Item Cancel Buttons -->
+    <string name="cancel_nfc">Cancel NFC</string>
+    <string name="cancel_payment">Cancel Payment</string>
+    <string name="cancel_printing">Cancel Printing</string>
+    <string name="cancel_refund">Cancel Refund</string>
+    
+    <!-- PIX QR Code Dialog -->
+    <string name="pix_qrcode_title">PIX Payment</string>
+    <string name="pix_qrcode_subtitle">Scan the QR Code</string>
+    <string name="pix_qrcode_description">Use your banking app to scan the QR code and complete the payment</string>
+    <string name="done">Done</string>
+</resources>

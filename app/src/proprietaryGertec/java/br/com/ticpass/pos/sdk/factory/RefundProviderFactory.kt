@@ -1,4 +1,4 @@
-package br.com.ticpass.pos.sdk.factory
+package br.com.ticpass.pos.core.sdk.factory
 
 import android.content.Context
 

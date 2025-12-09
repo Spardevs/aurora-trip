@@ -1,19 +1,19 @@
-package br.com.ticpass.pos.sdk
+package br.com.ticpass.pos.core.sdk
 
 import android.content.Context
-import br.com.ticpass.pos.sdk.factory.AcquirerNFCProvider
-import br.com.ticpass.pos.sdk.factory.AcquirerPrintingProvider
-import br.com.ticpass.pos.sdk.factory.AcquirerRefundProvider
-import br.com.ticpass.pos.sdk.factory.CustomerReceiptProvider
-import br.com.ticpass.pos.sdk.factory.TransactionProvider
-import br.com.ticpass.pos.sdk.nfc.BaseNFCProvider
-import br.com.ticpass.pos.sdk.nfc.NFCProvider
-import br.com.ticpass.pos.sdk.payment.BasePaymentProvider
-import br.com.ticpass.pos.sdk.payment.PaymentProvider
-import br.com.ticpass.pos.sdk.printing.BasePrintingProvider
-import br.com.ticpass.pos.sdk.printing.PrintingProvider
-import br.com.ticpass.pos.sdk.refund.BaseRefundProvider
-import br.com.ticpass.pos.sdk.refund.RefundProvider
+import br.com.ticpass.pos.core.sdk.factory.AcquirerNFCProvider
+import br.com.ticpass.pos.core.sdk.factory.AcquirerPrintingProvider
+import br.com.ticpass.pos.core.sdk.factory.AcquirerRefundProvider
+import br.com.ticpass.pos.core.sdk.factory.CustomerReceiptProvider
+import br.com.ticpass.pos.core.sdk.factory.TransactionProvider
+import br.com.ticpass.pos.core.sdk.nfc.BaseNFCProvider
+import br.com.ticpass.pos.core.sdk.nfc.NFCProvider
+import br.com.ticpass.pos.core.sdk.payment.BasePaymentProvider
+import br.com.ticpass.pos.core.sdk.payment.PaymentProvider
+import br.com.ticpass.pos.core.sdk.printing.BasePrintingProvider
+import br.com.ticpass.pos.core.sdk.printing.PrintingProvider
+import br.com.ticpass.pos.core.sdk.refund.BaseRefundProvider
+import br.com.ticpass.pos.core.sdk.refund.RefundProvider
 
 /**
  * Central access point for acquirer SDK instances

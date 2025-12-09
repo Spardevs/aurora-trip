@@ -1,11 +1,11 @@
-package br.com.ticpass.pos.sdk.payment
+package br.com.ticpass.pos.core.sdk.payment
 
 import android.content.Context
-import br.com.ticpass.pos.sdk.factory.CustomerReceiptProviderFactory
-import br.com.ticpass.pos.sdk.factory.CustomerReceiptProvider
-import br.com.ticpass.pos.sdk.factory.TransactionProvider
-import br.com.ticpass.pos.sdk.factory.TransactionProviderFactory
-import br.com.ticpass.pos.sdk.SdkInstance
+import br.com.ticpass.pos.core.sdk.factory.CustomerReceiptProviderFactory
+import br.com.ticpass.pos.core.sdk.factory.CustomerReceiptProvider
+import br.com.ticpass.pos.core.sdk.factory.TransactionProvider
+import br.com.ticpass.pos.core.sdk.factory.TransactionProviderFactory
+import br.com.ticpass.pos.core.sdk.SdkInstance
 
 /**
  * Stone-specific implementation of PaymentProvider

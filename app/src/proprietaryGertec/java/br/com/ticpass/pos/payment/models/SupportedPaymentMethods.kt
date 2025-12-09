@@ -1,4 +1,4 @@
-package br.com.ticpass.pos.payment.models
+package br.com.ticpass.pos.core.payment.models
 
 /**
  * Gertec proprietary supported payment methods
