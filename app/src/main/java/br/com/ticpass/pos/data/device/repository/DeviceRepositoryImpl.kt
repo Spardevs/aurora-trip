@@ -17,18 +17,16 @@ class DeviceRepositoryImpl @Inject constructor(
         acquirer: String,
         variant: String
     ): Response<RegisterDeviceResponse> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val request = RegisterDeviceRequest(
-                    serial = serial,
-                    acquirer = acquirer,
-                    variant = variant
-                )
+        return try {
+            val request = RegisterDeviceRequest(
+                serial = serial,
+                acquirer = acquirer,
+                variant = variant
+            )
 
-                deviceService.registerDevice(request)
-            } catch (e: Exception) {
-                throw IOException("Erro de rede ao registrar dispositivo", e)
-            }
+            deviceService.registerDevice(request)
+        } catch (e: Exception) {
+            throw IOException("Erro de rede ao registrar dispositivo", e)
         }
     }
 }

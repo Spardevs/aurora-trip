@@ -2,31 +2,61 @@ package br.com.ticpass.pos.presentation.product.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.ticpass.pos.domain.product.model.ProductModel
 import br.com.ticpass.pos.domain.product.usecase.GetProductsUseCase
-import br.com.ticpass.pos.presentation.product.states.ProductUiState
-import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class ProductViewModel @Inject constructor(
-    private val getProductsUseCase: GetProductsUseCase
+class ProductViewModel @AssistedInject constructor(
+    private val getProductsUseCase: GetProductsUseCase,
+    @Assisted private val categoryId: String?
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<ProductUiState>(ProductUiState.Loading)
-    val uiState: StateFlow<ProductUiState> = _uiState
+    private val _products = MutableStateFlow<List<ProductModel>>(emptyList())
+    val products: StateFlow<List<ProductModel>> = _products
 
     init {
-        loadProducts()
+        if (categoryId == "all" || categoryId == null) {
+            loadProducts()
+        } else {
+            loadProductsByCategory(categoryId)
+        }
     }
 
     private fun loadProducts() {
         viewModelScope.launch {
-            getProductsUseCase().collect { products ->
-                _uiState.value = ProductUiState.Success(products)
+            getProductsUseCase.invoke().collect { productsList ->
+                _products.value = productsList
             }
         }
+    }
+
+    private fun loadProductsByCategory(categoryId: String) {
+        viewModelScope.launch {
+            getProductsUseCase.invoke().collect { productsList ->
+                _products.value = productsList.filter { it.category == categoryId }
+            }
+        }
+    }
+
+    fun refreshProducts() {
+        // Limpar os produtos atuais
+        _products.value = emptyList()
+
+        // Recarregar os produtos
+        if (categoryId == "all" || categoryId == null) {
+            loadProducts()
+        } else {
+            loadProductsByCategory(categoryId)
+        }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(categoryId: String?): ProductViewModel
     }
 }

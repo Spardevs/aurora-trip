@@ -56,6 +56,6 @@ object AppConfig {
     val appName by required("APP_NAME")
     
     // Mock device configuration for debug builds (only used in DEBUG mode)
-    val mockDeviceModel by withDefault("MOCK_DEVICE_MODEL", "p2b")
-    val mockDeviceSerial by withDefault("MOCK_DEVICE_SERIAL", "0000000000")
+    val mockDeviceModel by required("MOCK_DEVICE_MODEL")
+    val mockDeviceSerial by required("MOCK_DEVICE_SERIAL")
 }

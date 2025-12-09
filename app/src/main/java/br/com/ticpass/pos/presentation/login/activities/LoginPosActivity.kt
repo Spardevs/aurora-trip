@@ -13,8 +13,8 @@ import br.com.ticpass.pos.R
 import br.com.ticpass.pos.core.util.SessionPrefsManagerUtils
 import br.com.ticpass.pos.presentation.login.adapters.LoginPosAdapter
 import br.com.ticpass.pos.presentation.login.states.LoginPosUiState
-import br.com.ticpass.pos.presentation.login.viewmodels.LoginPosViewModel
 import br.com.ticpass.pos.presentation.common.LoginLoadingFragment
+import br.com.ticpass.pos.presentation.login.viewmodels.LoginPosViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch

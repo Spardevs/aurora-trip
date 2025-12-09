@@ -4,18 +4,14 @@ import br.com.ticpass.pos.data.pos.datasource.PosLocalDataSource
 import br.com.ticpass.pos.data.pos.datasource.PosRemoteDataSource
 import br.com.ticpass.pos.data.pos.mapper.toDomain
 import br.com.ticpass.pos.data.pos.mapper.toEntity
-import br.com.ticpass.pos.data.pos.remote.dto.PosDto
-import br.com.ticpass.pos.data.pos.remote.dto.SessionDto
+import br.com.ticpass.pos.data.pos.remote.service.CloseSessionRequest
 import br.com.ticpass.pos.domain.pos.model.Pos
 import br.com.ticpass.pos.domain.pos.model.Session
 import br.com.ticpass.pos.domain.pos.repository.PosRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class PosRepositoryImpl @Inject constructor(
+class PosRepositoryImpl(
     private val remoteDataSource: PosRemoteDataSource,
     private val localDataSource: PosLocalDataSource
 ) : PosRepository {
@@ -33,7 +29,6 @@ class PosRepositoryImpl @Inject constructor(
         available: String
     ): Result<List<Pos>> {
         return try {
-            // call the remote data source method you actually defined
             val response = remoteDataSource.getMenuPos(take, page, menu, available)
 
             if (!response.isSuccessful) {
@@ -42,18 +37,7 @@ class PosRepositoryImpl @Inject constructor(
 
             val body = response.body() ?: return Result.failure(Exception("Empty response body"))
 
-            val posDtos: List<PosDto> = when {
-                (body::class.members.any { it.name == "edges" }) ->
-                    @Suppress("UNCHECKED_CAST")
-                    (body as? Any /*PosResponseDto*/)?.let { resp ->
-                        resp::class.members.firstOrNull { it.name == "edges" }?.let {
-                            body.edges
-                        }
-                    } ?: emptyList()
-                false -> (body as List<PosDto>)
-                else -> emptyList()
-            }
-
+            val posDtos = body.edges
             val posEntities = posDtos.map { it.toEntity() }
             localDataSource.savePosList(posEntities)
 
@@ -82,11 +66,24 @@ class PosRepositoryImpl @Inject constructor(
 
             val sessionDto = response.body() ?: return Result.failure(Exception("Empty session response"))
 
-            // Mapear SessionDto para Session do domínio
             val session = sessionDto.toDomain()
             Result.success(session)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
+
+    override suspend fun closePosSession(sessionId: String): Result<Unit> {
+        return try {
+            val request = CloseSessionRequest(sessionId)
+            val response = remoteDataSource.closePosSession(request)
+            if (!response.isSuccessful) {
+                return Result.failure(Exception("Failed to close POS session: ${response.message()}"))
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 }

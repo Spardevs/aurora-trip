@@ -2,6 +2,7 @@ package br.com.ticpass.pos.presentation.product.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.ticpass.pos.domain.category.model.Category
 import br.com.ticpass.pos.domain.category.usecase.GetCategoriesUseCase
 import br.com.ticpass.pos.presentation.product.states.CategoryUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,8 +26,15 @@ class CategoryViewModel @Inject constructor(
     private fun loadCategories() {
         viewModelScope.launch {
             getCategoriesUseCase().collect { categories ->
-                _uiState.value = CategoryUiState.Success(categories)
+                // Adiciona a categoria "Todos" no início da lista
+                val allCategory = Category("all", "Todos")
+                val categoriesWithAll = listOf(allCategory) + categories
+                _uiState.value = CategoryUiState.Success(categoriesWithAll)
             }
         }
+    }
+
+    fun refreshCategories() {
+        loadCategories()
     }
 }

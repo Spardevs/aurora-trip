@@ -7,6 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
+import br.com.ticpass.pos.core.util.NumericConversionUtils
 import br.com.ticpass.pos.domain.pos.model.Pos
 
 class LoginPosAdapter(
@@ -27,12 +28,25 @@ class LoginPosAdapter(
         private val tvName = view.findViewById<TextView>(R.id.textViewPosName)
         private val tvCommission = view.findViewById<TextView>(R.id.textViewPOSCommission)
 
+        private val numericUtils = NumericConversionUtils
+
         fun bind(p: Pos) {
             tvName.text = "${p.prefix} ${p.sequence}"
             val closed = p.session == null
             tvState.text = if (closed) "Fechado" else "Aberto"
+
+            if (closed) {
+                iv.setColorFilter(itemView.context.getColor(R.color.colorGreen))
+                tvState.setTextColor(itemView.context.getColor(R.color.colorGreen))
+            } else {
+                iv.setColorFilter(itemView.context.getColor(R.color.colorRed))
+                tvState.setTextColor(itemView.context.getColor(R.color.colorRed))
+                tvName.setTextColor(itemView.context.getColor(R.color.colorGray))
+                tvCommission.setTextColor(itemView.context.getColor(R.color.colorGray))
+            }
+
             tvCommission.text = if (closed) {
-                if (p.commission > 0) "${p.commission}% de comissão" else "Sem comissão"
+                if (p.commission > 0) "${numericUtils.convertLongToPercentString(p.commission)} de comissão" else "Sem comissão"
             } else {
                 p.session?.cashier?.name ?: "Caixa aberto"
             }

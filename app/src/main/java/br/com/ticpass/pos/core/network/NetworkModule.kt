@@ -1,19 +1,26 @@
 package br.com.ticpass.pos.core.network
 
+import android.content.Context
 import br.com.ticpass.Constants
 import br.com.ticpass.pos.core.network.interceptor.AuthInterceptor
+import br.com.ticpass.pos.core.network.interceptor.RateLimitInterceptor
 import br.com.ticpass.pos.core.network.interceptor.VersionInterceptor
+import br.com.ticpass.pos.core.network.ratelimit.ExponentialBackoff
+import br.com.ticpass.pos.core.network.ratelimit.RateLimiter
+import br.com.ticpass.pos.core.network.ratelimit.RateLimitStorage
 import br.com.ticpass.pos.data.auth.remote.service.AuthService
 import br.com.ticpass.pos.data.category.remote.service.CategoryApiService
 import br.com.ticpass.pos.data.device.remote.service.DeviceService
 import br.com.ticpass.pos.data.menu.remote.service.MenuApiService
 import br.com.ticpass.pos.data.menu.remote.service.MenuLogoService
 import br.com.ticpass.pos.data.product.remote.service.ProductApiService
+import br.com.ticpass.pos.data.pos.remote.adapters.CashierDtoJsonAdapterFactory
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -30,6 +37,32 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    fun provideRateLimitStorage(@ApplicationContext context: Context): RateLimitStorage {
+        return RateLimitStorage(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideExponentialBackoff(): ExponentialBackoff {
+        return ExponentialBackoff()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRateLimiter(
+        rateLimitStorage: RateLimitStorage,
+        exponentialBackoff: ExponentialBackoff
+    ): RateLimiter {
+        return RateLimiter(rateLimitStorage, exponentialBackoff)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRateLimitInterceptor(rateLimiter: RateLimiter): Interceptor {
+        return RateLimitInterceptor(rateLimiter)
+    }
+    @Provides
+    @Singleton
     fun provideVersionInterceptor(): Interceptor {
         return VersionInterceptor()
     }
@@ -38,7 +71,8 @@ object NetworkModule {
     @Singleton
     fun provideOkHttpClient(
         authInterceptor: AuthInterceptor,
-        versionInterceptor: VersionInterceptor
+        versionInterceptor: VersionInterceptor,
+        rateLimitInterceptor: RateLimitInterceptor
     ): OkHttpClient {
         val logging = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
@@ -47,6 +81,7 @@ object NetworkModule {
         return OkHttpClient.Builder()
             .addInterceptor(versionInterceptor)
             .addInterceptor(authInterceptor)
+            .addInterceptor(rateLimitInterceptor)
             .addInterceptor(logging)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
@@ -57,6 +92,7 @@ object NetworkModule {
     @Singleton
     fun provideMoshi(): Moshi {
         return Moshi.Builder()
+            .add(CashierDtoJsonAdapterFactory)
             .add(KotlinJsonAdapterFactory())
             .build()
     }

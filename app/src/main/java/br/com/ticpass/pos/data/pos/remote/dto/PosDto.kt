@@ -6,7 +6,10 @@ import com.squareup.moshi.JsonClass
 data class PosResponseDto(
     val edges: List<PosDto>,
     val info: PageInfoDto
-)
+) {
+    fun hasNextPage(): Boolean = info.hasNextPage
+    fun getNextPage(): Int? = info.nextPage
+}
 
 @JsonClass(generateAdapter = true)
 data class PosDto(
@@ -25,11 +28,11 @@ data class PosDto(
 @JsonClass(generateAdapter = true)
 data class SessionDto(
     val id: String,
-    val accountable: String,
-    val device: String,
-    val menu: String,
-    val pos: String,
-    val cashier: CashierDto?,
+    val accountable: String?,
+    val device: String?,
+    val menu: String?,
+    val pos: String?,
+    val cashier: CashierDto,
     val createdAt: String
 )
 

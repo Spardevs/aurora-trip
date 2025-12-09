@@ -133,10 +133,16 @@
             android:exported="false"
             />
 
-        <activity android:name=".presentation.login.activities.LoadingDownloadFragmentActivity"
+        <activity android:name=".presentation.login.activities.LoginLoadingDownloadActivity"
             android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="false"
             />
+
+        <activity android:name=".presentation.product.activities.ProductsListActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"
+            android:exported="false"
+            />
+
 
 
         <activity

@@ -1,6 +1,6 @@
 package br.com.ticpass.pos.domain.product.model
 
-data class Product(
+data class ProductModel(
     val id: String,
     val category: String,
     val name: String,

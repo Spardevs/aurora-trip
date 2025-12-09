@@ -3,7 +3,7 @@ package br.com.ticpass.pos.data.product.repository
 import br.com.ticpass.pos.data.product.datasource.ProductLocalDataSource
 import br.com.ticpass.pos.data.product.datasource.ProductRemoteDataSource
 import br.com.ticpass.pos.data.product.mapper.toEntity
-import br.com.ticpass.pos.domain.product.model.Product
+import br.com.ticpass.pos.domain.product.model.ProductModel
 import br.com.ticpass.pos.domain.product.repository.ProductRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -18,10 +18,10 @@ class ProductRepositoryImpl @Inject constructor(
     private val remoteDataSource: ProductRemoteDataSource
 ) : ProductRepository {
 
-    override fun getEnabledProducts(): Flow<List<Product>> {
+    override fun getEnabledProducts(): Flow<List<ProductModel>> {
         return localDataSource.getEnabledProducts().map { entities ->
             entities.map { entity ->
-                Product(
+                ProductModel(
                     id = entity.id,
                     category = entity.category,
                     name = entity.name,
