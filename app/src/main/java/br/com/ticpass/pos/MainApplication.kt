@@ -32,9 +32,12 @@ class MainApplication : Application(), Configuration.Provider {
         super.onCreate()
         instance = this
 
+        val db = br.com.ticpass.pos.data.local.database.AppDatabase.getDatabase(this)
+        val posDaoInstance = db.posDao()
+        br.com.ticpass.pos.core.util.CommisionUtils.setPosDao(posDaoInstance)
+
         if (BuildConfig.DEBUG) {
             SessionPrefsManagerUtils.init(this)
-
             Timber.plant(Timber.DebugTree())
         }
 

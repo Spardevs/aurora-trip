@@ -1,13 +1,16 @@
 package br.com.ticpass.pos.core.util
 
 import br.com.ticpass.Constants
+import java.text.NumberFormat
+import java.util.Locale
 
 class NumericConversionUtils {
     companion object {
 
         fun convertLongToBrCurrencyString(amount: Long): String {
             val decimalAmount = amount / Constants.CONVERSION_FACTOR.toDouble()
-            return String.format("%.2f", decimalAmount)
+            val format = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+            return format.format(decimalAmount)
         }
 
         /**

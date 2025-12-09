@@ -1,4 +1,3 @@
-// ProductViewModel.kt
 package br.com.ticpass.pos.presentation.product.viewmodels
 
 import androidx.lifecycle.ViewModel
@@ -41,6 +40,18 @@ class ProductViewModel @AssistedInject constructor(
             getProductsUseCase.invoke().collect { productsList ->
                 _products.value = productsList.filter { it.category == categoryId }
             }
+        }
+    }
+
+    fun refreshProducts() {
+        // Limpar os produtos atuais
+        _products.value = emptyList()
+
+        // Recarregar os produtos
+        if (categoryId == "all" || categoryId == null) {
+            loadProducts()
+        } else {
+            loadProductsByCategory(categoryId)
         }
     }
 

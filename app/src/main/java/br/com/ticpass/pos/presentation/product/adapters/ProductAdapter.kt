@@ -11,8 +11,12 @@ import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.domain.product.model.ProductModel
 import android.util.Log
+import br.com.ticpass.pos.core.util.CommisionUtils
 import br.com.ticpass.pos.core.util.NumericConversionUtils
 import java.io.File
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class ProductAdapter(
     private val context: Context,
@@ -20,6 +24,7 @@ class ProductAdapter(
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
     val numericConversionUtils = NumericConversionUtils
+    val commissionUtils = CommisionUtils
 
     fun updateProducts(newProducts: List<ProductModel>) {
         products = newProducts
@@ -46,7 +51,13 @@ class ProductAdapter(
 
         fun bind(product: ProductModel) {
             nameTextView.text = product.name
-            priceTextView.text = "R$${numericConversionUtils.convertLongToBrCurrencyString(product.price)}"
+            val productPrice = product.price
+
+
+            CoroutineScope(Dispatchers.Main).launch {
+                val productPriceCommission = commissionUtils.calculateTotalWithCommission(productPrice)
+                priceTextView.text = numericConversionUtils.convertLongToBrCurrencyString(productPriceCommission.toLong())
+            }
 
 
             // Construir o nome do arquivo com extensão .webp (cada produto tem thumbnail = id do arquivo)

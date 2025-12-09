@@ -10,6 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.presentation.product.adapters.ProductAdapter
 import br.com.ticpass.pos.presentation.product.viewmodels.ProductViewModel
@@ -35,6 +36,7 @@ class CategoryProductsFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ProductAdapter
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     private var categoryId: String? = null
 
@@ -51,19 +53,39 @@ class CategoryProductsFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_category_products, container, false)
         recyclerView = view.findViewById(R.id.recyclerViewCategoryProducts)
+        swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout)
+
         recyclerView.layoutManager = GridLayoutManager(requireContext(), 3)
         adapter = ProductAdapter(requireContext(), emptyList())
         recyclerView.adapter = adapter
+
+        // Habilitar pull to refresh apenas para a aba "Todos"
+        swipeRefreshLayout.isEnabled = (categoryId == "all" || categoryId == null)
+
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Configurar o listener do pull to refresh
+        swipeRefreshLayout.setOnRefreshListener {
+            refreshData()
+        }
+
         lifecycleScope.launch {
             productViewModel.products.collectLatest { products ->
                 adapter.updateProducts(products)
+                // Parar o indicador de refresh quando os dados forem carregados
+                swipeRefreshLayout.isRefreshing = false
             }
+        }
+    }
+
+    private fun refreshData() {
+        // Disparar o refresh no ViewModel apenas para a aba "Todos"
+        if (categoryId == "all" || categoryId == null) {
+            productViewModel.refreshProducts()
         }
     }
 
