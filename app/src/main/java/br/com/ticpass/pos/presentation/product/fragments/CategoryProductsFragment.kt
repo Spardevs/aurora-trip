@@ -6,12 +6,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import br.com.ticpass.pos.R
+import br.com.ticpass.pos.presentation.payment.fragments.PaymentSheetFragment
 import br.com.ticpass.pos.presentation.product.adapters.ProductAdapter
 import br.com.ticpass.pos.presentation.product.viewmodels.ProductViewModel
 import kotlinx.coroutines.flow.collectLatest
@@ -36,6 +38,7 @@ class CategoryProductsFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ProductAdapter
+    private lateinit var paymentSheetFragment: PaymentSheetFragment
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     private var categoryId: String? = null
@@ -59,6 +62,8 @@ class CategoryProductsFragment : Fragment() {
         adapter = ProductAdapter(requireContext(), emptyList())
         recyclerView.adapter = adapter
 
+
+
         // Habilitar pull to refresh apenas para a aba "Todos"
         swipeRefreshLayout.isEnabled = (categoryId == "all" || categoryId == null)
 
@@ -80,6 +85,14 @@ class CategoryProductsFragment : Fragment() {
                 swipeRefreshLayout.isRefreshing = false
             }
         }
+
+        lifecycleScope.launch {
+            // Observar mudanças nos produtos (que podem afetar o carrinho)
+            productViewModel.products.collectLatest { _ ->
+                // Removido updateCartDisplay pois PaymentSheetFragment não é mais filho
+            }
+        }
+
     }
 
     private fun refreshData() {

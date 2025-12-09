@@ -9,15 +9,14 @@
 
     <TextView
         android:id="@+id/productBadge"
-        android:layout_width="14dp"
-        android:layout_height="14dp"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
         android:layout_gravity="top|end"
         android:background="@drawable/badge_background"
         android:textColor="@android:color/white"
         android:gravity="center"
         android:text="12"
-        android:textSize="8dp"
-        android:visibility="gone"
+        android:textSize="10dp"
         android:layout_margin="5dp" />
 
     <LinearLayout
