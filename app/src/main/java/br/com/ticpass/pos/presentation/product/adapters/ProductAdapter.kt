@@ -13,6 +13,7 @@ import br.com.ticpass.pos.domain.product.model.ProductModel
 import android.util.Log
 import br.com.ticpass.pos.core.util.CommisionUtils
 import br.com.ticpass.pos.core.util.NumericConversionUtils
+import br.com.ticpass.pos.core.util.ShoppingCartUtils
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,8 +24,8 @@ class ProductAdapter(
     private var products: List<ProductModel>
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
-    val numericConversionUtils = NumericConversionUtils
-    val commissionUtils = CommisionUtils
+    private val numericConversionUtils = NumericConversionUtils
+    private val commissionUtils = CommisionUtils
 
     fun updateProducts(newProducts: List<ProductModel>) {
         products = newProducts
@@ -47,18 +48,50 @@ class ProductAdapter(
         private val thumbnailImageView: ImageView = itemView.findViewById(R.id.imageThumbnail)
         private val nameTextView: TextView = itemView.findViewById(R.id.textProductName)
         private val priceTextView: TextView = itemView.findViewById(R.id.productPrice)
-
+        private val productBadge: TextView = itemView.findViewById(R.id.productBadge)
 
         fun bind(product: ProductModel) {
             nameTextView.text = product.name
-            val productPrice = product.price
+            val productPrice = product.price // assume Long (centavos)
 
-
+            // Mostrar preço incluindo comissão (por item)
             CoroutineScope(Dispatchers.Main).launch {
                 val productPriceCommission = commissionUtils.calculateTotalWithCommission(productPrice)
                 priceTextView.text = numericConversionUtils.convertLongToBrCurrencyString(productPriceCommission.toLong())
             }
 
+            // Atualizar badge com quantidade do produto no carrinho
+            val qty = ShoppingCartUtils.getProductQuantity(context, product.id.toString())
+            if (qty > 0) {
+                productBadge.visibility = View.VISIBLE
+                productBadge.text = qty.toString()
+            } else {
+                productBadge.visibility = View.GONE
+            }
+
+            // Clique: adiciona 1 unidade ao carrinho
+            itemView.setOnClickListener {
+                CoroutineScope(Dispatchers.Main).launch {
+                    ShoppingCartUtils.addProduct(context, product.id.toString(), productPrice)
+                    // atualizar badge localmente
+                    val newQty = ShoppingCartUtils.getProductQuantity(context, product.id.toString())
+                    if (newQty > 0) {
+                        productBadge.visibility = View.VISIBLE
+                        productBadge.text = newQty.toString()
+                    } else {
+                        productBadge.visibility = View.GONE
+                    }
+                }
+            }
+
+            // Long click: limpar o produto do carrinho (remover totalmente)
+            itemView.setOnLongClickListener {
+                CoroutineScope(Dispatchers.Main).launch {
+                    ShoppingCartUtils.clearProduct(context, product.id.toString(), productPrice)
+                    productBadge.visibility = View.GONE
+                }
+                true
+            }
 
             // Construir o nome do arquivo com extensão .webp (cada produto tem thumbnail = id do arquivo)
             val thumbnailFileName = if (product.thumbnail.endsWith(".webp")) {
