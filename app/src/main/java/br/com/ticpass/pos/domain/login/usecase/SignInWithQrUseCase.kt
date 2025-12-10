@@ -8,7 +8,7 @@ import javax.inject.Inject
 class SignInWithQrUseCase @Inject constructor(
     private val authRepositoryImpl: AuthRepositoryImpl
 ) {
-    suspend operator fun invoke(shortLivedToken: String, pin: String): Result<Pair<LoginResponse, Pair<String?, String?>>> {
+    suspend operator fun invoke(shortLivedToken: String): Result<Pair<LoginResponse, Pair<String?, String?>>> {
         return try {
             val response = authRepositoryImpl.signInWithQrCode(shortLivedToken)
 
