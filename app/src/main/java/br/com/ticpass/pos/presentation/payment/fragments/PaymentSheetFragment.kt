@@ -50,7 +50,7 @@ class PaymentSheetFragment : Fragment() {
                             numericConversionUtils.convertLongToBrCurrencyString(state.totalWithCommission)
                         val qty = state.totalQuantity
                         binding.tvItemCount.text =
-                            if (qty == 1) "1 item no carrinho" else "$qty itens no carrinho"
+                            if (qty == 1) "/ 1 item" else "/ $qty itens"
                     }
                 }
             }
