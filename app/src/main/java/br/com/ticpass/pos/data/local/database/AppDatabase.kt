@@ -22,6 +22,8 @@ import br.com.ticpass.pos.core.queue.processors.printing.data.PrintingQueueDao
 import br.com.ticpass.pos.core.queue.processors.printing.models.PrintingEntity
 import br.com.ticpass.pos.core.queue.processors.refund.data.RefundQueueDao
 import br.com.ticpass.pos.core.queue.processors.refund.models.RefundQueueEntity
+import br.com.ticpass.pos.data.menupin.local.dao.MenuPinDao
+import br.com.ticpass.pos.data.menupin.local.entity.MenuPinEntity
 
 @Database(
     entities = [
@@ -33,9 +35,10 @@ import br.com.ticpass.pos.core.queue.processors.refund.models.RefundQueueEntity
         PaymentProcessingEntity::class,
         NFCQueueEntity::class,
         PrintingEntity::class,
-        RefundQueueEntity::class
+        RefundQueueEntity::class,
+        MenuPinEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 
@@ -52,6 +55,9 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun nfcQueueDao(): NFCQueueDao
     abstract fun printingQueueDao(): PrintingQueueDao
     abstract fun refundQueueDao(): RefundQueueDao
+    
+    // Menu Pin DAO
+    abstract fun menuPinDao(): MenuPinDao
 
     companion object {
         @Volatile

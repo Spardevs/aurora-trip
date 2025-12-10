@@ -12,6 +12,7 @@ import br.com.ticpass.pos.core.queue.processors.payment.data.PaymentProcessingQu
 import br.com.ticpass.pos.core.queue.processors.nfc.data.NFCQueueDao
 import br.com.ticpass.pos.core.queue.processors.printing.data.PrintingQueueDao
 import br.com.ticpass.pos.core.queue.processors.refund.data.RefundQueueDao
+import br.com.ticpass.pos.data.menupin.local.dao.MenuPinDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -77,5 +78,10 @@ object DatabaseModule {
     @Provides
     fun provideRefundQueueDao(database: AppDatabase): RefundQueueDao {
         return database.refundQueueDao()
+    }
+
+    @Provides
+    fun provideMenuPinDao(database: AppDatabase): MenuPinDao {
+        return database.menuPinDao()
     }
 }

@@ -17,21 +17,24 @@ flowchart TB
     subgraph UseCases["Domain Layer - UseCases"]
         RefreshCatUC["RefreshCategoriesUseCase"]
         RefreshProdUC["RefreshProductsUseCase"]
+        RefreshPinsUC["RefreshMenuPinsUseCase"]
     end
 
     subgraph Repositories["Repository Layer"]
         ProdRepo["ProductRepository"]
         PosRepo["PosRepository"]
         UserRepo["UserRepository"]
+        MenuPinRepo["MenuPinRepository"]
     end
 
     subgraph ProcessSteps["Process Steps"]
         Step1["1. Download Categories"]
         Step2["2. Download Products"]
         Step3["3. Download Thumbnails"]
-        Step4["4. Set User Logged"]
-        Step5["5. Select POS"]
-        Step6["6. Open POS Session"]
+        Step4["4. Download Menu PINs"]
+        Step5["5. Set User Logged"]
+        Step6["6. Select POS"]
+        Step7["7. Open POS Session"]
     end
 
     subgraph Utils["Utilities"]
@@ -60,11 +63,14 @@ flowchart TB
     LoadVM --> Step3
     Step3 -->|"downloadAndExtractThumbnails"| ProdRepo
     LoadVM --> Step4
-    Step4 -->|"setUserLogged"| UserRepo
+    Step4 -->|"RefreshMenuPinsUseCase"| RefreshPinsUC
+    RefreshPinsUC --> MenuPinRepo
     LoadVM --> Step5
-    Step5 -->|"selectPos"| PosRepo
+    Step5 -->|"setUserLogged"| UserRepo
     LoadVM --> Step6
-    Step6 -->|"openPosSession"| PosRepo
+    Step6 -->|"selectPos"| PosRepo
+    LoadVM --> Step7
+    Step7 -->|"openPosSession"| PosRepo
 
     %% Session Data
     LLDA -->|"reads menuId, posId, deviceId, cashierName"| SPM
@@ -93,7 +99,9 @@ flowchart TB
     class LoadState state
     class RefreshCatUC,RefreshProdUC usecase
     class ProdRepo,PosRepo,UserRepo repository
-    class Step1,Step2,Step3,Step4,Step5,Step6 step
+    class Step1,Step2,Step3,Step4,Step5,Step6,Step7 step
+    class RefreshPinsUC usecase
+    class MenuPinRepo repository
     class SPM,UserDao util
     class PLA navigation
     class XML,StatusTV layout
