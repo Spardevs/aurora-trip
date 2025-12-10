@@ -15,16 +15,14 @@ class QrCodeErrorFragment : Fragment(R.layout.fragment_qr_code_error) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Encontra o botão de retry e define o listener para reiniciar o scanner
         view.findViewById<android.widget.Button>(R.id.btn_retry)?.setOnClickListener {
-            // Navega de volta para o scanner de QR code
-            activity?.let { act ->
-                if (act is br.com.ticpass.pos.presentation.login.activities.LoginActivity) {
-                    // Fecha o fragment atual
-                    parentFragmentManager.beginTransaction().remove(this).commitAllowingStateLoss()
-                    // Inicia o scanner novamente
-                    act.startQrLogin()
-                }
+            // Close this fragment and restart QR scanner
+            parentFragmentManager.beginTransaction().remove(this).commitAllowingStateLoss()
+            
+            // Find LoginChoiceFragment and call startQrLogin
+            val choiceFragment = parentFragmentManager.findFragmentById(R.id.login_fragment_container)
+            if (choiceFragment is br.com.ticpass.pos.presentation.login.fragments.LoginChoiceFragment) {
+                choiceFragment.startQrLogin()
             }
         }
     }

@@ -81,7 +81,7 @@ class LoginPermissionsActivity : BaseActivity() {
 
     private fun navigateNext() {
         // Verifica no banco se já existe um usuário salvo.
-        // Se existir, segue para MenuActivity; caso contrário, vai para LoginActivity.
+        // Se existir, segue para MenuActivity; caso contrário, vai para LoginHostActivity.
         lifecycleScope.launch {
             val user = withContext(Dispatchers.IO) {
                 try {
@@ -96,7 +96,7 @@ class LoginPermissionsActivity : BaseActivity() {
 //            if (user != null) {
 //                Intent(this@PermissionsLoginActivity, MenuActivity::class.java)
 //            } else {
-                Intent(this@LoginPermissionsActivity, LoginActivity::class.java)
+                Intent(this@LoginPermissionsActivity, LoginHostActivity::class.java)
 //            }
             startActivity(next)
             finish()

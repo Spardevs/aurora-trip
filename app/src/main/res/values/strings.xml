@@ -703,6 +703,25 @@
     <string name="desc_device_info">Device information</string>
     <string name="desc_skydiving">Decorative image</string>
     
+    <!-- Login Validation Errors -->
+    <string name="error_empty_identifier">Email or username required</string>
+    <string name="error_invalid_email">Invalid email. Check the format (e.g. user@email.com)</string>
+    <string name="error_invalid_username">Invalid username. Use only letters, numbers and _ (min. 3 characters)</string>
+    <string name="error_empty_password">Password required</string>
+    <string name="error_password_too_short">Password must be at least 12 characters</string>
+    
+    <!-- Login API Errors -->
+    <string name="error_empty_response">Empty response from server</string>
+    <string name="error_invalid_credentials">%s or password incorrect</string>
+    <string name="error_not_found">%s not found</string>
+    <string name="error_bad_request">Invalid request</string>
+    <string name="error_server">Server error</string>
+    <string name="error_unknown">Unknown error (status %d)</string>
+    <string name="error_network">Connection error: %s</string>
+    <string name="credential_type_email">Email</string>
+    <string name="credential_type_username">Username</string>
+    <string name="qr_scan_cancelled">QR scan cancelled or invalid</string>
+    
     <!-- Permissions -->
     <string name="permissions_explanation">For the system to work properly, we need the following device permissions:</string>
     <string name="desc_camera">Camera icon</string>

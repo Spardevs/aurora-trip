@@ -111,7 +111,7 @@
             android:name=".presentation.login.activities.LoginPermissionsActivity"
             android:exported="false"/>
         <activity
-            android:name=".presentation.login.activities.LoginActivity"
+            android:name=".presentation.login.activities.LoginHostActivity"
             android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="false"
             />

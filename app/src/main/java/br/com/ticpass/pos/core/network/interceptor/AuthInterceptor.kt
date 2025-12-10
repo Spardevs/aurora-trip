@@ -24,9 +24,9 @@ class AuthInterceptor @Inject constructor(
             return chain.proceed(original)
         }
 
-        // 2) Exceção explícita para a rota short-lived signin (não injetar cookie)
-        if (path.contains("signin/pos/short-lived")) {
-            Timber.tag("AuthInterceptor").d("Skipping cookie injection for short-lived signin route: $path")
+        // 2) Skip cookie injection for all signin routes (user is authenticating, not authenticated)
+        if (path.contains("/auth/signin")) {
+            Timber.tag("AuthInterceptor").d("Skipping cookie injection for signin route: $path")
             return chain.proceed(original)
         }
 

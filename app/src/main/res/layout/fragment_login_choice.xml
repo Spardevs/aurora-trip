@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="20dp"
+    android:background="@drawable/rounded_gradient_top">
+
+    <TextView
+        android:id="@+id/login_text_choice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="@string/login_text"
+        android:textColor="@color/colorWhite"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/email_login_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="@color/colorRedAccent"
+        android:elevation="6dp"
+        android:text="@string/email_or_username_login"
+        android:stateListAnimator="@animator/button_elevation"
+        app:cornerRadius="8dp"
+        app:icon="@drawable/ic_key"
+        app:iconGravity="textEnd"
+        app:iconPadding="7dp"
+        app:layout_constraintEnd_toStartOf="@+id/qr_code_login_button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/login_text_choice" />
+
+    <Button
+        android:id="@+id/qr_code_login_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/qr_code"
+        app:icon="@drawable/ic_baseline_qr_code_24"
+        app:iconGravity="textEnd"
+        app:iconPadding="7dp"
+        android:stateListAnimator="@animator/button_elevation"
+        app:cornerRadius="8dp"
+        android:backgroundTint="@color/colorRedAccent"
+        android:elevation="6dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/email_login_button"
+        app:layout_constraintTop_toBottomOf="@id/login_text_choice" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -30,7 +30,7 @@ import br.com.ticpass.pos.core.util.ConnectivityMonitor
 import br.com.ticpass.pos.core.util.DeviceUtils
 import br.com.ticpass.pos.core.util.SessionPrefsManagerUtils
 import br.com.ticpass.pos.domain.user.repository.UserRepository
-import br.com.ticpass.pos.presentation.login.activities.LoginActivity
+import br.com.ticpass.pos.presentation.login.activities.LoginHostActivity
 import br.com.ticpass.pos.presentation.login.activities.LoginPermissionsActivity
 import br.com.ticpass.pos.presentation.shared.activities.BaseActivity
 import com.topjohnwu.superuser.internal.UiThreadHandler.handler
@@ -199,7 +199,7 @@ class MainActivity : BaseActivity() {
                 finish()
             } else {
                 SessionPrefsManagerUtils.clearAll()
-                startActivity(Intent(this@MainActivity, LoginActivity::class.java))
+                startActivity(Intent(this@MainActivity, LoginHostActivity::class.java))
                 finish()
             }
 
