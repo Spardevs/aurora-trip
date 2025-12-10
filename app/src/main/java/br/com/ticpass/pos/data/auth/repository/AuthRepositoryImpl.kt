@@ -22,42 +22,67 @@ class AuthRepositoryImpl @Inject constructor(
     private val database: AppDatabase
 ) {
 
-    suspend fun signIn(email: String, password: String): Response<LoginResponse> {
+    /**
+     * Sign in with email and password
+     * Body: {"email": "<email>", "password": "<password>"}
+     */
+    suspend fun signInWithEmail(email: String, password: String): Response<LoginResponse> {
         return withContext(Dispatchers.IO) {
             try {
-                val credentials = Base64.encodeToString("$email:$password".toByteArray(), Base64.NO_WRAP)
-                // Enviar um JSON vazio válido (não string vazia)
-                val requestBody = "{}".toRequestBody("application/json".toMediaType())
+                val requestBody = """{"email": "$email", "password": "$password"}"""
+                    .toRequestBody("application/json"
+                    .toMediaType())
+                val response = authService.signIn(requestBody)
 
-                val response = authService.signIn(
-                    requestBody = requestBody,
-                    authHeader = "Basic $credentials"
-                )
-
-                if (response.isSuccessful) {
-                    response.body()?.let { loginResponse ->
-                        val cookies = response.headers().values("Set-Cookie")
-                        val accessCookie = cookies.firstOrNull { it.startsWith("access=") }
-                        val refreshCookie = cookies.firstOrNull { it.startsWith("refresh=") }
-
-                        val accessToken = accessCookie
-                            ?.substringAfter("access=")
-                            ?.substringBefore(";")
-                            ?.takeIf { it.isNotBlank() }
-                            ?: loginResponse.jwt.access
-
-                        val refreshToken = refreshCookie
-                            ?.substringAfter("refresh=")
-                            ?.substringBefore(";")
-                            ?.takeIf { it.isNotBlank() }
-                            ?: loginResponse.jwt.refresh
-
-                        tokenManager.saveTokens(accessToken, refreshToken)
-                    }
-                }
+                handleLoginResponse(response)
                 response
             } catch (e: Exception) {
                 throw IOException("Erro de rede", e)
+            }
+        }
+    }
+
+    /**
+     * Sign in with username and password
+     * Body: {"username": "<username>", "password": "<password>"}
+     */
+    suspend fun signInWithUsername(username: String, password: String): Response<LoginResponse> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val requestBody = """{"username": "$username", "password": "$password"}"""
+                    .toRequestBody("application/json"
+                    .toMediaType())
+
+                val response = authService.signIn(requestBody)
+
+                handleLoginResponse(response)
+                response
+            } catch (e: Exception) {
+                throw IOException("Erro de rede", e)
+            }
+        }
+    }
+
+    private suspend fun handleLoginResponse(response: Response<LoginResponse>) {
+        if (response.isSuccessful) {
+            response.body()?.let { loginResponse ->
+                val cookies = response.headers().values("Set-Cookie")
+                val accessCookie = cookies.firstOrNull { it.startsWith("access=") }
+                val refreshCookie = cookies.firstOrNull { it.startsWith("refresh=") }
+
+                val accessToken = accessCookie
+                    ?.substringAfter("access=")
+                    ?.substringBefore(";")
+                    ?.takeIf { it.isNotBlank() }
+                    ?: loginResponse.jwt.access
+
+                val refreshToken = refreshCookie
+                    ?.substringAfter("refresh=")
+                    ?.substringBefore(";")
+                    ?.takeIf { it.isNotBlank() }
+                    ?: loginResponse.jwt.refresh
+
+                tokenManager.saveTokens(accessToken, refreshToken)
             }
         }
     }

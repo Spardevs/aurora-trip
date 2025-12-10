@@ -100,7 +100,7 @@
     <string name="qrcode_scan_message">Please scan the QR code below to complete the payment</string>
     <string name="qrcode_scan_description">QR Code for payment scanning</string>
     <string name="is_qrcode_transaction">Is QR Code transaction</string>
-    <string name='email_login' translatable="false">"Email"</string>
+    <string name='email_or_username_login' translatable="false">"Email or Username"</string>
 
 
     <string name="app_name" translatable="false">"Ticpass"</string>
@@ -696,6 +696,8 @@
     <string name="login_form_title">Enter login information</string>
     <string name="hint_email">name@example.com</string>
     <string name="hint_password">Password</string>
+    <string name="toggle_password_visibility">Toggle password visibility</string>
+    <string name="logging_in">Logging in…</string>
     <string name="btn_back">Back</string>
     <string name="btn_confirm">Confirm</string>
     <string name="desc_device_info">Device information</string>

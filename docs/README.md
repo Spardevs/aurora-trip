@@ -68,6 +68,7 @@ docs/
 - [RefundActivity](./architecture/13_RefundActivity.md) - Refunds
 
 ### Features
+- [Authentication](./features/Authentication.md) - Email/Username/QR login
 - [Menu PIN Feature](./features/MenuPinFeature.md) - PIN whitelist system
 - [Payment Methods](./features/payment-methods-system.md) - Payment system
 

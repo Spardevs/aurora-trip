@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.firstOrNull
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 

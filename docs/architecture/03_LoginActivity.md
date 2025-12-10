@@ -2,7 +2,7 @@
 
 ## Overview
 
-`LoginActivity` handles user authentication via email/password or QR code. It's the primary login screen after permissions are granted.
+`LoginActivity` handles user authentication via email/password, username/password, or QR code. It's the primary login screen after permissions are granted.
 
 ## Location
 
@@ -12,23 +12,55 @@ app/src/main/java/br/com/ticpass/pos/presentation/login/activities/LoginActivity
 
 ## Responsibilities
 
-1. **Email/Password Login** - Traditional credential-based authentication
-2. **QR Code Login** - Scan QR code for quick authentication
-3. **Display Login States** - Show processing, success, or error fragments
-4. **Token Management** - Store access/refresh tokens on success
+1. **Email/Password Login** - Traditional email-based authentication
+2. **Username/Password Login** - Username-based authentication (alphanumeric)
+3. **QR Code Login** - Scan QR code for quick authentication
+4. **Input Validation** - Validate email format or username format with feedback
+5. **Display Login States** - Show processing, success, or error fragments
+6. **Token Management** - Store access/refresh tokens on success
 
 ## Authentication Methods
 
-### Email/Password
+The login form accepts either an **email** or **username** in the same input field. The system automatically detects which type based on the presence of `@`:
+
+- **Contains `@`** → Treated as email, validated with email pattern
+- **No `@`** → Treated as username, validated as alphanumeric (min 3 chars)
+
+### Credential Detection
+
 ```kotlin
-private fun performEmailLogin(email: String, password: String) {
+private sealed class LoginCredential {
+    data class Email(val email: String, val password: String) : LoginCredential()
+    data class Username(val username: String, val password: String) : LoginCredential()
+}
+
+private fun isEmailFormat(input: String): Boolean {
+    return input.contains("@")
+}
+```
+
+### Validation Rules
+
+| Type | Validation | Error Message |
+|------|------------|---------------|
+| Email | `Patterns.EMAIL_ADDRESS` regex | "E-mail inválido. Verifique o formato (ex: usuario@email.com)" |
+| Username | `^[a-zA-Z0-9_]{3,}$` regex | "Usuário inválido. Use apenas letras, números e _ (mín. 3 caracteres)" |
+| Password (empty) | Non-empty | "Senha obrigatória" |
+| Password (length) | Min 12 characters | "Senha deve ter no mínimo 12 caracteres" |
+| Empty identifier | - | "E-mail ou usuário obrigatório" |
+
+### Login Flow
+
+```kotlin
+private fun performLogin(credential: LoginCredential) {
     lifecycleScope.launch {
-        val result = authRepository.signIn(email, password)
-        result.onSuccess { response ->
-            saveUserAndNavigate(response)
-        }.onFailure { error ->
-            showError(error.message)
+        val response = when (credential) {
+            is LoginCredential.Email -> 
+                authRepository.signInWithEmail(credential.email, credential.password)
+            is LoginCredential.Username -> 
+                authRepository.signInWithUsername(credential.username, credential.password)
         }
+        // Handle response...
     }
 }
 ```
@@ -142,13 +174,26 @@ class SignInWithQrUseCase @Inject constructor(
 
 ```kotlin
 interface AuthService {
-    @POST("auth/signin")
-    suspend fun signIn(@Header("Authorization") auth: String): Response<LoginResponse>
+    @POST("auth/signin/pos")
+    suspend fun signIn(
+        @Body requestBody: RequestBody
+    ): Response<LoginResponse>
 
     @POST("auth/signin/pos/short-lived")
-    suspend fun signInShortLived(@Body request: QrLoginRequest): Response<LoginResponse>
+    suspend fun signInShortLived(
+        @Body requestBody: RequestBody,
+        @Header("Cookie") cookieHeader: String
+    ): Response<LoginResponse>
 }
 ```
+
+### API Endpoints
+
+| Method | Endpoint | Body | Description |
+|--------|----------|------|-------------|
+| Email | `POST /auth/signin/pos` | `{"email": "<email>", "password": "<password>"}` | Login with email |
+| Username | `POST /auth/signin/pos` | `{"username": "<username>", "password": "<password>"}` | Login with username |
+| QR Code | `POST /auth/signin/pos/short-lived` | `{}` + Cookie (shortLived=token) | Login with QR token |
 
 ### LoginResponse
 
@@ -186,10 +231,13 @@ res/layout/activity_login.xml
 ### Key Views
 | View ID | Purpose |
 |---------|---------|
-| `editTextTextEmailAddress` | Email input |
+| `editTextTextEmailAddress` | Email or Username input (same field) |
 | `editTextTextPassword` | Password input |
 | `button_confirm` | Login button |
 | `qr_code_login_button` | Launch QR scanner |
+| `login_error_text` | Error message display |
+| `choiceContainer` | Initial choice screen (email/QR buttons) |
+| `formContainer` | Login form container |
 
 ## Dependencies
 
