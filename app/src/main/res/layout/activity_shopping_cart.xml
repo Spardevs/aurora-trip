@@ -28,7 +28,7 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_arrow_back"
+                android:src="@drawable/ic_arrow_left"
                 app:tint="@color/material_dynamic_neutral_variant95" />
 
             <View
@@ -67,6 +67,7 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:clipToPadding="false"
+            android:paddingVertical="10dp"
             android:paddingBottom="100dp"
             tools:listitem="@layout/item_cart" />
 
@@ -84,13 +85,5 @@
             android:visibility="gone" />
 
     </LinearLayout>
-
-<!--    <include-->
-<!--        android:id="@+id/paymentSheet"-->
-<!--        layout="@layout/payment_sheet"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:background="#80000000"-->
-<!--        android:layout_gravity="bottom"/>-->
 
 </FrameLayout>
