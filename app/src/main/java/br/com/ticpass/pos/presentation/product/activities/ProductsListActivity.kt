@@ -5,9 +5,7 @@ import android.widget.FrameLayout
 import androidx.activity.viewModels
 import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
-import br.com.ticpass.pos.presentation.product.viewmodels.ProductViewModel
 import br.com.ticpass.pos.presentation.product.viewmodels.CategoryViewModel
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.presentation.shared.activities.BaseDrawerActivity
@@ -16,18 +14,16 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import br.com.ticpass.pos.presentation.product.fragments.CategoryProductsFragment
 import br.com.ticpass.pos.domain.category.model.Category
 import br.com.ticpass.pos.presentation.payment.fragments.PaymentSheetFragment
-
+import br.com.ticpass.pos.presentation.product.fragments.CategoryProductsFragment
 @AndroidEntryPoint
 class ProductsListActivity : BaseDrawerActivity() {
     override val hasMenu: Boolean = true
     private val categoryViewModel: CategoryViewModel by viewModels()
-    private lateinit var paymentSheetFragment: PaymentSheetFragment
+
     private lateinit var tabLayout: TabLayout
     private lateinit var viewPager: ViewPager2
-    // Adicionar PaymentSheetFragment
 
 
     private lateinit var pagerAdapter: CategoryPagerAdapter
@@ -39,13 +35,16 @@ class ProductsListActivity : BaseDrawerActivity() {
         val contentFrame = findViewById<FrameLayout>(R.id.content_frame)
         contentFrame.addView(contentView)
 
-        paymentSheetFragment = PaymentSheetFragment()
-        supportFragmentManager.commit {
-            replace(R.id.payment_sheet_container, paymentSheetFragment)
-        }
 
         tabLayout = contentView.findViewById(R.id.tabLayout)
         viewPager = contentView.findViewById(R.id.viewPager)
+
+        // Adiciona o PaymentSheetFragment
+        if (savedInstanceState == null) {
+            supportFragmentManager.commit {
+                add(R.id.payment_sheet_container, PaymentSheetFragment())
+            }
+        }
 
         setupViewPagerAndTabs()
     }
@@ -85,6 +84,8 @@ class ProductsListActivity : BaseDrawerActivity() {
             notifyDataSetChanged()
         }
     }
+
+
 
     override fun showLogoInDrawerToolbar(): Boolean = true
 }

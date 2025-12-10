@@ -1,4 +1,3 @@
-// CategoryProductsFragment.kt
 package br.com.ticpass.pos.presentation.product.fragments
 
 import android.os.Bundle
@@ -13,9 +12,10 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.presentation.payment.fragments.PaymentSheetFragment
+import androidx.fragment.app.activityViewModels
 import br.com.ticpass.pos.presentation.product.adapters.ProductAdapter
 import br.com.ticpass.pos.presentation.product.viewmodels.ProductViewModel
+import br.com.ticpass.pos.presentation.shoppingCart.viewmodels.CartViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -38,7 +38,7 @@ class CategoryProductsFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ProductAdapter
-    private lateinit var paymentSheetFragment: PaymentSheetFragment
+    private val cartViewModel: CartViewModel by activityViewModels()
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     private var categoryId: String? = null
@@ -59,7 +59,14 @@ class CategoryProductsFragment : Fragment() {
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout)
 
         recyclerView.layoutManager = GridLayoutManager(requireContext(), 3)
-        adapter = ProductAdapter(requireContext(), emptyList())
+        adapter = ProductAdapter(requireContext(), emptyList(),
+            onProductClick = { product ->
+                cartViewModel.addProduct(product)
+            },
+            onProductLongClick = { product ->
+                cartViewModel.removeAllProductItems(product)
+            }
+        )
         recyclerView.adapter = adapter
 
 
@@ -80,16 +87,15 @@ class CategoryProductsFragment : Fragment() {
 
         lifecycleScope.launch {
             productViewModel.products.collectLatest { products ->
-                adapter.updateProducts(products)
-                // Parar o indicador de refresh quando os dados forem carregados
+                adapter.updateProducts(products) // Atualiza lista só quando produtos mudam
                 swipeRefreshLayout.isRefreshing = false
             }
         }
 
         lifecycleScope.launch {
-            // Observar mudanças nos produtos (que podem afetar o carrinho)
-            productViewModel.products.collectLatest { _ ->
-                // Removido updateCartDisplay pois PaymentSheetFragment não é mais filho
+            cartViewModel.cartItems.collect { cartItems ->
+                val quantitiesMap = cartItems.associate { it.product.id.toString() to it.quantity }
+                adapter.updateCartQuantities(quantitiesMap) // Atualiza badges conforme carrinho muda
             }
         }
 

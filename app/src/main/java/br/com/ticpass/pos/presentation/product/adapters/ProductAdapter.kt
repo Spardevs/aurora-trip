@@ -21,15 +21,37 @@ import kotlinx.coroutines.launch
 
 class ProductAdapter(
     private val context: Context,
-    private var products: List<ProductModel>
+    private var products: List<ProductModel>,
+    private val onProductClick: (ProductModel) -> Unit,
+    private val onProductLongClick: (ProductModel) -> Unit
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
     private val numericConversionUtils = NumericConversionUtils
     private val commissionUtils = CommisionUtils
 
+    // Mapa de productId para quantidade no carrinho
+    private var cartQuantities: Map<String, Int> = emptyMap()
+
     fun updateProducts(newProducts: List<ProductModel>) {
         products = newProducts
         notifyDataSetChanged()
+    }
+
+    // Atualiza as quantidades do carrinho e notifica para atualizar badges
+    fun updateCartQuantities(newCartQuantities: Map<String, Int>) {
+        val oldCartQuantities = cartQuantities
+        cartQuantities = newCartQuantities
+
+        // Notificar apenas os itens que tiveram a quantidade alterada
+        for (i in products.indices) {
+            val product = products[i]
+            val productId = product.id.toString()
+            val oldQty = oldCartQuantities[productId] ?: 0
+            val newQty = newCartQuantities[productId] ?: 0
+            if (oldQty != newQty) {
+                notifyItemChanged(i)
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
@@ -41,7 +63,8 @@ class ProductAdapter(
 
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
         val product = products[position]
-        holder.bind(product)
+        val quantity = cartQuantities[product.id] ?: 0
+        holder.bind(product, quantity)
     }
 
     inner class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -50,50 +73,30 @@ class ProductAdapter(
         private val priceTextView: TextView = itemView.findViewById(R.id.productPrice)
         private val productBadge: TextView = itemView.findViewById(R.id.productBadge)
 
-        fun bind(product: ProductModel) {
+        fun bind(product: ProductModel, quantity: Int) {
             nameTextView.text = product.name
-            val productPrice = product.price // assume Long (centavos)
-
-            // Mostrar preço incluindo comissão (por item)
             CoroutineScope(Dispatchers.Main).launch {
-                val productPriceCommission = commissionUtils.calculateTotalWithCommission(productPrice)
+                val productPriceCommission = commissionUtils.calculateTotalWithCommission(product.price)
                 priceTextView.text = numericConversionUtils.convertLongToBrCurrencyString(productPriceCommission.toLong())
             }
 
-            // Atualizar badge com quantidade do produto no carrinho
-            val qty = ShoppingCartUtils.getProductQuantity(context, product.id.toString())
-            if (qty > 0) {
+            if (quantity > 0) {
                 productBadge.visibility = View.VISIBLE
-                productBadge.text = qty.toString()
+                productBadge.text = quantity.toString()
             } else {
                 productBadge.visibility = View.GONE
             }
 
-            // Clique: adiciona 1 unidade ao carrinho
             itemView.setOnClickListener {
-                CoroutineScope(Dispatchers.Main).launch {
-                    ShoppingCartUtils.addProduct(context, product.id.toString(), productPrice)
-                    // atualizar badge localmente
-                    val newQty = ShoppingCartUtils.getProductQuantity(context, product.id.toString())
-                    if (newQty > 0) {
-                        productBadge.visibility = View.VISIBLE
-                        productBadge.text = newQty.toString()
-                    } else {
-                        productBadge.visibility = View.GONE
-                    }
-                }
+                onProductClick(product)
             }
 
-            // Long click: limpar o produto do carrinho (remover totalmente)
             itemView.setOnLongClickListener {
-                CoroutineScope(Dispatchers.Main).launch {
-                    ShoppingCartUtils.clearProduct(context, product.id.toString(), productPrice)
-                    productBadge.visibility = View.GONE
-                }
+                onProductLongClick(product)
                 true
             }
 
-            // Construir o nome do arquivo com extensão .webp (cada produto tem thumbnail = id do arquivo)
+            // Carregar thumbnail (sem alteração)
             val thumbnailFileName = if (product.thumbnail.endsWith(".webp")) {
                 product.thumbnail
             } else {
@@ -115,7 +118,6 @@ class ProductAdapter(
                     thumbnailImageView.setImageResource(R.drawable.placeholder_image)
                 }
             } else {
-                // Caso não exista, colocar uma imagem padrão ou limpar
                 thumbnailImageView.setImageResource(R.drawable.placeholder_image)
             }
         }
