@@ -1,0 +1,117 @@
+%% RefundActivity - Refund Processing Screen
+%% Path: app/src/main/java/br/com/ticpass/pos/presentation/refund/RefundActivity.kt
+
+flowchart TB
+    subgraph Activity["RefundActivity"]
+        RA["RefundActivity.kt<br/><i>extends AppCompatActivity</i>"]
+    end
+
+    subgraph ViewModel["ViewModel Layer"]
+        RefundVM["RefundViewModel"]
+    end
+
+    subgraph Coordination["Coordination Layer"]
+        Coord["RefundActivityCoordinator"]
+        DM["RefundDialogManager"]
+        EH["RefundEventHandler"]
+    end
+
+    subgraph Views["Custom Views"]
+        QueueView["RefundQueueView"]
+    end
+
+    subgraph Models["Refund Models"]
+        Methods["SystemRefundMethod<br/><i>ACQUIRER</i>"]
+        Supported["SupportedRefundMethods"]
+        ProcType["RefundProcessorType"]
+    end
+
+    subgraph SDK["Acquirer SDK"]
+        AcqSDK["AcquirerSdk.initialize()"]
+    end
+
+    subgraph Utils["Utilities"]
+        UIUtils["RefundUIUtils"]
+    end
+
+    subgraph InputFields["Input Fields"]
+        AtkET["edit_text_atk<br/><i>ATK Code</i>"]
+        TxIdET["edit_text_tx_id<br/><i>Transaction ID</i>"]
+        QRCheck["checkbox_is_qrcode<br/><i>Is QR Code?</i>"]
+    end
+
+    subgraph Dialogs["Dialogs"]
+        ProgDialog["Progress Dialog<br/><i>dialog_refund_progress.xml</i>"]
+    end
+
+    subgraph Layout["Layout"]
+        XML["activity_refund_processing.xml"]
+        MethodsContainer["refund_methods_container<br/><i>Dynamic buttons</i>"]
+        StartBtn["btn_start_processing"]
+        ClearBtn["clear_list"]
+    end
+
+    %% ViewModel Flow
+    RA -->|"observes"| RefundVM
+    RA -->|"enqueueRefund"| RefundVM
+    RA -->|"startProcessing"| RefundVM
+    RA -->|"cancelRefund"| RefundVM
+    RA -->|"abortRefund"| RefundVM
+
+    %% Coordination
+    RA --> Coord
+    Coord --> DM
+    Coord --> EH
+    Coord --> QueueView
+
+    %% SDK
+    RA -->|"onCreate"| AcqSDK
+
+    %% Refund Methods
+    RA -->|"generates buttons"| Supported
+    Supported --> Methods
+    Methods --> ProcType
+
+    %% Utils
+    RA --> UIUtils
+
+    %% Input Fields
+    RA --> AtkET
+    RA --> TxIdET
+    RA --> QRCheck
+
+    %% Dialogs
+    RA --> ProgDialog
+
+    %% Layout
+    RA --> XML
+    XML --> MethodsContainer
+    XML --> StartBtn
+    XML --> ClearBtn
+    XML --> QueueView
+    XML --> AtkET
+    XML --> TxIdET
+    XML --> QRCheck
+
+    %% Styling
+    classDef activity fill:#4CAF50,stroke:#2E7D32,color:white
+    classDef viewmodel fill:#9C27B0,stroke:#6A1B9A,color:white
+    classDef coordination fill:#00BCD4,stroke:#00838F,color:white
+    classDef view fill:#2196F3,stroke:#1565C0,color:white
+    classDef model fill:#607D8B,stroke:#37474F,color:white
+    classDef sdk fill:#F44336,stroke:#C62828,color:white
+    classDef util fill:#FFC107,stroke:#FF8F00,color:black
+    classDef input fill:#E91E63,stroke:#AD1457,color:white
+    classDef dialog fill:#795548,stroke:#4E342E,color:white
+    classDef layout fill:#9E9E9E,stroke:#616161,color:white
+
+    class RA activity
+    class RefundVM viewmodel
+    class Coord,DM,EH coordination
+    class QueueView view
+    class Methods,Supported,ProcType model
+    class AcqSDK sdk
+    class UIUtils util
+    class AtkET,TxIdET,QRCheck input
+    class ProgDialog dialog
+    class XML,MethodsContainer,StartBtn,ClearBtn layout

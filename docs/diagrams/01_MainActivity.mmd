@@ -1,0 +1,61 @@
+%% MainActivity - Entry Point & Router
+%% Path: app/src/main/java/br/com/ticpass/pos/MainActivity.kt
+
+flowchart TB
+    subgraph Activity["MainActivity"]
+        MA["MainActivity.kt<br/><i>Entry Point</i>"]
+    end
+
+    subgraph Dependencies["Injected Dependencies"]
+        UR["UserRepository"]
+        DS["DeviceService"]
+        UD["UserDao"]
+    end
+
+    subgraph Utils["Utilities"]
+        CM["ConnectivityMonitor"]
+        CSB["ConnectionStatusBar"]
+        DU["DeviceUtils"]
+        SPM["SessionPrefsManagerUtils"]
+    end
+
+    subgraph Navigation["Navigation Targets"]
+        LPA["LoginPermissionsActivity<br/><i>No permissions</i>"]
+        LA["LoginActivity<br/><i>Not logged in</i>"]
+        LLDA["LoginLoadingDownloadActivity<br/><i>Already logged in</i>"]
+    end
+
+    subgraph Data["Data Layer"]
+        DevSvc["DeviceService<br/><i>POST /device/register</i>"]
+        UserEnt["UserEntity<br/><i>Room DB</i>"]
+    end
+
+    %% Flow
+    MA -->|"check permissions"| LPA
+    MA -->|"user.isLogged == false"| LA
+    MA -->|"user.isLogged == true"| LLDA
+
+    MA --> UR
+    MA --> DS
+    MA --> UD
+
+    MA --> CM
+    MA --> CSB
+    MA --> DU
+    MA --> SPM
+
+    DS --> DevSvc
+    UD --> UserEnt
+
+    %% Styling
+    classDef activity fill:#4CAF50,stroke:#2E7D32,color:white
+    classDef dependency fill:#9C27B0,stroke:#6A1B9A,color:white
+    classDef util fill:#FF9800,stroke:#E65100,color:white
+    classDef navigation fill:#2196F3,stroke:#1565C0,color:white
+    classDef data fill:#607D8B,stroke:#37474F,color:white
+
+    class MA activity
+    class UR,DS,UD dependency
+    class CM,CSB,DU,SPM util
+    class LPA,LA,LLDA navigation
+    class DevSvc,UserEnt data

@@ -1,0 +1,123 @@
+%% NFCActivity - NFC Operations Screen
+%% Path: app/src/main/java/br/com/ticpass/pos/presentation/nfc/NFCActivity.kt
+
+flowchart TB
+    subgraph Activity["NFCActivity"]
+        NFCA["NFCActivity.kt<br/><i>extends AppCompatActivity</i>"]
+    end
+
+    subgraph ViewModel["ViewModel Layer"]
+        NFCVM["NFCViewModel"]
+    end
+
+    subgraph Coordination["Coordination Layer"]
+        Coord["NFCActivityCoordinator"]
+        DM["NFCDialogManager"]
+        EH["NFCEventHandler"]
+    end
+
+    subgraph Views["Custom Views"]
+        QueueView["NFCQueueView"]
+        CountdownView["TimeoutCountdownView"]
+    end
+
+    subgraph Models["NFC Models"]
+        Methods["SystemNFCMethod<br/><i>CUSTOMER_AUTH | CUSTOMER_SETUP |<br/>TAG_FORMAT | CART_READ | CART_UPDATE |<br/>BALANCE_READ | BALANCE_SET | BALANCE_CLEAR</i>"]
+        Supported["SupportedNFCMethods"]
+        CartOp["CartOperation"]
+        BalanceOp["BalanceOperation"]
+        BruteForce["NFCBruteForce"]
+    end
+
+    subgraph SDK["Acquirer SDK"]
+        AcqSDK["AcquirerSdk.initialize()"]
+    end
+
+    subgraph Operations["NFC Operations"]
+        Auth["enqueueAuthOperation"]
+        Setup["enqueueSetupOperation"]
+        Format["enqueueFormatOperation"]
+        CartRead["enqueueCartReadOperation"]
+        CartUpdate["enqueueCartUpdateOperation"]
+        BalRead["enqueueBalanceReadOperation"]
+        BalUpdate["enqueueBalanceUpdateOperation"]
+    end
+
+    subgraph Dialogs["Dialogs"]
+        ProgDialog["Progress Dialog<br/><i>dialog_nfc_progress.xml</i>"]
+        CartDialog["Cart Update Dialog"]
+        BalanceDialog["Balance Set Dialog"]
+    end
+
+    subgraph Layout["Layout"]
+        XML["activity_nfc.xml"]
+        MethodsContainer["nfc_methods_container<br/><i>Dynamic buttons</i>"]
+        StartBtn["btn_start_processing"]
+        ClearBtn["clear_list"]
+    end
+
+    %% ViewModel Flow
+    NFCA -->|"observes"| NFCVM
+    NFCA -->|"enqueue operations"| NFCVM
+    NFCA -->|"startProcessing"| NFCVM
+    NFCA -->|"cancelNFC"| NFCVM
+    NFCA -->|"abortNFC"| NFCVM
+
+    %% Operations
+    NFCVM --> Auth
+    NFCVM --> Setup
+    NFCVM --> Format
+    NFCVM --> CartRead
+    NFCVM --> CartUpdate
+    NFCVM --> BalRead
+    NFCVM --> BalUpdate
+
+    %% Coordination
+    NFCA --> Coord
+    Coord --> DM
+    Coord --> EH
+    Coord --> QueueView
+
+    %% SDK
+    NFCA -->|"onCreate"| AcqSDK
+
+    %% NFC Methods
+    NFCA -->|"generates buttons"| Supported
+    Supported --> Methods
+    CartUpdate --> CartOp
+    BalUpdate --> BalanceOp
+    Format --> BruteForce
+
+    %% Dialogs
+    NFCA --> ProgDialog
+    DM --> CartDialog
+    DM --> BalanceDialog
+
+    %% Layout
+    NFCA --> XML
+    XML --> MethodsContainer
+    XML --> StartBtn
+    XML --> ClearBtn
+    XML --> QueueView
+    ProgDialog --> CountdownView
+
+    %% Styling
+    classDef activity fill:#4CAF50,stroke:#2E7D32,color:white
+    classDef viewmodel fill:#9C27B0,stroke:#6A1B9A,color:white
+    classDef coordination fill:#00BCD4,stroke:#00838F,color:white
+    classDef view fill:#2196F3,stroke:#1565C0,color:white
+    classDef model fill:#607D8B,stroke:#37474F,color:white
+    classDef sdk fill:#F44336,stroke:#C62828,color:white
+    classDef operation fill:#FF9800,stroke:#E65100,color:white
+    classDef dialog fill:#E91E63,stroke:#AD1457,color:white
+    classDef layout fill:#9E9E9E,stroke:#616161,color:white
+
+    class NFCA activity
+    class NFCVM viewmodel
+    class Coord,DM,EH coordination
+    class QueueView,CountdownView view
+    class Methods,Supported,CartOp,BalanceOp,BruteForce model
+    class AcqSDK sdk
+    class Auth,Setup,Format,CartRead,CartUpdate,BalRead,BalUpdate operation
+    class ProgDialog,CartDialog,BalanceDialog dialog
+    class XML,MethodsContainer,StartBtn,ClearBtn layout

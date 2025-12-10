@@ -1,0 +1,62 @@
+%% LoginPermissionsActivity - Permission Request Screen
+%% Path: app/src/main/java/br/com/ticpass/pos/presentation/login/activities/LoginPermissionsActivity.kt
+
+flowchart TB
+    subgraph Activity["LoginPermissionsActivity"]
+        LPA["LoginPermissionsActivity.kt<br/><i>extends BaseActivity</i>"]
+    end
+
+    subgraph Permissions["Required Permissions"]
+        CAM["CAMERA"]
+        LOC["ACCESS_FINE_LOCATION"]
+    end
+
+    subgraph AndroidAPIs["Android APIs"]
+        PL["RequestMultiplePermissions<br/><i>ActivityResultContract</i>"]
+        AD["AlertDialog<br/><i>Rationale Dialog</i>"]
+        SET["Settings.ACTION_APPLICATION_DETAILS_SETTINGS"]
+    end
+
+    subgraph Data["Data Layer"]
+        ADB["AppDatabase"]
+        UDao["UserDao"]
+    end
+
+    subgraph Navigation["Navigation"]
+        LA["LoginActivity<br/><i>Next Screen</i>"]
+    end
+
+    subgraph Layout["Layout"]
+        XML["activity_permissions.xml"]
+        BTN["btnRequestPermissions"]
+    end
+
+    %% Flow
+    LPA -->|"requests"| CAM
+    LPA -->|"requests"| LOC
+    LPA --> PL
+    LPA -->|"shows if denied"| AD
+    AD -->|"opens"| SET
+
+    LPA -->|"checks user"| ADB
+    ADB --> UDao
+
+    LPA -->|"permissions granted"| LA
+
+    LPA --> XML
+    XML --> BTN
+
+    %% Styling
+    classDef activity fill:#4CAF50,stroke:#2E7D32,color:white
+    classDef permission fill:#F44336,stroke:#C62828,color:white
+    classDef android fill:#FF9800,stroke:#E65100,color:white
+    classDef data fill:#607D8B,stroke:#37474F,color:white
+    classDef navigation fill:#2196F3,stroke:#1565C0,color:white
+    classDef layout fill:#795548,stroke:#4E342E,color:white
+
+    class LPA activity
+    class CAM,LOC permission
+    class PL,AD,SET android
+    class ADB,UDao data
+    class LA navigation
+    class XML,BTN layout
