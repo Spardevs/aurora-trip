@@ -1,0 +1,97 @@
+%% ProductsListActivity - Main Product Catalog Screen
+%% Path: app/src/main/java/br/com/ticpass/pos/presentation/product/activities/ProductsListActivity.kt
+
+flowchart TB
+    subgraph Activity["ProductsListActivity"]
+        PLA["ProductsListActivity.kt<br/><i>extends BaseDrawerActivity</i>"]
+    end
+
+    subgraph ViewModels["ViewModel Layer"]
+        ProdVM["ProductViewModel.kt<br/><i>AssistedInject</i>"]
+        CatVM["CategoryViewModel.kt"]
+    end
+
+    subgraph States["UI States"]
+        CatState["CategoryUiState<br/><i>Loading | Success</i>"]
+    end
+
+    subgraph UseCases["Domain Layer - UseCases"]
+        GetProdUC["GetProductsUseCase"]
+        GetCatUC["GetCategoriesUseCase"]
+    end
+
+    subgraph Models["Domain Models"]
+        ProdModel["ProductModel<br/><i>id, name, price, thumbnail, stock</i>"]
+        CatModel["Category<br/><i>id, name</i>"]
+    end
+
+    subgraph Adapters["UI Adapters"]
+        ProdAdapter["ProductAdapter"]
+        PagerAdapter["CategoryPagerAdapter<br/><i>FragmentStateAdapter</i>"]
+    end
+
+    subgraph Fragments["Fragments"]
+        CatProdFrag["CategoryProductsFragment<br/><i>Products grid per category</i>"]
+    end
+
+    subgraph BaseClass["Base Class"]
+        BDA["BaseDrawerActivity<br/><i>Navigation Drawer</i>"]
+    end
+
+    subgraph Layout["Layout"]
+        XML["activity_products_list.xml"]
+        TabLayout["TabLayout<br/><i>Category tabs</i>"]
+        ViewPager["ViewPager2<br/><i>Swipeable categories</i>"]
+        ContentFrame["content_frame"]
+    end
+
+    %% ViewModel Flow
+    PLA -->|"observes"| CatVM
+    CatVM -->|"emits"| CatState
+
+    %% UseCase Flow
+    ProdVM -->|"calls"| GetProdUC
+    CatVM -->|"calls"| GetCatUC
+
+    %% Models
+    GetProdUC -->|"returns"| ProdModel
+    GetCatUC -->|"returns"| CatModel
+
+    %% UI Components
+    PLA --> PagerAdapter
+    PagerAdapter -->|"creates"| CatProdFrag
+    CatProdFrag --> ProdVM
+    CatProdFrag --> ProdAdapter
+
+    %% Base Class
+    PLA -->|"extends"| BDA
+
+    %% Layout
+    PLA --> XML
+    XML --> TabLayout
+    XML --> ViewPager
+    XML --> ContentFrame
+
+    %% Tab Mediator
+    TabLayout ---|"TabLayoutMediator"| ViewPager
+
+    %% Styling
+    classDef activity fill:#4CAF50,stroke:#2E7D32,color:white
+    classDef viewmodel fill:#9C27B0,stroke:#6A1B9A,color:white
+    classDef state fill:#FF9800,stroke:#E65100,color:white
+    classDef usecase fill:#00BCD4,stroke:#00838F,color:white
+    classDef model fill:#607D8B,stroke:#37474F,color:white
+    classDef adapter fill:#E91E63,stroke:#AD1457,color:white
+    classDef fragment fill:#2196F3,stroke:#1565C0,color:white
+    classDef base fill:#795548,stroke:#4E342E,color:white
+    classDef layout fill:#9E9E9E,stroke:#616161,color:white
+
+    class PLA activity
+    class ProdVM,CatVM viewmodel
+    class CatState state
+    class GetProdUC,GetCatUC usecase
+    class ProdModel,CatModel model
+    class ProdAdapter,PagerAdapter adapter
+    class CatProdFrag fragment
+    class BDA base
+    class XML,TabLayout,ViewPager,ContentFrame layout

@@ -1,0 +1,107 @@
+%% LoginLoadingDownloadActivity - Data Sync & Session Setup Screen
+%% Path: app/src/main/java/br/com/ticpass/pos/presentation/login/activities/LoginLoadingDownloadActivity.kt
+
+flowchart TB
+    subgraph Activity["LoginLoadingDownloadActivity"]
+        LLDA["LoginLoadingDownloadActivity.kt<br/><i>extends AppCompatActivity</i>"]
+    end
+
+    subgraph ViewModel["ViewModel Layer"]
+        LoadVM["LoadingDownloadViewModel.kt"]
+    end
+
+    subgraph States["UI States"]
+        LoadState["LoadingDownloadUiState<br/><i>Idle | Loading | Success | Error</i>"]
+    end
+
+    subgraph UseCases["Domain Layer - UseCases"]
+        RefreshCatUC["RefreshCategoriesUseCase"]
+        RefreshProdUC["RefreshProductsUseCase"]
+        RefreshPinsUC["RefreshMenuPinsUseCase"]
+    end
+
+    subgraph Repositories["Repository Layer"]
+        ProdRepo["ProductRepository"]
+        PosRepo["PosRepository"]
+        UserRepo["UserRepository"]
+        MenuPinRepo["MenuPinRepository"]
+    end
+
+    subgraph ProcessSteps["Process Steps"]
+        Step1["1. Download Categories"]
+        Step2["2. Download Products"]
+        Step3["3. Download Thumbnails"]
+        Step4["4. Download Menu PINs"]
+        Step5["5. Set User Logged"]
+        Step6["6. Select POS"]
+        Step7["7. Open POS Session"]
+    end
+
+    subgraph Utils["Utilities"]
+        SPM["SessionPrefsManagerUtils"]
+        UserDao["UserDao"]
+    end
+
+    subgraph Navigation["Navigation"]
+        PLA["ProductsListActivity<br/><i>Main App Screen</i>"]
+    end
+
+    subgraph Layout["Layout"]
+        XML["activity_login_download.xml"]
+        StatusTV["tvDownloadProgress"]
+    end
+
+    %% ViewModel Flow
+    LLDA -->|"observes"| LoadVM
+    LoadVM -->|"emits"| LoadState
+
+    %% Process Steps
+    LoadVM --> Step1
+    Step1 -->|"RefreshCategoriesUseCase"| RefreshCatUC
+    LoadVM --> Step2
+    Step2 -->|"RefreshProductsUseCase"| RefreshProdUC
+    LoadVM --> Step3
+    Step3 -->|"downloadAndExtractThumbnails"| ProdRepo
+    LoadVM --> Step4
+    Step4 -->|"RefreshMenuPinsUseCase"| RefreshPinsUC
+    RefreshPinsUC --> MenuPinRepo
+    LoadVM --> Step5
+    Step5 -->|"setUserLogged"| UserRepo
+    LoadVM --> Step6
+    Step6 -->|"selectPos"| PosRepo
+    LoadVM --> Step7
+    Step7 -->|"openPosSession"| PosRepo
+
+    %% Session Data
+    LLDA -->|"reads menuId, posId, deviceId, cashierName"| SPM
+    LLDA -->|"checks isLogged"| UserDao
+
+    %% Navigation
+    LLDA -->|"on success"| PLA
+
+    %% Layout
+    LLDA --> XML
+    XML --> StatusTV
+
+    %% Styling
+    classDef activity fill:#4CAF50,stroke:#2E7D32,color:white
+    classDef viewmodel fill:#9C27B0,stroke:#6A1B9A,color:white
+    classDef state fill:#FF9800,stroke:#E65100,color:white
+    classDef usecase fill:#00BCD4,stroke:#00838F,color:white
+    classDef repository fill:#795548,stroke:#4E342E,color:white
+    classDef step fill:#3F51B5,stroke:#283593,color:white
+    classDef util fill:#FFC107,stroke:#FF8F00,color:black
+    classDef navigation fill:#8BC34A,stroke:#558B2F,color:white
+    classDef layout fill:#9E9E9E,stroke:#616161,color:white
+
+    class LLDA activity
+    class LoadVM viewmodel
+    class LoadState state
+    class RefreshCatUC,RefreshProdUC usecase
+    class ProdRepo,PosRepo,UserRepo repository
+    class Step1,Step2,Step3,Step4,Step5,Step6,Step7 step
+    class RefreshPinsUC usecase
+    class MenuPinRepo repository
+    class SPM,UserDao util
+    class PLA navigation
+    class XML,StatusTV layout

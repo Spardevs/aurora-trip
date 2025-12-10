@@ -1,0 +1,105 @@
+%% PaymentProcessingActivity - Payment Processing Screen
+%% Path: app/src/main/java/br/com/ticpass/pos/presentation/payment/PaymentProcessingActivity.kt
+
+flowchart TB
+    subgraph Activity["PaymentProcessingActivity"]
+        PPA["PaymentProcessingActivity.kt<br/><i>extends AppCompatActivity</i><br/><i>implements PaymentEnqueuer</i>"]
+    end
+
+    subgraph ViewModel["ViewModel Layer"]
+        PayVM["PaymentProcessingViewModel"]
+    end
+
+    subgraph Coordination["Coordination Layer"]
+        Coord["PaymentActivityCoordinator"]
+        DM["PaymentDialogManager"]
+        EH["PaymentEventHandler"]
+    end
+
+    subgraph Views["Custom Views"]
+        QueueView["PaymentProcessingQueueView"]
+        CountdownView["TimeoutCountdownView"]
+    end
+
+    subgraph Models["Payment Models"]
+        Methods["SystemPaymentMethod<br/><i>CREDIT | DEBIT | VOUCHER |<br/>PIX | MERCHANT_PIX | CASH | LN_BITCOIN</i>"]
+        Supported["SupportedPaymentMethods"]
+    end
+
+    subgraph SDK["Acquirer SDK"]
+        AcqSDK["AcquirerSdk.initialize()"]
+    end
+
+    subgraph Utils["Utilities"]
+        UIUtils["PaymentUIUtils"]
+    end
+
+    subgraph Dialogs["Dialogs"]
+        ProgDialog["Progress Dialog<br/><i>dialog_payment_progress.xml</i>"]
+        QRDialog["QR Code Dialog"]
+    end
+
+    subgraph Layout["Layout"]
+        XML["activity_payment_processing.xml"]
+        MethodsContainer["payment_methods_container<br/><i>Dynamic buttons</i>"]
+        StartBtn["btn_start_processing"]
+        ClearBtn["clear_list"]
+        Checkbox["checkbox_transactionless"]
+    end
+
+    %% ViewModel Flow
+    PPA -->|"observes"| PayVM
+    PPA -->|"enqueuePayment"| PayVM
+    PPA -->|"startProcessing"| PayVM
+    PPA -->|"cancelPayment"| PayVM
+    PPA -->|"abortPayment"| PayVM
+
+    %% Coordination
+    PPA --> Coord
+    Coord --> DM
+    Coord --> EH
+    Coord --> QueueView
+
+    %% SDK
+    PPA -->|"onCreate"| AcqSDK
+
+    %% Payment Methods
+    PPA -->|"generates buttons"| Supported
+    Supported --> Methods
+
+    %% Utils
+    PPA --> UIUtils
+
+    %% Dialogs
+    PPA --> ProgDialog
+    DM --> QRDialog
+
+    %% Layout
+    PPA --> XML
+    XML --> MethodsContainer
+    XML --> StartBtn
+    XML --> ClearBtn
+    XML --> Checkbox
+    XML --> QueueView
+    ProgDialog --> CountdownView
+
+    %% Styling
+    classDef activity fill:#4CAF50,stroke:#2E7D32,color:white
+    classDef viewmodel fill:#9C27B0,stroke:#6A1B9A,color:white
+    classDef coordination fill:#00BCD4,stroke:#00838F,color:white
+    classDef view fill:#2196F3,stroke:#1565C0,color:white
+    classDef model fill:#607D8B,stroke:#37474F,color:white
+    classDef sdk fill:#F44336,stroke:#C62828,color:white
+    classDef util fill:#FFC107,stroke:#FF8F00,color:black
+    classDef dialog fill:#E91E63,stroke:#AD1457,color:white
+    classDef layout fill:#9E9E9E,stroke:#616161,color:white
+
+    class PPA activity
+    class PayVM viewmodel
+    class Coord,DM,EH coordination
+    class QueueView,CountdownView view
+    class Methods,Supported model
+    class AcqSDK sdk
+    class UIUtils util
+    class ProgDialog,QRDialog dialog
+    class XML,MethodsContainer,StartBtn,ClearBtn,Checkbox layout

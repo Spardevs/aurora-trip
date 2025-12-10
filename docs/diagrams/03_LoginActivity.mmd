@@ -1,0 +1,117 @@
+%% LoginActivity - Authentication Screen (Email & QR Code)
+%% Path: app/src/main/java/br/com/ticpass/pos/presentation/login/activities/LoginActivity.kt
+
+flowchart TB
+    subgraph Activity["LoginActivity"]
+        LA["LoginActivity.kt<br/><i>extends AppCompatActivity</i>"]
+    end
+
+    subgraph ViewModel["ViewModel Layer"]
+        QrVM["QrLoginViewModel.kt<br/><i>scanners/viewmodels/</i>"]
+    end
+
+    subgraph States["UI States"]
+        QrState["QrLoginState.kt<br/><i>Idle | Processing | Success | Error</i>"]
+    end
+
+    subgraph Fragments["Status Fragments"]
+        QrProc["QrCodeProcessingFragment"]
+        QrSucc["QrCodeSuccessFragment"]
+        QrErr["QrCodeErrorFragment"]
+    end
+
+    subgraph Contracts["Activity Contracts"]
+        QrContract["QrScannerContract.kt"]
+    end
+
+    subgraph Scanner["QR Scanner"]
+        QrScanner["QrScannerActivity.kt"]
+    end
+
+    subgraph Domain["Domain Layer"]
+        UseCase["SignInWithQrUseCase.kt<br/><i>domain/login/usecase/</i>"]
+    end
+
+    subgraph Repository["Repository Layer"]
+        AuthRepo["AuthRepositoryImpl.kt<br/><i>data/auth/repository/</i>"]
+    end
+
+    subgraph Remote["Remote API"]
+        AuthSvc["AuthService.kt<br/><i>Retrofit Interface</i>"]
+        LoginResp["LoginResponse.kt<br/><i>UserDto + JwtDto</i>"]
+    end
+
+    subgraph Local["Local Storage"]
+        TokenMgr["TokenManager.kt"]
+        AppDB["AppDatabase"]
+        UserEnt["UserEntity"]
+        UserDao["UserDao"]
+    end
+
+    subgraph Navigation["Navigation"]
+        LMA["LoginMenuActivity<br/><i>Next Screen</i>"]
+    end
+
+    subgraph Layout["Layout"]
+        XML["activity_login.xml"]
+        EmailET["editTextTextEmailAddress"]
+        PassET["editTextTextPassword"]
+        LoginBtn["button_confirm"]
+        QrBtn["qr_code_login_button"]
+    end
+
+    %% QR Login Flow
+    LA -->|"launches"| QrContract
+    QrContract -->|"starts"| QrScanner
+    QrScanner -->|"returns QR text"| LA
+    LA -->|"observes"| QrVM
+    QrVM -->|"emits"| QrState
+    QrState -->|"Processing"| QrProc
+    QrState -->|"Success"| QrSucc
+    QrState -->|"Error"| QrErr
+
+    %% ViewModel -> UseCase -> Repository
+    QrVM -->|"calls"| UseCase
+    UseCase -->|"uses"| AuthRepo
+    AuthRepo -->|"POST /auth/signin/pos/short-lived"| AuthSvc
+    AuthSvc -->|"returns"| LoginResp
+
+    %% Token Storage
+    AuthRepo -->|"saves tokens"| TokenMgr
+    TokenMgr --> AppDB
+    AppDB --> UserEnt
+
+    %% Email Login (direct)
+    LA -->|"email login"| AuthRepo
+    LA -->|"saves user"| UserDao
+    UserDao --> UserEnt
+
+    %% Navigation
+    QrSucc -->|"navigates"| LMA
+    LA -->|"email success"| LMA
+
+    %% Layout
+    LA --> XML
+
+    %% Styling
+    classDef activity fill:#4CAF50,stroke:#2E7D32,color:white
+    classDef viewmodel fill:#9C27B0,stroke:#6A1B9A,color:white
+    classDef state fill:#FF9800,stroke:#E65100,color:white
+    classDef fragment fill:#2196F3,stroke:#1565C0,color:white
+    classDef usecase fill:#00BCD4,stroke:#00838F,color:white
+    classDef repository fill:#795548,stroke:#4E342E,color:white
+    classDef remote fill:#F44336,stroke:#C62828,color:white
+    classDef local fill:#607D8B,stroke:#37474F,color:white
+    classDef navigation fill:#8BC34A,stroke:#558B2F,color:white
+    classDef layout fill:#9E9E9E,stroke:#616161,color:white
+
+    class LA,QrScanner activity
+    class QrVM viewmodel
+    class QrState state
+    class QrProc,QrSucc,QrErr fragment
+    class UseCase usecase
+    class AuthRepo repository
+    class AuthSvc,LoginResp remote
+    class TokenMgr,AppDB,UserEnt,UserDao local
+    class LMA navigation
+    class XML,EmailET,PassET,LoginBtn,QrBtn,QrContract layout

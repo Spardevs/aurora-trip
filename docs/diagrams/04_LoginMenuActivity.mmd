@@ -1,0 +1,112 @@
+%% LoginMenuActivity - Menu/Event Selection Screen
+%% Path: app/src/main/java/br/com/ticpass/pos/presentation/login/activities/LoginMenuActivity.kt
+
+flowchart TB
+    subgraph Activity["LoginMenuActivity"]
+        LMA["LoginMenuActivity.kt<br/><i>extends AppCompatActivity</i>"]
+    end
+
+    subgraph ViewModels["ViewModel Layer"]
+        MenuVM["LoginMenuViewModel.kt"]
+        LogoVM["MenuLogoViewModel.kt"]
+    end
+
+    subgraph States["UI States"]
+        MenuState["LoginMenuUiState<br/><i>Loading | Success | Error | Empty</i>"]
+        LogoState["LogoUiState<br/><i>Loading | Success | Error</i>"]
+    end
+
+    subgraph UseCases["Domain Layer - UseCases"]
+        GetMenuUC["GetMenuItemsUseCase"]
+        DownloadLogoUC["DownloadMenuLogoUseCase"]
+        GetLogoFileUC["GetMenuLogoFileUseCase"]
+        GetAllLogosUC["GetAllMenuLogoFilesUseCase"]
+    end
+
+    subgraph Repository["Repository Layer"]
+        MenuRepo["MenuRepository"]
+    end
+
+    subgraph Adapters["UI Adapters"]
+        MenuAdapter["LoginMenuAdapter"]
+    end
+
+    subgraph Fragments["Fragments"]
+        LoadingFrag["LoginLoadingFragment"]
+        PosFrag["LoginPosFragment<br/><i>Embedded</i>"]
+    end
+
+    subgraph Models["Domain Models"]
+        MenuModel["Menu<br/><i>id, label, logo, date</i>"]
+    end
+
+    subgraph Utils["Utilities"]
+        SPM["SessionPrefsManagerUtils"]
+    end
+
+    subgraph Navigation["Navigation"]
+        LPA["LoginPosActivity<br/><i>or LoginPosFragment</i>"]
+    end
+
+    subgraph Layout["Layout"]
+        XML["activity_login_menu.xml"]
+        RV["menusRecyclerView<br/><i>GridLayoutManager(2)</i>"]
+    end
+
+    %% ViewModel Flow
+    LMA -->|"observes"| MenuVM
+    LMA -->|"observes"| LogoVM
+    MenuVM -->|"emits"| MenuState
+    LogoVM -->|"emits"| LogoState
+
+    %% UseCase Flow
+    MenuVM -->|"calls"| GetMenuUC
+    MenuVM -->|"calls"| DownloadLogoUC
+    LogoVM -->|"calls"| DownloadLogoUC
+    LogoVM -->|"calls"| GetLogoFileUC
+    LogoVM -->|"calls"| GetAllLogosUC
+
+    %% Repository
+    GetMenuUC --> MenuRepo
+    DownloadLogoUC --> MenuRepo
+
+    %% UI
+    LMA --> MenuAdapter
+    MenuAdapter -->|"displays"| MenuModel
+    LMA -->|"shows while loading"| LoadingFrag
+
+    %% Session Storage
+    LMA -->|"saves menu selection"| SPM
+
+    %% Navigation
+    LMA -->|"menu clicked"| PosFrag
+    LMA -->|"or navigates to"| LPA
+
+    %% Layout
+    LMA --> XML
+    XML --> RV
+
+    %% Styling
+    classDef activity fill:#4CAF50,stroke:#2E7D32,color:white
+    classDef viewmodel fill:#9C27B0,stroke:#6A1B9A,color:white
+    classDef state fill:#FF9800,stroke:#E65100,color:white
+    classDef usecase fill:#00BCD4,stroke:#00838F,color:white
+    classDef repository fill:#795548,stroke:#4E342E,color:white
+    classDef adapter fill:#E91E63,stroke:#AD1457,color:white
+    classDef fragment fill:#2196F3,stroke:#1565C0,color:white
+    classDef model fill:#607D8B,stroke:#37474F,color:white
+    classDef util fill:#FFC107,stroke:#FF8F00,color:black
+    classDef navigation fill:#8BC34A,stroke:#558B2F,color:white
+    classDef layout fill:#9E9E9E,stroke:#616161,color:white
+
+    class LMA activity
+    class MenuVM,LogoVM viewmodel
+    class MenuState,LogoState state
+    class GetMenuUC,DownloadLogoUC,GetLogoFileUC,GetAllLogosUC usecase
+    class MenuRepo repository
+    class MenuAdapter adapter
+    class LoadingFrag,PosFrag fragment
+    class MenuModel model
+    class SPM util
+    class LPA navigation
+    class XML,RV layout

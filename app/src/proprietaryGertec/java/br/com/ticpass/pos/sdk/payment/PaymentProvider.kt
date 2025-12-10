@@ -1,4 +1,4 @@
-package br.com.ticpass.pos.sdk.payment
+package br.com.ticpass.pos.core.sdk.payment
 
 import android.content.Context
 

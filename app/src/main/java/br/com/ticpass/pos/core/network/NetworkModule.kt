@@ -13,6 +13,7 @@ import br.com.ticpass.pos.data.category.remote.service.CategoryApiService
 import br.com.ticpass.pos.data.device.remote.service.DeviceService
 import br.com.ticpass.pos.data.menu.remote.service.MenuApiService
 import br.com.ticpass.pos.data.menu.remote.service.MenuLogoService
+import br.com.ticpass.pos.data.menupin.remote.service.MenuPinApiService
 import br.com.ticpass.pos.data.product.remote.service.ProductApiService
 import br.com.ticpass.pos.data.pos.remote.adapters.CashierDtoJsonAdapterFactory
 import com.squareup.moshi.Moshi
@@ -141,5 +142,11 @@ object NetworkModule {
     @Singleton
     fun provideMenuLogoService(retrofit: Retrofit): MenuLogoService {
         return retrofit.create(MenuLogoService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMenuPinApiService(retrofit: Retrofit): MenuPinApiService {
+        return retrofit.create(MenuPinApiService::class.java)
     }
 }

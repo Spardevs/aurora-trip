@@ -1,0 +1,74 @@
+%% QrScannerActivity - QR Code Scanner Screen
+%% Path: app/src/main/java/br/com/ticpass/pos/presentation/scanners/activities/QrScannerActivity.kt
+
+flowchart TB
+    subgraph Activity["QrScannerActivity"]
+        QSA["QrScannerActivity.kt<br/><i>extends AppCompatActivity</i>"]
+    end
+
+    subgraph Contract["Activity Contract"]
+        QSC["QrScannerContract.kt<br/><i>ActivityResultContract</i>"]
+    end
+
+    subgraph Library["ZXing Library"]
+        BV["BarcodeView<br/><i>Camera Preview</i>"]
+        BC["BarcodeCallback<br/><i>Result Handler</i>"]
+        BR["BarcodeResult<br/><i>Scanned Data</i>"]
+    end
+
+    subgraph Permissions["Permissions"]
+        CAM["CAMERA Permission"]
+        PL["RequestPermission<br/><i>ActivityResultContract</i>"]
+    end
+
+    subgraph Result["Activity Result"]
+        OK["RESULT_OK<br/><i>+ EXTRA_QR_TEXT</i>"]
+        CANCEL["RESULT_CANCELED"]
+    end
+
+    subgraph Caller["Calling Activity"]
+        LA["LoginActivity<br/><i>Launches via QrScannerContract</i>"]
+    end
+
+    subgraph Layout["Layout"]
+        XML["activity_qr_scanner.xml"]
+        Scanner["zxing_qr_scanner"]
+    end
+
+    %% Contract Flow
+    LA -->|"launches"| QSC
+    QSC -->|"creates Intent"| QSA
+    QSA -->|"returns result"| QSC
+    QSC -->|"parses result"| LA
+
+    %% Permission Flow
+    QSA -->|"checks"| CAM
+    QSA -->|"requests via"| PL
+
+    %% Scanning Flow
+    QSA --> BV
+    BV -->|"decodeContinuous"| BC
+    BC -->|"barcodeResult"| BR
+    BR -->|"success"| OK
+    CAM -->|"denied"| CANCEL
+
+    %% Layout
+    QSA --> XML
+    XML --> Scanner
+
+    %% Styling
+    classDef activity fill:#4CAF50,stroke:#2E7D32,color:white
+    classDef contract fill:#FFC107,stroke:#FF8F00,color:black
+    classDef library fill:#9C27B0,stroke:#6A1B9A,color:white
+    classDef permission fill:#F44336,stroke:#C62828,color:white
+    classDef result fill:#607D8B,stroke:#37474F,color:white
+    classDef caller fill:#2196F3,stroke:#1565C0,color:white
+    classDef layout fill:#9E9E9E,stroke:#616161,color:white
+
+    class QSA activity
+    class QSC contract
+    class BV,BC,BR library
+    class CAM,PL permission
+    class OK,CANCEL result
+    class LA caller
+    class XML,Scanner layout

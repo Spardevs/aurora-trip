@@ -5,10 +5,15 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Patterns
+import android.view.KeyEvent
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.text.method.HideReturnsTransformationMethod
+import android.text.method.PasswordTransformationMethod
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -23,8 +28,6 @@ import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
 import br.com.ticpass.pos.data.auth.repository.AuthRepositoryImpl
-import br.com.ticpass.pos.data.local.database.AppDatabase
-import br.com.ticpass.pos.data.user.local.entity.UserEntity
 import br.com.ticpass.pos.presentation.scanners.contracts.QrScannerContract
 import com.google.android.material.button.MaterialButton
 import dagger.hilt.android.AndroidEntryPoint
@@ -49,7 +52,7 @@ class LoginActivity : AppCompatActivity() {
 
     @Inject
     lateinit var authRepository: AuthRepositoryImpl
-    private lateinit var emailEditText: EditText
+    private lateinit var identifierEditText: EditText  // Email or Username
     private lateinit var passwordEditText: EditText
     private lateinit var loginButton: Button
     private lateinit var qrLoginButton: Button
@@ -59,6 +62,10 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var emailChoiceButton: Button
     private lateinit var buttonBack: MaterialButton
     private lateinit var fallingImg: ImageView
+    private lateinit var passwordToggle: ImageButton
+    private lateinit var loadingOverlay: View
+    private var isPasswordVisible = false
+    private var isLoginInProgress = false
     private var fallingOriginalTranslationY: Float = 0f
     private val fallingUpOffsetDp = 190
 
@@ -93,11 +100,38 @@ class LoginActivity : AppCompatActivity() {
         val deviceInfoImage = findViewById<ImageView>(R.id.deviceInfo)
         deviceInfoImage.setOnClickListener { showDeviceInfoDialog() }
 
-        emailEditText = findViewById(R.id.editTextTextEmailAddress)
+        identifierEditText = findViewById(R.id.editTextTextEmailAddress)
         passwordEditText = findViewById(R.id.editTextTextPassword)
+        passwordToggle = findViewById(R.id.passwordToggle)
+        loadingOverlay = findViewById(R.id.loadingOverlay)
         loginButton = findViewById(R.id.button_confirm)
         qrLoginButton = findViewById(R.id.qr_code_login_button)
         loginErrorText = findViewById(R.id.login_error_text)
+
+        // Password visibility toggle
+        passwordToggle.setOnClickListener {
+            isPasswordVisible = !isPasswordVisible
+            if (isPasswordVisible) {
+                passwordEditText.transformationMethod = HideReturnsTransformationMethod.getInstance()
+                passwordToggle.setImageResource(R.drawable.ic_visibility_on)
+            } else {
+                passwordEditText.transformationMethod = PasswordTransformationMethod.getInstance()
+                passwordToggle.setImageResource(R.drawable.ic_visibility_off)
+            }
+            // Keep cursor at end
+            passwordEditText.setSelection(passwordEditText.text.length)
+        }
+
+        // Handle keyboard done/checkmark action
+        passwordEditText.setOnEditorActionListener { _, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_DONE || 
+                (event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)) {
+                attemptLogin()
+                true
+            } else {
+                false
+            }
+        }
 
         // TextWatcher: limpa erros quando usuário digita
         val clearErrorWatcher = object : TextWatcher {
@@ -105,22 +139,22 @@ class LoginActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 if (loginErrorText.visibility == View.VISIBLE) {
                     loginErrorText.visibility = View.GONE
-                    resetFieldState(emailEditText)
+                    resetFieldState(identifierEditText)
                     resetFieldState(passwordEditText)
                 }
             }
             override fun afterTextChanged(s: Editable?) {}
         }
-        emailEditText.addTextChangedListener(clearErrorWatcher)
+        identifierEditText.addTextChangedListener(clearErrorWatcher)
         passwordEditText.addTextChangedListener(clearErrorWatcher)
 
         emailChoiceButton.setOnClickListener {
             choiceContainer.visibility = View.GONE
             formContainer.visibility = View.VISIBLE
             animateFalling(raise = true)
-            emailEditText.requestFocus()
+            identifierEditText.requestFocus()
             val imm = getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager
-            imm?.showSoftInput(emailEditText, InputMethodManager.SHOW_IMPLICIT)
+            imm?.showSoftInput(identifierEditText, InputMethodManager.SHOW_IMPLICIT)
         }
 
         buttonBack.setOnClickListener {
@@ -134,9 +168,7 @@ class LoginActivity : AppCompatActivity() {
 
         // CLICK: confirmar login (efetua signIn) - agora faz validação antes
         loginButton.setOnClickListener {
-            if (validateInputs()) {
-                performEmailLogin()
-            }
+            attemptLogin()
         }
 
         // CLICK: iniciar leitor QR
@@ -215,26 +247,123 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun validateInputs(): Boolean {
-        val email = emailEditText.text.toString().trim()
+    /**
+     * Sealed class representing the type of login credential
+     */
+    private sealed class LoginCredential {
+        data class Email(val email: String, val password: String) : LoginCredential()
+        data class Username(val username: String, val password: String) : LoginCredential()
+    }
+
+    /**
+     * Check if input looks like an email (contains @)
+     */
+    private fun isEmailFormat(input: String): Boolean {
+        return input.contains("@")
+    }
+
+    /**
+     * Validate email format
+     */
+    private fun isValidEmail(email: String): Boolean {
+        return Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    }
+
+    /**
+     * Validate username format (alphanumeric, min 3 chars)
+     */
+    private fun isValidUsername(username: String): Boolean {
+        // Username must be alphanumeric (letters, numbers, underscore allowed), min 3 chars
+        val usernamePattern = Regex("^[a-zA-Z0-9_]{3,}$")
+        return usernamePattern.matches(username)
+    }
+
+    /**
+     * Validate inputs and return LoginCredential if valid, null otherwise
+     */
+    private fun validateInputs(): LoginCredential? {
+        val identifier = identifierEditText.text.toString().trim()
         val password = passwordEditText.text.toString()
 
-        if (email.isEmpty()) {
-            showInputError("E-mail obrigatório", emailEditText)
-            return false
+        // Check if identifier is empty
+        if (identifier.isEmpty()) {
+            showInputError("E-mail ou usuário obrigatório", identifierEditText)
+            return null
         }
 
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            showInputError("E-mail inválido", emailEditText)
-            return false
+        // Determine if it's email or username based on @ presence
+        val isEmail = isEmailFormat(identifier)
+
+        if (isEmail) {
+            // Validate as email
+            if (!isValidEmail(identifier)) {
+                showInputError("E-mail inválido. Verifique o formato (ex: usuario@email.com)", identifierEditText)
+                return null
+            }
+        } else {
+            // Validate as username
+            if (!isValidUsername(identifier)) {
+                showInputError("Usuário inválido. Use apenas letras, números e _ (mín. 3 caracteres)", identifierEditText)
+                return null
+            }
         }
 
+        // Validate password
         if (password.isEmpty()) {
             showInputError("Senha obrigatória", passwordEditText)
-            return false
+            return null
         }
 
-        return true
+        if (password.length < 12) {
+            showInputError("Senha deve ter no mínimo 12 caracteres", passwordEditText)
+            return null
+        }
+
+        return if (isEmail) {
+            LoginCredential.Email(identifier, password)
+        } else {
+            LoginCredential.Username(identifier, password)
+        }
+    }
+
+    /**
+     * Hide the soft keyboard
+     */
+    private fun hideKeyboard() {
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as? InputMethodManager
+        currentFocus?.let { view ->
+            imm?.hideSoftInputFromWindow(view.windowToken, 0)
+        }
+    }
+
+    /**
+     * Show loading overlay and disable login button
+     */
+    private fun showLoading() {
+        isLoginInProgress = true
+        loginButton.isEnabled = false
+        loadingOverlay.visibility = View.VISIBLE
+    }
+
+    /**
+     * Hide loading overlay and re-enable login button
+     */
+    private fun hideLoading() {
+        isLoginInProgress = false
+        loginButton.isEnabled = true
+        loadingOverlay.visibility = View.GONE
+    }
+
+    /**
+     * Attempt login - validates inputs, hides keyboard, and performs login
+     */
+    private fun attemptLogin() {
+        if (isLoginInProgress) return
+        hideKeyboard()
+        val validationResult = validateInputs()
+        if (validationResult != null) {
+            performLogin(validationResult)
+        }
     }
 
     fun startQrLogin() {
@@ -275,23 +404,30 @@ class LoginActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun performEmailLogin() {
-        val email = emailEditText.text.toString().trim()
-        val password = passwordEditText.text.toString()
-
+    private fun performLogin(credential: LoginCredential) {
         val handler = CoroutineExceptionHandler { _, throwable ->
-            Timber.tag("LoginActivity").e(throwable, "Exception no handler (email login)")
+            Timber.tag("LoginActivity").e(throwable, "Exception no handler (login)")
             runOnUiThread {
+                hideLoading()
                 Toast.makeText(this, "Erro de conexão: ${throwable.message}", Toast.LENGTH_LONG).show()
             }
         }
 
+        showLoading()
+
         lifecycleScope.launch(handler) {
             try {
-                Timber.tag("LoginActivity").d("Iniciando login por e-mail")
+                val loginType = when (credential) {
+                    is LoginCredential.Email -> "e-mail"
+                    is LoginCredential.Username -> "usuário"
+                }
+                Timber.tag("LoginActivity").d("Iniciando login por $loginType")
 
                 val response: Response<LoginResponse> = withContext(Dispatchers.IO) {
-                    authRepository.signIn(email, password)
+                    when (credential) {
+                        is LoginCredential.Email -> authRepository.signInWithEmail(credential.email, credential.password)
+                        is LoginCredential.Username -> authRepository.signInWithUsername(credential.username, credential.password)
+                    }
                 }
 
                 Timber.tag("LoginActivity").d("HTTP=${response.code()} success=${response.isSuccessful}")
@@ -300,29 +436,30 @@ class LoginActivity : AppCompatActivity() {
                     val body = response.body()
                     if (body == null) {
                         withContext(Dispatchers.Main) {
+                            hideLoading()
                             Toast.makeText(this@LoginActivity, "Resposta vazia do servidor", Toast.LENGTH_LONG).show()
                         }
                         return@launch
                     }
 
-                    val cookies = response.headers().values("Set-Cookie")
-                    val accessToken = cookies.firstOrNull { it.startsWith("access=") }
-                        ?.substringAfter("access=")?.substringBefore(";")
-                        ?: body.jwt.access
-
-                    val refreshToken = cookies.firstOrNull { it.startsWith("refresh=") }
-                        ?.substringAfter("refresh=")?.substringBefore(";")
-                        ?: body.jwt.refresh
-
-                    saveUserDataLocally(body, accessToken, refreshToken)
-
+                    // Token already saved by AuthRepositoryImpl.handleLoginResponse via TokenManager
+                    Timber.tag("LoginActivity").d("Dados de autenticação salvos via TokenManager")
+                    
+                    // Navigate to next screen
+                    withContext(Dispatchers.Main) {
+                        startMenusPreloadAndProceed()
+                    }
 
                 } else {
-                    handleErrorResponse(response)
+                    withContext(Dispatchers.Main) {
+                        hideLoading()
+                    }
+                    handleErrorResponse(response, credential)
                 }
             } catch (e: Exception) {
-                Timber.tag("LoginActivity").e(e, "Erro no login por e-mail")
+                Timber.tag("LoginActivity").e(e, "Erro no login")
                 withContext(Dispatchers.Main) {
+                    hideLoading()
                     Toast.makeText(this@LoginActivity, "Erro no login: ${e.message}", Toast.LENGTH_LONG).show()
                 }
             }
@@ -339,10 +476,16 @@ class LoginActivity : AppCompatActivity() {
         finish()
     }
 
-    private suspend fun handleErrorResponse(response: Response<LoginResponse>) {
+    private suspend fun handleErrorResponse(response: Response<LoginResponse>, credential: LoginCredential) {
+        val credentialType = when (credential) {
+            is LoginCredential.Email -> "E-mail"
+            is LoginCredential.Username -> "Usuário"
+        }
+        
         val errorMsg = when (response.code()) {
             400 -> "Requisição inválida"
-            401 -> "E-mail ou senha incorretos"
+            401 -> "$credentialType ou senha incorretos"
+            404 -> "$credentialType não encontrado"
             in 500..599 -> "Erro no servidor"
             else -> "Erro desconhecido (status ${response.code()})"
         }
@@ -351,22 +494,6 @@ class LoginActivity : AppCompatActivity() {
             loginErrorText.text = errorMsg
             loginErrorText.visibility = View.VISIBLE
         }
-    }
-
-    private fun saveUserDataLocally(login: LoginResponse, accessToken: String?, refreshToken: String?) {
-        val userDao = AppDatabase.getDatabase(this).userDao()
-        val userEntity = UserEntity(
-            id = login.user.id,
-            accessToken = accessToken ?: login.jwt.access,
-            refreshToken = refreshToken ?: login.jwt.refresh
-        )
-
-        lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
-                userDao.insert(userEntity)
-            }
-        }
-        Timber.tag("LoginActivity").d("Dados de autenticação salvos")
     }
 
     private fun startMenusPreloadAndProceed() {

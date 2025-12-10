@@ -43,19 +43,19 @@
         </activity>
 
         <activity
-            android:name="br.com.ticpass.pos.payment.PaymentProcessingActivity"
+            android:name="br.com.ticpass.pos.presentation.payment.PaymentProcessingActivity"
             android:exported="true"/>
 
         <activity
-            android:name="br.com.ticpass.pos.printing.PrintingActivity"
+            android:name="br.com.ticpass.pos.presentation.printing.PrintingActivity"
             android:exported="true"/>
 
         <activity
-            android:name="br.com.ticpass.pos.refund.RefundActivity"
+            android:name="br.com.ticpass.pos.presentation.refund.RefundActivity"
             android:exported="true"/>
 
         <activity
-            android:name="br.com.ticpass.pos.nfc.NFCActivity"
+            android:name="br.com.ticpass.pos.presentation.nfc.NFCActivity"
             android:exported="true"/>
     </application>
 </manifest>

@@ -29,9 +29,8 @@ class QrLoginViewModel @javax.inject.Inject constructor(
                 }
 
                 val shortLivedToken = parts[0].trim()
-                val pin = parts[1].trim()
 
-                val result = signInWithQrUseCase(shortLivedToken, pin)
+                val result = signInWithQrUseCase(shortLivedToken)
 
                 if (result.isSuccess) {
                     val (_, tokens) = result.getOrNull()!!

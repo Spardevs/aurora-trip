@@ -1,0 +1,67 @@
+%% LoginConfirmActivity - Session Confirmation Screen
+%% Path: app/src/main/java/br/com/ticpass/pos/presentation/login/activities/LoginConfirmActivity.kt
+
+flowchart TB
+    subgraph Activity["LoginConfirmActivity"]
+        LCA["LoginConfirmActivity.kt<br/><i>extends BaseActivity</i>"]
+    end
+
+    subgraph Utils["Utilities"]
+        SPM["SessionPrefsManagerUtils"]
+    end
+
+    subgraph SessionData["Session Data (from SPM)"]
+        MenuName["menuName"]
+        MenuStart["menuStartDate"]
+        MenuEnd["menuEndDate"]
+        PosName["posName"]
+    end
+
+    subgraph UserInput["User Input"]
+        NameET["nameText<br/><i>EditText - Operator Name</i>"]
+    end
+
+    subgraph Navigation["Navigation"]
+        LLDA["LoginLoadingDownloadActivity"]
+    end
+
+    subgraph Layout["Layout"]
+        XML["activity_login_confirm.xml"]
+        MenuTV["menuValue<br/><i>TextView</i>"]
+        DateTV["dateValue<br/><i>TextView</i>"]
+        PosTV["posValue<br/><i>TextView</i>"]
+        ConfirmBtn["imageButton<br/><i>Confirm</i>"]
+    end
+
+    %% Flow
+    LCA -->|"reads"| SPM
+    SPM --> MenuName
+    SPM --> MenuStart
+    SPM --> MenuEnd
+    SPM --> PosName
+
+    LCA -->|"displays"| MenuTV
+    LCA -->|"displays formatted dates"| DateTV
+    LCA -->|"displays"| PosTV
+
+    LCA -->|"gets operator name"| NameET
+    LCA -->|"saves operatorName"| SPM
+
+    ConfirmBtn -->|"onClick"| LLDA
+
+    LCA --> XML
+
+    %% Styling
+    classDef activity fill:#4CAF50,stroke:#2E7D32,color:white
+    classDef util fill:#FFC107,stroke:#FF8F00,color:black
+    classDef data fill:#607D8B,stroke:#37474F,color:white
+    classDef input fill:#E91E63,stroke:#AD1457,color:white
+    classDef navigation fill:#8BC34A,stroke:#558B2F,color:white
+    classDef layout fill:#9E9E9E,stroke:#616161,color:white
+
+    class LCA activity
+    class SPM util
+    class MenuName,MenuStart,MenuEnd,PosName data
+    class NameET,UserInput input
+    class LLDA navigation
+    class XML,MenuTV,DateTV,PosTV,ConfirmBtn layout

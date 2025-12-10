@@ -1,9 +1,9 @@
-package br.com.ticpass.pos.sdk.refund
+package br.com.ticpass.pos.core.sdk.refund
 
 import android.content.Context
-import br.com.ticpass.pos.sdk.SdkInstance
-import br.com.ticpass.pos.sdk.factory.RefundProvider as RefundProviderType
-import br.com.ticpass.pos.sdk.factory.RefundProviderFactory
+import br.com.ticpass.pos.core.sdk.SdkInstance
+import br.com.ticpass.pos.core.sdk.factory.RefundProvider as RefundProviderType
+import br.com.ticpass.pos.core.sdk.factory.RefundProviderFactory
 
 /**
  * Gertec proprietary Refund Provider (NO-OP)

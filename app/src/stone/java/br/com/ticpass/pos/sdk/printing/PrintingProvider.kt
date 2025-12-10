@@ -1,10 +1,10 @@
-package br.com.ticpass.pos.sdk.printing
+package br.com.ticpass.pos.core.sdk.printing
 
 import android.content.Context
-import br.com.ticpass.pos.sdk.SdkInstance
-import br.com.ticpass.pos.sdk.factory.AcquirerPrintingProvider
-import br.com.ticpass.pos.sdk.factory.AcquirerPrintingProviderFactory
-import br.com.ticpass.pos.sdk.payment.PaymentProvider
+import br.com.ticpass.pos.core.sdk.SdkInstance
+import br.com.ticpass.pos.core.sdk.factory.AcquirerPrintingProvider
+import br.com.ticpass.pos.core.sdk.factory.AcquirerPrintingProviderFactory
+import br.com.ticpass.pos.core.sdk.payment.PaymentProvider
 
 /**
  * Stone-specific implementation of PrintingProvider

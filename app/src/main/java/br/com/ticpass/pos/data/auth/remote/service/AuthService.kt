@@ -10,8 +10,7 @@ import retrofit2.http.POST
 interface AuthService {
     @POST("auth/signin/pos")
     suspend fun signIn(
-        @Body requestBody: RequestBody,
-        @Header("Authorization") authHeader: String
+        @Body requestBody: RequestBody
     ): Response<LoginResponse>
 
     @POST("auth/signin/pos/short-lived")

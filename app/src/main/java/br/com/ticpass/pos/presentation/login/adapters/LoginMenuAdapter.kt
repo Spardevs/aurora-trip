@@ -55,10 +55,11 @@ class LoginMenuAdapter(
             menuDateStart.text = formatDate(menu.date.start)
             menuDateEnd.text = formatDate(menu.date.end)
 
-            val imageSource = when {
+            // Only use logoFile if it exists, otherwise show placeholder
+            // Don't try to load menu.logo as it's just an ID, not a URL or file path
+            val imageSource: Any = when {
                 logoFile != null && logoFile.exists() -> logoFile
-                !menu.logo.isNullOrEmpty() -> menu.logo // url or id
-                else -> R.drawable.icon
+                else -> R.drawable.icon // Fallback placeholder
             }
 
             Glide.with(itemView.context)

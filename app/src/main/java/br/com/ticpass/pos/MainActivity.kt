@@ -16,7 +16,6 @@ package br.com.ticpass.pos
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -68,8 +67,6 @@ class MainActivity : BaseActivity() {
     companion object {
         lateinit var location: Location
         lateinit var appContext: Context
-        @SuppressLint("StaticFieldLeak")
-        lateinit var activity: Activity
         private val REQUIRED_PERMISSIONS = arrayOf(
             Manifest.permission.CAMERA,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -169,7 +166,6 @@ class MainActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
 
         appContext = applicationContext
-        activity = this
 
         // Log device information
         val deviceInfo = logDeviceInfo()

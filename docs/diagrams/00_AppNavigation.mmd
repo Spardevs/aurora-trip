@@ -1,0 +1,65 @@
+%% App Navigation Overview - All Pages Flow
+%% Aurora Trip POS Application
+
+flowchart TB
+    subgraph EntryPoint["Entry Point"]
+        MA["MainActivity<br/><i>Router</i>"]
+    end
+
+    subgraph LoginFlow["Login Flow"]
+        LPA["LoginPermissionsActivity<br/><i>Request Permissions</i>"]
+        LA["LoginActivity<br/><i>Email/QR Login</i>"]
+        LMA["LoginMenuActivity<br/><i>Select Menu/Event</i>"]
+        LPOSA["LoginPosActivity<br/><i>Select POS Terminal</i>"]
+        LCA["LoginConfirmActivity<br/><i>Confirm Session</i>"]
+        LLDA["LoginLoadingDownloadActivity<br/><i>Sync Data</i>"]
+    end
+
+    subgraph Scanner["Scanner"]
+        QSA["QrScannerActivity<br/><i>Camera QR Reader</i>"]
+    end
+
+    subgraph MainApp["Main Application"]
+        PLA["ProductsListActivity<br/><i>Product Catalog</i>"]
+    end
+
+    subgraph Operations["Operations (Testing)"]
+        PPA["PaymentProcessingActivity<br/><i>Payment Processing</i>"]
+        NFCA["NFCActivity<br/><i>NFC Operations</i>"]
+        PrA["PrintingActivity<br/><i>Receipt Printing</i>"]
+        RA["RefundActivity<br/><i>Refund Processing</i>"]
+    end
+
+    %% Entry Point Routing
+    MA -->|"no permissions"| LPA
+    MA -->|"not logged in"| LA
+    MA -->|"already logged"| LLDA
+
+    %% Login Flow
+    LPA -->|"permissions granted"| LA
+    LA -->|"login success"| LMA
+    LA -.->|"scan QR"| QSA
+    QSA -.->|"QR result"| LA
+    LMA -->|"menu selected"| LPOSA
+    LPOSA -->|"POS selected"| LCA
+    LCA -->|"confirmed"| LLDA
+    LLDA -->|"sync complete"| PLA
+
+    %% Main App to Operations
+    PLA -.->|"drawer menu"| PPA
+    PLA -.->|"drawer menu"| NFCA
+    PLA -.->|"drawer menu"| PrA
+    PLA -.->|"drawer menu"| RA
+
+    %% Styling
+    classDef entry fill:#FF5722,stroke:#BF360C,color:white
+    classDef login fill:#4CAF50,stroke:#2E7D32,color:white
+    classDef scanner fill:#FFC107,stroke:#FF8F00,color:black
+    classDef main fill:#2196F3,stroke:#1565C0,color:white
+    classDef operation fill:#9C27B0,stroke:#6A1B9A,color:white
+
+    class MA entry
+    class LPA,LA,LMA,LPOSA,LCA,LLDA login
+    class QSA scanner
+    class PLA main
+    class PPA,NFCA,PrA,RA operation
