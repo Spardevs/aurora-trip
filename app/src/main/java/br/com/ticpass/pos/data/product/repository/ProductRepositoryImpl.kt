@@ -2,6 +2,8 @@ package br.com.ticpass.pos.data.product.repository
 
 import br.com.ticpass.pos.data.product.datasource.ProductLocalDataSource
 import br.com.ticpass.pos.data.product.datasource.ProductRemoteDataSource
+import br.com.ticpass.pos.data.product.local.dao.ProductDao
+import br.com.ticpass.pos.data.product.mapper.toDomain
 import br.com.ticpass.pos.data.product.mapper.toEntity
 import br.com.ticpass.pos.domain.product.model.ProductModel
 import br.com.ticpass.pos.domain.product.repository.ProductRepository
@@ -15,7 +17,8 @@ import javax.inject.Inject
 
 class ProductRepositoryImpl @Inject constructor(
     private val localDataSource: ProductLocalDataSource,
-    private val remoteDataSource: ProductRemoteDataSource
+    private val remoteDataSource: ProductRemoteDataSource,
+    private val productDao: ProductDao
 ) : ProductRepository {
 
     override fun getEnabledProducts(): Flow<List<ProductModel>> {
@@ -43,6 +46,10 @@ class ProductRepositoryImpl @Inject constructor(
     override suspend fun downloadAndExtractThumbnails(menuId: String, thumbnailsDir: File) {
         val responseBody = remoteDataSource.downloadThumbnails(menuId)
         saveAndExtractZip(responseBody, thumbnailsDir)
+    }
+
+    override suspend fun getProductById(id: String): ProductModel? {
+        return productDao.getProductById(id)?.toDomain()
     }
 
     private fun saveAndExtractZip(responseBody: ResponseBody, thumbnailsDir: File) {
@@ -77,4 +84,5 @@ class ProductRepositoryImpl @Inject constructor(
             inputStream.close()
         }
     }
+
 }

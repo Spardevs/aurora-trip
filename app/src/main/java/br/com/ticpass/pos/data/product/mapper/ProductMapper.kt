@@ -2,6 +2,7 @@ package br.com.ticpass.pos.data.product.mapper
 
 import br.com.ticpass.pos.data.product.local.entity.ProductEntity
 import br.com.ticpass.pos.data.product.remote.dto.ProductDto
+import br.com.ticpass.pos.domain.product.model.ProductModel
 
 
 fun ProductDto.toEntity(): ProductEntity {
@@ -20,3 +21,14 @@ fun ProductDto.toEntity(): ProductEntity {
         isEnabled = true
     )
 }
+
+fun ProductEntity.toDomain(): ProductModel =
+    ProductModel(
+        id = id,
+        category = category,
+        name = name,
+        thumbnail = thumbnail,
+        price = price,
+        stock = stock,
+        isEnabled = isEnabled
+    )

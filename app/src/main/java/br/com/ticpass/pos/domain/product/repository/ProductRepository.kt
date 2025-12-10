@@ -6,6 +6,7 @@ import java.io.File
 
 interface ProductRepository {
     fun getEnabledProducts(): Flow<List<ProductModel>>
+    suspend fun getProductById(id: String): ProductModel?
     suspend fun refreshProducts(menuId: String)
     suspend fun downloadAndExtractThumbnails(menuId: String, thumbnailsDir: File)
 }

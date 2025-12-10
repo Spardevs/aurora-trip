@@ -39,11 +39,13 @@ class ProductsListActivity : BaseDrawerActivity() {
         tabLayout = contentView.findViewById(R.id.tabLayout)
         viewPager = contentView.findViewById(R.id.viewPager)
 
-        // Adiciona o PaymentSheetFragment
         if (savedInstanceState == null) {
-            supportFragmentManager.commit {
-                add(R.id.payment_sheet_container, PaymentSheetFragment())
-            }
+            supportFragmentManager.beginTransaction()
+                .replace(
+                    R.id.paymentSheetContainer, // um FrameLayout na sua activity_products_list.xml
+                    PaymentSheetFragment()
+                )
+                .commit()
         }
 
         setupViewPagerAndTabs()

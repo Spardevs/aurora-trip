@@ -6,86 +6,145 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.ticpass.pos.core.util.ShoppingCartUtils
 import br.com.ticpass.pos.domain.product.model.ProductModel
+import br.com.ticpass.pos.domain.product.usecase.GetProductByIdUseCase
 import br.com.ticpass.pos.domain.shoppingCart.model.CartItemModel
+import br.com.ticpass.pos.presentation.shoppingCart.states.CartUiState
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class CartViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class CartViewModel @Inject constructor(
+    application: Application,
+    private val getProductByIdUseCase: GetProductByIdUseCase
+) : AndroidViewModel(application) {
+
+    private val appContext: Context = application.applicationContext
 
     private val _cartItems = MutableStateFlow<List<CartItemModel>>(emptyList())
     val cartItems: StateFlow<List<CartItemModel>> = _cartItems
 
-    private val appContext: Context = application.applicationContext
+    private val _uiState = MutableStateFlow(CartUiState())
+    val uiState: StateFlow<CartUiState> = _uiState.asStateFlow()
 
     init {
         loadCartFromPreferences()
     }
 
+    /** Reconstrói a lista de CartItemModel a partir do SharedPreferences */
     private fun loadCartFromPreferences() {
         viewModelScope.launch {
-            val cartMap = ShoppingCartUtils.getCartMap(appContext)
-            // Aqui voc\xea precisaria converter o mapa de ID->quantidade em uma lista de CartItemModel
-            // Isso requer acesso ao reposit\xF3rio de produtos para obter os detalhes completos
-            // Por enquanto, vamos manter o estado inicial vazio e atualizar conforme as opera\xE7\xF5es ocorrem
+            val cartMap = withContext(Dispatchers.IO) {
+                ShoppingCartUtils.getCartMap(appContext) // Map<productId, qty>
+            }
+
+            if (cartMap.isEmpty()) {
+                _cartItems.value = emptyList()
+                updateUiStateFromPrefs(emptyList())
+                return@launch
+            }
+
+            val items = mutableListOf<CartItemModel>()
+
+            for ((productId, qty) in cartMap) {
+                if (qty <= 0) continue
+
+                val product: ProductModel? = withContext(Dispatchers.IO) {
+                    getProductByIdUseCase(productId)
+                }
+
+                if (product != null) {
+                    items += CartItemModel(product = product, quantity = qty)
+                } else {
+                    // Se o produto não existir mais, opcionalmente limpar esse ID do carrinho
+                    // ShoppingCartUtils.clearProduct(appContext, productId, 0L)
+                }
+            }
+
+            _cartItems.value = items
+            updateUiStateFromPrefs(items)
         }
     }
 
+    /** Lê totais salvos no ShoppingCartUtils e monta o CartUiState */
+    private fun updateUiStateFromPrefs(currentItems: List<CartItemModel>) {
+        val totalWithout = ShoppingCartUtils.getTotalWithoutCommission(appContext)
+        val totalWith = ShoppingCartUtils.getTotalWithCommission(appContext)
+        val totalQty =
+            if (currentItems.isNotEmpty()) currentItems.sumOf { it.quantity }
+            else ShoppingCartUtils.getTotalQuantity(appContext)
+
+        _uiState.value = CartUiState(
+            items = currentItems,
+            totalQuantity = totalQty,
+            totalWithoutCommission = totalWithout,
+            totalWithCommission = totalWith,
+            isEmpty = (totalQty <= 0 || totalWith <= 0L)
+        )
+    }
+
+    // ---------- Operações de carrinho (usando ShoppingCartUtils + estado em memória) ----------
+
     fun addProduct(product: ProductModel) {
         viewModelScope.launch {
-            // Atualiza o SharedPreferences
             ShoppingCartUtils.addProduct(appContext, product.id, product.price)
 
-            // Atualiza o estado em mem\xF3ria
             val currentList = _cartItems.value
             val existing = currentList.find { it.product.id == product.id }
-            if (existing != null) {
-                _cartItems.value = currentList.map {
+            val newList = if (existing != null) {
+                currentList.map {
                     if (it.product.id == product.id) it.copy(quantity = it.quantity + 1) else it
                 }
             } else {
-                _cartItems.value = currentList + CartItemModel(product, 1)
+                currentList + CartItemModel(product, 1)
             }
+            _cartItems.value = newList
+            updateUiStateFromPrefs(newList)
         }
     }
 
     fun removeProduct(product: ProductModel) {
         viewModelScope.launch {
-            // Atualiza o SharedPreferences
             ShoppingCartUtils.removeOneProduct(appContext, product.id, product.price)
 
-            // Atualiza o estado em mem\xF3ria
             val currentList = _cartItems.value
             val existing = currentList.find { it.product.id == product.id }
-            if (existing != null && existing.quantity > 1) {
-                _cartItems.value = currentList.map {
+            val newList = if (existing != null && existing.quantity > 1) {
+                currentList.map {
                     if (it.product.id == product.id) it.copy(quantity = it.quantity - 1) else it
                 }
             } else {
-                _cartItems.value = currentList.filterNot { it.product.id == product.id }
+                currentList.filterNot { it.product.id == product.id }
             }
+            _cartItems.value = newList
+            updateUiStateFromPrefs(newList)
         }
     }
 
     fun removeAllProductItems(product: ProductModel) {
         viewModelScope.launch {
             ShoppingCartUtils.clearProduct(appContext, product.id, product.price)
-            _cartItems.value = _cartItems.value.filterNot { it.product.id == product.id }
+            val newList = _cartItems.value.filterNot { it.product.id == product.id }
+            _cartItems.value = newList
+            updateUiStateFromPrefs(newList)
         }
     }
 
     fun updateProductQuantity(productId: String, quantity: Int, price: Long) {
         viewModelScope.launch {
             if (quantity <= 0) {
-                // Limpa completamente o produto do carrinho
                 ShoppingCartUtils.clearProduct(appContext, productId, price)
-
-                // Atualiza o estado em mem\xF3ria
-                _cartItems.value = _cartItems.value.filterNot { it.product.id == productId }
+                val newList = _cartItems.value.filterNot { it.product.id == productId }
+                _cartItems.value = newList
+                updateUiStateFromPrefs(newList)
                 return@launch
             }
 
-            // Atualiza a quantidade no SharedPreferences
             val currentQty = ShoppingCartUtils.getProductQuantity(appContext, productId)
             val diff = quantity - currentQty
 
@@ -99,20 +158,19 @@ class CartViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
 
-            // Atualiza o estado em mem\xF3ria
-            _cartItems.value = _cartItems.value.map {
+            val newList = _cartItems.value.map {
                 if (it.product.id == productId) it.copy(quantity = quantity) else it
             }
+            _cartItems.value = newList
+            updateUiStateFromPrefs(newList)
         }
     }
 
     fun clearCart() {
         viewModelScope.launch {
-            // Limpa o SharedPreferences
             ShoppingCartUtils.clearCart(appContext)
-
-            // Limpa o estado em mem\xF3ria
             _cartItems.value = emptyList()
+            updateUiStateFromPrefs(emptyList())
         }
     }
 
