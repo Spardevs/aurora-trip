@@ -1,10 +1,12 @@
-package br.com.ticpass.pos.presentation.payment
+package br.com.ticpass.pos.presentation.payment.activities
 
 import android.app.AlertDialog
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.CheckBox
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -12,7 +14,8 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.presentation.payment.PaymentProcessingViewModel
+import br.com.ticpass.pos.common.view.TimeoutCountdownView
+import br.com.ticpass.pos.presentation.payment.viewmodel.PaymentProcessingViewModel
 import br.com.ticpass.pos.presentation.payment.coordination.PaymentActivityCoordinator
 import br.com.ticpass.pos.presentation.payment.dialogs.PaymentDialogManager
 import br.com.ticpass.pos.presentation.payment.events.PaymentEventHandler
@@ -44,8 +47,8 @@ class PaymentProcessingActivity : AppCompatActivity(), PaymentEnqueuer {
     private lateinit var dialogEventTextView: TextView
     private lateinit var dialogPaymentMethodTextView: TextView
     private lateinit var dialogPaymentAmountTextView: TextView
-    private lateinit var dialogQRCodeImageView: android.widget.ImageView
-    private lateinit var dialogTimeoutCountdownView: br.com.ticpass.pos.common.view.TimeoutCountdownView
+    private lateinit var dialogQRCodeImageView: ImageView
+    private lateinit var dialogTimeoutCountdownView: TimeoutCountdownView
     private lateinit var dialogCancelButton: Button
     private lateinit var queueTitleTextView: TextView
 
@@ -76,7 +79,7 @@ class PaymentProcessingActivity : AppCompatActivity(), PaymentEnqueuer {
         }
 
         // Set up transactionless checkbox listener
-        val transactionlessCheckbox = findViewById<android.widget.CheckBox>(R.id.checkbox_transactionless)
+        val transactionlessCheckbox = findViewById<CheckBox>(R.id.checkbox_transactionless)
         transactionlessCheckbox.setOnCheckedChangeListener { _, isChecked ->
             // Update all queued items when checkbox state changes
             paymentViewModel.toggleTransactionless(isChecked)
@@ -228,7 +231,7 @@ class PaymentProcessingActivity : AppCompatActivity(), PaymentEnqueuer {
     }
 
     override fun enqueuePayment(method: SystemPaymentMethod) {
-        val transactionlessCheckbox = findViewById<android.widget.CheckBox>(R.id.checkbox_transactionless)
+        val transactionlessCheckbox = findViewById<CheckBox>(R.id.checkbox_transactionless)
         val isTransactionlessEnabled = PaymentUIUtils.isTransactionlessModeEnabled(transactionlessCheckbox)
 
         val paymentData = PaymentUIUtils.createPaymentData(

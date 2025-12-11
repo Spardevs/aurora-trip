@@ -6,6 +6,7 @@ data class CartUiState(
     val items: List<CartItemModel> = emptyList(),
     val totalQuantity: Int = 0,
     val totalWithoutCommission: Long = 0L,
+    val totalCommission: Long = 0L,
     val totalWithCommission: Long = 0L,
     val isEmpty: Boolean = true
 )

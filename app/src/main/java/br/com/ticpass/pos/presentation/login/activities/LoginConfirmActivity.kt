@@ -56,7 +56,7 @@ class LoginConfirmActivity : BaseActivity() {
 
     private fun loginFinish() {
         val name = findViewById<EditText>(R.id.nameText).text.toString()
-        SessionPrefsManagerUtils.saveOperatorName(name)
+        SessionPrefsManagerUtils.saveCashierName(name)
         val intent = Intent(this, LoginLoadingDownloadActivity::class.java)
         startActivity(intent)
         finish()

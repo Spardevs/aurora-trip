@@ -182,7 +182,7 @@ class LoginLoadingDownloadActivity : AppCompatActivity() {
             val menuId = SessionPrefsManagerUtils.getSelectedMenuId()
             val posId = SessionPrefsManagerUtils.getPosId()
             val deviceId = SessionPrefsManagerUtils.getDeviceId()
-            val cashierName = SessionPrefsManagerUtils.getOperatorName()
+            val cashierName = SessionPrefsManagerUtils.getCashierName()
             val userId = loggedUser?.id
 
             if (allDataPresent(menuId, posId, deviceId, cashierName, userId)) {
@@ -207,7 +207,7 @@ class LoginLoadingDownloadActivity : AppCompatActivity() {
 | `menuId` | `SessionPrefsManagerUtils.getSelectedMenuId()` |
 | `posId` | `SessionPrefsManagerUtils.getPosId()` |
 | `deviceId` | `SessionPrefsManagerUtils.getDeviceId()` |
-| `cashierName` | `SessionPrefsManagerUtils.getOperatorName()` |
+| `cashierName` | `SessionPrefsManagerUtils.getCashierName()` |
 | `userId` | `UserDao.getAnyUserOnce()?.id` |
 
 ## Navigation

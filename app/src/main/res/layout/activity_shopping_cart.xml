@@ -18,15 +18,16 @@
         <!-- Barra superior -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
             android:background="@color/colorAccent"
-            android:orientation="horizontal"
-            android:paddingHorizontal="16dp">
+            android:paddingHorizontal="16dp"
+            android:gravity="center"
+            android:orientation="horizontal">
 
             <ImageButton
                 android:id="@+id/btnBack"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/ic_arrow_left"
                 app:tint="@color/material_dynamic_neutral_variant95" />
@@ -38,11 +39,12 @@
 
             <TextView
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:gravity="center"
                 android:text="Carrinho"
-                android:textColor="#E3E3F4"
-                android:textSize="24sp"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
             <View
@@ -51,12 +53,12 @@
                 android:layout_weight="1" />
 
             <ImageButton
-                android:id="@+id/btnOptionCart"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:id="@+id/btnClearCart"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_options_vertical"
-                app:tint="@color/material_dynamic_neutral_variant95" />
+                android:src="@drawable/ic_trash"
+                app:tint="@color/colorWhite" />
 
         </LinearLayout>
 
@@ -85,5 +87,11 @@
             android:visibility="gone" />
 
     </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/paymentSheetContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom" />
 
 </FrameLayout>

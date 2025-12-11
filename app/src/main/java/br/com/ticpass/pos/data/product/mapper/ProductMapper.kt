@@ -13,12 +13,14 @@ fun ProductDto.toEntity(): ProductEntity {
 
     return ProductEntity(
         id = this.id,
+        menuId = this.menu,
         category = categoryId,
         name = this.label,
         thumbnail = this.thumbnail?.id ?: "",
         price = this.price.toLong(),
         stock = 0,
-        isEnabled = true
+        isEnabled = true,
+        menuProductId = this.menuProductId
     )
 }
 
@@ -30,5 +32,6 @@ fun ProductEntity.toDomain(): ProductModel =
         thumbnail = thumbnail,
         price = price,
         stock = stock,
-        isEnabled = isEnabled
+        isEnabled = isEnabled,
+        menuProductId = menuProductId
     )

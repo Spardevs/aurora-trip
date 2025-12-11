@@ -2,7 +2,7 @@
 
 ## Overview
 
-`LoginConfirmActivity` displays a summary of the selected menu and POS, and prompts the user to enter their operator name before finalizing the session.
+`LoginConfirmActivity` displays a summary of the selected menu and POS, and prompts the user to enter their atendente name before finalizing the session.
 
 ## Location
 
@@ -13,8 +13,8 @@ app/src/main/java/br/com/ticpass/pos/presentation/login/activities/LoginConfirmA
 ## Responsibilities
 
 1. **Display Summary** - Show selected menu, dates, and POS
-2. **Collect Operator Name** - Get the cashier/operator name
-3. **Confirm Session** - Save operator name and proceed
+2. **Collect Atendente Name** - Get the cashier/atendente name
+3. **Confirm Session** - Save atendente name and proceed
 
 ## Screen Content
 
@@ -23,7 +23,7 @@ app/src/main/java/br/com/ticpass/pos/presentation/login/activities/LoginConfirmA
 | Menu Name | `SessionPrefsManagerUtils.getMenuName()` |
 | Event Dates | `SessionPrefsManagerUtils.getMenuStartDate()` / `getMenuEndDate()` |
 | POS Name | `SessionPrefsManagerUtils.getPosName()` |
-| Operator Name | User input (EditText) |
+| Atendente Name | User input (EditText) |
 
 ## Implementation
 
@@ -56,14 +56,14 @@ override fun onCreate(savedInstanceState: Bundle?) {
 private fun loginFinish() {
     val name = findViewById<EditText>(R.id.nameText).text.toString()
     
-    // Validate operator name
+    // Validate atendente name
     if (name.isBlank()) {
-        showError("Por favor, insira o nome do operador")
+        showError("Por favor, insira o nome do atendente")
         return
     }
     
-    // Save operator name
-    SessionPrefsManagerUtils.saveOperatorName(name)
+    // Save atendente name
+    SessionPrefsManagerUtils.saveCashierName(name)
     
     // Navigate to loading/download screen
     val intent = Intent(this, LoginLoadingDownloadActivity::class.java)
@@ -85,7 +85,7 @@ private fun loginFinish() {
 ### Write
 | Key | Value |
 |-----|-------|
-| `operatorName` | Entered operator name |
+| `cashierName` | Entered atendente name |
 
 ## Navigation
 
@@ -105,12 +105,12 @@ res/layout/activity_login_confirm.xml
 | `menuValue` | TextView | Selected menu name |
 | `dateValue` | TextView | Event date range |
 | `posValue` | TextView | Selected POS name |
-| `nameText` | EditText | Operator name input |
+| `nameText` | EditText | Atendente name input |
 | `imageButton` | ImageButton | Confirm button |
 
 ## Validation
 
-- Operator name cannot be empty
+- Atendente name cannot be empty
 - Shows error message if validation fails
 
 ## Date Formatting

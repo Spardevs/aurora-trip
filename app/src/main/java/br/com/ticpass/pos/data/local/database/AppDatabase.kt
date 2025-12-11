@@ -38,7 +38,7 @@ import br.com.ticpass.pos.data.menupin.local.entity.MenuPinEntity
         RefundQueueEntity::class,
         MenuPinEntity::class
     ],
-    version = 3,
+    version = 5,
     exportSchema = false
 )
 
@@ -69,7 +69,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "ticpass_database"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }

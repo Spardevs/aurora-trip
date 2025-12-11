@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_columnWeight="1"
+    android:layout_marginHorizontal="6dp"
+    android:layout_marginVertical="8dp"
+    android:background="@drawable/rounded_button_background"
+    android:orientation="horizontal"
+    android:gravity="center"
+    android:paddingVertical="10dp"
+    android:paddingHorizontal="14dp">
+
+    <ImageView
+        android:id="@+id/iv_payment_icon"
+        android:layout_width="@dimen/payment_icon_size"
+        android:layout_height="@dimen/payment_icon_size"
+        android:layout_marginEnd="8dp"
+        tools:srcCompat="@drawable/ic_credit" />
+
+    <TextView
+        android:id="@+id/tv_payment_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/text_sm"
+        android:textColor="@color/colorGreen"
+        android:textStyle="bold"
+        tools:text="Crédito" />
+
+</LinearLayout>

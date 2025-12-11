@@ -32,7 +32,7 @@ class CategoryRepositoryImpl @Inject constructor(
             val count = response.categories?.size ?: 0
             Timber.i("Received categories response: %d", count)
 
-            val entities: List<CategoryEntity> = response.categories?.map { it.toDomain().toEntity() } ?: emptyList()
+            val entities: List<CategoryEntity> = response.categories?.map { it.toEntity() } ?: emptyList()
 
             if (entities.isNotEmpty()) {
                 localDataSource.insertAll(entities)

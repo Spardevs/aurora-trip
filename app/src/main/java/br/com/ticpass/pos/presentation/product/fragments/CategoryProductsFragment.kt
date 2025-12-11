@@ -5,21 +5,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.commit
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import br.com.ticpass.pos.R
-import androidx.fragment.app.activityViewModels
 import br.com.ticpass.pos.presentation.product.adapters.ProductAdapter
 import br.com.ticpass.pos.presentation.product.viewmodels.ProductViewModel
 import br.com.ticpass.pos.presentation.shoppingCart.viewmodels.CartViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class CategoryProductsFragment : Fragment() {
@@ -59,7 +58,9 @@ class CategoryProductsFragment : Fragment() {
         swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout)
 
         recyclerView.layoutManager = GridLayoutManager(requireContext(), 3)
-        adapter = ProductAdapter(requireContext(), emptyList(),
+        adapter = ProductAdapter(
+            requireContext(),
+            emptyList(),
             onProductClick = { product ->
                 cartViewModel.addProduct(product)
             },
@@ -68,8 +69,6 @@ class CategoryProductsFragment : Fragment() {
             }
         )
         recyclerView.adapter = adapter
-
-
 
         // Habilitar pull to refresh apenas para a aba "Todos"
         swipeRefreshLayout.isEnabled = (categoryId == "all" || categoryId == null)
@@ -80,14 +79,13 @@ class CategoryProductsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Configurar o listener do pull to refresh
         swipeRefreshLayout.setOnRefreshListener {
             refreshData()
         }
 
         lifecycleScope.launch {
             productViewModel.products.collectLatest { products ->
-                adapter.updateProducts(products) // Atualiza lista só quando produtos mudam
+                adapter.updateProducts(products)
                 swipeRefreshLayout.isRefreshing = false
             }
         }
@@ -95,16 +93,30 @@ class CategoryProductsFragment : Fragment() {
         lifecycleScope.launch {
             cartViewModel.cartItems.collect { cartItems ->
                 val quantitiesMap = cartItems.associate { it.product.id.toString() to it.quantity }
-                adapter.updateCartQuantities(quantitiesMap) // Atualiza badges conforme carrinho muda
+                adapter.updateCartQuantities(quantitiesMap)
             }
         }
-
     }
 
     private fun refreshData() {
-        // Disparar o refresh no ViewModel apenas para a aba "Todos"
         if (categoryId == "all" || categoryId == null) {
             productViewModel.refreshProducts()
+        }
+    }
+
+    /**
+     * Chamado pela Activity de produtos para ajustar o espaço
+     * inferior de acordo com a altura atual do PaymentSheet.
+     */
+    fun updateBottomPadding(bottomPaddingPx: Int) {
+        recyclerView.post {
+            recyclerView.setPadding(
+                recyclerView.paddingLeft,
+                recyclerView.paddingTop,
+                recyclerView.paddingRight,
+                bottomPaddingPx
+            )
+            recyclerView.clipToPadding = false
         }
     }
 

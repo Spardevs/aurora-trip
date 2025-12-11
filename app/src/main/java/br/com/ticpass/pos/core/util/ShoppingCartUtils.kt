@@ -12,8 +12,11 @@ object ShoppingCartUtils {
 
     private const val PREFS_NAME = "ShoppingCart"
     private const val CART_KEY = "cart" // JSON string: { "productId": qty, ... }
-    private const val TOTAL_WITHOUT_KEY = "total_without" // Long (cents)
+
+    // Novos totais
+    private const val TOTAL_COMMISSION_KEY = "total_commission" // Long (cents)
     private const val TOTAL_WITH_COMMISSION_KEY = "total_with_commission" // Long (cents)
+    private const val TOTAL_WITHOUT_COMMISSION_KEY = "total_without_commission" // Long (cents)
 
     private fun prefs(context: Context): SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -54,19 +57,37 @@ object ShoppingCartUtils {
         return map
     }
 
-    fun getTotalWithoutCommission(context: Context): Long {
-        return prefs(context).getLong(TOTAL_WITHOUT_KEY, 0L)
+    /** Total da comissão salva (já separado) */
+    fun getTotalCommission(context: Context): Long {
+        return prefs(context).getLong(TOTAL_COMMISSION_KEY, 0L)
     }
 
+    /** Total com comissão */
     fun getTotalWithCommission(context: Context): Long {
         return prefs(context).getLong(TOTAL_WITH_COMMISSION_KEY, 0L)
     }
 
+    /** Total sem comissão */
+    fun getTotalWithoutCommission(context: Context): Long {
+        return prefs(context).getLong(TOTAL_WITHOUT_COMMISSION_KEY, 0L)
+    }
+
+    /**
+     * Salva:
+     * - totalWithout: total sem comissão
+     * - totalWith: total com comissão
+     * - commission: diferença (totalWith - totalWithout)
+     */
     private fun saveTotals(context: Context, totalWithout: Long, totalWith: Long) {
-        prefs(context).edit()
-            .putLong(TOTAL_WITHOUT_KEY, if (totalWithout < 0L) 0L else totalWithout)
-            .putLong(TOTAL_WITH_COMMISSION_KEY, if (totalWith < 0L) 0L else totalWith)
-            .apply()
+        val safeTotalWithout = totalWithout.coerceAtLeast(0L)
+        val safeTotalWith = totalWith.coerceAtLeast(0L)
+        val commission = (safeTotalWith - safeTotalWithout).coerceAtLeast(0L)
+
+        prefs(context).edit {
+            putLong(TOTAL_WITHOUT_COMMISSION_KEY, safeTotalWithout)
+            putLong(TOTAL_WITH_COMMISSION_KEY, safeTotalWith)
+            putLong(TOTAL_COMMISSION_KEY, commission)
+        }
     }
 
     // Recalcula apenas o total com comissão a partir do totalWithout (suspend porque usa CommisionUtils)
@@ -87,11 +108,12 @@ object ShoppingCartUtils {
             cart.put(productId, newQty)
             saveCartJson(context, cart)
 
-            // atualizar totalWithout
-            val totalWithout = prefs.getLong(TOTAL_WITHOUT_KEY, 0L) + price
-            val totalWith = recalcTotalWithCommission(totalWithout)
+            // Atualizar totalWithout (sem comissão)
+            val currentTotalWithout = prefs.getLong(TOTAL_WITHOUT_COMMISSION_KEY, 0L)
+            val newTotalWithout = currentTotalWithout + price
+            val newTotalWith = recalcTotalWithCommission(newTotalWithout)
 
-            saveTotals(context, totalWithout, totalWith)
+            saveTotals(context, newTotalWithout, newTotalWith)
         }
     }
 
@@ -112,9 +134,11 @@ object ShoppingCartUtils {
             }
             saveCartJson(context, cart)
 
-            val totalWithout = (prefs.getLong(TOTAL_WITHOUT_KEY, 0L) - price).coerceAtLeast(0L)
-            val totalWith = recalcTotalWithCommission(totalWithout)
-            saveTotals(context, totalWithout, totalWith)
+            val currentTotalWithout = prefs.getLong(TOTAL_WITHOUT_COMMISSION_KEY, 0L)
+            val newTotalWithout = (currentTotalWithout - price).coerceAtLeast(0L)
+            val newTotalWith = recalcTotalWithCommission(newTotalWithout)
+
+            saveTotals(context, newTotalWithout, newTotalWith)
         }
     }
 
@@ -132,9 +156,11 @@ object ShoppingCartUtils {
             saveCartJson(context, cart)
 
             val subtract = price * qty.toLong()
-            val totalWithout = (prefs.getLong(TOTAL_WITHOUT_KEY, 0L) - subtract).coerceAtLeast(0L)
-            val totalWith = recalcTotalWithCommission(totalWithout)
-            saveTotals(context, totalWithout, totalWith)
+            val currentTotalWithout = prefs.getLong(TOTAL_WITHOUT_COMMISSION_KEY, 0L)
+            val newTotalWithout = (currentTotalWithout - subtract).coerceAtLeast(0L)
+            val newTotalWith = recalcTotalWithCommission(newTotalWithout)
+
+            saveTotals(context, newTotalWithout, newTotalWith)
         }
     }
 
@@ -142,6 +168,7 @@ object ShoppingCartUtils {
     suspend fun clearCart(context: Context) {
         withContext(Dispatchers.IO) {
             saveCartJson(context, JSONObject("{}"))
+            // zera todos os totais
             saveTotals(context, 0L, 0L)
         }
     }

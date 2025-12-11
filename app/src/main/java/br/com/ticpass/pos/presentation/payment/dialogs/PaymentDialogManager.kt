@@ -20,7 +20,7 @@ import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.presentation.payment.PaymentProcessingViewModel
+import br.com.ticpass.pos.presentation.payment.viewmodel.PaymentProcessingViewModel
 import br.com.ticpass.pos.presentation.payment.states.PaymentProcessingUiState
 import br.com.ticpass.pos.core.payment.models.SystemPaymentMethod
 import br.com.ticpass.pos.common.view.TimeoutCountdownView

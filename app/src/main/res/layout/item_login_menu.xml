@@ -21,7 +21,7 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_margin="3dp"
-            android:src="@drawable/icon"
+            android:src="@drawable/placeholder_image"
             android:contentDescription="@string/manu_image"
             android:scaleType="centerCrop" />
 

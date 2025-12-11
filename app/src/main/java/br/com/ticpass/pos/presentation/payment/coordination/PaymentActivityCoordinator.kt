@@ -5,9 +5,8 @@ import android.util.Log
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.lifecycle.LifecycleCoroutineScope
-import br.com.ticpass.Constants.CONVERSION_FACTOR
 import br.com.ticpass.pos.R
-import br.com.ticpass.pos.presentation.payment.PaymentProcessingViewModel
+import br.com.ticpass.pos.presentation.payment.viewmodel.PaymentProcessingViewModel
 import br.com.ticpass.pos.presentation.payment.states.PaymentProcessingUiState
 import br.com.ticpass.pos.presentation.payment.dialogs.PaymentDialogManager
 import br.com.ticpass.pos.presentation.payment.events.PaymentEventHandler

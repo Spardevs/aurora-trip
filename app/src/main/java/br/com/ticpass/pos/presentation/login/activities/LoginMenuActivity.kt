@@ -14,19 +14,19 @@ import br.com.ticpass.pos.core.util.SessionPrefsManagerUtils
 import br.com.ticpass.pos.domain.menu.model.Menu
 import br.com.ticpass.pos.presentation.login.adapters.LoginMenuAdapter
 import br.com.ticpass.pos.presentation.login.states.LoginMenuUiState
-
 import br.com.ticpass.pos.presentation.login.viewmodels.LoginMenuViewModel
 import br.com.ticpass.pos.presentation.login.viewmodels.MenuLogoViewModel
 import br.com.ticpass.pos.presentation.common.LoginLoadingFragment
 import br.com.ticpass.pos.presentation.login.fragments.LoginPosFragment
-
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 
 @AndroidEntryPoint
 class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
+
     private val menuViewModel: LoginMenuViewModel by viewModels()
     private val logoViewModel: MenuLogoViewModel by viewModels()
     private lateinit var recyclerView: RecyclerView
@@ -34,8 +34,6 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
     private var logoFiles: Map<String, File> = emptyMap()
     private var loadingFragment: LoginLoadingFragment? = null
     private var expectedLogoCount: Int = 0
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +44,10 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
         setupViews()
         observeViewModels()
 
-        loadingFragment = LoginLoadingFragment.newInstance(getString(R.string.loading_default), cancelable = true)
+        loadingFragment = LoginLoadingFragment.newInstance(
+            getString(R.string.loading_default),
+            cancelable = true
+        )
         supportFragmentManager.beginTransaction()
             .add(android.R.id.content, loadingFragment!!, "login_loading")
             .commitAllowingStateLoss()
@@ -66,6 +67,7 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
     }
 
     private fun observeViewModels() {
+        // Observa menus
         lifecycleScope.launch {
             menuViewModel.uiState.collect { state ->
                 when (state) {
@@ -82,11 +84,19 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
                             loadingFragment?.updateMessage(getString(R.string.downloading_logos))
                             loadingFragment?.showProgress(true)
 
+                            // Dispara downloads de logo para cada menu que tiver logo
                             menus.forEach { menu ->
                                 menu.logo?.let { rawLogo ->
                                     Timber.d("Activity -> forcing download for menu=${menu.id} rawLogo=$rawLogo")
                                     menuViewModel.downloadLogoForMenu(menu.id, rawLogo)
                                 }
+                            }
+
+                            // Fallback: garante que o loading suma mesmo se algumas logos falharem
+                            lifecycleScope.launch {
+                                // Ajuste o tempo conforme a UX desejada
+                                delay(2000)
+                                removeLoadingFragmentIfExists()
                             }
                         } else {
                             removeLoadingFragmentIfExists()
@@ -95,6 +105,7 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
                     is LoginMenuUiState.Error -> {
                         loadingFragment?.updateMessage(state.message)
                         loadingFragment?.showProgress(false)
+                        removeLoadingFragmentIfExists()
                         showError(state.message)
                     }
                     is LoginMenuUiState.Empty -> {
@@ -112,6 +123,7 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
             }
         }
 
+        // Observa logos locais (apenas pra atualizar o mapa de logos e UI)
         lifecycleScope.launch {
             logoViewModel.localLogosState.collect { files ->
                 logoFiles = files.associateBy { file ->
@@ -121,6 +133,7 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
                     showMenus()
                 }
 
+                // Lógica anterior de remover loading com base em logos baixadas
                 if (expectedLogoCount == 0) {
                     removeLoadingFragmentIfExists()
                 } else if (files.size >= expectedLogoCount) {
@@ -145,14 +158,6 @@ class LoginMenuActivity : AppCompatActivity(), LoginLoadingFragment.Listener {
             onClick = { selectedMenu -> onMenuClicked(selectedMenu) }
         )
         recyclerView.adapter = adapter
-    }
-
-    private fun downloadMenuLogos(menus: List<Menu>) {
-        menus.forEach { menu ->
-            menu.logo?.let { rawLogo ->
-                menuViewModel.downloadLogoForMenu(menu.id, rawLogo)
-            }
-        }
     }
 
     private fun onMenuClicked(menu: Menu) {
