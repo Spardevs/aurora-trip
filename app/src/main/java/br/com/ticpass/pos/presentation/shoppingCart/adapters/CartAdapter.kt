@@ -10,16 +10,25 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import br.com.ticpass.pos.R
+import br.com.ticpass.pos.core.util.CommisionUtils
+import br.com.ticpass.pos.core.util.NumericConversionUtils
 import br.com.ticpass.pos.domain.shoppingCart.model.CartItemModel
 import com.bumptech.glide.Glide
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 import java.text.NumberFormat
 import java.util.Locale
 
 class CartAdapter(
     private val onIncrease: (CartItemModel) -> Unit,
-    private val onDecrease: (CartItemModel) -> Unit
+    private val onDecrease: (CartItemModel) -> Unit,
+    private val onRemove: (CartItemModel) -> Unit
 ) : ListAdapter<CartItemModel, CartAdapter.CartViewHolder>(Diff()) {
+
+    private val numericConversionUtils = NumericConversionUtils
+    private val commissionUtils = CommisionUtils
 
     inner class CartViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val imgThumbnail: ImageView = view.findViewById(R.id.imgThumbnail)
@@ -40,8 +49,12 @@ class CartAdapter(
         val item = getItem(position)
         val context = holder.itemView.context
 
+        CoroutineScope(Dispatchers.Main).launch {
+            val price = commissionUtils.calculateTotalWithCommission(item.product.price)
+            holder.tvPrice.text = numericConversionUtils.convertLongToBrCurrencyString(price.toLong())
+        }
+
         holder.tvName.text = item.product.name
-        holder.tvPrice.text = formatPrice(item.product.price)
         holder.tvQuantity.text = item.quantity.toString()
 
         val thumbName = item.product.thumbnail
@@ -58,13 +71,14 @@ class CartAdapter(
 
         holder.btnIncrease.setOnClickListener { onIncrease(item) }
         holder.btnDecrease.setOnClickListener { onDecrease(item) }
+
+        // Long press para remover o produto do carrinho
+        holder.itemView.setOnLongClickListener {
+            onRemove(item)
+            true
+        }
     }
 
-    private fun formatPrice(priceInCents: Long): String {
-        val value = priceInCents / 100.0
-        return NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
-            .format(value)
-    }
 
     class Diff : DiffUtil.ItemCallback<CartItemModel>() {
         override fun areItemsTheSame(oldItem: CartItemModel, newItem: CartItemModel) =

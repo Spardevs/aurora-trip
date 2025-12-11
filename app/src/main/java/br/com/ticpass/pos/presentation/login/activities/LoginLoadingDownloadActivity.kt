@@ -65,7 +65,7 @@ class LoginLoadingDownloadActivity : AppCompatActivity() {
             val selectedMenuId = SessionPrefsManagerUtils.getSelectedMenuId()
             val selectedPosId = SessionPrefsManagerUtils.getPosId()
             val deviceId = SessionPrefsManagerUtils.getDeviceId()
-            val cashierName = SessionPrefsManagerUtils.getOperatorName()
+            val cashierName = SessionPrefsManagerUtils.getCashierName()
 
             if (selectedMenuId != null && selectedPosId != null && deviceId != null && cashierName != null && userId != null) {
                 loadingDownloadViewModel.startCompleteProcess(

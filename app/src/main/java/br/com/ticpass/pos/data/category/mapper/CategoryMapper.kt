@@ -11,10 +11,19 @@ fun CategoryDto.toDomain(): Category {
     )
 }
 
-fun Category.toEntity(): CategoryEntity {
+fun Category.toEntity(menuId: String): CategoryEntity {
     return CategoryEntity(
         id = this.id,
+        menuId = menuId,
         name = this.name
+    )
+}
+
+fun CategoryDto.toEntity(): CategoryEntity {
+    return CategoryEntity(
+        id = this.id,
+        menuId = this.menu,
+        name = this.label
     )
 }
 

@@ -59,7 +59,7 @@ class LoginMenuAdapter(
             // Don't try to load menu.logo as it's just an ID, not a URL or file path
             val imageSource: Any = when {
                 logoFile != null && logoFile.exists() -> logoFile
-                else -> R.drawable.icon // Fallback placeholder
+                else -> R.drawable.placeholder_image // Fallback placeholder
             }
 
             Glide.with(itemView.context)

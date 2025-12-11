@@ -75,6 +75,8 @@ class CartViewModel @Inject constructor(
     private fun updateUiStateFromPrefs(currentItems: List<CartItemModel>) {
         val totalWithout = ShoppingCartUtils.getTotalWithoutCommission(appContext)
         val totalWith = ShoppingCartUtils.getTotalWithCommission(appContext)
+        val totalCommission = ShoppingCartUtils.getTotalCommission(appContext)
+
         val totalQty =
             if (currentItems.isNotEmpty()) currentItems.sumOf { it.quantity }
             else ShoppingCartUtils.getTotalQuantity(appContext)
@@ -83,6 +85,7 @@ class CartViewModel @Inject constructor(
             items = currentItems,
             totalQuantity = totalQty,
             totalWithoutCommission = totalWithout,
+            totalCommission = totalCommission,
             totalWithCommission = totalWith,
             isEmpty = (totalQty <= 0 || totalWith <= 0L)
         )
@@ -124,6 +127,10 @@ class CartViewModel @Inject constructor(
             _cartItems.value = newList
             updateUiStateFromPrefs(newList)
         }
+    }
+
+    fun reloadCartFromPrefs() {
+        loadCartFromPreferences()
     }
 
     fun removeAllProductItems(product: ProductModel) {

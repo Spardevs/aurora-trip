@@ -18,7 +18,7 @@ flowchart TB
     end
 
     subgraph UserInput["User Input"]
-        NameET["nameText<br/><i>EditText - Operator Name</i>"]
+        NameET["nameText<br/><i>EditText - Atendente Name</i>"]
     end
 
     subgraph Navigation["Navigation"]
@@ -44,8 +44,8 @@ flowchart TB
     LCA -->|"displays formatted dates"| DateTV
     LCA -->|"displays"| PosTV
 
-    LCA -->|"gets operator name"| NameET
-    LCA -->|"saves operatorName"| SPM
+    LCA -->|"gets atendente name"| NameET
+    LCA -->|"saves cashierName"| SPM
 
     ConfirmBtn -->|"onClick"| LLDA
 

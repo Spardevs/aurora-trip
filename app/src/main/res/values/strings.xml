@@ -70,7 +70,7 @@
     <string name="confirm_payment">Confirm</string>
     <string name="menu_total">Total</string>
     <string name="menu_opening">Opening</string>
-    <string name="operator_name">Operator</string>
+    <string name="cashier_name">Atendente</string>
     <string name="navigation_drawer_open">Open menu</string>
     <string name="navigation_drawer_close">Close menu</string>
     <string name="menu_products">Products</string>

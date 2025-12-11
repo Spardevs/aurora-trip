@@ -1,10 +1,9 @@
-package br.com.ticpass.pos.presentation.payment
+package br.com.ticpass.pos.presentation.payment.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.ticpass.pos.data.acquirers.workers.jobs.CleanTransactions
-import br.com.ticpass.pos.presentation.nfc.states.NFCAction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import br.com.ticpass.pos.core.queue.error.ErrorHandlingAction
@@ -30,7 +29,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 

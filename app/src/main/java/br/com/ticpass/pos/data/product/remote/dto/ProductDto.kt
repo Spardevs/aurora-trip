@@ -7,6 +7,7 @@ data class ProductDto(
     val thumbnail: ThumbnailDto?,
     val category: String?,  // corrigido para String?
     val menu: String,
+    val menuProductId: Int,  // 0-65535, menu-specific product identifier
     val createdBy: String,  // já está correto como String
     val createdAt: String,
     val updatedAt: String

@@ -31,7 +31,8 @@ class ProductRepositoryImpl @Inject constructor(
                     thumbnail = entity.thumbnail,
                     price = entity.price,
                     stock = entity.stock,
-                    isEnabled = entity.isEnabled
+                    isEnabled = entity.isEnabled,
+                    menuProductId = entity.menuProductId
                 )
             }
         }

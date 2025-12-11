@@ -88,12 +88,12 @@ object SessionPrefsManagerUtils {
         return prefs.getString("proxy_credentials", null)
     }
 
-    fun saveOperatorName(name: String) {
-        prefs.edit { putString("operator_name", name) }
+    fun saveCashierName(name: String) {
+        prefs.edit { putString("cashier_name", name) }
     }
 
-    fun getOperatorName(): String? {
-        return prefs.getString("operator_name", null)
+    fun getCashierName(): String? {
+        return prefs.getString("cashier_name", null)
     }
 
     fun saveDeviceId(id: String) {

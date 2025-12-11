@@ -49,7 +49,7 @@ MainActivity (Entry Point)
 | `LoginActivity` | Email/password or QR code authentication |
 | `LoginMenuActivity` | Select menu/event to work with |
 | `LoginPosActivity` | Select POS terminal |
-| `LoginConfirmActivity` | Confirm session details and operator name |
+| `LoginConfirmActivity` | Confirm session details and atendente name |
 | `LoginLoadingDownloadActivity` | Sync data (categories, products, thumbnails, pins) |
 
 ### Scanner
@@ -110,7 +110,7 @@ Session data is managed via `SessionPrefsManagerUtils`:
 - `menuId` - Selected menu/event
 - `posId` - Selected POS terminal
 - `deviceId` - Device identifier
-- `operatorName` - Current operator name
+- `cashierName` - Current atendente name
 
 ## See Also
 

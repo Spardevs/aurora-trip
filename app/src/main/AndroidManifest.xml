@@ -164,7 +164,7 @@
 
         <!-- Testing Activities -->
         <activity
-            android:name=".presentation.payment.PaymentProcessingActivity"
+            android:name=".presentation.payment.activities.PaymentProcessingActivity"
             android:exported="true" />
 
         <activity

@@ -7,5 +7,6 @@ data class ProductModel(
     val thumbnail: String,
     val price: Long,
     val stock: Int,
-    val isEnabled: Boolean
+    val isEnabled: Boolean,
+    val menuProductId: Int  // 0-65535, menu-specific product identifier
 )
